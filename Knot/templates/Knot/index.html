@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knotwork — Learn Together</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef6ff; color: #102a43; }
+        header { background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%); color: white; padding: 48px 10%; }
+        header h1 { font-size: 3rem; margin: 0 0 16px; }
+        header p { max-width: 760px; line-height: 1.7; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 10%; background: rgba(255,255,255,.9); position: sticky; top: 0; z-index: 20; }
+        nav a { color: #0f172a; text-decoration: none; margin-left: 18px; font-weight: 600; }
+        .section { max-width: 1100px; margin: 0 auto; padding: 40px 10%; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+        .card { background: white; border-radius: 24px; padding: 28px; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08); }
+        .label { display: inline-block; margin-bottom: 14px; color: #0ea5e9; font-weight: 700; }
+        .stars { color: #fbbf24; margin-bottom: 18px; }
+        footer { padding: 24px 10%; text-align: center; color: #475569; }
+    </style>
+</head>
+<body>
+<nav>
+    <div><strong>Knotwork</strong></div>
+    <div>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'live_rooms' %}">Live Rooms</a>
+        <a href="{% url 'donations' %}">Donate</a>
+        <a href="{% url 'reviews' %}">Reviews</a>
+        <a href="{% url 'contact' %}">Contact</a>
+    </div>
+</nav>
+<header>
+    <h1>Learn together with live calls, community rooms, and world-class peer feedback.</h1>
+    <p>Knotwork connects learners, mentors, and creators across borders. Discover live voice and video collaborations, contribute reviews, and support the platform with donations.</p>
+</header>
+<section class="section">
+    <div class="card">
+        <span class="label">Featured rooms</span>
+        <div class="grid">
+            {% for room in featured_rooms %}
+                <div>
+                    <h3>{{ room.title }}</h3>
+                    <p>{{ room.description|truncatechars:140 }}</p>
+                    <p><strong>Host:</strong> {{ room.host_name }}</p>
+                    <p><strong>Type:</strong> {{ room.get_room_type_display }}</p>
+                    <p><strong>Schedule:</strong> {{ room.scheduled_at|date:'M d, Y H:i' }}</p>
+                    {% if room.join_url %}
+                        <p><a href="{{ room.join_url }}" target="_blank">Join room</a></p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p>No live rooms available yet. Check back soon.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<section class="section">
+    <div class="card">
+        <span class="label">Popular subjects</span>
+        <div class="grid">
+            {% for subject in subjects %}
+                <div>
+                    <h3>{{ subject.name }}</h3>
+                    <p>{{ subject.description|truncatechars:120 }}</p>
+                </div>
+            {% empty %}
+                <p>Our subject catalogue is being prepared. Create the first subject today.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<section class="section">
+    <div class="card">
+        <span class="label">Learner reviews</span>
+        <div class="grid">
+            {% for review in reviews %}
+                <div>
+                    <div class="stars">{% for _ in review.rating|make_list %}★{% endfor %}</div>
+                    <p><strong>{{ review.author_name }}</strong></p>
+                    <p>{{ review.message|truncatechars:160 }}</p>
+                </div>
+            {% empty %}
+                <p>Share your first review and inspire the community.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<footer>
+    <p>Built for global learners — your community, your room, your future.</p>
+</footer>
+</body>
+</html>

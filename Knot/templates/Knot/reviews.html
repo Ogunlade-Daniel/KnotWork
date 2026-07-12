@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knotwork Reviews</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f0f4ff; color: #0f172a; }
+        .page { max-width: 1100px; margin: 0 auto; padding: 32px; }
+        .top { display: flex; flex-wrap: wrap; gap: 24px; }
+        .summary, .review-form { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08); flex: 1 1 320px; }
+        .review-card { background: #eef2ff; border-radius: 16px; padding: 22px; margin-top: 20px; }
+        label { display: block; margin: 14px 0 8px; font-weight: 700; }
+        input, textarea, select { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font: inherit; }
+        button { margin-top: 18px; border: none; border-radius: 14px; background: #2563eb; color: white; padding: 14px 22px; cursor: pointer; }
+        button:hover { opacity: .95; }
+        .flash { margin-bottom: 24px; padding: 16px; border-radius: 14px; background: #dbeafe; color: #1e3a8a; }
+        .stars { color: #f59e0b; }
+    </style>
+</head>
+<body>
+{% load rating_filters %}
+<div class="page">
+    <div class="top">
+        <section class="summary">
+            <h1>What learners say</h1>
+            <p>Read reviews from our community and add your own to help shape the future of Knotwork.</p>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </section>
+
+        <section class="review-form">
+            <h2>Write a review</h2>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <label for="name">Your name</label>
+                <input id="name" name="name" type="text" placeholder="Anonymous">
+
+                <label for="rating">Rating</label>
+                <select id="rating" name="rating">
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Needs improvement</option>
+                </select>
+
+                <label for="subject">Session/topic</label>
+                <input id="subject" name="subject" type="text" placeholder="Eg. Web development, leadership">
+
+                <label for="message">Review</label>
+                <textarea id="message" name="message" rows="6" required></textarea>
+
+                <button type="submit">Publish review</button>
+            </form>
+        </section>
+    </div>
+
+    {% for review in reviews %}
+        <article class="review-card">
+            <strong>{{ review.author_name }}</strong>
+            <div class="stars">{{ review.rating|star_rating }}</div>
+            <p><strong>{{ review.subject }}</strong></p>
+            <p>{{ review.message }}</p>
+            <small>{{ review.created_at|date:'M d, Y' }}</small>
+        </article>
+    {% empty %}
+        <p>No reviews yet. Be the first to share your experience.</p>
+    {% endfor %}
+</div>
+</body>
+</html>
