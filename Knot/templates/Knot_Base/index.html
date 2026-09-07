@@ -1,0 +1,615 @@
+{% extends "Knot_Base/base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Learn in both directions{% endblock title %}
+
+{% block content %}
+
+
+
+    <!-- ====== HERO ====== -->
+    <section class="hero" id="hero">
+        <div class="hero-knot">⌇</div>
+
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="bi bi-dot"></i> Mutual Learning Network
+                </div>
+                <h1>
+                    Tie the <span>Knot</span><br />
+                    with Knowledge.
+                </h1>
+                <p>
+                    Connect with curious minds, share what you know, and grow together.
+                    KnotWork is where expertise meets exchange — and everyone teaches.
+                </p>
+                <div class="hero-actions">
+                    <a href="#cta" class="btn btn-secondary">
+                        <i class="bi bi-handshake"></i> Start Learning
+                    </a>
+                    <a href="#explore" class="btn btn-outline">
+                        <i class="bi bi-play-circle"></i> Explore
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">12K<span>+</span></span>
+                        <span class="stat-label">Active Learners</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">4.8<span>★</span></span>
+                        <span class="stat-label">Avg. Rating</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">340<span>+</span></span>
+                        <span class="stat-label">Topics</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-card">
+                    <div class="card-header">
+                        <div class="card-avatar">JD</div>
+                        <div>
+                            <div class="card-name">James Delaney</div>
+                            <div class="card-role">Product Designer</div>
+                            <span class="card-tag"><i class="bi bi-flower1"></i> Mentoring</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        “I taught <strong>UX Research</strong> to 12 people this month — and learned
+                        <strong>Python</strong> from a fellow KnotWorker. <br />This is how learning should feel.”
+                    </div>
+                    <div class="card-skills">
+                        <span>#UX</span>
+                        <span>#Python</span>
+                        <span>#Mentorship</span>
+                        <span>#Design</span>
+                    </div>
+                </div>
+
+                <div class="floating-badge" style="top:5%; right:-6%;">
+                    <i class="bi bi-brain"></i> Learn anything
+                </div>
+                <div class="floating-badge" style="bottom:10%; left:-8%;">
+                    <i class="bi bi-people"></i> 2.3k sessions
+                </div>
+                <div class="floating-badge" style="top:50%; right:-12%;">
+                    <i class="bi bi-star-fill" style="color: var(--secondary);"></i> 4.8 ★
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== EXPLORE / FEATURES ====== -->
+    <section class="features" id="explore">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-gem"></i> Explore</span>
+                <h2 class="section-title">
+                    Learn better when you <span>teach</span>.
+                </h2>
+                <p class="section-sub mx-auto">
+                    KnotWork flips the script — you're not just a student, you're a contributor.
+                    Every skill you share earns you access to new knowledge.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card fade-up" style="transition-delay: 0.1s;">
+                    <div class="feature-icon"><i class="bi bi-hand-heart"></i></div>
+                    <h3>Mutual Exchange</h3>
+                    <p>
+                        Give a session, earn a credit. Use it to learn from someone else.
+                        A balanced ecosystem where everyone contributes.
+                    </p>
+                </div>
+                <div class="feature-card fade-up" style="transition-delay: 0.2s;">
+                    <div class="feature-icon"><i class="bi bi-compass"></i></div>
+                    <h3>Diverse Topics</h3>
+                    <p>
+                        From coding to cooking, design to data science — explore
+                        340+ topics taught by real people with real passion.
+                    </p>
+                </div>
+                <div class="feature-card fade-up" style="transition-delay: 0.3s;">
+                    <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
+                    <h3>Meaningful Connections</h3>
+                    <p>
+                        Learning is social. Build relationships with mentors and peers
+                        who challenge and support your growth journey.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== NEW: 5-STEP HOW IT WORKS ====== -->
+    <section class="how-it-works" id="how">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-signpost-2"></i> How It Works</span>
+                <h2 class="section-title">
+                    Your journey in <span>5 steps</span>
+                </h2>
+                <p class="section-sub mx-auto">
+                    From profile to mastery — simple, social, and rewarding.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="steps-5">
+                <div class="step-5 fade-up" style="transition-delay: 0.05s;">
+                    <span class="step-icon"><i class="bi bi-person-plus"></i></span>
+                    <div class="step-number">01</div>
+                    <h4>Create Profile</h4>
+                    <p>Tell us who you are and what drives you.</p>
+                </div>
+                <div class="step-5 fade-up" style="transition-delay: 0.1s;">
+                    <span class="step-icon"><i class="bi bi-tags"></i></span>
+                    <div class="step-number">02</div>
+                    <h4>Add Skills</h4>
+                    <p>List what you teach &amp; what you seek.</p>
+                </div>
+                <div class="step-5 fade-up" style="transition-delay: 0.15s;">
+                    <span class="step-icon"><i class="bi bi-search-heart"></i></span>
+                    <div class="step-number">03</div>
+                    <h4>Find Match</h4>
+                    <p>AI pairs you with the perfect partner.</p>
+                </div>
+                <div class="step-5 fade-up" style="transition-delay: 0.2s;">
+                    <span class="step-icon"><i class="bi bi-chat-dots"></i></span>
+                    <div class="step-number">04</div>
+                    <h4>Connect</h4>
+                    <p>Chat, schedule &amp; start your session.</p>
+                </div>
+                <div class="step-5 fade-up" style="transition-delay: 0.25s;">
+                    <span class="step-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                    <div class="step-number">05</div>
+                    <h4>Learn &amp; Teach</h4>
+                    <p>Grow together, earn credits, repeat.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== NEW: SKILL EXCHANGE MATCH ====== -->
+    <section class="match-section" id="match">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-arrow-left-right"></i> Match</span>
+                <h2 class="section-title">
+                    Find your <span>perfect</span> learning partner
+                </h2>
+                <p class="section-sub mx-auto">
+                    Our AI scans skills, goals, and availability to connect you with the ideal exchange.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="match-grid">
+                <div class="match-visual-box fade-up" style="transition-delay: 0.1s;">
+                    <!-- Match visualization -->
+                    <div class="match-row">
+                        <div class="match-person">
+                            <div class="avatar-sm">Y</div>
+                            <div class="name">You</div>
+                            <span class="skill-tag teach">I teach Python</span>
+                            <div class="direction"><i class="bi bi-arrow-right"></i> Want to learn</div>
+                            <span class="skill-tag learn" style="background:var(--accent);color:#fff;">UI/UX</span>
+                        </div>
+
+                        <div class="match-divider">
+                            <div class="line"></div>
+                            <div class="score">94%</div>
+                            <div class="label">MATCH</div>
+                            <div class="line"></div>
+                        </div>
+
+                        <div class="match-person">
+                            <div class="avatar-sm alt">S</div>
+                            <div class="name">Sarah</div>
+                            <span class="skill-tag teach">I teach UI/UX</span>
+                            <div class="direction"><i class="bi bi-arrow-right"></i> Want to learn</div>
+                            <span class="skill-tag learn" style="background:var(--accent);color:#fff;">Python</span>
+                        </div>
+                    </div>
+
+                    <div class="match-arrow-row">
+                        <i class="bi bi-arrow-left"></i>
+                        <span>Mutual exchange</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+
+                    <div class="match-btn-wrap">
+                        <a href="#cta" class="btn btn-secondary">
+                            <i class="bi bi-search-heart"></i> Find Your Match
+                        </a>
+                    </div>
+                </div>
+
+                <div class="match-content fade-up" style="transition-delay: 0.2s;">
+                    <h3>Why <span>match</span> matters</h3>
+                    <p>
+                        Great learning happens when curiosity meets expertise. KnotWork's
+                        matching engine considers your skills, goals, and schedule to find
+                        the ideal partner — so every session is meaningful.
+                    </p>
+                    <div class="match-features">
+                        <div class="item"><i class="bi bi-check-circle-fill"></i> AI-powered pairing</div>
+                        <div class="item"><i class="bi bi-check-circle-fill"></i> Skill compatibility</div>
+                        <div class="item"><i class="bi bi-check-circle-fill"></i> Availability sync</div>
+                        <div class="item"><i class="bi bi-check-circle-fill"></i> Mutual exchange</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== NEW: LEARN TOGETHER ====== -->
+    <section class="learn-together" id="learn">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-people-fill"></i> Learn Together</span>
+                <h2 class="section-title">
+                    Connect, collaborate, <span>grow</span>
+                </h2>
+                <p class="section-sub mx-auto">
+                    Learning is better when it's shared. Use our tools to stay connected
+                    and make every session count.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="learn-grid">
+                <div class="learn-card fade-up" style="transition-delay: 0.05s;">
+                    <span class="icon"><i class="bi bi-chat"></i></span>
+                    <h4>Chat</h4>
+                    <p>Real-time messaging to plan, share, and follow up.</p>
+                </div>
+                <div class="learn-card fade-up" style="transition-delay: 0.1s;">
+                    <span class="icon"><i class="bi bi-camera-video"></i></span>
+                    <h4>Video</h4>
+                    <p>Face-to-face sessions with crystal-clear video calls.</p>
+                </div>
+                <div class="learn-card fade-up" style="transition-delay: 0.15s;">
+                    <span class="icon"><i class="bi bi-easel"></i></span>
+                    <h4>Live Classes</h4>
+                    <p>Join group sessions and learn together in real time.</p>
+                </div>
+                <div class="learn-card fade-up" style="transition-delay: 0.2s;">
+                    <span class="icon"><i class="bi bi-door-open"></i></span>
+                    <h4>Study Rooms</h4>
+                    <p>Private spaces for deep focus and collaborative work.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== NEW: KNOTWORK AI ====== -->
+    <section class="ai-section" id="ai">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-cpu"></i> KnotWork AI</span>
+                <h2 class="section-title">
+                    Your intelligent <span>learning</span> companion
+                </h2>
+                <p class="section-sub mx-auto">
+                    AI that understands your goals and helps you reach them faster.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="ai-grid">
+                <div class="ai-card fade-up" style="transition-delay: 0.05s;">
+                    <span class="icon"><i class="bi bi-robot"></i></span>
+                    <h4>AI Tutor</h4>
+                    <p>Personalized guidance, instant feedback, and adaptive learning paths.</p>
+                </div>
+                <div class="ai-card fade-up" style="transition-delay: 0.1s;">
+                    <span class="icon"><i class="bi bi-diagram-3"></i></span>
+                    <h4>AI Matching</h4>
+                    <p>Intelligent pairing based on skills, goals, and learning styles.</p>
+                </div>
+                <div class="ai-card fade-up" style="transition-delay: 0.15s;">
+                    <span class="icon"><i class="bi bi-map"></i></span>
+                    <h4>AI Roadmaps</h4>
+                    <p>Custom learning paths that evolve as you progress.</p>
+                </div>
+                <div class="ai-card fade-up" style="transition-delay: 0.2s;">
+                    <span class="icon"><i class="bi bi-pencil-square"></i></span>
+                    <h4>AI Quizzes</h4>
+                    <p>Smart quizzes that reinforce what you've learned.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== MENTORS (existing, kept) ====== -->
+    <section class="mentors" id="mentors">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-star"></i> Mentors</span>
+                <h2 class="section-title">
+                    Learn from the <span>best</span>
+                </h2>
+                <p class="section-sub mx-auto">
+                    Our mentors are passionate experts who love teaching and sharing their craft.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="mentors-grid">
+                <div class="mentor-card fade-up" style="transition-delay: 0.1s;">
+                    <div class="avatar">AR</div>
+                    <h4>Aria Reyes</h4>
+                    <div class="title">UX Designer · 14 sessions</div>
+                    <div class="expertise">
+                        <span>#UX</span>
+                        <span>#Figma</span>
+                        <span>#Research</span>
+                    </div>
+                    <div class="rating"><i class="bi bi-star-fill"></i> 4.9 <span>(87 reviews)</span></div>
+                </div>
+                <div class="mentor-card fade-up" style="transition-delay: 0.15s;">
+                    <div class="avatar" style="background:linear-gradient(135deg, var(--accent), var(--secondary));">MC</div>
+                    <h4>Marcus Chen</h4>
+                    <div class="title">Data Scientist · 22 sessions</div>
+                    <div class="expertise">
+                        <span>#Python</span>
+                        <span>#ML</span>
+                        <span>#SQL</span>
+                    </div>
+                    <div class="rating"><i class="bi bi-star-fill"></i> 4.8 <span>(124 reviews)</span></div>
+                </div>
+                <div class="mentor-card fade-up" style="transition-delay: 0.2s;">
+                    <div class="avatar" style="background:linear-gradient(135deg, var(--secondary), var(--accent));">SP</div>
+                    <h4>Sofia Patel</h4>
+                    <div class="title">Writer · 9 sessions</div>
+                    <div class="expertise">
+                        <span>#Writing</span>
+                        <span>#Spanish</span>
+                        <span>#Storytelling</span>
+                    </div>
+                    <div class="rating"><i class="bi bi-star-fill"></i> 4.7 <span>(56 reviews)</span></div>
+                </div>
+                <div class="mentor-card fade-up" style="transition-delay: 0.25s;">
+                    <div class="avatar" style="background:linear-gradient(135deg, var(--accent), var(--primary-light));">TK</div>
+                    <h4>Tom Kim</h4>
+                    <div class="title">Web Developer · 18 sessions</div>
+                    <div class="expertise">
+                        <span>#React</span>
+                        <span>#Node</span>
+                        <span>#TypeScript</span>
+                    </div>
+                    <div class="rating"><i class="bi bi-star-fill"></i> 4.9 <span>(103 reviews)</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== COMMUNITIES (existing, kept) ====== -->
+    <section class="communities" id="communities">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-people"></i> Communities</span>
+                <h2 class="section-title">
+                    Find your <span>tribe</span>
+                </h2>
+                <p class="section-sub mx-auto">
+                    Join communities that match your interests. Share, learn, and grow together.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="communities-grid">
+                <div class="community-card fade-up" style="transition-delay: 0.1s;">
+                    <span class="icon"><i class="bi bi-code-square"></i></span>
+                    <h4>Dev Collective</h4>
+                    <p>A community for developers of all levels. Share code, review projects, and learn new frameworks.</p>
+                    <div class="members"><i class="bi bi-person"></i> 1,284 members</div>
+                </div>
+                <div class="community-card fade-up" style="transition-delay: 0.2s;">
+                    <span class="icon"><i class="bi bi-palette"></i></span>
+                    <h4>Design Guild</h4>
+                    <p>For designers who love feedback. Share your work, get critiques, and learn design systems.</p>
+                    <div class="members"><i class="bi bi-person"></i> 856 members</div>
+                </div>
+                <div class="community-card fade-up" style="transition-delay: 0.3s;">
+                    <span class="icon"><i class="bi bi-brain"></i></span>
+                    <h4>Mindful Makers</h4>
+                    <p>Wellness meets creativity. Meditation, journaling, and mindful making for a balanced life.</p>
+                    <div class="members"><i class="bi bi-person"></i> 642 members</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== TESTIMONIALS (existing, kept) ====== -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-quote"></i> Voices</span>
+                <h2 class="section-title">
+                    What our <span>KnotWorkers</span> say
+                </h2>
+                <p class="section-sub mx-auto">
+                    Real stories from real people who found their learning community.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="testimonial-grid">
+                <div class="testimonial-card fade-up" style="transition-delay: 0.1s;">
+                    <div class="testimonial-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                    <blockquote>
+                        “I taught Figma to a developer and in return she taught me React hooks.
+                        Two weeks later, I shipped my first interactive prototype. Mind-blowing.”
+                    </blockquote>
+                    <div class="testimonial-author">
+                        <div class="avatar">AR</div>
+                        <div class="info">
+                            <div class="name">Aria Reyes</div>
+                            <div class="role">UX Designer · 14 sessions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card fade-up" style="transition-delay: 0.2s;">
+                    <div class="testimonial-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                    <blockquote>
+                        “KnotWork changed how I think about learning. I'm not just consuming content —
+                        I'm part of a living, breathing knowledge network.”
+                    </blockquote>
+                    <div class="testimonial-author">
+                        <div class="avatar">MC</div>
+                        <div class="info">
+                            <div class="name">Marcus Chen</div>
+                            <div class="role">Data Scientist · 22 sessions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card fade-up" style="transition-delay: 0.3s;">
+                    <div class="testimonial-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                    <blockquote>
+                        “I was nervous to teach at first, but the community is so supportive.
+                        Now I've taught 8 people Spanish and learned photography in return.”
+                    </blockquote>
+                    <div class="testimonial-author">
+                        <div class="avatar">SP</div>
+                        <div class="info">
+                            <div class="name">Sofia Patel</div>
+                            <div class="role">Writer · 9 sessions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== NEW: PRICING ====== -->
+    <section class="pricing-section" id="pricing">
+        <div class="container">
+            <div class="text-center fade-up">
+                <span class="section-label"><i class="bi bi-tags"></i> Pricing</span>
+                <h2 class="section-title">
+                    Choose your <span>plan</span>
+                </h2>
+                <p class="section-sub mx-auto">
+                    Start free, scale as you grow. Every plan includes the core exchange.
+                </p>
+                <div class="section-divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card fade-up" style="transition-delay: 0.05s;">
+                    <div class="plan-name">Starter</div>
+                    <div class="price">$0 <span>/mo</span></div>
+                    <div class="desc">Perfect for getting started</div>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> Skill exchange</li>
+                        <li><i class="bi bi-check-circle"></i> Basic AI matching</li>
+                        <li><i class="bi bi-check-circle"></i> Join 3 communities</li>
+                        <li><i class="bi bi-check-circle"></i> Messaging &amp; chat</li>
+                    </ul>
+                    <a href="#cta" class="btn btn-ghost">Get started</a>
+                </div>
+
+                <div class="pricing-card popular fade-up" style="transition-delay: 0.1s;">
+                    <div class="badge-pop">Most popular</div>
+                    <div class="plan-name">Pro</div>
+                    <div class="price">$12 <span>/mo</span></div>
+                    <div class="desc">For serious learners &amp; teachers</div>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> Everything in Starter</li>
+                        <li><i class="bi bi-check-circle"></i> Advanced AI matching</li>
+                        <li><i class="bi bi-check-circle"></i> Unlimited communities</li>
+                        <li><i class="bi bi-check-circle"></i> AI Tutor &amp; Roadmaps</li>
+                        <li><i class="bi bi-check-circle"></i> Video &amp; live classes</li>
+                        <li><i class="bi bi-check-circle"></i> Certificates &amp; badges</li>
+                    </ul>
+                    <a href="#cta" class="btn btn-secondary">Start free trial</a>
+                </div>
+
+                <div class="pricing-card fade-up" style="transition-delay: 0.15s;">
+                    <div class="plan-name">Mentor</div>
+                    <div class="price">$29 <span>/mo</span></div>
+                    <div class="desc">For dedicated mentors &amp; pros</div>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> Everything in Pro</li>
+                        <li><i class="bi bi-check-circle"></i> Paid session tools</li>
+                        <li><i class="bi bi-check-circle"></i> Advanced analytics</li>
+                        <li><i class="bi bi-check-circle"></i> Portfolio builder</li>
+                        <li><i class="bi bi-check-circle"></i> Verified mentor badge</li>
+                        <li><i class="bi bi-check-circle"></i> Priority support</li>
+                    </ul>
+                    <a href="#cta" class="btn btn-ghost">Get started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== CTA ====== -->
+    <section class="cta" id="cta">
+        <div class="container fade-up">
+            <h2>
+                Ready to tie the <span>Knot</span>?
+            </h2>
+            <p>
+                Join thousands of learners and teachers who are building a
+                smarter, more connected world — one session at a time.
+            </p>
+            <div class="cta-actions">
+                <a href="#" class="btn btn-secondary">
+                    <i class="bi bi-person-plus"></i> Create free account
+                </a>
+                <a href="#" class="btn btn-outline">
+                    <i class="bi bi-info-circle"></i> Learn more
+                </a>
+            </div>
+        </div>
+    </section>
+
+{% endblock content %}

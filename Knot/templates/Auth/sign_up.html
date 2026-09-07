@@ -1,0 +1,358 @@
+{% extends 'Knot_Base/base.html' %}
+{% load static %}
+
+{% block title %}Sign Up | KnotWork{% endblock title %}
+
+{% block content %}
+<!-- ═══════════════════════════════════════════
+     SIGN UP — ROLE SELECTOR + DYNAMIC FORMS
+     ═══════════════════════════════════════════ -->
+<section class="relative z-[1] pt-28 pb-20 md:pt-32 md:pb-28">
+  <div class="max-w-[1180px] mx-auto px-6">
+
+    <!-- Heading -->
+    <div class="text-center mb-12 reveal">
+      <span class="inline-flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.12em] uppercase text-[#D4A853] bg-[rgba(212,168,83,0.08)] border border-[rgba(212,168,83,0.15)] px-4 py-1.5 rounded-full mb-5">
+        <i class="bi bi-stars"></i> Join the exchange
+      </span>
+      <h1 class="font-display font-extrabold text-4xl md:text-5xl text-[#1A1A2E] leading-[1.15]">
+        Trade what you know.<br class="hidden md:block" />
+        <span class="text-[#D4A853]">Learn what you don’t.</span>
+      </h1>
+      <p class="text-[#4A4A5A] text-lg mt-4 max-w-xl mx-auto">
+        Create your free account and choose how you’ll participate. It takes less than a minute.
+      </p>
+    </div>
+
+    <!-- Role Selector + Form Container -->
+    <div class="flex flex-col lg:flex-row gap-8 mt-10">
+
+      <!-- LEFT: Role selector -->
+      <div class="lg:w-[340px] lg:shrink-0">
+        <div class="bg-white/80 backdrop-blur-sm border border-[rgba(26,26,46,0.06)] rounded-2xl p-4 shadow-[0_8px_32px_rgba(26,26,46,0.06)]">
+          <h2 class="font-mono text-[0.65rem] uppercase tracking-[0.1em] text-[#8A8A9A] mb-4 px-2">Choose your role</h2>
+          <div class="flex flex-col gap-2">
+
+            <!-- Teacher -->
+            <button class="role-card active text-left w-full p-4 rounded-xl border border-[rgba(26,26,46,0.06)] bg-[#FAF8F5] hover:border-[#D4A853] transition-all duration-300 flex items-center gap-4 group"
+                    data-role="teacher">
+              <span class="w-11 h-11 rounded-xl bg-[rgba(212,168,83,0.1)] text-[#D4A853] flex items-center justify-center text-xl group-hover:bg-[#D4A853] group-hover:text-white transition-all">
+                <i class="bi bi-easel"></i>
+              </span>
+              <span>
+                <span class="block font-display font-bold text-[#1A1A2E] text-[1.05rem]">Teacher</span>
+                <span class="block text-[#8A8A9A] text-xs mt-0.5">Share your expertise</span>
+              </span>
+            </button>
+
+            <!-- Student -->
+            <button class="role-card text-left w-full p-4 rounded-xl border border-[rgba(26,26,46,0.06)] bg-[#FAF8F5] hover:border-[#D4A853] transition-all duration-300 flex items-center gap-4 group"
+                    data-role="student">
+              <span class="w-11 h-11 rounded-xl bg-[rgba(61,154,138,0.1)] text-[#3D9A8A] flex items-center justify-center text-xl group-hover:bg-[#3D9A8A] group-hover:text-white transition-all">
+                <i class="bi bi-mortarboard"></i>
+              </span>
+              <span>
+                <span class="block font-display font-bold text-[#1A1A2E] text-[1.05rem]">Student</span>
+                <span class="block text-[#8A8A9A] text-xs mt-0.5">Learn something new</span>
+              </span>
+            </button>
+
+            <!-- Mentor -->
+            <button class="role-card text-left w-full p-4 rounded-xl border border-[rgba(26,26,46,0.06)] bg-[#FAF8F5] hover:border-[#D4A853] transition-all duration-300 flex items-center gap-4 group"
+                    data-role="mentor">
+              <span class="w-11 h-11 rounded-xl bg-[rgba(212,168,83,0.1)] text-[#D4A853] flex items-center justify-center text-xl group-hover:bg-[#D4A853] group-hover:text-white transition-all">
+                <i class="bi bi-compass"></i>
+              </span>
+              <span>
+                <span class="block font-display font-bold text-[#1A1A2E] text-[1.05rem]">Mentor</span>
+                <span class="block text-[#8A8A9A] text-xs mt-0.5">Guide and inspire</span>
+              </span>
+            </button>
+
+          </div>
+
+          <div class="mt-6 p-4 rounded-xl bg-[rgba(212,168,83,0.04)] border border-[rgba(212,168,83,0.12)]">
+            <p class="text-xs text-[#4A4A5A] flex items-start gap-2">
+              <i class="bi bi-info-circle text-[#D4A853] mt-0.5"></i>
+              <span>All roles are completely <strong>free</strong>. You can always change your focus later.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Form card -->
+      <div class="flex-1">
+        <div class="bg-white rounded-2xl border border-[rgba(26,26,46,0.06)] shadow-[0_20px_60px_rgba(26,26,46,0.08)] overflow-hidden">
+          <div class="h-1.5 w-full bg-gradient-to-r from-[#D4A853] via-[#E8C86A] to-[#5AB8A6]"></div>
+          <div class="p-6 md:p-10">
+
+            <!-- TEACHER FORM -->
+            <form id="form-teacher" class="role-form" method="post" action="{% url 'sign_up' %}">
+              {% csrf_token %}
+              <input type="hidden" name="role" value="teacher">
+              <div class="flex items-center gap-3 mb-6">
+                <span class="w-10 h-10 rounded-xl bg-[rgba(212,168,83,0.1)] text-[#D4A853] flex items-center justify-center text-lg">
+                  <i class="bi bi-easel"></i>
+                </span>
+                <div>
+                  <h3 class="font-display font-bold text-2xl text-[#1A1A2E]">Teacher Registration</h3>
+                  <p class="text-sm text-[#8A8A9A]">Tell us what you can teach and how you like to teach it.</p>
+                </div>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Full name</label>
+                  <input type="text" name="full_name" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="Jane Cooper">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Email address</label>
+                  <input type="email" name="email" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="jane@example.com">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Password</label>
+                  <input type="password" name="password" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="••••••••">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Confirm password</label>
+                  <input type="password" name="confirm_password" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="••••••••">
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Primary subject / skill you teach</label>
+                <input type="text" name="primary_subject" required
+                       class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                       placeholder="e.g. Guitar, Python, Spanish, Watercolour">
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-5 mt-5">
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Experience level</label>
+                  <select name="experience"
+                          class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E]">
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option selected>Advanced</option>
+                    <option>Expert</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Available for (hours/week)</label>
+                  <input type="number" name="availability" min="1" value="4"
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E]">
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Short bio (optional)</label>
+                <textarea name="bio" rows="2"
+                          class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                          placeholder="A sentence about your teaching style..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-gold w-full mt-7 py-4 rounded-xl text-sm tracking-wide">
+                Create Teacher Account <i class="bi bi-arrow-right ml-1"></i>
+              </button>
+            </form>
+
+            <!-- STUDENT FORM (hidden by default) -->
+            <form id="form-student" class="role-form hidden" method="post" action="{% url 'sign_up' %}">
+              {% csrf_token %}
+              <input type="hidden" name="role" value="student">
+              <div class="flex items-center gap-3 mb-6">
+                <span class="w-10 h-10 rounded-xl bg-[rgba(61,154,138,0.1)] text-[#3D9A8A] flex items-center justify-center text-lg">
+                  <i class="bi bi-mortarboard"></i>
+                </span>
+                <div>
+                  <h3 class="font-display font-bold text-2xl text-[#1A1A2E]">Student Registration</h3>
+                  <p class="text-sm text-[#8A8A9A]">Tell us what you want to learn and how you like to learn.</p>
+                </div>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Full name</label>
+                  <input type="text" name="full_name" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="Alex Johnson">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Email address</label>
+                  <input type="email" name="email" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="alex@example.com">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Password</label>
+                  <input type="password" name="password" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="••••••••">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Confirm password</label>
+                  <input type="password" name="confirm_password" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="••••••••">
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">What do you want to learn?</label>
+                <input type="text" name="learning_goal" required
+                       class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                       placeholder="e.g. Digital marketing, French, Photography">
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-5 mt-5">
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Current skill level</label>
+                  <select name="skill_level"
+                          class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E]">
+                    <option selected>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Preferred timezone (optional)</label>
+                  <input type="text" name="timezone"
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="e.g. GMT+1">
+                </div>
+              </div>
+
+              <button type="submit" class="btn-gold w-full mt-7 py-4 rounded-xl text-sm tracking-wide">
+                Create Student Account <i class="bi bi-arrow-right ml-1"></i>
+              </button>
+            </form>
+
+            <!-- MENTOR FORM (hidden by default) -->
+            <form id="form-mentor" class="role-form hidden" method="post" action="{% url 'sign_up' %}">
+              {% csrf_token %}
+              <input type="hidden" name="role" value="mentor">
+              <div class="flex items-center gap-3 mb-6">
+                <span class="w-10 h-10 rounded-xl bg-[rgba(212,168,83,0.1)] text-[#D4A853] flex items-center justify-center text-lg">
+                  <i class="bi bi-compass"></i>
+                </span>
+                <div>
+                  <h3 class="font-display font-bold text-2xl text-[#1A1A2E]">Mentor Registration</h3>
+                  <p class="text-sm text-[#8A8A9A]">Guide others on their learning journey. Share your wisdom.</p>
+                </div>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Full name</label>
+                  <input type="text" name="full_name" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="Sam Rivera">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Email address</label>
+                  <input type="email" name="email" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="sam@example.com">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Password</label>
+                  <input type="password" name="password" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="••••••••">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Confirm password</label>
+                  <input type="password" name="confirm_password" required
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                         placeholder="••••••••">
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Areas of mentorship (comma separated)</label>
+                <input type="text" name="mentorship_areas" required
+                       class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                       placeholder="Career growth, Leadership, Public speaking">
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-5 mt-5">
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Years of experience</label>
+                  <input type="number" name="years_experience" min="0" value="5"
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E]">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Availability (hours/week)</label>
+                  <input type="number" name="availability" min="1" value="3"
+                         class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E]">
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <label class="block text-xs font-semibold text-[#4A4A5A] mb-1.5">Why do you want to mentor? (optional)</label>
+                <textarea name="mentor_motivation" rows="2"
+                          class="w-full px-4 py-3 rounded-xl border border-[rgba(26,26,46,0.08)] bg-[#FAF8F5] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[rgba(212,168,83,0.2)] transition text-[#1A1A2E] placeholder-[#8A8A9A]"
+                          placeholder="A short note about your motivation..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-gold w-full mt-7 py-4 rounded-xl text-sm tracking-wide">
+                Create Mentor Account <i class="bi bi-arrow-right ml-1"></i>
+              </button>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sign in link -->
+    <p class="text-center text-sm text-[#4A4A5A] mt-8">
+      Already have an account? <a href="{% url 'login' %}" class="font-semibold text-[#D4A853] hover:text-[#B8923A] transition-colors">Log in</a>
+    </p>
+  </div>
+</section>
+
+<script>
+(function() {
+  'use strict';
+  const roleCards = document.querySelectorAll('.role-card');
+  const roleForms = document.querySelectorAll('.role-form');
+
+  roleCards.forEach(card => {
+    card.addEventListener('click', function() {
+      // Update active card
+      roleCards.forEach(c => {
+        c.classList.remove('active');
+        c.classList.remove('border-[#D4A853]');
+        c.classList.add('border-[rgba(26,26,46,0.06)]');
+      });
+      this.classList.add('active');
+      this.classList.add('border-[#D4A853]');
+      this.classList.remove('border-[rgba(26,26,46,0.06)]');
+
+      // Show matching form
+      const role = this.dataset.role;
+      roleForms.forEach(form => {
+        if (form.id === 'form-' + role) {
+          form.classList.remove('hidden');
+        } else {
+          form.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  // Set initial active state for teacher card (already in markup)
+  document.querySelector('.role-card[data-role="teacher"]').classList.add('border-[#D4A853]');
+  document.querySelector('.role-card[data-role="teacher"]').classList.remove('border-[rgba(26,26,46,0.06)]');
+})();
+</script>
+{% endblock content %}

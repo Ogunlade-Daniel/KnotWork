@@ -1,0 +1,98 @@
+{% extends 'Knot_Base/base.html' %}
+{% load static %}
+
+{% block title %}Log In{% endblock title %}
+
+{% block content %}
+<style>
+    .login-page {
+        min-height: 720px;
+        padding: 142px 0 100px;
+        background: linear-gradient(145deg, var(--cream), var(--white));
+    }
+    .login-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+        gap: 72px;
+        align-items: center;
+    }
+    .login-copy .section-label { color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+    .login-copy h1 {
+        max-width: 540px;
+        margin: 20px 0;
+        color: var(--primary-dark);
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.8rem, 5vw, 4.6rem);
+        line-height: 1.05;
+    }
+    .login-copy h1 span { color: var(--secondary); font-style: italic; }
+    .login-copy > p { max-width: 500px; color: var(--gray-600); font-size: 1.08rem; line-height: 1.8; }
+    .login-signals { display: grid; gap: 16px; margin-top: 34px; }
+    .login-signal { display: flex; align-items: center; gap: 12px; color: var(--gray-800); font-size: .88rem; }
+    .login-signal i { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; background: rgba(190,242,100,.14); color: var(--primary); font-size: 1.1rem; }
+    .login-card { overflow: hidden; border: 1px solid rgba(11,17,33,.06); border-radius: var(--radius-xl); background: var(--white); box-shadow: var(--shadow-md); }
+    .login-card::before { content: ''; display: block; height: 5px; background: linear-gradient(90deg,var(--secondary),var(--accent)); }
+    .login-card-inner { padding: 38px; }
+    .login-card-header { margin-bottom: 28px; text-align: center; }
+    .login-card h2 { color: var(--primary-dark); font-family: 'Playfair Display', serif; font-size: 2rem; }
+    .login-card-header p { margin-top: 6px; color: var(--gray-600); font-size: .88rem; }
+    .login-form { display: grid; gap: 18px; }
+    .login-form label { display: block; margin-bottom: 8px; color: var(--primary-dark); font-size: .82rem; font-weight: 700; }
+    .login-form input[type='email'], .login-form input[type='password'] { width: 100%; padding: 13px 15px; border: 1px solid var(--gray-200); border-radius: 10px; background: var(--cream); color: var(--gray-800); font: inherit; outline: none; transition: var(--transition); }
+    .login-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.12); }
+    .password-label { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; }
+    .password-label a { color: var(--primary); font-size: .76rem; }
+    .password-label a:hover { color: var(--accent); }
+    .login-options { display: flex !important; align-items: center; gap: 8px; color: var(--gray-600) !important; font-size: .82rem !important; font-weight: 400 !important; }
+    .login-options input { accent-color: var(--secondary); }
+    .login-submit { width: 100%; justify-content: center; margin-top: 4px; }
+    .login-divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--gray-600); font-size: .75rem; }
+    .login-divider::before, .login-divider::after { content: ''; height: 1px; flex: 1; background: var(--gray-200); }
+    .login-create { color: var(--gray-600); font-size: .86rem; text-align: center; }
+    .login-create a { color: var(--primary); font-weight: 700; }
+    .login-create a:hover { color: var(--accent); }
+    .login-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 22px; color: var(--gray-600); font-size: .74rem; line-height: 1.5; }
+    .login-note i { color: var(--accent); }
+    @media (max-width: 800px) {
+        .login-page { padding: 124px 0 80px; }
+        .login-layout { grid-template-columns: 1fr; gap: 42px; }
+        .login-copy { text-align: center; }
+        .login-copy h1, .login-copy > p { margin-left: auto; margin-right: auto; }
+        .login-signals { display: flex; flex-wrap: wrap; justify-content: center; }
+    }
+    @media (max-width: 480px) { .login-card-inner { padding: 28px 20px; } .login-copy h1 { font-size: 2.7rem; } }
+</style>
+
+<section class="login-page">
+    <div class="container">
+        <div class="login-layout">
+            <div class="login-copy">
+                <span class="section-label"><i class="bi bi-arrow-left-right"></i> Welcome back</span>
+                <h1>Return to the <span>exchange</span>.</h1>
+                <p>Your knowledge is part of a living network. Log in to continue learning, teaching, and meeting people who move your goals forward.</p>
+                <div class="login-signals">
+                    <div class="login-signal"><i class="bi bi-stars"></i><span>Continue your learning path</span></div>
+                    <div class="login-signal"><i class="bi bi-people"></i><span>Reconnect with your communities</span></div>
+                    <div class="login-signal"><i class="bi bi-lightning-charge"></i><span>Find your next skill exchange</span></div>
+                </div>
+            </div>
+
+            <div class="login-card">
+                <div class="login-card-inner">
+                    <div class="login-card-header"><h2>Log in</h2><p>Access your KnotWork account</p></div>
+                    <form class="login-form" method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div><label for="login-email">Email address</label><input id="login-email" type="email" name="email" required autocomplete="email" placeholder="you@example.com"></div>
+                        <div><label class="password-label" for="login-password"><span>Password</span><a href="{% url 'help' %}">Need help?</a></label><input id="login-password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"></div>
+                        <label class="login-options"><input type="checkbox" name="remember_me"><span>Keep me logged in</span></label>
+                        <button type="submit" class="btn btn-primary login-submit"><i class="bi bi-arrow-right-circle"></i> Log in</button>
+                    </form>
+                    <div class="login-divider"><span>new to KnotWork?</span></div>
+                    <p class="login-create">Create an account to start exchanging. <a href="{% url 'sign_up' %}">Sign up free</a></p>
+                    <p class="login-note"><i class="bi bi-shield-check"></i><span>Your account keeps your learning goals, matches, and conversations in one place.</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

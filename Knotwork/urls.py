@@ -21,10 +21,26 @@ from Knot import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('about/', views.about, name='about'),
-    path('contact/', views.contact, name='contact'),
-    path('live-rooms/', views.live_rooms, name='live_rooms'),
-    path('donate/', views.donations, name='donations'),
-    path('reviews/', views.reviews, name='reviews'),
-    path('admin/', admin.site.urls),
+    path('explore', views.explore, name='explore'),
+    path('skill-exchange', views.skill_exchange, name='skill_exchange'),
+    path('how-it-works', views.how_it_works, name='how_it_works'),
+    path('get-started', views.get_started, name='get_started'),
+    path('mentors', views.mentors, name='mentors'),
+    path('communities', views.communities, name='communities'),
+    path('pricing', views.pricing, name='pricing'),
+    path('about', views.about, name='about'),
+    path('blog', views.blog, name='blog'),
+    path('help', views.help, name='help'),
+
+
+
+    
+    path('sign_up', views.sign_up, name='sign_up'),
+    path('login', views.login, name='login'),
+    
+
+
+
+
+    # path('admin/', admin.site.urls),
 ]

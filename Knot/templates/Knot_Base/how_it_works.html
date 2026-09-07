@@ -1,0 +1,131 @@
+{% extends "Knot_Base/base.html" %}
+{% load static %}
+
+{% block title %}How It Works{% endblock title %}
+
+{% block content %}
+<style>
+    .how-hero {
+        padding: 146px 0 88px;
+        background: linear-gradient(145deg, var(--primary-dark), var(--primary) 58%, var(--primary-light));
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    .how-hero::after {
+        content: '';
+        position: absolute;
+        width: 520px;
+        height: 520px;
+        right: -190px;
+        top: -240px;
+        border: 1px solid rgba(190, 242, 100, 0.14);
+        border-radius: 50%;
+        box-shadow: 0 0 0 46px rgba(190, 242, 100, 0.03), 0 0 0 92px rgba(56, 189, 248, 0.025);
+    }
+    .how-hero .container { position: relative; z-index: 1; }
+    .how-hero .section-label { color: var(--secondary-light); background: rgba(190, 242, 100, 0.12); }
+    .how-hero h1 {
+        max-width: 760px;
+        margin: 18px 0;
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        line-height: 1.04;
+    }
+    .how-hero h1 span { color: var(--secondary); font-style: italic; }
+    .how-hero p { max-width: 650px; color: rgba(255,255,255,.7); font-size: 1.12rem; line-height: 1.8; }
+    .how-actions { display:flex; flex-wrap:wrap; gap:14px; margin-top:30px; }
+    .how-journey { padding: 92px 0 104px; background: var(--white); }
+    .how-journey .steps-5 { margin-top: 52px; }
+    .how-detail { padding: 88px 0; background: var(--cream); }
+    .detail-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:28px; margin-top:44px; }
+    .detail-card { display:grid; grid-template-columns:56px 1fr; gap:18px; padding:30px; background:var(--white); border:1px solid rgba(11,17,33,.05); box-shadow:var(--shadow-sm); }
+    .detail-card:nth-child(2n) { background:linear-gradient(145deg,var(--white),rgba(190,242,100,.08)); }
+    .detail-number { display:flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; background:var(--secondary); color:var(--primary-dark); font-weight:700; box-shadow:0 8px 24px rgba(190,242,100,.25); }
+    .detail-card h3 { margin-bottom:8px; color:var(--primary-dark); font-size:1.14rem; }
+    .detail-card p { color:var(--gray-600); font-size:.9rem; line-height:1.7; }
+    .how-match { padding:88px 0; background:var(--white); }
+    .how-match-layout { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+    .how-match-copy h2 { margin:14px 0; color:var(--primary-dark); font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,3rem); line-height:1.12; }
+    .how-match-copy h2 span { color:var(--accent); font-style:italic; }
+    .how-match-copy p { color:var(--gray-600); line-height:1.8; }
+    .match-steps { display:grid; gap:14px; margin-top:26px; }
+    .match-step { display:flex; gap:12px; color:var(--gray-800); font-size:.9rem; }
+    .match-step i { color:var(--secondary); font-size:1.1rem; }
+    .how-preview { padding:32px; border-radius:var(--radius-xl); background:var(--primary); box-shadow:var(--shadow-md); color:var(--white); }
+    .how-preview-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; color:rgba(255,255,255,.6); font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; }
+    .how-preview-top strong { color:var(--secondary); font-family:'Playfair Display',serif; font-size:1.5rem; letter-spacing:0; }
+    .preview-row { display:flex; align-items:center; gap:12px; }
+    .preview-person { flex:1; padding:18px 12px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(255,255,255,.05); text-align:center; }
+    .preview-avatar { display:flex; align-items:center; justify-content:center; width:48px; height:48px; margin:0 auto 10px; border-radius:50%; background:linear-gradient(135deg,var(--secondary),var(--accent)); color:var(--primary-dark); font-weight:800; }
+    .preview-person h4 { font-size:.88rem; }
+    .preview-person p { margin-top:5px; color:rgba(255,255,255,.55); font-size:.72rem; }
+    .preview-arrow { color:var(--secondary); font-size:1.3rem; }
+    .how-cta { padding:78px 0; background:var(--primary); color:var(--white); text-align:center; }
+    .how-cta h2 { max-width:620px; margin:0 auto 24px; font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,3.1rem); }
+    @media (max-width:900px) { .how-match-layout { grid-template-columns:1fr; } }
+    @media (max-width:700px) { .detail-grid { grid-template-columns:1fr; } }
+    @media (max-width:520px) { .how-hero { padding:124px 0 70px; } .detail-card { grid-template-columns:1fr; } .detail-number { width:46px; height:46px; } .how-preview { padding:24px 14px; } .preview-row { gap:6px; } }
+</style>
+
+<section class="how-hero">
+    <div class="container">
+        <span class="section-label"><i class="bi bi-signpost-2"></i> How It Works</span>
+        <h1>Your next skill starts with a <span>conversation</span>.</h1>
+        <p>KnotWork makes learning reciprocal. Bring what you know, name what you want to learn, and we help turn the two into a useful connection.</p>
+        <div class="how-actions">
+            <a href="{% url 'sign_up' %}" class="btn btn-secondary"><i class="bi bi-person-plus"></i> Get started</a>
+            <a href="{% url 'skill_exchange' %}" class="btn btn-outline"><i class="bi bi-arrow-left-right"></i> Try skill exchange</a>
+        </div>
+    </div>
+</section>
+
+<section class="how-journey">
+    <div class="container">
+        <div class="text-center">
+            <span class="section-label"><i class="bi bi-map"></i> The journey</span>
+            <h2 class="section-title">Your journey in <span>5 steps</span>.</h2>
+            <p class="section-sub mx-auto">From profile to progress, every part of KnotWork is built around shared momentum.</p>
+            <div class="section-divider"><span></span><span></span><span></span></div>
+        </div>
+        <div class="steps-5">
+            <div class="step-5 fade-up"><span class="step-icon"><i class="bi bi-person-plus"></i></span><div class="step-number">01</div><h4>Create Profile</h4><p>Tell us who you are and what drives you.</p></div>
+            <div class="step-5 fade-up"><span class="step-icon"><i class="bi bi-tags"></i></span><div class="step-number">02</div><h4>Add Skills</h4><p>List what you teach and what you seek.</p></div>
+            <div class="step-5 fade-up"><span class="step-icon"><i class="bi bi-search-heart"></i></span><div class="step-number">03</div><h4>Find Match</h4><p>Discover a partner with complementary goals.</p></div>
+            <div class="step-5 fade-up"><span class="step-icon"><i class="bi bi-chat-dots"></i></span><div class="step-number">04</div><h4>Connect</h4><p>Chat, schedule, and start your session.</p></div>
+            <div class="step-5 fade-up"><span class="step-icon"><i class="bi bi-graph-up-arrow"></i></span><div class="step-number">05</div><h4>Learn &amp; Teach</h4><p>Grow together, earn credits, repeat.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="how-detail">
+    <div class="container">
+        <div class="text-center"><span class="section-label"><i class="bi bi-lightbulb"></i> Along the way</span><h2 class="section-title">Simple actions, <span>real progress</span>.</h2><p class="section-sub mx-auto">You stay in control while KnotWork keeps the exchange moving.</p><div class="section-divider"><span></span><span></span><span></span></div></div>
+        <div class="detail-grid">
+            <article class="detail-card"><span class="detail-number">01</span><div><h3>Start with your strengths</h3><p>You do not need to be an expert in everything. One useful skill is enough to begin contributing.</p></div></article>
+            <article class="detail-card"><span class="detail-number">02</span><div><h3>Set a clear learning goal</h3><p>Choose something specific so your matches and conversations have a meaningful direction.</p></div></article>
+            <article class="detail-card"><span class="detail-number">03</span><div><h3>Choose your pace</h3><p>Make room for one-on-one sessions, small groups, or asynchronous feedback around your schedule.</p></div></article>
+            <article class="detail-card"><span class="detail-number">04</span><div><h3>Leave every session with a next step</h3><p>Share what worked, reflect on what you learned, and keep the loop going.</p></div></article>
+        </div>
+    </div>
+</section>
+
+<section class="how-match">
+    <div class="container">
+        <div class="how-match-layout">
+            <div class="how-match-copy">
+                <span class="section-label"><i class="bi bi-arrow-left-right"></i> Mutual exchange</span>
+                <h2>Better matches come from <span>both directions</span>.</h2>
+                <p>KnotWork looks at what you can share, what you want to learn, and how you prefer to connect. The result is a learning relationship instead of a one-way transaction.</p>
+                <div class="match-steps"><div class="match-step"><i class="bi bi-check-circle-fill"></i><span>Skill compatibility</span></div><div class="match-step"><i class="bi bi-check-circle-fill"></i><span>Shared availability</span></div><div class="match-step"><i class="bi bi-check-circle-fill"></i><span>Goals that complement each other</span></div></div>
+            </div>
+            <div class="how-preview" aria-label="Example learning match">
+                <div class="how-preview-top"><span>Example match</span><strong>94%</strong></div>
+                <div class="preview-row"><div class="preview-person"><span class="preview-avatar">Y</span><h4>You</h4><p>Teach Python<br>Learn UI/UX</p></div><i class="preview-arrow bi bi-arrow-left-right"></i><div class="preview-person"><span class="preview-avatar">S</span><h4>Sarah</h4><p>Teach UI/UX<br>Learn Python</p></div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="how-cta"><div class="container"><h2>Ready to make learning move both ways?</h2><a href="{% url 'sign_up' %}" class="btn btn-secondary"><i class="bi bi-person-plus"></i> Create your profile</a></div></section>
+{% endblock content %}

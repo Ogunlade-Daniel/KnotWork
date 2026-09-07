@@ -1,0 +1,118 @@
+{% extends "Knot_Base/base.html" %}
+{% load static %}
+
+{% block title %}Get Started{% endblock title %}
+
+{% block content %}
+<style>
+    .start-page { padding: 140px 0 96px; background: linear-gradient(145deg,var(--cream),var(--white)); }
+    .start-heading { max-width:720px; margin:0 auto 44px; text-align:center; }
+    .start-heading .section-label { color:var(--accent); background:rgba(56,189,248,.1); }
+    .start-heading h1 { margin:18px 0; color:var(--primary-dark); font-family:'Playfair Display',serif; font-size:clamp(2.6rem,5vw,4.4rem); line-height:1.06; }
+    .start-heading h1 span { color:var(--secondary); font-style:italic; }
+    .start-heading p { color:var(--gray-600); font-size:1.05rem; line-height:1.8; }
+    .start-layout { display:grid; grid-template-columns:290px minmax(0,1fr); gap:30px; max-width:1080px; margin:0 auto; align-items:start; }
+    .role-panel { padding:18px; border:1px solid rgba(11,17,33,.06); border-radius:var(--radius-xl); background:rgba(255,255,255,.8); box-shadow:var(--shadow-sm); }
+    .role-panel h2 { padding:0 10px; margin:4px 0 14px; color:var(--gray-600); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
+    .role-option { display:flex; width:100%; align-items:center; gap:14px; padding:16px 14px; border:1px solid transparent; border-radius:14px; background:transparent; color:var(--gray-800); text-align:left; cursor:pointer; transition:var(--transition); }
+    .role-option + .role-option { margin-top:8px; }
+    .role-option:hover { border-color:rgba(190,242,100,.5); background:var(--white); }
+    .role-option.active { border-color:var(--secondary); background:var(--white); box-shadow:var(--shadow-sm); }
+    .role-icon { display:flex; align-items:center; justify-content:center; width:44px; height:44px; flex:0 0 44px; border-radius:12px; background:rgba(190,242,100,.14); color:var(--primary); font-size:1.2rem; }
+    .role-option:nth-of-type(3) .role-icon { background:rgba(56,189,248,.12); color:var(--accent); }
+    .role-option:nth-of-type(4) .role-icon { background:rgba(190,242,100,.14); color:#ca8a04; }
+    .role-option strong { display:block; color:var(--primary-dark); font-size:.94rem; }
+    .role-option small { display:block; margin-top:3px; color:var(--gray-600); font-size:.74rem; }
+    .role-note { display:flex; gap:8px; margin-top:18px; padding:14px; border:1px solid rgba(190,242,100,.2); border-radius:12px; background:rgba(190,242,100,.07); color:var(--gray-600); font-size:.74rem; line-height:1.5; }
+    .role-note i { color:var(--primary); }
+    .form-panel { overflow:hidden; border:1px solid rgba(11,17,33,.06); border-radius:var(--radius-xl); background:var(--white); box-shadow:var(--shadow-md); }
+    .form-panel::before { content:''; display:block; height:5px; background:linear-gradient(90deg,var(--secondary),var(--accent)); }
+    .role-form { padding:34px; }
+    .role-form[hidden] { display:none; }
+    .form-heading { display:flex; align-items:center; gap:12px; margin-bottom:26px; }
+    .form-heading-icon { display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; background:rgba(190,242,100,.14); color:var(--primary); font-size:1.2rem; }
+    .role-form h3 { color:var(--primary-dark); font-family:'Playfair Display',serif; font-size:1.8rem; }
+    .role-form .form-heading p { margin-top:3px; color:var(--gray-600); font-size:.8rem; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; margin-bottom:7px; color:var(--primary-dark); font-size:.8rem; font-weight:700; }
+    .field input, .field select, .field textarea { width:100%; padding:12px 14px; border:1px solid var(--gray-200); border-radius:10px; background:var(--cream); color:var(--gray-800); font:inherit; outline:none; transition:var(--transition); }
+    .field textarea { resize:vertical; min-height:86px; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(56,189,248,.12); }
+    .form-submit { width:100%; justify-content:center; margin-top:6px; }
+    .form-foot { margin-top:18px; color:var(--gray-600); font-size:.78rem; text-align:center; }
+    .form-foot a { color:var(--primary); font-weight:700; }
+    @media (max-width:800px) { .start-layout { grid-template-columns:1fr; } .role-panel { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; } .role-panel h2,.role-note { grid-column:1/-1; } .role-option + .role-option { margin-top:0; } .role-option { flex-direction:column; justify-content:center; padding:14px 8px; text-align:center; } .role-option small { display:none; } }
+    @media (max-width:540px) { .start-page { padding:120px 0 70px; } .role-panel { grid-template-columns:1fr; } .role-option { flex-direction:row; justify-content:flex-start; text-align:left; } .role-option small { display:block; } .role-form { padding:26px 18px; } .form-grid { grid-template-columns:1fr; gap:0; } }
+</style>
+
+<section class="start-page">
+    <div class="container">
+        <div class="start-heading">
+            <span class="section-label"><i class="bi bi-stars"></i> Join the exchange</span>
+            <h1>Choose how you want to <span>grow</span>.</h1>
+            <p>Every KnotWorker brings something to the table. Choose your starting point and create your free account.</p>
+        </div>
+
+        <div class="start-layout">
+            <aside class="role-panel" aria-label="Choose account type">
+                <h2>Your path</h2>
+                <button class="role-option active" type="button" data-role="student" aria-controls="student-form" aria-selected="true">
+                    <span class="role-icon"><i class="bi bi-mortarboard"></i></span><span><strong>Student</strong><small>Learn something new</small></span>
+                </button>
+                <button class="role-option" type="button" data-role="teacher" aria-controls="teacher-form" aria-selected="false">
+                    <span class="role-icon"><i class="bi bi-easel"></i></span><span><strong>Teacher</strong><small>Share your expertise</small></span>
+                </button>
+                <button class="role-option" type="button" data-role="mentor" aria-controls="mentor-form" aria-selected="false">
+                    <span class="role-icon"><i class="bi bi-compass"></i></span><span><strong>Mentor</strong><small>Guide and inspire</small></span>
+                </button>
+                <p class="role-note"><i class="bi bi-info-circle"></i><span>All three paths are free. You can change your focus as your learning grows.</span></p>
+            </aside>
+
+            <div class="form-panel">
+                <form class="role-form" id="student-form" method="post" action="{% url 'sign_up' %}">
+                    {% csrf_token %}<input type="hidden" name="role" value="student">
+                    <div class="form-heading"><span class="form-heading-icon"><i class="bi bi-mortarboard"></i></span><div><h3>Become a student</h3><p>Tell us what you are ready to learn.</p></div></div>
+                    <div class="form-grid"><div class="field"><label for="student-name">Full name</label><input id="student-name" name="full_name" type="text" required placeholder="Alex Johnson"></div><div class="field"><label for="student-email">Email address</label><input id="student-email" name="email" type="email" required placeholder="alex@example.com"></div><div class="field"><label for="student-password">Password</label><input id="student-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"></div><div class="field"><label for="student-confirm">Confirm password</label><input id="student-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"></div></div>
+                    <div class="field"><label for="learning-goal">What do you want to learn?</label><input id="learning-goal" name="learning_goal" type="text" required placeholder="e.g. Photography, French, or Python"></div>
+                    <div class="form-grid"><div class="field"><label for="skill-level">Current skill level</label><select id="skill-level" name="skill_level"><option selected>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div><div class="field"><label for="student-timezone">Timezone <span>(optional)</span></label><input id="student-timezone" name="timezone" type="text" placeholder="e.g. GMT+1"></div></div>
+                    <button class="btn btn-primary form-submit" type="submit"><i class="bi bi-arrow-right-circle"></i> Create student account</button>
+                </form>
+
+                <form class="role-form" id="teacher-form" method="post" action="{% url 'sign_up' %}" hidden>
+                    {% csrf_token %}<input type="hidden" name="role" value="teacher">
+                    <div class="form-heading"><span class="form-heading-icon"><i class="bi bi-easel"></i></span><div><h3>Become a teacher</h3><p>Share the skill you know best.</p></div></div>
+                    <div class="form-grid"><div class="field"><label for="teacher-name">Full name</label><input id="teacher-name" name="full_name" type="text" required placeholder="Jane Cooper"></div><div class="field"><label for="teacher-email">Email address</label><input id="teacher-email" name="email" type="email" required placeholder="jane@example.com"></div><div class="field"><label for="teacher-password">Password</label><input id="teacher-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"></div><div class="field"><label for="teacher-confirm">Confirm password</label><input id="teacher-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"></div></div>
+                    <div class="field"><label for="teaching-skill">Primary skill you teach</label><input id="teaching-skill" name="primary_subject" type="text" required placeholder="e.g. Guitar, Python, or Watercolour"></div>
+                    <div class="form-grid"><div class="field"><label for="teacher-experience">Experience level</label><select id="teacher-experience" name="experience"><option>Beginner</option><option>Intermediate</option><option selected>Advanced</option><option>Expert</option></select></div><div class="field"><label for="teacher-availability">Hours available per week</label><input id="teacher-availability" name="availability" type="number" min="1" value="4"></div></div>
+                    <div class="field"><label for="teacher-bio">Teaching style <span>(optional)</span></label><textarea id="teacher-bio" name="bio" placeholder="What should a learner know about your approach?"></textarea></div>
+                    <button class="btn btn-primary form-submit" type="submit"><i class="bi bi-arrow-right-circle"></i> Create teacher account</button>
+                </form>
+
+                <form class="role-form" id="mentor-form" method="post" action="{% url 'sign_up' %}" hidden>
+                    {% csrf_token %}<input type="hidden" name="role" value="mentor">
+                    <div class="form-heading"><span class="form-heading-icon"><i class="bi bi-compass"></i></span><div><h3>Become a mentor</h3><p>Guide someone through a meaningful next step.</p></div></div>
+                    <div class="form-grid"><div class="field"><label for="mentor-name">Full name</label><input id="mentor-name" name="full_name" type="text" required placeholder="Sam Rivera"></div><div class="field"><label for="mentor-email">Email address</label><input id="mentor-email" name="email" type="email" required placeholder="sam@example.com"></div><div class="field"><label for="mentor-password">Password</label><input id="mentor-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"></div><div class="field"><label for="mentor-confirm">Confirm password</label><input id="mentor-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"></div></div>
+                    <div class="field"><label for="mentor-areas">Areas of mentorship</label><input id="mentor-areas" name="mentorship_areas" type="text" required placeholder="e.g. Career growth, leadership, or public speaking"></div>
+                    <div class="form-grid"><div class="field"><label for="mentor-years">Years of experience</label><input id="mentor-years" name="years_experience" type="number" min="0" value="5"></div><div class="field"><label for="mentor-availability">Hours available per week</label><input id="mentor-availability" name="availability" type="number" min="1" value="3"></div></div>
+                    <div class="field"><label for="mentor-motivation">Why do you want to mentor? <span>(optional)</span></label><textarea id="mentor-motivation" name="mentor_motivation" placeholder="Tell us what you hope to give and learn."></textarea></div>
+                    <button class="btn btn-primary form-submit" type="submit"><i class="bi bi-arrow-right-circle"></i> Create mentor account</button>
+                </form>
+                <p class="form-foot">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    const roleOptions = document.querySelectorAll('.role-option');
+    const roleForms = document.querySelectorAll('.role-form');
+    roleOptions.forEach((option) => {
+        option.addEventListener('click', () => {
+            const role = option.dataset.role;
+            roleOptions.forEach((item) => { item.classList.toggle('active', item === option); item.setAttribute('aria-selected', item === option ? 'true' : 'false'); });
+            roleForms.forEach((form) => { form.hidden = form.id !== `${role}-form`; });
+        });
+    });
+</script>
+{% endblock content %}

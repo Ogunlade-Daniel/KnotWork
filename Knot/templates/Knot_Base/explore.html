@@ -1,0 +1,302 @@
+{% extends "Knot_Base/base.html" %}
+{% load static %}
+
+{% block title %}Explore{% endblock title %}
+
+{% block content %}
+<style>
+    .explore-hero {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary) 58%, var(--primary-light));
+        color: var(--white);
+        padding: 150px 0 92px;
+        position: relative;
+        overflow: hidden;
+    }
+    .explore-hero::after {
+        content: '';
+        position: absolute;
+        width: 520px;
+        height: 520px;
+        right: -170px;
+        top: -180px;
+        border: 1px solid rgba(190, 242, 100, 0.12);
+        border-radius: 50%;
+        box-shadow: 0 0 0 48px rgba(190, 242, 100, 0.03), 0 0 0 96px rgba(56, 189, 248, 0.025);
+    }
+    .explore-hero .container {
+        position: relative;
+        z-index: 1;
+    }
+    .explore-hero .section-label {
+        color: var(--secondary-light);
+        background: rgba(190, 242, 100, 0.12);
+    }
+    .explore-hero h1 {
+        max-width: 720px;
+        margin-bottom: 20px;
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        line-height: 1.05;
+    }
+    .explore-hero h1 span {
+        color: var(--secondary);
+        font-style: italic;
+    }
+    .explore-hero p {
+        max-width: 600px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.12rem;
+        line-height: 1.8;
+    }
+    .explore-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 32px;
+    }
+    .explore-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 34px;
+        margin-top: 52px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .explore-stat strong {
+        display: block;
+        color: var(--secondary);
+        font-size: 1.35rem;
+    }
+    .explore-stat span {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.78rem;
+    }
+    .topic-directory {
+        padding: 92px 0 100px;
+        background: var(--cream);
+    }
+    .topic-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 42px 0 28px;
+    }
+    .topic-search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: min(100%, 360px);
+        padding: 12px 16px;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        background: var(--white);
+        color: var(--gray-600);
+    }
+    .topic-search input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--gray-800);
+        font: inherit;
+    }
+    .topic-search input::placeholder { color: var(--gray-600); }
+    .topic-count {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+    }
+    .topic-card {
+        height: 100%;
+        padding: 26px 24px;
+        border: 1px solid rgba(11, 17, 33, 0.06);
+        border-radius: var(--radius);
+        background: var(--white);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    .topic-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(190, 242, 100, 0.35);
+        box-shadow: var(--shadow-md);
+    }
+    .topic-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 22px;
+        border-radius: 14px;
+        background: rgba(190, 242, 100, 0.15);
+        color: var(--primary);
+        font-size: 1.4rem;
+    }
+    .topic-card:nth-child(2n) .topic-icon {
+        background: rgba(56, 189, 248, 0.12);
+        color: var(--accent);
+    }
+    .topic-card h3 {
+        margin-bottom: 8px;
+        color: var(--primary-dark);
+        font-size: 1.08rem;
+    }
+    .topic-card p {
+        min-height: 52px;
+        margin-bottom: 18px;
+        color: var(--gray-600);
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+    .topic-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 14px;
+        border-top: 1px solid var(--gray-200);
+        color: var(--gray-600);
+        font-size: 0.76rem;
+    }
+    .topic-meta a {
+        color: var(--primary);
+        font-weight: 700;
+    }
+    .explore-cta {
+        padding: 84px 0;
+        background: var(--primary);
+        color: var(--white);
+        text-align: center;
+    }
+    .explore-cta h2 {
+        max-width: 640px;
+        margin: 0 auto 14px;
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+    }
+    .explore-cta p {
+        max-width: 560px;
+        margin: 0 auto 28px;
+        color: rgba(255, 255, 255, 0.65);
+    }
+    @media (max-width: 640px) {
+        .explore-hero { padding: 126px 0 70px; }
+        .topic-toolbar { align-items: stretch; flex-direction: column; }
+        .topic-search { width: 100%; }
+        .explore-stats { gap: 22px; margin-top: 38px; }
+    }
+</style>
+
+<section class="explore-hero">
+    <div class="container">
+        <span class="section-label"><i class="bi bi-compass"></i> Discover your next skill</span>
+        <h1>Find something worth <span>sharing</span>.</h1>
+        <p>Explore practical topics, generous mentors, and communities built around the simple idea that learning gets better when it moves in both directions.</p>
+        <div class="explore-actions">
+            <a href="#topics" class="btn btn-secondary"><i class="bi bi-search"></i> Browse topics</a>
+            <a href="{% url 'sign_up' %}" class="btn btn-outline"><i class="bi bi-person-plus"></i> Create your profile</a>
+        </div>
+        <div class="explore-stats" aria-label="KnotWork community statistics">
+            <div class="explore-stat"><strong>340+</strong><span>topics to explore</span></div>
+            <div class="explore-stat"><strong>12k</strong><span>active learners</span></div>
+            <div class="explore-stat"><strong>4.8/5</strong><span>average session rating</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="topic-directory" id="topics">
+    <div class="container">
+        <div class="text-center">
+            <span class="section-label"><i class="bi bi-grid-3x3-gap"></i> Topic directory</span>
+            <h2 class="section-title">Start with a <span>curiosity</span>.</h2>
+            <p class="section-sub mx-auto">Choose a direction, then meet the people who can help you go further.</p>
+        </div>
+        <div class="topic-toolbar">
+            <div class="topic-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" placeholder="Search topics" aria-label="Search topics" />
+            </div>
+            <span class="topic-count">{{ topics|length }} featured paths</span>
+        </div>
+        <div class="row g-4">
+            {% for topic in topics %}
+            <div class="col-lg-4 col-md-6">
+                <article class="topic-card">
+                    <div class="topic-icon"><i class="{{ topic.icon }}"></i></div>
+                    <h3>{{ topic.name }}</h3>
+                    <p>{{ topic.description }}</p>
+                    <div class="topic-meta">
+                        <span>{{ topic.count }} learning paths</span>
+                        <a href="{% url 'sign_up' %}">Explore <i class="bi bi-arrow-up-right"></i></a>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="mentors" id="mentors">
+    <div class="container">
+        <div class="text-center fade-up">
+            <span class="section-label"><i class="bi bi-stars"></i> People to learn from</span>
+            <h2 class="section-title">Follow the <span>energy</span>.</h2>
+            <p class="section-sub mx-auto">Start with a mentor whose way of thinking makes you want to keep going.</p>
+            <div class="section-divider"><span></span><span></span><span></span></div>
+        </div>
+        <div class="mentors-grid">
+            {% for mentor in mentors %}
+            <article class="mentor-card fade-up">
+                <div class="avatar">{{ mentor.initials }}</div>
+                <h4>{{ mentor.name }}</h4>
+                <div class="title">{{ mentor.title }}</div>
+                <div class="expertise"><span>#{{ mentor.focus }}</span></div>
+                <div class="rating"><i class="bi bi-star-fill"></i> {{ mentor.rating }} <span>· {{ mentor.sessions }} sessions</span></div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="communities" id="communities">
+    <div class="container">
+        <div class="text-center fade-up">
+            <span class="section-label"><i class="bi bi-people"></i> Learn together</span>
+            <h2 class="section-title">Find your <span>people</span>.</h2>
+            <p class="section-sub mx-auto">A good community gives every question somewhere to land.</p>
+            <div class="section-divider"><span></span><span></span><span></span></div>
+        </div>
+        <div class="communities-grid">
+            {% for community in communities %}
+            <article class="community-card fade-up">
+                <span class="icon"><i class="{{ community.icon }}"></i></span>
+                <h4>{{ community.name }}</h4>
+                <p>{{ community.description }}</p>
+                <div class="members"><i class="bi bi-person"></i> {{ community.members }} members</div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="explore-cta">
+    <div class="container">
+        <h2>Your next useful conversation is probably closer than you think.</h2>
+        <p>Bring one skill you know, one skill you want, and let the exchange begin.</p>
+        <a href="{% url 'sign_up' %}" class="btn btn-secondary"><i class="bi bi-arrow-right-circle"></i> Join KnotWork</a>
+    </div>
+</section>
+
+<script>
+    const topicSearch = document.querySelector('.topic-search input');
+    const topicCards = document.querySelectorAll('.topic-card');
+
+    topicSearch?.addEventListener('input', (event) => {
+        const query = event.target.value.trim().toLowerCase();
+
+        topicCards.forEach((card) => {
+            const matches = card.textContent.toLowerCase().includes(query);
+            card.closest('.col-lg-4').hidden = !matches;
+        });
+    });
+</script>
+{% endblock content %}
