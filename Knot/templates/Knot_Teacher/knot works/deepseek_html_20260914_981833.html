@@ -1,0 +1,1795 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}The Desk{% endblock %}
+{% block page_title %}The Desk{% endblock %}
+{% block breadcrumb %}Desk{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   THE DESK — daily-driver home dashboard
+   Focus: next action, today's agenda, this week, money
+   ============================================================ */
+
+.desk{
+    --ink:            var(--primary-dark, #020617);
+    --ink-2:          var(--primary, #0B1121);
+    --ink-3:          var(--primary-light, #1E293B);
+
+    --gold:           var(--secondary, #BEF264);
+    --gold-light:     var(--secondary-light, #D9F99D);
+    --gold-deep:      var(--secondary-deep, #7ED321);
+    --gold-soft:      rgba(190, 242, 100, 0.14);
+    --gold-line:      rgba(190, 242, 100, 0.34);
+
+    --sky:            var(--accent, #38BDF8);
+    --sky-soft:       rgba(56, 189, 248, 0.12);
+    --violet:         #8B5CF6;
+    --violet-soft:    rgba(139, 92, 246, 0.12);
+
+    --paper:          var(--white, #FFFFFF);
+    --paper-2:        var(--cream, #F8FAFC);
+    --line:           var(--gray-200, #E2E8F0);
+    --line-soft:      var(--gray-100, #F1F5F9);
+    --muted:          var(--gray-600, #475569);
+    --faint:          var(--gray-300, #CBD5E1);
+
+    --r:              var(--radius, 16px);
+    --r-xl:           var(--radius-xl, 24px);
+    --ease:           cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ---------- entrance ---------- */
+.desk .d-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: dRise .7s var(--ease) forwards;
+}
+.desk .d-rise:nth-child(1){ animation-delay: .02s; }
+.desk .d-rise:nth-child(2){ animation-delay: .08s; }
+.desk .d-rise:nth-child(3){ animation-delay: .14s; }
+.desk .d-rise:nth-child(4){ animation-delay: .20s; }
+.desk .d-rise:nth-child(5){ animation-delay: .26s; }
+@keyframes dRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.desk-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.desk-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+
+.desk-mast-left .dm-date{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+}
+.desk-mast-left .dm-date i{ font-size: 0.72rem; }
+
+.desk-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.3rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+.desk-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.desk-mast-left .dm-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+.desk-mast-left .dm-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+    display: inline-block;
+}
+.desk-mast-left .dm-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.desk-mast-left .dm-sub .live-tag{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 50px;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.desk-mast-left .dm-sub .live-tag .blip{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-deep);
+    animation: dmBlip 1.6s ease-in-out infinite;
+}
+@keyframes dmBlip{
+    0%, 100%{ box-shadow: 0 0 0 0 rgba(126, 211, 33, 0.7); }
+    50%     { box-shadow: 0 0 0 6px rgba(126, 211, 33, 0); }
+}
+
+.desk-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---------- desk buttons ---------- */
+.desk .btn-gold{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+}
+.desk .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+.desk .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.desk .btn-ghost:hover{
+    border-color: var(--gold); color: var(--gold-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   2 · NEXT UP — hero action card
+   ============================================================ */
+.next-up{
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 32px;
+    padding: 30px 34px;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(ellipse at 92% 15%, rgba(190, 242, 100, 0.20), transparent 55%),
+        radial-gradient(ellipse at 8% 100%, rgba(56, 189, 248, 0.14), transparent 55%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11, 17, 33, 0.12));
+}
+@media (max-width: 900px){
+    .next-up{ grid-template-columns: 1fr; gap: 22px; padding: 26px 24px; }
+}
+.next-up::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 30%,
+        var(--sky) 65%,
+        var(--violet) 100%);
+}
+.next-up::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 26px 26px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 25% 40%, #000 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 25% 40%, #000 20%, transparent 70%);
+}
+
+/* Left side */
+.nu-left{ position: relative; z-index: 2; display: flex; flex-direction: column; }
+.nu-kicker{
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 13px; border-radius: 50px;
+    background: rgba(190, 242, 100, 0.16);
+    border: 1px solid rgba(190, 242, 100, 0.42);
+    color: var(--gold-light);
+    font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    align-self: flex-start;
+    margin-bottom: 16px;
+}
+.nu-kicker .blip{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold);
+    animation: dmBlip 1.6s ease-in-out infinite;
+}
+.nu-title{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 2.6vw, 1.95rem);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.018em;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.nu-meta{
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.68);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+.nu-meta strong{ color: #fff; font-weight: 700; }
+.nu-meta .sep{
+    display: inline-block;
+    width: 3px; height: 3px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    vertical-align: middle;
+    margin: 0 8px;
+}
+
+/* attendees strip */
+.nu-attendees{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.nu-av-stack{
+    display: flex;
+}
+.nu-av-stack span{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.7rem; font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    border: 2px solid var(--ink-2);
+    margin-left: -10px;
+}
+.nu-av-stack span:first-child{ margin-left: 0; }
+.nu-av-stack span:nth-child(2){ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.nu-av-stack span:nth-child(3){ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; }
+.nu-av-stack span.more{
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.75);
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 0.62rem;
+    border-color: var(--ink-2);
+}
+.nu-attendees .att-note{
+    font-size: 0.74rem;
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+}
+.nu-attendees .att-note strong{ color: #fff; font-weight: 700; }
+
+.nu-actions{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+.nu-join{
+    padding: 13px 26px;
+    border-radius: 50px;
+    border: none;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.20);
+}
+.nu-join:hover{
+    transform: translateY(-3px);
+    background: var(--gold);
+    box-shadow: 0 20px 44px rgba(190, 242, 100, 0.42);
+}
+.nu-prep{
+    padding: 13px 22px;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.nu-prep:hover{
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Right side — countdown */
+.nu-right{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    padding-left: 32px;
+    border-left: 1px solid rgba(255,255,255,0.10);
+}
+@media (max-width: 900px){
+    .nu-right{
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.10);
+        padding-top: 22px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+}
+
+.nu-countdown{
+    text-align: left;
+}
+.nu-countdown .label{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 10px;
+}
+.nu-countdown .time{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.nu-countdown .time em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.nu-side-stats{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.nu-side-stats > div{
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+}
+.nu-side-stats .k{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+}
+.nu-side-stats .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+.nu-side-stats .v.gold{ color: var(--gold-light); }
+
+/* ============================================================
+   3 · KPI RIBBON — 4 tiles
+   ============================================================ */
+.kpi-row{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+@media (max-width: 1080px){ .kpi-row{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .kpi-row{ grid-template-columns: 1fr; } }
+
+.kpi-card{
+    position: relative;
+    padding: 20px 20px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.kpi-card::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 3px 3px 0 0;
+}
+.kpi-card.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+.kpi-card.violet::before{ background: linear-gradient(90deg, var(--violet), #6D28D9); }
+.kpi-card.warn::before  { background: linear-gradient(90deg, #F59E0B, #FCD34D); }
+
+.kpi-card:hover{
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+    border-color: rgba(190, 242, 100, 0.30);
+}
+.kpi-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.kpi-ic{
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    font-size: 0.95rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.kpi-card.sky .kpi-ic   { background: var(--sky-soft); color: #0284C7; }
+.kpi-card.violet .kpi-ic{ background: var(--violet-soft); color: #6D28D9; }
+.kpi-card.warn .kpi-ic  { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+.kpi-spark{
+    width: 72px; height: 26px;
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+.kpi-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.85rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.028em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.kpi-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+.kpi-label{
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+.kpi-foot{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.22);
+    color: var(--gold-deep);
+    letter-spacing: 0.02em;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+.kpi-card.sky .kpi-foot   { background: var(--sky-soft); color: #0284C7; }
+.kpi-card.violet .kpi-foot{ background: var(--violet-soft); color: #6D28D9; }
+.kpi-card.warn .kpi-foot  { background: rgba(245, 158, 11, 0.16); color: #B45309; }
+.kpi-foot i{ font-size: 0.58rem; }
+
+/* ============================================================
+   4 · SPLIT GRID — agenda + side rail
+   ============================================================ */
+.split{
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+@media (max-width: 1080px){ .split{ grid-template-columns: 1fr; } }
+
+.stack{
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+/* ---------- panel base ---------- */
+.panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+    transition: var(--transition, all .25s ease);
+}
+.panel:hover{
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+}
+.p-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.p-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.p-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.76rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.p-head.sky h3 i   { background: var(--sky-soft); color: #0284C7; }
+.p-head.violet h3 i{ background: var(--violet-soft); color: #6D28D9; }
+.p-head.warn h3 i  { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+.p-link{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none; border: none;
+    cursor: pointer; font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.p-link:hover{ color: var(--gold-deep); gap: 9px; }
+.p-body{ padding: 16px 22px 20px; }
+
+/* ---------- agenda (today) ---------- */
+.agenda{ display: flex; flex-direction: column; }
+
+.agenda-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 4px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .25s ease);
+    position: relative;
+}
+.agenda-row:last-child{ border-bottom: none; padding-bottom: 0; }
+.agenda-row:first-child{ padding-top: 4px; }
+.agenda-row:hover{
+    transform: translateX(4px);
+    background: var(--paper-2);
+    border-radius: 10px;
+}
+
+.ag-time{
+    width: 66px;
+    flex-shrink: 0;
+    text-align: left;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+.ag-time span{
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 3px;
+}
+.agenda-row.live .ag-time{ color: var(--gold-deep); }
+.agenda-row.live .ag-time span{ color: var(--gold-deep); }
+.agenda-row.done .ag-time{ color: var(--muted); }
+.agenda-row.done .ag-time span{ color: var(--faint); }
+
+.ag-line{
+    width: 2px;
+    align-self: stretch;
+    border-radius: 2px;
+    background: var(--line);
+    flex-shrink: 0;
+}
+.agenda-row.live .ag-line{
+    background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+    box-shadow: 0 0 12px rgba(190, 242, 100, 0.5);
+}
+.agenda-row.sky .ag-line{ background: var(--sky); }
+.agenda-row.violet .ag-line{ background: var(--violet); }
+.agenda-row.done .ag-line{ background: var(--faint); }
+
+.ag-body{ flex: 1; min-width: 0; }
+.ag-body h5{
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ag-body h5 .tag{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.ag-body h5 .tag.sky   { background: var(--sky-soft); color: #0284C7; }
+.ag-body h5 .tag.violet{ background: var(--violet-soft); color: #6D28D9; }
+.ag-body h5 .tag.done  { background: var(--line-soft); color: var(--muted); }
+
+.ag-body p{
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 3px;
+}
+.ag-body p strong{ color: var(--ink-3); font-weight: 600; }
+
+.ag-cta{
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: none;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    box-shadow: 0 6px 16px rgba(190, 242, 100, 0.30);
+}
+.ag-cta:hover{
+    transform: translateY(-2px);
+    background: var(--gold-light);
+    box-shadow: 0 10px 22px rgba(190, 242, 100, 0.44);
+}
+.ag-cta.muted{
+    background: var(--paper);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    box-shadow: none;
+}
+.ag-cta.muted:hover{
+    border-color: var(--gold-line);
+    color: var(--ink);
+    background: var(--gold-soft);
+    box-shadow: none;
+}
+
+/* ---------- week glance ---------- */
+.week-glance{
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+}
+.wg-day{
+    padding: 14px 8px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    text-align: center;
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+    position: relative;
+}
+.wg-day:hover{
+    background: var(--paper);
+    border-color: var(--gold-line);
+    transform: translateY(-2px);
+}
+.wg-day .wd-name{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 8px;
+}
+.wg-day .wd-num{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.wg-day .wd-dots{
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 8px;
+    min-height: 4px;
+}
+.wg-day .wd-dots span{
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+}
+.wg-day .wd-dots span.sky{ background: var(--sky); }
+.wg-day .wd-dots span.violet{ background: var(--violet); }
+
+.wg-day.today{
+    background: linear-gradient(135deg, var(--ink), var(--ink-3));
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(11,17,33,0.20);
+}
+.wg-day.today .wd-name{ color: var(--gold-light); }
+.wg-day.today .wd-num{ color: #fff; }
+.wg-day.today .wd-dots span{ background: var(--gold); }
+
+.wg-day.empty{ opacity: 0.5; }
+.wg-day.empty .wd-num{ color: var(--muted); }
+
+@media (max-width: 640px){
+    .week-glance{ grid-template-columns: repeat(4, 1fr); }
+    .wg-day:nth-child(6), .wg-day:nth-child(7){ display: none; }
+}
+
+/* ---------- earnings card ---------- */
+.earn-card{
+    position: relative;
+    padding: 24px 24px 22px;
+    border-radius: var(--r-xl);
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+}
+.earn-card::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+.earn-card::after{
+    content: '❖';
+    position: absolute;
+    bottom: -70px; right: -12px;
+    font-family: 'Playfair Display', serif;
+    font-size: 12rem;
+    line-height: 1;
+    color: rgba(190, 242, 100, 0.06);
+    pointer-events: none;
+}
+.earn-kick{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+    position: relative; z-index: 2;
+}
+.earn-amount{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    display: flex; align-items: baseline; gap: 4px;
+    position: relative; z-index: 2;
+    font-variant-numeric: tabular-nums;
+}
+.earn-amount em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+}
+.earn-note{
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.65);
+    margin-top: 8px;
+    position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 8px;
+}
+.earn-note strong{ color: var(--gold-light); font-weight: 700; }
+
+.earn-rows{
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.10);
+    position: relative; z-index: 2;
+}
+.earn-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+    font-size: 0.76rem;
+}
+.earn-row .k{
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+.earn-row .k i{ color: rgba(255,255,255,0.35); font-size: 0.8rem; }
+.earn-row .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+.earn-row .v.gold{ color: var(--gold-light); }
+.earn-row .v.sky{ color: var(--sky); }
+
+.earn-cta{
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 18px;
+    border-radius: 50px;
+    border: none;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 24px rgba(190, 242, 100, 0.32);
+    position: relative; z-index: 2;
+}
+.earn-cta:hover{
+    transform: translateY(-2px);
+    background: var(--gold-light);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+
+/* ---------- tasks checklist ---------- */
+.tasks{ display: flex; flex-direction: column; gap: 4px; }
+.task{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 10px;
+    border-radius: 10px;
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.task:hover{
+    background: var(--paper-2);
+    border-color: var(--line-soft);
+}
+.task-check{
+    width: 18px; height: 18px;
+    border-radius: 6px;
+    border: 1.8px solid var(--line);
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    margin-top: 1px;
+    transition: var(--transition, all .25s ease);
+    background: var(--paper);
+}
+.task:hover .task-check{
+    border-color: var(--gold);
+    background: var(--gold-soft);
+}
+.task-check i{
+    font-size: 0.6rem;
+    color: transparent;
+    transition: var(--transition, all .25s ease);
+}
+.task.checked .task-check{
+    background: var(--gold);
+    border-color: var(--gold);
+}
+.task.checked .task-check i{ color: var(--ink); }
+.task.checked .task-body h5{
+    color: var(--faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--faint);
+}
+
+.task-body{ flex: 1; min-width: 0; }
+.task-body h5{
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.4;
+    transition: var(--transition, all .25s ease);
+}
+.task-body h5 strong{ font-weight: 700; }
+.task-body p{
+    font-size: 0.66rem;
+    color: var(--muted);
+    margin-top: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+.task-body p i{ font-size: 0.66rem; color: var(--gold); }
+.task-body p.urgent i{ color: #DC2626; }
+.task-body p.urgent{ color: #B91C1C; font-weight: 600; }
+
+.task-tag{
+    flex-shrink: 0;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+    align-self: flex-start;
+    margin-top: 1px;
+}
+.task-tag.urgent{ background: rgba(220, 38, 38, 0.12); color: #B91C1C; }
+.task-tag.soon  { background: rgba(245, 158, 11, 0.16); color: #B45309; }
+.task-tag.ok    { background: rgba(190, 242, 100, 0.22); color: var(--gold-deep); }
+
+/* ---------- reviews ---------- */
+.reviews{ display: flex; flex-direction: column; gap: 2px; }
+.review{
+    padding: 13px 0;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .25s ease);
+}
+.review:first-child{ padding-top: 4px; }
+.review:last-child{ border-bottom: none; padding-bottom: 0; }
+.review:hover{ padding-left: 6px; }
+
+.review-head{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+.review-av{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem; font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    flex-shrink: 0;
+}
+.review-av.sky{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.review-av.violet{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; }
+.review-av.mint{ background: linear-gradient(135deg, var(--gold), var(--gold-deep)); }
+
+.review-who{ flex: 1; min-width: 0; }
+.review-who h5{
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+}
+.review-who .stars{
+    display: inline-flex;
+    gap: 2px;
+    margin-top: 3px;
+    color: #F59E0B;
+    font-size: 0.62rem;
+}
+.review-when{
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    flex-shrink: 0;
+}
+.review-text{
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.55;
+    padding-left: 42px;
+    font-style: italic;
+}
+
+/* ============================================================
+   5 · QUICK STRIP — bottom shortcuts
+   ============================================================ */
+.quick-strip{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 900px){ .quick-strip{ grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px){ .quick-strip{ grid-template-columns: 1fr; } }
+
+.quick{
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    text-align: left;
+    font-family: inherit;
+    overflow: hidden;
+}
+.quick::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: var(--gold);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform .35s var(--ease);
+}
+.quick:hover{
+    transform: translateY(-4px);
+    border-color: var(--gold-line);
+    box-shadow: 0 12px 32px rgba(11,17,33,0.08);
+}
+.quick:hover::before{ transform: scaleY(1); }
+
+.quick-ic{
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 1.05rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.quick.sky .quick-ic   { background: var(--sky-soft); color: #0284C7; }
+.quick.violet .quick-ic{ background: var(--violet-soft); color: #6D28D9; }
+.quick.warn .quick-ic  { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+.quick-body{ flex: 1; min-width: 0; }
+.quick-body h5{
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 3px;
+}
+.quick-body p{
+    font-size: 0.66rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+.quick-go{
+    color: var(--faint);
+    font-size: 0.8rem;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.quick:hover .quick-go{
+    color: var(--gold-deep);
+    transform: translateX(4px);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .desk-mast-left h1{ font-size: 1.5rem; }
+    .kpi-val{ font-size: 1.55rem; }
+    .nu-countdown .time{ font-size: 2rem; }
+    .earn-amount{ font-size: 1.75rem; }
+    .p-head{ padding: 16px 18px 12px; }
+    .p-body{ padding: 14px 18px 18px; }
+    .ag-time{ width: 54px; font-size: 0.9rem; }
+}
+</style>
+
+
+<div class="desk">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="desk-mast d-rise">
+        <div class="desk-mast-left">
+            <span class="dm-date"><i class="bi bi-calendar2-week"></i> Tuesday · 4 March 2026</span>
+            <h1 id="greetingText">Good evening, <em>Professor Daniel.</em></h1>
+            <p class="dm-sub">
+                <span data-clock>18:12</span>
+                <span class="sep"></span>
+                <span><strong>3</strong> tasks pending</span>
+                <span class="sep"></span>
+                <span class="live-tag"><span class="blip"></span> Studio opens in 18m</span>
+            </p>
+        </div>
+        <div class="desk-mast-right">
+            <button class="btn-ghost" data-toast="Opening your calendar…">
+                <i class="bi bi-calendar3"></i> Schedule
+            </button>
+            <button class="btn-ghost" data-toast="Opening weekly report…">
+                <i class="bi bi-file-earmark-bar-graph"></i> Report
+            </button>
+            <button class="btn-gold" data-toast="Opening course composer…">
+                <i class="bi bi-plus-lg"></i> New session
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · NEXT UP — hero action
+         ==================================================== -->
+    <section class="next-up d-rise">
+        <div class="nu-left">
+            <span class="nu-kicker"><span class="blip"></span> Live in 18 minutes</span>
+            <h2 class="nu-title">React Hooks Deep Dive</h2>
+            <p class="nu-meta">
+                with <strong>Sara Kim</strong>
+                <span class="sep"></span>
+                Session <strong>8</strong> of 12
+                <span class="sep"></span>
+                <strong>45 minutes</strong>
+            </p>
+
+            <div class="nu-attendees">
+                <div class="nu-av-stack">
+                    <span>SK</span>
+                    <span>TK</span>
+                    <span>MR</span>
+                    <span class="more">+9</span>
+                </div>
+                <span class="att-note"><strong>12 students</strong> confirmed · 4 on waitlist</span>
+            </div>
+
+            <div class="nu-actions">
+                <button class="nu-join" data-toast="Opening live studio…">
+                    <i class="bi bi-camera-video-fill"></i> Join studio
+                </button>
+                <button class="nu-prep" data-toast="Opening lesson prep…">
+                    <i class="bi bi-journal-text"></i> Review notes
+                </button>
+            </div>
+        </div>
+
+        <div class="nu-right">
+            <div class="nu-countdown">
+                <div class="label">Starts in</div>
+                <div class="time"><span data-countdown-minutes="18">18:00</span><em>min</em></div>
+            </div>
+            <div class="nu-side-stats">
+                <div>
+                    <div class="k">Room</div>
+                    <div class="v">Studio 4</div>
+                </div>
+                <div>
+                    <div class="k">Material</div>
+                    <div class="v gold">Ready</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         3 · KPI RIBBON
+         ==================================================== -->
+    <section class="kpi-row">
+        <article class="kpi-card d-rise">
+            <div class="kpi-top">
+                <span class="kpi-ic"><i class="bi bi-people-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 26" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="dk1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#BEF264" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,20 L10,17 L20,18 L30,12 L40,14 L50,8 L60,10 L70,5 L78,7 L78,26 L0,26 Z" fill="url(#dk1)"/>
+                    <path d="M0,20 L10,17 L20,18 L30,12 L40,14 L50,8 L60,10 L70,5 L78,7"
+                          fill="none" stroke="#BEF264" stroke-width="1.5"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-val" data-count="148">0</div>
+            <div class="kpi-label">Active students</div>
+            <span class="kpi-foot"><i class="bi bi-arrow-up-short"></i> +12 this month</span>
+        </article>
+
+        <article class="kpi-card sky d-rise">
+            <div class="kpi-top">
+                <span class="kpi-ic"><i class="bi bi-camera-video-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 26" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="dk2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,18 L10,18 L20,14 L30,16 L40,10 L50,12 L60,6 L70,8 L78,4 L78,26 L0,26 Z" fill="url(#dk2)"/>
+                    <path d="M0,18 L10,18 L20,14 L30,16 L40,10 L50,12 L60,6 L70,8 L78,4"
+                          fill="none" stroke="#38BDF8" stroke-width="1.5"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-val" data-count="18">0</div>
+            <div class="kpi-label">Sessions this week</div>
+            <span class="kpi-foot"><i class="bi bi-arrow-up-short"></i> 4 scheduled today</span>
+        </article>
+
+        <article class="kpi-card warn d-rise">
+            <div class="kpi-top">
+                <span class="kpi-ic"><i class="bi bi-pencil-square"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 26" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="dk3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#F59E0B" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,6 L10,8 L20,5 L30,9 L40,7 L50,11 L60,9 L70,13 L78,12 L78,26 L0,26 Z" fill="url(#dk3)"/>
+                    <path d="M0,6 L10,8 L20,5 L30,9 L40,7 L50,11 L60,9 L70,13 L78,12"
+                          fill="none" stroke="#F59E0B" stroke-width="1.5"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-val" data-count="3">0</div>
+            <div class="kpi-label">Awaiting your mark</div>
+            <span class="kpi-foot"><i class="bi bi-exclamation-circle"></i> 1 overdue by 2 days</span>
+        </article>
+
+        <article class="kpi-card violet d-rise">
+            <div class="kpi-top">
+                <span class="kpi-ic"><i class="bi bi-cash-coin"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 26" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="dk4" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#8B5CF6" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,21 L10,18 L20,20 L30,14 L40,16 L50,9 L60,11 L70,6 L78,8 L78,26 L0,26 Z" fill="url(#dk4)"/>
+                    <path d="M0,21 L10,18 L20,20 L30,14 L40,16 L50,9 L60,11 L70,6 L78,8"
+                          fill="none" stroke="#8B5CF6" stroke-width="1.5"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-val">$1,<span data-count="840">0</span></div>
+            <div class="kpi-label">Earned this month</div>
+            <span class="kpi-foot"><i class="bi bi-arrow-up-short"></i> +$420 vs Feb</span>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         4 · SPLIT — agenda + side rail
+         ==================================================== -->
+    <section class="split">
+
+        <!-- ============================================
+             LEFT: Agenda + week
+             ============================================ -->
+        <div class="stack">
+
+            <!-- TODAY'S AGENDA -->
+            <article class="panel d-rise">
+                <div class="p-head">
+                    <h3><i class="bi bi-list-check"></i> Today's agenda</h3>
+                    <button class="p-link" data-toast="Opening full calendar…">
+                        Full week <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="p-body">
+                    <div class="agenda">
+
+                        <div class="agenda-row live">
+                            <div class="ag-time">
+                                18:30
+                                <span>Live now</span>
+                            </div>
+                            <div class="ag-line"></div>
+                            <div class="ag-body">
+                                <h5>React Hooks Deep Dive <span class="tag">Live</span></h5>
+                                <p>with <strong>Sara Kim</strong> · Session 8 of 12 · 45 min</p>
+                            </div>
+                            <button class="ag-cta" data-toast="Opening session room…">Join</button>
+                        </div>
+
+                        <div class="agenda-row sky">
+                            <div class="ag-time">
+                                20:00
+                                <span>Today</span>
+                            </div>
+                            <div class="ag-line"></div>
+                            <div class="ag-body">
+                                <h5>Design Systems Deep Dive</h5>
+                                <p>with <strong>Tunde Kalu</strong> · Session 4 of 16</p>
+                            </div>
+                            <button class="ag-cta muted" data-toast="Opening session details…">Details</button>
+                        </div>
+
+                        <div class="agenda-row violet">
+                            <div class="ag-time">
+                                10:00
+                                <span>Tomorrow</span>
+                            </div>
+                            <div class="ag-line"></div>
+                            <div class="ag-body">
+                                <h5>API Design Workshop</h5>
+                                <p>with <strong>Maya Rahman</strong> · Group of 4</p>
+                            </div>
+                            <button class="ag-cta muted" data-toast="Opening session details…">Details</button>
+                        </div>
+
+                        <div class="agenda-row">
+                            <div class="ag-time">
+                                14:00
+                                <span>Wed</span>
+                            </div>
+                            <div class="ag-line"></div>
+                            <div class="ag-body">
+                                <h5>TypeScript Office Hours <span class="tag sky">Open</span></h5>
+                                <p>Open Q&amp;A · <strong>8 students</strong> registered</p>
+                            </div>
+                            <button class="ag-cta muted" data-toast="Opening session details…">Details</button>
+                        </div>
+
+                        <div class="agenda-row done">
+                            <div class="ag-time">
+                                09:00
+                                <span>Done</span>
+                            </div>
+                            <div class="ag-line"></div>
+                            <div class="ag-body">
+                                <h5>React Fundamentals <span class="tag done">Complete</span></h5>
+                                <p>Group of 12 · <strong>96% attendance</strong></p>
+                            </div>
+                            <button class="ag-cta muted" data-toast="Opening recap…">Recap</button>
+                        </div>
+
+                    </div>
+                </div>
+            </article>
+
+            <!-- WEEK GLANCE -->
+            <article class="panel d-rise">
+                <div class="p-head sky">
+                    <h3><i class="bi bi-calendar-week"></i> This week at a glance</h3>
+                    <button class="p-link" data-toast="Opening full calendar…">
+                        Calendar <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="p-body">
+                    <div class="week-glance">
+                        <div class="wg-day">
+                            <div class="wd-name">Mon</div>
+                            <div class="wd-num">3</div>
+                            <div class="wd-dots"><span></span><span class="sky"></span></div>
+                        </div>
+                        <div class="wg-day">
+                            <div class="wd-name">Tue</div>
+                            <div class="wd-num">4</div>
+                            <div class="wd-dots"><span></span><span></span><span class="violet"></span></div>
+                        </div>
+                        <div class="wg-day today">
+                            <div class="wd-name">Wed</div>
+                            <div class="wd-num">5</div>
+                            <div class="wd-dots"><span></span><span class="sky"></span></div>
+                        </div>
+                        <div class="wg-day">
+                            <div class="wd-name">Thu</div>
+                            <div class="wd-num">6</div>
+                            <div class="wd-dots"><span></span></div>
+                        </div>
+                        <div class="wg-day">
+                            <div class="wd-name">Fri</div>
+                            <div class="wd-num">7</div>
+                            <div class="wd-dots"><span class="sky"></span></div>
+                        </div>
+                        <div class="wg-day empty">
+                            <div class="wd-name">Sat</div>
+                            <div class="wd-num">8</div>
+                            <div class="wd-dots"></div>
+                        </div>
+                        <div class="wg-day empty">
+                            <div class="wd-name">Sun</div>
+                            <div class="wd-num">9</div>
+                            <div class="wd-dots"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- ============================================
+             RIGHT: Earnings, tasks, reviews
+             ============================================ -->
+        <div class="stack">
+
+            <!-- EARNINGS -->
+            <article class="earn-card d-rise">
+                <div class="earn-kick">Available for payout</div>
+                <div class="earn-amount">$1,840<em>.00</em></div>
+                <div class="earn-note">
+                    <i class="bi bi-calendar-check"></i>
+                    Next cycle · <strong>1 Apr 2026</strong>
+                </div>
+
+                <div class="earn-rows">
+                    <div class="earn-row">
+                        <span class="k"><i class="bi bi-hourglass-split"></i> Pending release</span>
+                        <span class="v">$420.00</span>
+                    </div>
+                    <div class="earn-row">
+                        <span class="k"><i class="bi bi-graph-up-arrow"></i> Lifetime</span>
+                        <span class="v gold">$12,560</span>
+                    </div>
+                    <div class="earn-row">
+                        <span class="k"><i class="bi bi-percent"></i> Platform fee</span>
+                        <span class="v sky">12%</span>
+                    </div>
+                </div>
+
+                <button class="earn-cta" data-toast="Requesting payout…">
+                    <i class="bi bi-cash-stack"></i> Request payout
+                </button>
+            </article>
+
+            <!-- TASKS -->
+            <article class="panel d-rise">
+                <div class="p-head warn">
+                    <h3><i class="bi bi-check2-square"></i> On your plate</h3>
+                    <button class="p-link" data-toast="Opening all tasks…">
+                        All <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="p-body">
+                    <div class="tasks">
+
+                        <div class="task" data-task>
+                            <span class="task-check"><i class="bi bi-check-lg"></i></span>
+                            <div class="task-body">
+                                <h5>Grade <strong>Portfolio Review</strong> — Tunde Kalu</h5>
+                                <p class="urgent"><i class="bi bi-exclamation-circle"></i> Overdue by 2 days</p>
+                            </div>
+                            <span class="task-tag urgent">Urgent</span>
+                        </div>
+
+                        <div class="task" data-task>
+                            <span class="task-check"><i class="bi bi-check-lg"></i></span>
+                            <div class="task-body">
+                                <h5>Review <strong>3 assignment submissions</strong></h5>
+                                <p><i class="bi bi-clock"></i> Due today</p>
+                            </div>
+                            <span class="task-tag soon">Today</span>
+                        </div>
+
+                        <div class="task" data-task>
+                            <span class="task-check"><i class="bi bi-check-lg"></i></span>
+                            <div class="task-body">
+                                <h5>Prepare <strong>React Hooks</strong> lesson notes</h5>
+                                <p><i class="bi bi-clock"></i> Before 18:30</p>
+                            </div>
+                            <span class="task-tag soon">Today</span>
+                        </div>
+
+                        <div class="task" data-task>
+                            <span class="task-check"><i class="bi bi-check-lg"></i></span>
+                            <div class="task-body">
+                                <h5>Reply to <strong>Jonas Tan</strong> enquiry</h5>
+                                <p><i class="bi bi-chat-left-text"></i> Message · 1 hour ago</p>
+                            </div>
+                            <span class="task-tag">Reply</span>
+                        </div>
+
+                        <div class="task" data-task>
+                            <span class="task-check"><i class="bi bi-check-lg"></i></span>
+                            <div class="task-body">
+                                <h5>Publish <strong>Motion Design Basics</strong> draft</h5>
+                                <p><i class="bi bi-journal-plus"></i> 3 modules ready</p>
+                            </div>
+                            <span class="task-tag ok">Ready</span>
+                        </div>
+
+                    </div>
+                </div>
+            </article>
+
+            <!-- RECENT REVIEWS -->
+            <article class="panel d-rise">
+                <div class="p-head violet">
+                    <h3><i class="bi bi-star-fill"></i> Recent reviews</h3>
+                    <button class="p-link" data-toast="Opening all reviews…">
+                        All <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="p-body">
+                    <div class="reviews">
+
+                        <div class="review">
+                            <div class="review-head">
+                                <span class="review-av">MR</span>
+                                <div class="review-who">
+                                    <h5>Maya Rahman</h5>
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                </div>
+                                <span class="review-when">3h ago</span>
+                            </div>
+                            <p class="review-text">"Clarity is unmatched. Every session lands."</p>
+                        </div>
+
+                        <div class="review">
+                            <div class="review-head">
+                                <span class="review-av sky">TK</span>
+                                <div class="review-who">
+                                    <h5>Tunde Kalu</h5>
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                </div>
+                                <span class="review-when">Yesterday</span>
+                            </div>
+                            <p class="review-text">"The design systems course changed how I work."</p>
+                        </div>
+
+                        <div class="review">
+                            <div class="review-head">
+                                <span class="review-av violet">SK</span>
+                                <div class="review-who">
+                                    <h5>Sara Kim</h5>
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-half"></i>
+                                    </span>
+                                </div>
+                                <span class="review-when">2d ago</span>
+                            </div>
+                            <p class="review-text">"Would love more office hours before deadlines."</p>
+                        </div>
+
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         5 · QUICK STRIP
+         ==================================================== -->
+    <section class="quick-strip">
+
+        <button class="quick d-rise" data-toast="Opening course composer…">
+            <span class="quick-ic"><i class="bi bi-plus-circle"></i></span>
+            <div class="quick-body">
+                <h5>Compose a course</h5>
+                <p>Draft a new signature track</p>
+            </div>
+            <i class="bi bi-arrow-right quick-go"></i>
+        </button>
+
+        <button class="quick sky d-rise" data-toast="Opening cohort roster…">
+            <span class="quick-ic"><i class="bi bi-people-fill"></i></span>
+            <div class="quick-body">
+                <h5>View cohort</h5>
+                <p>148 active · 5 new enrolments</p>
+            </div>
+            <i class="bi bi-arrow-right quick-go"></i>
+        </button>
+
+        <button class="quick violet d-rise" data-toast="Opening analytics…">
+            <span class="quick-ic"><i class="bi bi-graph-up-arrow"></i></span>
+            <div class="quick-body">
+                <h5>Teaching analytics</h5>
+                <p>Completion, ratings & retention</p>
+            </div>
+            <i class="bi bi-arrow-right quick-go"></i>
+        </button>
+
+        <button class="quick warn d-rise" data-toast="Opening messages…">
+            <span class="quick-ic"><i class="bi bi-chat-left-text"></i></span>
+            <div class="quick-body">
+                <h5>Unread messages</h5>
+                <p>4 conversations waiting</p>
+            </div>
+            <i class="bi bi-arrow-right quick-go"></i>
+        </button>
+
+    </section>
+
+</div>
+
+
+<script>
+(function () {
+    'use strict';
+
+    /* ---------- animated counters ---------- */
+    document.querySelectorAll('.desk [data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ---------- live clock ---------- */
+    var clock = document.querySelector('.desk [data-clock]');
+    if (clock) {
+        function tick() {
+            var d = new Date();
+            clock.textContent =
+                String(d.getHours()).padStart(2, '0') + ':' +
+                String(d.getMinutes()).padStart(2, '0');
+        }
+        tick();
+        setInterval(tick, 20000);
+    }
+
+    /* ---------- countdown ---------- */
+    var cd = document.querySelector('.desk [data-countdown-minutes]');
+    if (cd) {
+        var minutes = parseFloat(cd.dataset.countdownMinutes) || 0;
+        var target = Date.now() + minutes * 60 * 1000;
+        function tickCd() {
+            var diff = Math.max(0, target - Date.now());
+            var m = Math.floor(diff / 60000);
+            var s = Math.floor((diff % 60000) / 1000);
+            cd.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            if (diff <= 0) cd.textContent = 'LIVE';
+        }
+        tickCd();
+        setInterval(tickCd, 1000);
+    }
+
+    /* ---------- task checkboxes ---------- */
+    document.querySelectorAll('.desk [data-task]').forEach(function (task) {
+        task.addEventListener('click', function () {
+            task.classList.toggle('checked');
+            if (task.classList.contains('checked') && window.__toast) {
+                var title = task.querySelector('h5');
+                window.__toast('Marked complete' + (title ? ' — ' + title.textContent.trim() : ''), 'success');
+            }
+        });
+    });
+})();
+</script>
+
+{% endblock content %}

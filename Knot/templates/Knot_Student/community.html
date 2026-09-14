@@ -1,0 +1,1575 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Community{% endblock %}
+
+{% block breadcrumb %}Community{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       COMMUNITY — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .cm-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .cm-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .cm-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .cm-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 620px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+    .badge-soft.pulse i { animation: cmPulse 1.8s infinite; }
+    @keyframes cmPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Stats strip ---------- */
+    .cm-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .cm-stat {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .cm-stat::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .cm-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .cm-stat:hover::after { opacity: 1; }
+    .cm-stat .ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .cm-stat .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .cm-stat .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .cm-stat .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .cm-stat .v {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .cm-stat .v em {
+        font-style: normal;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .cm-stat .l { font-size: 0.76rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Composer ---------- */
+    .cm-composer {
+        display: flex;
+        gap: 14px;
+        padding: 20px 24px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    .cm-composer:focus-within {
+        border-color: rgba(190, 242, 100, 0.5);
+        box-shadow: 0 8px 32px rgba(190, 242, 100, 0.14);
+    }
+    .cm-composer .avatar.lg { flex-shrink: 0; }
+
+    .cm-composer-body { flex: 1; min-width: 0; }
+    .cm-composer-input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--gray-800);
+        resize: none;
+        min-height: 48px;
+        padding: 8px 0;
+    }
+    .cm-composer-input::placeholder { color: var(--gray-300); }
+
+    .cm-composer-foot {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 1px solid var(--gray-100);
+        flex-wrap: wrap;
+    }
+    .cm-composer-tool {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .cm-composer-tool:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.1);
+        color: var(--primary-dark);
+    }
+    .cm-composer-tool i { font-size: 0.85rem; }
+    .cm-composer-foot .spacer { flex: 1; }
+
+    .cm-post-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 20px;
+        border-radius: 50px;
+        border: none;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.32);
+    }
+    .cm-post-btn:hover {
+        background: var(--secondary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.46);
+    }
+
+    /* ---------- Layout ---------- */
+    .cm-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+        align-items: start;
+    }
+    .cm-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    .cm-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+    /* ---------- Feed toolbar ---------- */
+    .cm-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 12px 18px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .cm-cats {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex: 1;
+    }
+    .cm-cats::-webkit-scrollbar { display: none; }
+
+    .cm-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .cm-cat:hover { background: var(--gray-100); color: var(--primary-dark); }
+    .cm-cat.active {
+        background: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .cm-cat.active i { color: var(--secondary); }
+    .cm-cat i { font-size: 0.85rem; color: var(--gray-300); transition: var(--transition); }
+    .cm-cat:hover i { color: var(--primary-dark); }
+
+    .cm-sort {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .cm-sort select {
+        padding: 8px 13px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        cursor: pointer;
+        outline: none;
+        transition: var(--transition);
+    }
+    .cm-sort select:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    /* ---------- Post card ---------- */
+    .cm-post {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 20px 24px 18px;
+        transition: var(--transition);
+        position: relative;
+    }
+    .cm-post:hover {
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.32);
+    }
+
+    .cm-post.pinned {
+        border-color: rgba(190, 242, 100, 0.42);
+        background: linear-gradient(180deg, rgba(190, 242, 100, 0.04) 0%, var(--white) 30%);
+    }
+
+    .cm-post-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+    .cm-post-avatar {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.82rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        position: relative;
+    }
+    .cm-post-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .cm-post-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .cm-post-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
+    .cm-post-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); color: var(--primary-dark); }
+    .cm-post-avatar.v6 { background: linear-gradient(135deg, #FDA4AF, #E11D48); color: #fff; }
+
+    .cm-post-meta { flex: 1; min-width: 0; padding-top: 2px; }
+    .cm-post-meta .who {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+        margin-bottom: 2px;
+    }
+    .cm-post-meta .who strong {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .cm-post-meta .who .verified {
+        color: var(--accent);
+        font-size: 0.72rem;
+    }
+    .cm-post-meta .who .role {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 50px;
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .cm-post-meta .who .role.mentor { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .cm-post-meta .who .role.teacher { background: rgba(56, 189, 248, 0.14); color: #0369A1; }
+    .cm-post-meta .time {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    .cm-post-meta .time i { color: var(--gray-300); font-size: 0.7rem; margin-right: 3px; }
+
+    .cm-post-badges {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .cm-pin {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(190, 242, 100, 0.28);
+        color: #4D7C0F;
+    }
+    .cm-pin i { font-size: 0.65rem; }
+
+    /* Post body */
+    .cm-post-body { margin-bottom: 14px; }
+    .cm-post-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        margin-bottom: 8px;
+        letter-spacing: -0.005em;
+        transition: var(--transition);
+        cursor: pointer;
+        display: block;
+    }
+    .cm-post-title:hover { color: #4D7C0F; }
+
+    .cm-post-text {
+        font-size: 0.86rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Tag chips */
+    .cm-post-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+    }
+    .cm-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 11px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        background: rgba(56, 189, 248, 0.1);
+        color: #0369A1;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .cm-tag:hover {
+        background: rgba(56, 189, 248, 0.18);
+    }
+    .cm-tag.green {
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .cm-tag.green:hover { background: rgba(190, 242, 100, 0.3); }
+    .cm-tag.violet {
+        background: rgba(139, 92, 246, 0.12);
+        color: #6D28D9;
+    }
+    .cm-tag.violet:hover { background: rgba(139, 92, 246, 0.2); }
+    .cm-tag.amber {
+        background: rgba(245, 158, 11, 0.14);
+        color: #B45309;
+    }
+    .cm-tag.amber:hover { background: rgba(245, 158, 11, 0.22); }
+
+    /* Post foot */
+    .cm-post-foot {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-top: 14px;
+        border-top: 1px solid var(--gray-100);
+        flex-wrap: wrap;
+    }
+    .cm-act {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+        border-radius: 50px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .cm-act:hover {
+        background: var(--gray-100);
+        color: var(--primary-dark);
+    }
+    .cm-act i { font-size: 0.9rem; }
+    .cm-act.upvoted {
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.14);
+    }
+    .cm-act.upvoted i { color: var(--secondary-deep); }
+    .cm-act.upvoted:hover { background: rgba(190, 242, 100, 0.22); }
+
+    .cm-act .count {
+        font-weight: 700;
+        font-size: 0.76rem;
+    }
+
+    .cm-post-foot .spacer { flex: 1; }
+
+    /* ---------- Reply preview ---------- */
+    .cm-reply {
+        display: flex;
+        gap: 12px;
+        padding: 12px 14px;
+        margin-top: 12px;
+        background: var(--cream);
+        border-radius: 12px;
+        border-left: 3px solid var(--secondary);
+    }
+    .cm-reply .avatar.xs {
+        width: 30px;
+        height: 30px;
+        font-size: 0.65rem;
+        flex-shrink: 0;
+    }
+    .cm-reply-body { flex: 1; min-width: 0; }
+    .cm-reply-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .cm-reply-head strong {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .cm-reply-head .verified { color: var(--accent); font-size: 0.68rem; }
+    .cm-reply-head .accepted {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 7px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.26);
+        color: #4D7C0F;
+        font-size: 0.56rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .cm-reply-text {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Load more */
+    .cm-load {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        border-radius: var(--radius);
+        border: 1.5px dashed var(--gray-200);
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .cm-load:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.08);
+        color: var(--primary-dark);
+    }
+
+    /* ---------- Side panels ---------- */
+    .cm-panel {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 20px 22px 18px;
+    }
+    .cm-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .cm-panel-head h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .cm-panel-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .cm-panel-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .cm-panel-head .link:hover { color: var(--primary-dark); }
+
+    /* Trending topics */
+    .cm-trend {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+        cursor: pointer;
+        transition: var(--transition);
+        background: none;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+    }
+    .cm-trend:last-child { border-bottom: none; padding-bottom: 0; }
+    .cm-trend:first-child { padding-top: 0; }
+    .cm-trend:hover { transform: translateX(3px); }
+
+    .cm-trend .rank {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        flex-shrink: 0;
+    }
+    .cm-trend:nth-child(1) .rank {
+        background: rgba(190, 242, 100, 0.32);
+        color: #4D7C0F;
+    }
+    .cm-trend:nth-child(2) .rank {
+        background: rgba(56, 189, 248, 0.16);
+        color: #0284C7;
+    }
+    .cm-trend:nth-child(3) .rank {
+        background: rgba(139, 92, 246, 0.14);
+        color: #6D28D9;
+    }
+
+    .cm-trend-body { flex: 1; min-width: 0; }
+    .cm-trend-body h5 {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+    .cm-trend-body p {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        margin-top: 2px;
+    }
+    .cm-trend-body p strong { color: var(--secondary-deep); font-weight: 700; }
+
+    /* Top contributors */
+    .cm-contrib {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .cm-contrib:last-child { border-bottom: none; padding-bottom: 0; }
+    .cm-contrib:first-child { padding-top: 0; }
+
+    .cm-contrib-avatar {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.74rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        position: relative;
+    }
+    .cm-contrib-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .cm-contrib-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .cm-contrib-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
+    .cm-contrib-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); }
+
+    .cm-contrib-avatar .medal {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.6rem;
+        background: var(--primary-dark);
+        color: var(--secondary);
+        border: 2px solid var(--white);
+        font-weight: 700;
+    }
+
+    .cm-contrib-body { flex: 1; min-width: 0; }
+    .cm-contrib-body h5 {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .cm-contrib-body h5 .verified { color: var(--accent); font-size: 0.68rem; }
+    .cm-contrib-body p {
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        margin-top: 1px;
+    }
+    .cm-contrib-body p strong { color: var(--secondary-deep); font-weight: 700; }
+
+    /* Guidelines */
+    .cm-guide {
+        display: flex;
+        gap: 11px;
+        align-items: flex-start;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .cm-guide:last-child { border-bottom: none; padding-bottom: 0; }
+    .cm-guide:first-child { padding-top: 0; }
+    .cm-guide .ic {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.78rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .cm-guide .ic.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .cm-guide .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .cm-guide .ic.amber { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .cm-guide-body { flex: 1; min-width: 0; }
+    .cm-guide-body h5 {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+    .cm-guide-body p {
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+
+    /* Trust note */
+    .cm-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+    }
+    .cm-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .cm-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .cm-stats { grid-template-columns: repeat(2, 1fr); }
+        .cm-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+        .cm-post { padding: 18px 20px 16px; }
+    }
+
+    @media (max-width: 640px) {
+        .cm-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cm-stat { padding: 14px; gap: 11px; }
+        .cm-stat .ic { width: 38px; height: 38px; font-size: 0.92rem; }
+        .cm-stat .v { font-size: 1.22rem; }
+        .cm-composer { padding: 16px 18px; flex-direction: column; }
+        .cm-composer-foot { gap: 6px; }
+        .cm-composer-tool { font-size: 0.7rem; padding: 7px 11px; }
+        .cm-composer-foot .spacer { display: none; }
+        .cm-post-btn { margin-left: auto; }
+        .cm-head-actions { width: 100%; }
+        .cm-head-actions .btn { flex: 1; }
+        .cm-post-title { font-size: 1.02rem; }
+        .cm-post-foot { gap: 4px; }
+        .cm-act { padding: 6px 9px; font-size: 0.72rem; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="cm-head fade-up">
+    <div>
+        <span class="badge-soft pulse"><i class="bi bi-chat-dots-fill"></i> 47 new posts today</span>
+        <h1>Knotwork <span>Community</span></h1>
+        <p>Ask questions, share wins, and learn together. Real members, real answers, moderated by verified mentors.</p>
+    </div>
+
+    <div class="cm-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening your bookmarked posts…">
+            <i class="bi bi-bookmark"></i> Bookmarks
+        </button>
+        <button class="btn btn-secondary" data-toast="Opening the guidelines…">
+            <i class="bi bi-shield-check"></i> Guidelines
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     STATS STRIP
+     ==================================================== -->
+<section class="cm-stats">
+    <div class="cm-stat fade-up">
+        <div class="ic"><i class="bi bi-people-fill"></i></div>
+        <div>
+            <div class="v" data-count="12400">0</div>
+            <div class="l">Active members</div>
+        </div>
+    </div>
+
+    <div class="cm-stat fade-up">
+        <div class="ic accent"><i class="bi bi-chat-square-text-fill"></i></div>
+        <div>
+            <div class="v" data-count="8600">0</div>
+            <div class="l">Discussions started</div>
+        </div>
+    </div>
+
+    <div class="cm-stat fade-up">
+        <div class="ic violet"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div>
+            <div class="v" data-count="94"><em>%</em></div>
+            <div class="l">Questions answered</div>
+        </div>
+    </div>
+
+    <div class="cm-stat fade-up">
+        <div class="ic amber"><i class="bi bi-clock-history"></i></div>
+        <div>
+            <div class="v">~<span data-count="18">0</span><em>m</em></div>
+            <div class="l">Avg. response time</div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     COMPOSER
+     ==================================================== -->
+<section class="cm-composer fade-up">
+    <span class="avatar lg">AO</span>
+
+    <div class="cm-composer-body">
+        <textarea class="cm-composer-input" id="cmComposerInput" placeholder="Ask the community a question, share a win, or start a discussion…" rows="2"></textarea>
+
+        <div class="cm-composer-foot">
+            <button class="cm-composer-tool" data-toast="Adding an image…">
+                <i class="bi bi-image"></i> Image
+            </button>
+            <button class="cm-composer-tool" data-toast="Adding code snippet…">
+                <i class="bi bi-code-slash"></i> Code
+            </button>
+            <button class="cm-composer-tool" data-toast="Adding a poll…">
+                <i class="bi bi-bar-chart"></i> Poll
+            </button>
+            <button class="cm-composer-tool" data-toast="Adding a tag…">
+                <i class="bi bi-tag"></i> Tag
+            </button>
+
+            <span class="spacer"></span>
+
+            <button class="cm-post-btn" id="cmPostBtn">
+                <i class="bi bi-send-fill"></i> Post
+            </button>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="cm-layout">
+
+    <!-- ============================================
+         MAIN FEED
+         ============================================ -->
+    <div class="cm-main">
+
+        <!-- Toolbar -->
+        <div class="cm-toolbar fade-up">
+            <div class="cm-cats" role="tablist" aria-label="Community categories">
+                <button class="cm-cat active" data-cat="all"><i class="bi bi-grid-fill"></i> All</button>
+                <button class="cm-cat" data-cat="question"><i class="bi bi-question-circle"></i> Questions</button>
+                <button class="cm-cat" data-cat="showcase"><i class="bi bi-star"></i> Showcase</button>
+                <button class="cm-cat" data-cat="feedback"><i class="bi bi-chat-left-text"></i> Feedback</button>
+                <button class="cm-cat" data-cat="jobs"><i class="bi bi-briefcase"></i> Opportunities</button>
+                <button class="cm-cat" data-cat="announce"><i class="bi bi-megaphone"></i> Announcements</button>
+            </div>
+
+            <div class="cm-sort">
+                <select id="cmSort">
+                    <option>Trending</option>
+                    <option>Newest</option>
+                    <option>Most upvoted</option>
+                    <option>Unanswered</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Feed -->
+        <div id="cmFeed">
+
+            <!-- ---- Post 1: Pinned announcement ---- -->
+            <article class="cm-post pinned fade-up" data-cat="announce">
+                <div class="cm-post-head">
+                    <span class="cm-post-avatar v3">TF</span>
+                    <div class="cm-post-meta">
+                        <div class="who">
+                            <strong>Tolu Fashina</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="role mentor">Mentor</span>
+                        </div>
+                        <div class="time"><i class="bi bi-clock"></i> 3 hours ago · Announcement</div>
+                    </div>
+                    <div class="cm-post-badges">
+                        <span class="cm-pin"><i class="bi bi-pin-angle-fill"></i> Pinned</span>
+                    </div>
+                </div>
+
+                <div class="cm-post-body">
+                    <a class="cm-post-title">Welcome to the new Community — here's how to get the most out of it</a>
+                    <p class="cm-post-text">
+                        We've rebuilt Community from the ground up with categories, tags, and a proper answer system.
+                        Ask real questions, share honest wins (and losses), and upvote the answers that actually helped you.
+                        Remember: every post is public and searchable — be kind, be specific, and cite your sources.
+                    </p>
+                </div>
+
+                <div class="cm-post-foot">
+                    <button class="cm-act upvoted" data-toast="You upvoted this post" data-toast-type="success">
+                        <i class="bi bi-arrow-up-circle-fill"></i> <span class="count">428</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening the discussion…">
+                        <i class="bi bi-chat-left-text"></i> <span class="count">86 replies</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening share options…">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                    <span class="spacer"></span>
+                    <button class="cm-act" data-toast="Saved to your bookmarks">
+                        <i class="bi bi-bookmark"></i> Save
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Post 2: Question with accepted answer ---- -->
+            <article class="cm-post fade-up" data-cat="question">
+                <div class="cm-post-head">
+                    <span class="cm-post-avatar">AO</span>
+                    <div class="cm-post-meta">
+                        <div class="who">
+                            <strong>Amara Okoye</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="role">Student</span>
+                        </div>
+                        <div class="time"><i class="bi bi-clock"></i> 1 hour ago · Question</div>
+                    </div>
+                </div>
+
+                <div class="cm-post-body">
+                    <a class="cm-post-title">How do you handle auth state in a large React app without prop drilling?</a>
+                    <p class="cm-post-text">
+                        I'm refactoring a 60-component app and the auth prop is getting passed down through 4-5 layers.
+                        I've looked at Context API and Zustand but I'm not sure which scales better. What are you all using
+                        in production?
+                    </p>
+                    <div class="cm-post-tags">
+                        <span class="cm-tag green">#react</span>
+                        <span class="cm-tag green">#state-management</span>
+                        <span class="cm-tag">#architecture</span>
+                    </div>
+                </div>
+
+                <!-- Accepted answer preview -->
+                <div class="cm-reply">
+                    <span class="avatar xs" style="background: linear-gradient(135deg, var(--accent), var(--secondary));">DO</span>
+                    <div class="cm-reply-body">
+                        <div class="cm-reply-head">
+                            <strong>Daniel Okafor</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="accepted"><i class="bi bi-check-lg"></i> Accepted</span>
+                        </div>
+                        <p class="cm-reply-text">
+                            Context is fine for auth <em>if</em> you memoise it and split read/write contexts. But past
+                            ~50 components, Zustand or Jotai will save you a lot of rerender pain. Here's the pattern I use…
+                        </p>
+                    </div>
+                </div>
+
+                <div class="cm-post-foot">
+                    <button class="cm-act" data-toast="You upvoted this question" data-toast-type="success">
+                        <i class="bi bi-arrow-up-circle"></i> <span class="count">47</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening the discussion…">
+                        <i class="bi bi-chat-left-text"></i> <span class="count">12 replies</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening share options…">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                    <span class="spacer"></span>
+                    <button class="cm-act" data-toast="Saved to your bookmarks">
+                        <i class="bi bi-bookmark"></i> Save
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Post 3: Showcase ---- -->
+            <article class="cm-post fade-up" data-cat="showcase">
+                <div class="cm-post-head">
+                    <span class="cm-post-avatar v4">TK</span>
+                    <div class="cm-post-meta">
+                        <div class="who">
+                            <strong>Tunde Kalu</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="role">Student</span>
+                        </div>
+                        <div class="time"><i class="bi bi-clock"></i> 5 hours ago · Showcase</div>
+                    </div>
+                </div>
+
+                <div class="cm-post-body">
+                    <a class="cm-post-title">Built my portfolio in React after 6 weeks of swaps 🎉</a>
+                    <p class="cm-post-text">
+                        Six weeks ago I couldn't read JSX. Today I shipped a portfolio with custom animations,
+                        dark mode, and a working contact form. Huge thanks to everyone who reviewed my code —
+                        especially the CSS tips I got here. Link in the comments!
+                    </p>
+                    <div class="cm-post-tags">
+                        <span class="cm-tag green">#showcase</span>
+                        <span class="cm-tag violet">#portfolio</span>
+                        <span class="cm-tag amber">#win</span>
+                    </div>
+                </div>
+
+                <div class="cm-post-foot">
+                    <button class="cm-act" data-toast="You upvoted this post" data-toast-type="success">
+                        <i class="bi bi-arrow-up-circle"></i> <span class="count">312</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening the discussion…">
+                        <i class="bi bi-chat-left-text"></i> <span class="count">64 replies</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening share options…">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                    <span class="spacer"></span>
+                    <button class="cm-act" data-toast="Saved to your bookmarks">
+                        <i class="bi bi-bookmark"></i> Save
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Post 4: Feedback / Discussion ---- -->
+            <article class="cm-post fade-up" data-cat="feedback">
+                <div class="cm-post-head">
+                    <span class="cm-post-avatar v2">FB</span>
+                    <div class="cm-post-meta">
+                        <div class="who">
+                            <strong>Fatima Bello</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="role teacher">Teacher</span>
+                        </div>
+                        <div class="time"><i class="bi bi-clock"></i> 8 hours ago · Feedback</div>
+                    </div>
+                </div>
+
+                <div class="cm-post-body">
+                    <a class="cm-post-title">Unpopular opinion: design systems are overrated for small teams</a>
+                    <p class="cm-post-text">
+                        I've built systems at four companies. Two of them didn't need one — a solid component library
+                        and consistent Figma styles would've been enough. Curious what others think. When does a
+                        design system actually earn its keep?
+                    </p>
+                    <div class="cm-post-tags">
+                        <span class="cm-tag violet">#design-systems</span>
+                        <span class="cm-tag">#product-design</span>
+                        <span class="cm-tag amber">#hot-take</span>
+                    </div>
+                </div>
+
+                <div class="cm-post-foot">
+                    <button class="cm-act upvoted" data-toast="You upvoted this post" data-toast-type="success">
+                        <i class="bi bi-arrow-up-circle-fill"></i> <span class="count">184</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening the discussion…">
+                        <i class="bi bi-chat-left-text"></i> <span class="count">127 replies</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening share options…">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                    <span class="spacer"></span>
+                    <button class="cm-act" data-toast="Saved to your bookmarks">
+                        <i class="bi bi-bookmark"></i> Save
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Post 5: Opportunity ---- -->
+            <article class="cm-post fade-up" data-cat="jobs">
+                <div class="cm-post-head">
+                    <span class="cm-post-avatar v6">AN</span>
+                    <div class="cm-post-meta">
+                        <div class="who">
+                            <strong>Amara Nwosu</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="role mentor">Mentor</span>
+                        </div>
+                        <div class="time"><i class="bi bi-clock"></i> 12 hours ago · Opportunity</div>
+                    </div>
+                </div>
+
+                <div class="cm-post-body">
+                    <a class="cm-post-title">Hiring: Junior Frontend Engineer (Remote, Africa-based) — refer a Knotwork member</a>
+                    <p class="cm-post-text">
+                        My team is opening a junior React role in April. No years-of-experience gate — we care about
+                        portfolio quality and how you think. If you've finished the Frontend track here, you're
+                        already in the right direction. DM me for a referral.
+                    </p>
+                    <div class="cm-post-tags">
+                        <span class="cm-tag green">#hiring</span>
+                        <span class="cm-tag">#react</span>
+                        <span class="cm-tag amber">#remote</span>
+                    </div>
+                </div>
+
+                <div class="cm-post-foot">
+                    <button class="cm-act" data-toast="You upvoted this post" data-toast-type="success">
+                        <i class="bi bi-arrow-up-circle"></i> <span class="count">241</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening the discussion…">
+                        <i class="bi bi-chat-left-text"></i> <span class="count">38 replies</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening share options…">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                    <span class="spacer"></span>
+                    <button class="cm-act" data-toast="Saved to your bookmarks">
+                        <i class="bi bi-bookmark"></i> Save
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Post 6: Question ---- -->
+            <article class="cm-post fade-up" data-cat="question">
+                <div class="cm-post-head">
+                    <span class="cm-post-avatar v5">CN</span>
+                    <div class="cm-post-meta">
+                        <div class="who">
+                            <strong>Chidi Nwosu</strong>
+                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            <span class="role teacher">Teacher</span>
+                        </div>
+                        <div class="time"><i class="bi bi-clock"></i> 1 day ago · Question</div>
+                    </div>
+                </div>
+
+                <div class="cm-post-body">
+                    <a class="cm-post-title">Best way to teach API design to someone who's only written scripts?</a>
+                    <p class="cm-post-text">
+                        A student asked me to teach them REST APIs but they've only ever written Python scripts.
+                        I want to bridge from "scripts that do things" to "services that talk to each other" without
+                        losing them. Any analogies or exercises that worked for you?
+                    </p>
+                    <div class="cm-post-tags">
+                        <span class="cm-tag green">#teaching</span>
+                        <span class="cm-tag">#api-design</span>
+                        <span class="cm-tag violet">#mentorship</span>
+                    </div>
+                </div>
+
+                <div class="cm-post-foot">
+                    <button class="cm-act" data-toast="You upvoted this question" data-toast-type="success">
+                        <i class="bi bi-arrow-up-circle"></i> <span class="count">96</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening the discussion…">
+                        <i class="bi bi-chat-left-text"></i> <span class="count">29 replies</span>
+                    </button>
+                    <button class="cm-act" data-toast="Opening share options…">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                    <span class="spacer"></span>
+                    <button class="cm-act" data-toast="Saved to your bookmarks">
+                        <i class="bi bi-bookmark"></i> Save
+                    </button>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- Load more -->
+        <button class="cm-load fade-up" id="cmLoadMore" data-toast="Loading more posts…">
+            <i class="bi bi-arrow-down-circle"></i> Load more discussions
+        </button>
+
+    </div>
+
+
+    <!-- ============================================
+         SIDEBAR
+         ============================================ -->
+    <div class="cm-side">
+
+        <!-- Trending topics -->
+        <div class="cm-panel fade-up">
+            <div class="cm-panel-head">
+                <h4><i class="bi bi-fire"></i> Trending today</h4>
+                <button class="link" data-toast="Opening all trending topics…">See all</button>
+            </div>
+
+            <button class="cm-trend" data-toast="Opening topic: React state…">
+                <span class="rank">1</span>
+                <div class="cm-trend-body">
+                    <h5>React state management</h5>
+                    <p><strong>184</strong> posts today</p>
+                </div>
+            </button>
+
+            <button class="cm-trend" data-toast="Opening topic: Portfolio review…">
+                <span class="rank">2</span>
+                <div class="cm-trend-body">
+                    <h5>Portfolio review</h5>
+                    <p><strong>127</strong> posts today</p>
+                </div>
+            </button>
+
+            <button class="cm-trend" data-toast="Opening topic: Freelancing…">
+                <span class="rank">3</span>
+                <div class="cm-trend-body">
+                    <h5>Freelancing &amp; clients</h5>
+                    <p><strong>98</strong> posts today</p>
+                </div>
+            </button>
+
+            <button class="cm-trend" data-toast="Opening topic: TypeScript…">
+                <span class="rank">4</span>
+                <div class="cm-trend-body">
+                    <h5>TypeScript patterns</h5>
+                    <p><strong>76</strong> posts today</p>
+                </div>
+            </button>
+
+            <button class="cm-trend" data-toast="Opening topic: Career growth…">
+                <span class="rank">5</span>
+                <div class="cm-trend-body">
+                    <h5>Career growth</h5>
+                    <p><strong>61</strong> posts today</p>
+                </div>
+            </button>
+        </div>
+
+        <!-- Top contributors -->
+        <div class="cm-panel fade-up">
+            <div class="cm-panel-head">
+                <h4><i class="bi bi-trophy-fill"></i> Top contributors</h4>
+                <button class="link" data-toast="Opening the leaderboard…">Leaderboard</button>
+            </div>
+
+            <div class="cm-contrib">
+                <span class="cm-contrib-avatar v3">
+                    TF
+                    <span class="medal">1</span>
+                </span>
+                <div class="cm-contrib-body">
+                    <h5>Tolu Fashina <i class="bi bi-patch-check-fill verified" title="Verified"></i></h5>
+                    <p><strong>428</strong> helpful answers</p>
+                </div>
+            </div>
+
+            <div class="cm-contrib">
+                <span class="cm-contrib-avatar v2">
+                    DO
+                    <span class="medal">2</span>
+                </span>
+                <div class="cm-contrib-body">
+                    <h5>Daniel Okafor <i class="bi bi-patch-check-fill verified" title="Verified"></i></h5>
+                    <p><strong>312</strong> helpful answers</p>
+                </div>
+            </div>
+
+            <div class="cm-contrib">
+                <span class="cm-contrib-avatar">
+                    FB
+                    <span class="medal">3</span>
+                </span>
+                <div class="cm-contrib-body">
+                    <h5>Fatima Bello <i class="bi bi-patch-check-fill verified" title="Verified"></i></h5>
+                    <p><strong>268</strong> helpful answers</p>
+                </div>
+            </div>
+
+            <div class="cm-contrib">
+                <span class="cm-contrib-avatar v4">CN</span>
+                <div class="cm-contrib-body">
+                    <h5>Chidi Nwosu</h5>
+                    <p><strong>194</strong> helpful answers</p>
+                </div>
+            </div>
+
+            <div class="cm-contrib">
+                <span class="cm-contrib-avatar v5">AN</span>
+                <div class="cm-contrib-body">
+                    <h5>Amara Nwosu</h5>
+                    <p><strong>176</strong> helpful answers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community guidelines -->
+        <div class="cm-panel fade-up">
+            <div class="cm-panel-head">
+                <h4><i class="bi bi-shield-check"></i> Community guidelines</h4>
+                <button class="link" data-toast="Opening full guidelines…">Full rules</button>
+            </div>
+
+            <div class="cm-guide">
+                <div class="ic"><i class="bi bi-hand-thumbs-up"></i></div>
+                <div class="cm-guide-body">
+                    <h5>Be kind, be specific</h5>
+                    <p>Critique the work, not the person. If you disagree, explain why.</p>
+                </div>
+            </div>
+
+            <div class="cm-guide">
+                <div class="ic sky"><i class="bi bi-search"></i></div>
+                <div class="cm-guide-body">
+                    <h5>Search before posting</h5>
+                    <p>Many questions already have great answers — check first, then add to the thread.</p>
+                </div>
+            </div>
+
+            <div class="cm-guide">
+                <div class="ic violet"><i class="bi bi-code-slash"></i></div>
+                <div class="cm-guide-body">
+                    <h5>Share real code</h5>
+                    <p>Reproducible snippets get faster, better answers than "it doesn't work".</p>
+                </div>
+            </div>
+
+            <div class="cm-guide">
+                <div class="ic amber"><i class="bi bi-flag"></i></div>
+                <div class="cm-guide-body">
+                    <h5>Report, don't retaliate</h5>
+                    <p>Spam, harassment, and self-promo without context are removed by moderators.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="cm-trust fade-up">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>
+                <strong>Your posts are public.</strong> Everything you share here is searchable by members.
+                Never post passwords, API keys, or private client data — even in screenshots.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           CATEGORY FILTERS
+           ====================================================== */
+        var catButtons = Array.prototype.slice.call(document.querySelectorAll('.cm-cat'));
+        var posts = Array.prototype.slice.call(document.querySelectorAll('.cm-post'));
+
+        catButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var cat = this.dataset.cat;
+
+                catButtons.forEach(function (c) { c.classList.remove('active'); });
+                this.classList.add('active');
+
+                posts.forEach(function (post) {
+                    var show = cat === 'all' || post.dataset.cat === cat;
+                    post.style.display = show ? '' : 'none';
+                });
+
+                if (window.__toast) {
+                    var label = this.textContent.trim();
+                    window.__toast('Showing: ' + label, '');
+                }
+            });
+        });
+
+        /* ======================================================
+           SORT (visual feedback)
+           ====================================================== */
+        var sortSelect = document.getElementById('cmSort');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                if (window.__toast) {
+                    window.__toast('Sorted by: ' + this.value, '');
+                }
+            });
+        }
+
+        /* ======================================================
+           UPVOTE TOGGLE
+           ====================================================== */
+        document.querySelectorAll('.cm-act .bi-arrow-up-circle').forEach(function (icon) {
+            var btn = icon.closest('.cm-act');
+            if (!btn) return;
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                this.classList.toggle('upvoted');
+
+                var icon = this.querySelector('i');
+                var countEl = this.querySelector('.count');
+                if (icon) {
+                    icon.className = this.classList.contains('upvoted')
+                        ? 'bi bi-arrow-up-circle-fill'
+                        : 'bi bi-arrow-up-circle';
+                }
+                if (countEl) {
+                    var n = parseInt(countEl.textContent, 10) || 0;
+                    countEl.textContent = this.classList.contains('upvoted') ? n + 1 : Math.max(0, n - 1);
+                }
+            });
+        });
+
+        /* ======================================================
+           COMPOSER
+           ====================================================== */
+        var composerInput = document.getElementById('cmComposerInput');
+        var postBtn = document.getElementById('cmPostBtn');
+        var feed = document.getElementById('cmFeed');
+
+        function autoGrow() {
+            if (!composerInput) return;
+            composerInput.style.height = 'auto';
+            composerInput.style.height = Math.min(composerInput.scrollHeight, 180) + 'px';
+        }
+
+        if (composerInput) {
+            composerInput.addEventListener('input', autoGrow);
+        }
+
+        function escapeHTML(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        if (postBtn) {
+            postBtn.addEventListener('click', function () {
+                if (!composerInput) return;
+                var text = composerInput.value.trim();
+                if (!text) {
+                    if (window.__toast) window.__toast('Write something before posting', 'error');
+                    return;
+                }
+
+                var post = document.createElement('article');
+                post.className = 'cm-post fade-up visible';
+                post.dataset.cat = 'question';
+                post.style.marginBottom = '20px';
+                post.innerHTML =
+                    '<div class="cm-post-head">' +
+                        '<span class="cm-post-avatar">AO</span>' +
+                        '<div class="cm-post-meta">' +
+                            '<div class="who">' +
+                                '<strong>Amara Okoye</strong>' +
+                                '<i class="bi bi-patch-check-fill verified" title="Verified"></i>' +
+                                '<span class="role">Student</span>' +
+                            '</div>' +
+                            '<div class="time"><i class="bi bi-clock"></i> Just now</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="cm-post-body">' +
+                        '<a class="cm-post-title">Your new post</a>' +
+                        '<p class="cm-post-text">' + escapeHTML(text) + '</p>' +
+                    '</div>' +
+                    '<div class="cm-post-foot">' +
+                        '<button class="cm-act"><i class="bi bi-arrow-up-circle"></i> <span class="count">0</span></button>' +
+                        '<button class="cm-act"><i class="bi bi-chat-left-text"></i> <span class="count">0 replies</span></button>' +
+                        '<button class="cm-act"><i class="bi bi-share"></i> Share</button>' +
+                        '<span class="spacer"></span>' +
+                        '<button class="cm-act"><i class="bi bi-bookmark"></i> Save</button>' +
+                    '</div>';
+
+                if (feed) feed.insertBefore(post, feed.firstChild);
+
+                composerInput.value = '';
+                composerInput.style.height = 'auto';
+
+                if (window.__toast) {
+                    window.__toast('Posted to the community!', 'success');
+                }
+            });
+        }
+
+        /* ======================================================
+           LOAD MORE
+           ====================================================== */
+        var loadMore = document.getElementById('cmLoadMore');
+        if (loadMore) {
+            loadMore.addEventListener('click', function () {
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading…';
+                var btn = this;
+                setTimeout(function () {
+                    btn.innerHTML = '<i class="bi bi-arrow-down-circle"></i> Load more discussions';
+                    if (window.__toast) window.__toast('No more posts to load right now', '');
+                }, 1200);
+            });
+        }
+
+    })();
+</script>
+
+{% endblock content %}

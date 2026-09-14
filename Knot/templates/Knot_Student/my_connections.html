@@ -1,0 +1,1580 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Connections{% endblock %}
+
+{% block breadcrumb %}My Connections{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       MY CONNECTIONS — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .mc-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .mc-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .mc-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .mc-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 600px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+    .badge-soft.pulse i { animation: mcPulse 1.8s infinite; }
+    @keyframes mcPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Overview strip ---------- */
+    .mc-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .mc-stat {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .mc-stat::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .mc-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .mc-stat:hover::after { opacity: 1; }
+
+    .mc-stat .ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        position: relative;
+    }
+    .mc-stat .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .mc-stat .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .mc-stat .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+
+    .mc-stat .ic .n {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 50px;
+        background: var(--danger);
+        color: var(--white);
+        font-size: 0.6rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--white);
+        line-height: 1;
+    }
+    .mc-stat .v {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .mc-stat .v em {
+        font-style: normal;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .mc-stat .l { font-size: 0.76rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Two column layout ---------- */
+    .mc-layout {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    .mc-col {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        min-width: 0;
+    }
+
+    /* ---------- Requests panel (hero) ---------- */
+    .mc-requests {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        padding: 0;
+        overflow: hidden;
+    }
+    .mc-requests-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 22px 26px;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    .mc-requests-head::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -10%;
+        width: 55%;
+        height: 220%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 65%);
+        pointer-events: none;
+    }
+    .mc-requests-head .info { position: relative; z-index: 2; }
+    .mc-requests-head h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+        line-height: 1.2;
+    }
+    .mc-requests-head h3 i { color: var(--secondary); font-size: 1rem; }
+    .mc-requests-head p {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.62);
+    }
+    .mc-requests-head p strong { color: var(--white); font-weight: 600; }
+
+    .mc-requests-head .count-badge {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 50px;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: 0.78rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+
+    /* Bulk actions bar */
+    .mc-bulk {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 26px;
+        background: var(--cream);
+        border-bottom: 1px solid var(--gray-100);
+        flex-wrap: wrap;
+    }
+    .mc-bulk .lbl {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-right: 4px;
+    }
+    .mc-bulk .spacer { flex: 1; }
+
+    /* ---------- Request rows ---------- */
+    .mc-req-list {
+        display: flex;
+        flex-direction: column;
+    }
+    .mc-req {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px 26px;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+        position: relative;
+    }
+    .mc-req:last-child { border-bottom: none; }
+    .mc-req:hover { background: rgba(190, 242, 100, 0.045); }
+    .mc-req.gone {
+        opacity: 0;
+        transform: translateX(-30px);
+        pointer-events: none;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .mc-req-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.28);
+        position: relative;
+    }
+    .mc-req-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .mc-req-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .mc-req-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: var(--primary-dark); }
+    .mc-req-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); color: var(--primary-dark); }
+
+    .mc-req-avatar .online {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+    }
+
+    .mc-req-body { flex: 1; min-width: 0; }
+
+    .mc-req-name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+        margin-bottom: 3px;
+    }
+    .mc-req-name h4 {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .mc-verify {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(56, 189, 248, 0.12);
+        color: #0284C7;
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .mc-verify i { font-size: 0.62rem; }
+
+    .mc-req-role {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-bottom: 8px;
+    }
+
+    .mc-req-message {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+        padding: 10px 13px;
+        border-radius: 10px;
+        background: var(--cream);
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 10px;
+        font-style: italic;
+    }
+    .mc-req-message::before {
+        content: '“';
+        color: var(--secondary-deep);
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        line-height: 0;
+        vertical-align: -0.15em;
+        margin-right: 3px;
+    }
+
+    .mc-req-swap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+    .mc-req-swap .lbl {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+    }
+    .mc-swap-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 11px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    .mc-swap-pill.teach {
+        background: rgba(190, 242, 100, 0.22);
+        color: #4D7C0F;
+        border: 1px solid rgba(190, 242, 100, 0.5);
+    }
+    .mc-swap-pill.learn {
+        background: rgba(56, 189, 248, 0.14);
+        color: #0369A1;
+        border: 1px solid rgba(56, 189, 248, 0.32);
+    }
+    .mc-swap-arrow {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+    }
+
+    .mc-req-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 0.71rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    .mc-req-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .mc-req-meta i { color: var(--gray-300); font-size: 0.75rem; }
+    .mc-req-meta .rating {
+        color: #B45309;
+        font-weight: 700;
+    }
+    .mc-req-meta .rating i { color: #F59E0B; }
+
+    /* Action buttons */
+    .mc-req-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+        align-items: stretch;
+        min-width: 132px;
+    }
+    .mc-act {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 16px;
+        border-radius: 50px;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .mc-act.accept {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.35);
+    }
+    .mc-act.accept:hover {
+        background: var(--secondary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.48);
+    }
+    .mc-act.decline {
+        background: var(--white);
+        color: var(--gray-600);
+        border: 1.5px solid var(--gray-200);
+    }
+    .mc-act.decline:hover {
+        background: rgba(239, 68, 68, 0.06);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: var(--danger);
+        transform: translateY(-2px);
+    }
+
+    /* Empty requests state */
+    .mc-req-empty {
+        padding: 60px 26px 66px;
+        text-align: center;
+        display: none;
+    }
+    .mc-req-empty.show { display: block; }
+    .mc-req-empty .ic {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.75rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .mc-req-empty h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+    .mc-req-empty p {
+        max-width: 360px;
+        margin: 0 auto 20px;
+        font-size: 0.86rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+    .mc-req-empty .btn-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------- Tabs card ---------- */
+    .mc-tabs-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+    .mc-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 16px 22px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .mc-tabs::-webkit-scrollbar { display: none; }
+
+    .mc-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .mc-tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .mc-tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .mc-tab.active { color: var(--primary-dark); }
+    .mc-tab.active::after { transform: scaleX(1); }
+    .mc-tab > i { font-size: 0.9rem; color: var(--gray-300); }
+    .mc-tab.active > i { color: var(--secondary-deep); }
+    .mc-tab .count {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 50px;
+        line-height: 1.6;
+        transition: var(--transition);
+    }
+    .mc-tab.active .count {
+        background: rgba(190, 242, 100, 0.3);
+        color: #4D7C0F;
+    }
+
+    /* ---------- Mini connection rows ---------- */
+    .mc-panel { display: none; }
+    .mc-panel.active { display: block; animation: mcFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    @keyframes mcFade {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .mc-conn {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .mc-conn:last-child { border-bottom: none; }
+    .mc-conn:hover { background: rgba(190, 242, 100, 0.045); }
+
+    .mc-conn-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        position: relative;
+    }
+    .mc-conn-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .mc-conn-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .mc-conn-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
+    .mc-conn-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); }
+
+    .mc-conn-avatar .online {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2px solid var(--white);
+    }
+    .mc-conn-avatar .offline {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gray-300);
+        border: 2px solid var(--white);
+    }
+
+    .mc-conn-body { flex: 1; min-width: 0; }
+    .mc-conn-body h5 {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .mc-conn-body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .mc-conn-body p strong { color: var(--gray-800); font-weight: 600; }
+
+    .mc-conn-tags {
+        display: flex;
+        gap: 5px;
+        margin-top: 5px;
+        flex-wrap: wrap;
+    }
+    .mc-conn-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.62rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 50px;
+        line-height: 1.5;
+    }
+    .mc-conn-tag.green {
+        background: rgba(190, 242, 100, 0.22);
+        color: #4D7C0F;
+    }
+    .mc-conn-tag.sky {
+        background: rgba(56, 189, 248, 0.14);
+        color: #0369A1;
+    }
+    .mc-conn-tag.violet {
+        background: rgba(139, 92, 246, 0.14);
+        color: #6D28D9;
+    }
+    .mc-conn-tag.amber {
+        background: rgba(245, 158, 11, 0.14);
+        color: #B45309;
+    }
+
+    .mc-conn-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .mc-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    .mc-icon-btn:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .mc-icon-btn.danger:hover {
+        border-color: rgba(239, 68, 68, 0.5);
+        color: var(--danger);
+        background: rgba(239, 68, 68, 0.06);
+    }
+
+    /* ---------- Side panel: trust + tips ---------- */
+    .mc-panel-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+    }
+    .mc-panel-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .mc-panel-card-head h4 {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .mc-panel-card-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .mc-panel-card-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .mc-panel-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Tips list */
+    .mc-tips {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .mc-tip {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .mc-tip .ic {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.82rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .mc-tip .ic.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .mc-tip .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .mc-tip .ic.amber { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .mc-tip-body { flex: 1; min-width: 0; padding-top: 1px; }
+    .mc-tip-body h5 {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+    .mc-tip-body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+
+    /* Trust note */
+    .mc-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+    }
+    .mc-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .mc-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .mc-overview { grid-template-columns: repeat(2, 1fr); }
+        .mc-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+        .mc-req { flex-wrap: wrap; }
+        .mc-req-actions {
+            flex-direction: row;
+            width: 100%;
+            min-width: 0;
+            margin-top: 4px;
+        }
+        .mc-req-actions .mc-act { flex: 1; }
+    }
+
+    @media (max-width: 640px) {
+        .mc-overview { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .mc-stat { padding: 14px; gap: 11px; }
+        .mc-stat .ic { width: 38px; height: 38px; font-size: 0.92rem; }
+        .mc-stat .v { font-size: 1.22rem; }
+        .mc-req { padding: 16px 18px; gap: 12px; }
+        .mc-req-avatar { width: 46px; height: 46px; font-size: 1rem; }
+        .mc-requests-head { padding: 20px 20px; }
+        .mc-bulk { padding: 12px 20px; }
+        .mc-conn { padding: 14px 18px; }
+        .mc-head-actions { width: 100%; }
+        .mc-head-actions .btn { flex: 1; }
+    }
+
+    @media (max-width: 460px) {
+        .mc-req-message { font-size: 0.76rem; }
+        .mc-req-actions { flex-direction: column; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="mc-head fade-up">
+    <div>
+        <span class="badge-soft pulse"><i class="bi bi-bell-fill"></i> 3 pending requests</span>
+        <h1>My <span>Connections</span></h1>
+        <p>Accept, decline, or manage everyone you've connected with on Knotwork. Every connection is a two-way skill swap, never one-sided.</p>
+    </div>
+
+    <div class="mc-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening connection settings…">
+            <i class="bi bi-sliders"></i> Settings
+        </button>
+        <button class="btn btn-secondary" data-toast="Finding new matches…">
+            <i class="bi bi-arrow-left-right"></i> Find new matches
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     OVERVIEW
+     ==================================================== -->
+<section class="mc-overview">
+    <div class="mc-stat fade-up">
+        <div class="ic">
+            <i class="bi bi-envelope-paper"></i>
+            <span class="n">3</span>
+        </div>
+        <div>
+            <div class="v" data-count="3">0</div>
+            <div class="l">Pending requests</div>
+        </div>
+    </div>
+
+    <div class="mc-stat fade-up">
+        <div class="ic accent"><i class="bi bi-link-45deg"></i></div>
+        <div>
+            <div class="v" data-count="47">0</div>
+            <div class="l">Active connections</div>
+        </div>
+    </div>
+
+    <div class="mc-stat fade-up">
+        <div class="ic violet"><i class="bi bi-send"></i></div>
+        <div>
+            <div class="v" data-count="6">0</div>
+            <div class="l">Requests sent</div>
+        </div>
+    </div>
+
+    <div class="mc-stat fade-up">
+        <div class="ic amber"><i class="bi bi-clock-history"></i></div>
+        <div>
+            <div class="v">~<span data-count="4">0</span><em>h</em></div>
+            <div class="l">Avg. response time</div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="mc-layout">
+
+    <!-- ============================================
+         LEFT — INCOMING REQUESTS (hero)
+         ============================================ -->
+    <div class="mc-col">
+
+        <div class="mc-requests fade-up">
+            <div class="mc-requests-head">
+                <div class="info">
+                    <h3><i class="bi bi-envelope-paper-fill"></i> Connection requests</h3>
+                    <p>People who want to exchange skills with you. <strong>Accept to start a swap, decline to move on.</strong></p>
+                </div>
+                <span class="count-badge">
+                    <i class="bi bi-inbox-fill"></i> 3 waiting
+                </span>
+            </div>
+
+            <!-- Bulk actions -->
+            <div class="mc-bulk">
+                <span class="lbl">Bulk</span>
+                <button class="btn-ghost" data-toast="Marked all as seen">
+                    <i class="bi bi-check2-all"></i> Mark all read
+                </button>
+                <button class="btn-ghost" data-toast="Opening filter options…">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <span class="spacer"></span>
+                <button class="btn-ghost" data-toast="Opening requests archive…">
+                    <i class="bi bi-archive"></i> Archive
+                </button>
+            </div>
+
+            <!-- Requests list -->
+            <div class="mc-req-list" id="mcReqList">
+
+                <!-- ---- Request 1 ---- -->
+                <article class="mc-req" data-req-id="1" data-name="Sara Kim">
+                    <div class="mc-req-avatar">
+                        SK
+                        <span class="online" title="Online now"></span>
+                    </div>
+
+                    <div class="mc-req-body">
+                        <div class="mc-req-name">
+                            <h4>Sara Kim</h4>
+                            <span class="mc-verify"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-req-role">Product Designer · Lagos, NG · Replies in ~5m</div>
+
+                        <p class="mc-req-message">
+                            Hey Amara! I saw you teach React — I'd love to swap my UI Design skills for it.
+                            I have 5 years of experience and can start this week.
+                        </p>
+
+                        <div class="mc-req-swap">
+                            <span class="lbl">Swap</span>
+                            <span class="mc-swap-pill teach"><i class="bi bi-arrow-up-right"></i> You teach React</span>
+                            <i class="bi bi-arrow-left-right mc-swap-arrow"></i>
+                            <span class="mc-swap-pill learn"><i class="bi bi-arrow-down-left"></i> They teach UI Design</span>
+                        </div>
+
+                        <div class="mc-req-meta">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 4.9 · 42 exchanges</span>
+                            <span><i class="bi bi-clock"></i> Sent 2 hours ago</span>
+                            <span><i class="bi bi-globe"></i> English, Korean</span>
+                        </div>
+                    </div>
+
+                    <div class="mc-req-actions">
+                        <button class="mc-act accept" data-action="accept" data-name="Sara Kim">
+                            <i class="bi bi-check-lg"></i> Accept
+                        </button>
+                        <button class="mc-act decline" data-action="decline" data-name="Sara Kim">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                    </div>
+                </article>
+
+                <!-- ---- Request 2 ---- -->
+                <article class="mc-req" data-req-id="2" data-name="Tunde Kalu">
+                    <div class="mc-req-avatar v2">
+                        TK
+                        <span class="online" title="Online now"></span>
+                    </div>
+
+                    <div class="mc-req-body">
+                        <div class="mc-req-name">
+                            <h4>Tunde Kalu</h4>
+                            <span class="mc-verify"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-req-role">Motion Designer · Lagos, NG · Replies in ~3m</div>
+
+                        <p class="mc-req-message">
+                            I'm learning React to build an interactive portfolio. Happy to teach Figma &amp;
+                            motion design in return — 24 exchanges already under my belt.
+                        </p>
+
+                        <div class="mc-req-swap">
+                            <span class="lbl">Swap</span>
+                            <span class="mc-swap-pill teach"><i class="bi bi-arrow-up-right"></i> You teach React</span>
+                            <i class="bi bi-arrow-left-right mc-swap-arrow"></i>
+                            <span class="mc-swap-pill learn"><i class="bi bi-arrow-down-left"></i> They teach Figma</span>
+                        </div>
+
+                        <div class="mc-req-meta">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 5.0 · 24 exchanges</span>
+                            <span><i class="bi bi-clock"></i> Sent 4 hours ago</span>
+                            <span><i class="bi bi-globe"></i> English, Yoruba</span>
+                        </div>
+                    </div>
+
+                    <div class="mc-req-actions">
+                        <button class="mc-act accept" data-action="accept" data-name="Tunde Kalu">
+                            <i class="bi bi-check-lg"></i> Accept
+                        </button>
+                        <button class="mc-act decline" data-action="decline" data-name="Tunde Kalu">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                    </div>
+                </article>
+
+                <!-- ---- Request 3 ---- -->
+                <article class="mc-req" data-req-id="3" data-name="Lena Brava">
+                    <div class="mc-req-avatar v3">
+                        LB
+                    </div>
+
+                    <div class="mc-req-body">
+                        <div class="mc-req-name">
+                            <h4>Lena Brava</h4>
+                            <span class="mc-verify"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-req-role">Product Designer · Remote · Replies in ~20m</div>
+
+                        <p class="mc-req-message">
+                            Hi! I'd like to learn React from you. In return I can offer design critique
+                            sessions — I've mentored 30+ juniors on product thinking.
+                        </p>
+
+                        <div class="mc-req-swap">
+                            <span class="lbl">Swap</span>
+                            <span class="mc-swap-pill teach"><i class="bi bi-arrow-up-right"></i> You teach React</span>
+                            <i class="bi bi-arrow-left-right mc-swap-arrow"></i>
+                            <span class="mc-swap-pill learn"><i class="bi bi-arrow-down-left"></i> They teach Design Critique</span>
+                        </div>
+
+                        <div class="mc-req-meta">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 4.8 · 18 exchanges</span>
+                            <span><i class="bi bi-clock"></i> Sent 1 day ago</span>
+                            <span><i class="bi bi-globe"></i> English, Spanish</span>
+                        </div>
+                    </div>
+
+                    <div class="mc-req-actions">
+                        <button class="mc-act accept" data-action="accept" data-name="Lena Brava">
+                            <i class="bi bi-check-lg"></i> Accept
+                        </button>
+                        <button class="mc-act decline" data-action="decline" data-name="Lena Brava">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- Empty state -->
+            <div class="mc-req-empty" id="mcReqEmpty">
+                <div class="ic"><i class="bi bi-check2-circle"></i></div>
+                <h4>You're all caught up!</h4>
+                <p>No pending requests right now. New ones will land here the moment someone wants to swap skills with you.</p>
+                <div class="btn-row">
+                    <button class="btn btn-secondary btn-sm" data-toast="Finding new matches…">
+                        <i class="bi bi-arrow-left-right"></i> Find new matches
+                    </button>
+                    <button class="btn btn-line btn-sm" data-toast="Opening archive…">
+                        <i class="bi bi-archive"></i> View archive
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- Other connections (tabs) ---------- -->
+        <div class="mc-tabs-card fade-up">
+            <div class="mc-tabs" role="tablist" aria-label="Connection categories">
+                <button class="mc-tab active" data-tab="active" role="tab" aria-selected="true">
+                    <i class="bi bi-people-fill"></i> Active <span class="count">47</span>
+                </button>
+                <button class="mc-tab" data-tab="sent" role="tab" aria-selected="false">
+                    <i class="bi bi-send"></i> Sent <span class="count">6</span>
+                </button>
+                <button class="mc-tab" data-tab="recent" role="tab" aria-selected="false">
+                    <i class="bi bi-clock-history"></i> Recent <span class="count">12</span>
+                </button>
+                <button class="mc-tab" data-tab="blocked" role="tab" aria-selected="false">
+                    <i class="bi bi-slash-circle"></i> Blocked <span class="count">1</span>
+                </button>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: ACTIVE
+                 Backend: {% for connection in active_connections %} … {% endfor %}
+                 ============================================================ -->
+            <div class="mc-panel active" id="mcPanelActive" role="tabpanel">
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar">
+                        JT
+                        <span class="online"></span>
+                    </div>
+                    <div class="mc-conn-body">
+                        <h5>Jonas Tan <i class="bi bi-patch-check-fill" style="color:var(--accent);font-size:0.72rem;" title="Verified"></i></h5>
+                        <p>You teach <strong>React</strong> · He teaches <strong>Backend</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag green">Active swap</span>
+                            <span class="mc-conn-tag sky">3 sessions</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Jonas…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Removed Jonas from connections" title="Remove">
+                            <i class="bi bi-person-dash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v3">
+                        AN
+                        <span class="offline"></span>
+                    </div>
+                    <div class="mc-conn-body">
+                        <h5>Amara Nwosu <i class="bi bi-patch-check-fill" style="color:var(--accent);font-size:0.72rem;" title="Verified"></i></h5>
+                        <p>You learn <strong>Data Science</strong> · She learns <strong>Figma</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag violet">Session booked</span>
+                            <span class="mc-conn-tag amber">1 slot</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Amara…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Removed Amara from connections" title="Remove">
+                            <i class="bi bi-person-dash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v4">
+                        CN
+                        <span class="online"></span>
+                    </div>
+                    <div class="mc-conn-body">
+                        <h5>Chidi Nwosu <i class="bi bi-patch-check-fill" style="color:var(--accent);font-size:0.72rem;" title="Verified"></i></h5>
+                        <p>You learn <strong>API Design</strong> · He learns <strong>UI Design</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag green">Active swap</span>
+                            <span class="mc-conn-tag sky">5 sessions</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Chidi…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Removed Chidi from connections" title="Remove">
+                            <i class="bi bi-person-dash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v5">
+                        MR
+                        <span class="online"></span>
+                    </div>
+                    <div class="mc-conn-body">
+                        <h5>Maya Rahman</h5>
+                        <p>You teach <strong>React</strong> · She teaches <strong>SQL</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag green">Active swap</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Maya…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Removed Maya from connections" title="Remove">
+                            <i class="bi bi-person-dash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v2">
+                        DO
+                        <span class="offline"></span>
+                    </div>
+                    <div class="mc-conn-body">
+                        <h5>Daniel Okafor <i class="bi bi-patch-check-fill" style="color:var(--accent);font-size:0.72rem;" title="Verified"></i></h5>
+                        <p>You learn <strong>Public Speaking</strong> · He learns <strong>React</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag amber">On pause</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Daniel…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Removed Daniel from connections" title="Remove">
+                            <i class="bi bi-person-dash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: SENT
+                 ============================================================ -->
+            <div class="mc-panel" id="mcPanelSent" role="tabpanel">
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v3">FB<span class="offline"></span></div>
+                    <div class="mc-conn-body">
+                        <h5>Fatima Bello</h5>
+                        <p>You asked to learn <strong>Design Systems</strong> · She'd learn <strong>React</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag amber">Awaiting reply · 2 days</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Reminder sent to Fatima" title="Send reminder">
+                            <i class="bi bi-bell"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Request to Fatima withdrawn" title="Withdraw">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v4">AN<span class="offline"></span></div>
+                    <div class="mc-conn-body">
+                        <h5>Amara Nwosu</h5>
+                        <p>You asked to learn <strong>Data Science</strong> · She'd learn <strong>Figma</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag sky">Viewed · 6 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Reminder sent to Amara" title="Send reminder">
+                            <i class="bi bi-bell"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Request to Amara withdrawn" title="Withdraw">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v5">RK<span class="offline"></span></div>
+                    <div class="mc-conn-body">
+                        <h5>Ravi Kapoor</h5>
+                        <p>You asked to learn <strong>System Design</strong> · He'd learn <strong>React</strong></p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag amber">Awaiting reply · 5 days</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Reminder sent to Ravi" title="Send reminder">
+                            <i class="bi bi-bell"></i>
+                        </button>
+                        <button class="mc-icon-btn danger" data-toast="Request to Ravi withdrawn" title="Withdraw">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: RECENT
+                 ============================================================ -->
+            <div class="mc-panel" id="mcPanelRecent" role="tabpanel">
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar">TK<span class="online"></span></div>
+                    <div class="mc-conn-body">
+                        <h5>Tunde Kalu</h5>
+                        <p>Connected <strong>just now</strong> · Teaches Figma, wants React</p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag green">Just added</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Tunde…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v2">SK<span class="online"></span></div>
+                    <div class="mc-conn-body">
+                        <h5>Sara Kim</h5>
+                        <p>Connected <strong>1 hour ago</strong> · Teaches UI Design, wants React</p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag green">New connection</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Sara…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar v3">MR<span class="online"></span></div>
+                    <div class="mc-conn-body">
+                        <h5>Maya Rahman</h5>
+                        <p>Connected <strong>yesterday</strong> · Teaches SQL, wants React</p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag sky">First session booked</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Opening chat with Maya…" title="Message">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: BLOCKED
+                 ============================================================ -->
+            <div class="mc-panel" id="mcPanelBlocked" role="tabpanel">
+                <div class="mc-conn">
+                    <div class="mc-conn-avatar" style="background: var(--gray-200); color: var(--gray-600);">XX</div>
+                    <div class="mc-conn-body">
+                        <h5 style="color: var(--gray-600);">Blocked member</h5>
+                        <p>Hidden from your matches and search results</p>
+                        <div class="mc-conn-tags">
+                            <span class="mc-conn-tag amber">Blocked 8 days ago</span>
+                        </div>
+                    </div>
+                    <div class="mc-conn-actions">
+                        <button class="mc-icon-btn" data-toast="Member unblocked" title="Unblock">
+                            <i class="bi bi-unlock"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================
+         RIGHT — TIPS, TRUST & STATS
+         ============================================ -->
+    <div class="mc-col">
+
+        <!-- Connection quality -->
+        <div class="mc-panel-card fade-up">
+            <div class="mc-panel-card-head">
+                <h4><i class="bi bi-graph-up-arrow"></i> Connection quality</h4>
+                <button class="link" data-toast="Opening full analytics…">View report</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px;">
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:0.76rem;font-weight:600;color:var(--gray-600);">Accept rate</span>
+                        <strong style="font-size:0.8rem;color:var(--primary-dark);font-weight:700;">94%</strong>
+                    </div>
+                    <div class="bar"><span data-value="94"></span></div>
+                </div>
+
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:0.76rem;font-weight:600;color:var(--gray-600);">Response time</span>
+                        <strong style="font-size:0.8rem;color:var(--primary-dark);font-weight:700;">~4 hours</strong>
+                    </div>
+                    <div class="bar accent"><span data-value="78"></span></div>
+                </div>
+
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:0.76rem;font-weight:600;color:var(--gray-600);">Swap completion</span>
+                        <strong style="font-size:0.8rem;color:var(--primary-dark);font-weight:700;">88%</strong>
+                    </div>
+                    <div class="bar violet"><span data-value="88"></span></div>
+                </div>
+            </div>
+
+            <p style="font-size:0.72rem;color:var(--gray-600);line-height:1.6;margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-100);">
+                Members with an <strong style="color:var(--primary-dark);">accept rate above 85%</strong> get priority placement in match decks.
+            </p>
+        </div>
+
+        <!-- Tips -->
+        <div class="mc-panel-card fade-up">
+            <div class="mc-panel-card-head">
+                <h4><i class="bi bi-lightbulb"></i> Connection tips</h4>
+            </div>
+
+            <div class="mc-tips">
+                <div class="mc-tip">
+                    <div class="ic"><i class="bi bi-chat-left-quote"></i></div>
+                    <div class="mc-tip-body">
+                        <h5>Personalise your reply</h5>
+                        <p>A short, specific message builds trust faster than a one-word accept.</p>
+                    </div>
+                </div>
+
+                <div class="mc-tip">
+                    <div class="ic sky"><i class="bi bi-calendar-check"></i></div>
+                    <div class="mc-tip-body">
+                        <h5>Book within 48 hours</h5>
+                        <p>Connections that book a first session quickly are 3× more likely to complete a swap.</p>
+                    </div>
+                </div>
+
+                <div class="mc-tip">
+                    <div class="ic violet"><i class="bi bi-arrow-left-right"></i></div>
+                    <div class="mc-tip-body">
+                        <h5>Keep it two-way</h5>
+                        <p>Both sides should teach and learn — that's what makes Knotwork exchanges stick.</p>
+                    </div>
+                </div>
+
+                <div class="mc-tip">
+                    <div class="ic amber"><i class="bi bi-shield-check"></i></div>
+                    <div class="mc-tip-body">
+                        <h5>Trust your gut</h5>
+                        <p>Decline is always free. You can block, report, or pause matching at any time.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="mc-trust fade-up">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>
+                <strong>Your decisions are private.</strong> Declined requests are never notified, and
+                blocking is silent. Only you see the choices you make here.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           TABS (Active / Sent / Recent / Blocked)
+           ====================================================== */
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('.mc-tab'));
+        var panels = Array.prototype.slice.call(document.querySelectorAll('.mc-panel'));
+
+        function activateTab(name) {
+            tabs.forEach(function (t) {
+                var on = t.dataset.tab === name;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            panels.forEach(function (p) {
+                var key = 'mcPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+                p.classList.toggle('active', p.id === key);
+            });
+        }
+
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activateTab(this.dataset.tab); });
+        });
+
+        /* ======================================================
+           ACCEPT / DECLINE HANDLING
+           ====================================================== */
+        var reqList = document.getElementById('mcReqList');
+        var reqEmpty = document.getElementById('mcReqEmpty');
+
+        function updateEmptyState() {
+            if (!reqList) return;
+            var remaining = reqList.querySelectorAll('.mc-req:not(.gone)').length;
+            if (reqEmpty) reqEmpty.classList.toggle('show', remaining === 0);
+
+            /* Update badge in page head */
+            var badge = document.querySelector('.badge-soft');
+            if (badge) {
+                if (remaining === 0) {
+                    badge.innerHTML = '<i class="bi bi-check2-circle"></i> All caught up';
+                    badge.classList.remove('pulse');
+                } else {
+                    badge.innerHTML = '<i class="bi bi-bell-fill"></i> ' + remaining + ' pending request' + (remaining === 1 ? '' : 's');
+                }
+            }
+
+            /* Update hero count badge */
+            var countBadge = document.querySelector('.mc-requests-head .count-badge');
+            if (countBadge) {
+                countBadge.innerHTML = '<i class="bi bi-inbox-fill"></i> ' + remaining + ' waiting';
+            }
+
+            /* Update overview stat */
+            var pendingStat = document.querySelector('.mc-stat .ic .n');
+            if (pendingStat) pendingStat.textContent = String(remaining);
+        }
+
+        function dismissRequest(req, action) {
+            if (!req || req.classList.contains('gone')) return;
+            var name = req.dataset.name || 'this person';
+
+            req.classList.add('gone');
+
+            setTimeout(function () {
+                req.style.display = 'none';
+                updateEmptyState();
+            }, 420);
+
+            if (window.__toast) {
+                if (action === 'accept') {
+                    window.__toast('You accepted ' + name + "'s request — say hello!", 'success');
+                } else {
+                    window.__toast('Request from ' + name + ' declined', '');
+                }
+            }
+        }
+
+        document.querySelectorAll('.mc-act').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var action = this.dataset.action;
+                var req = this.closest('.mc-req');
+                if (!req) return;
+
+                /* Visual feedback on the button itself */
+                var originalHTML = this.innerHTML;
+                this.innerHTML = action === 'accept'
+                    ? '<i class="bi bi-check2-all"></i> Accepted'
+                    : '<i class="bi bi-check2"></i> Declined';
+                this.style.pointerEvents = 'none';
+
+                dismissRequest(req, action);
+            });
+        });
+
+        /* Init empty state in case there are zero requests */
+        updateEmptyState();
+
+        /* ======================================================
+           BULK ACTION — Mark all read
+           ====================================================== */
+        document.querySelectorAll('.mc-bulk .btn-ghost').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                /* Only handle the "Mark all read" case specifically */
+                if (this.textContent.indexOf('Mark all read') === -1) return;
+                document.querySelectorAll('.mc-req').forEach(function (r) {
+                    r.classList.add('gone');
+                    setTimeout(function () { r.style.display = 'none'; }, 420);
+                });
+                setTimeout(updateEmptyState, 440);
+            });
+        });
+
+    })();
+</script>
+
+{% endblock content %}

@@ -1,98 +1,639 @@
-{% extends 'Knot_Base/base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Log In{% endblock title %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#08111f">
+    <title>KnotWork | Log In</title>
 
-{% block content %}
-<style>
-    .login-page {
-        min-height: 720px;
-        padding: 142px 0 100px;
-        background: linear-gradient(145deg, var(--cream), var(--white));
-    }
-    .login-layout {
-        display: grid;
-        grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
-        gap: 72px;
-        align-items: center;
-    }
-    .login-copy .section-label { color: var(--accent); background: rgba(56, 189, 248, 0.1); }
-    .login-copy h1 {
-        max-width: 540px;
-        margin: 20px 0;
-        color: var(--primary-dark);
-        font-family: 'Playfair Display', serif;
-        font-size: clamp(2.8rem, 5vw, 4.6rem);
-        line-height: 1.05;
-    }
-    .login-copy h1 span { color: var(--secondary); font-style: italic; }
-    .login-copy > p { max-width: 500px; color: var(--gray-600); font-size: 1.08rem; line-height: 1.8; }
-    .login-signals { display: grid; gap: 16px; margin-top: 34px; }
-    .login-signal { display: flex; align-items: center; gap: 12px; color: var(--gray-800); font-size: .88rem; }
-    .login-signal i { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; background: rgba(190,242,100,.14); color: var(--primary); font-size: 1.1rem; }
-    .login-card { overflow: hidden; border: 1px solid rgba(11,17,33,.06); border-radius: var(--radius-xl); background: var(--white); box-shadow: var(--shadow-md); }
-    .login-card::before { content: ''; display: block; height: 5px; background: linear-gradient(90deg,var(--secondary),var(--accent)); }
-    .login-card-inner { padding: 38px; }
-    .login-card-header { margin-bottom: 28px; text-align: center; }
-    .login-card h2 { color: var(--primary-dark); font-family: 'Playfair Display', serif; font-size: 2rem; }
-    .login-card-header p { margin-top: 6px; color: var(--gray-600); font-size: .88rem; }
-    .login-form { display: grid; gap: 18px; }
-    .login-form label { display: block; margin-bottom: 8px; color: var(--primary-dark); font-size: .82rem; font-weight: 700; }
-    .login-form input[type='email'], .login-form input[type='password'] { width: 100%; padding: 13px 15px; border: 1px solid var(--gray-200); border-radius: 10px; background: var(--cream); color: var(--gray-800); font: inherit; outline: none; transition: var(--transition); }
-    .login-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.12); }
-    .password-label { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; }
-    .password-label a { color: var(--primary); font-size: .76rem; }
-    .password-label a:hover { color: var(--accent); }
-    .login-options { display: flex !important; align-items: center; gap: 8px; color: var(--gray-600) !important; font-size: .82rem !important; font-weight: 400 !important; }
-    .login-options input { accent-color: var(--secondary); }
-    .login-submit { width: 100%; justify-content: center; margin-top: 4px; }
-    .login-divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--gray-600); font-size: .75rem; }
-    .login-divider::before, .login-divider::after { content: ''; height: 1px; flex: 1; background: var(--gray-200); }
-    .login-create { color: var(--gray-600); font-size: .86rem; text-align: center; }
-    .login-create a { color: var(--primary); font-weight: 700; }
-    .login-create a:hover { color: var(--accent); }
-    .login-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 22px; color: var(--gray-600); font-size: .74rem; line-height: 1.5; }
-    .login-note i { color: var(--accent); }
-    @media (max-width: 800px) {
-        .login-page { padding: 124px 0 80px; }
-        .login-layout { grid-template-columns: 1fr; gap: 42px; }
-        .login-copy { text-align: center; }
-        .login-copy h1, .login-copy > p { margin-left: auto; margin-right: auto; }
-        .login-signals { display: flex; flex-wrap: wrap; justify-content: center; }
-    }
-    @media (max-width: 480px) { .login-card-inner { padding: 28px 20px; } .login-copy h1 { font-size: 2.7rem; } }
-</style>
+    <link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-web/fontawesome-free-6.7.2-web/css/all.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'fontawesome-free-7.1.0-web/fontawesome-free-7.1.0-web/css/all.css' %}"> -->
+    <link rel="stylesheet" href="{% static 'bootstrap-icons-1.11.3/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.3-dist/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
 
-<section class="login-page">
-    <div class="container">
-        <div class="login-layout">
-            <div class="login-copy">
-                <span class="section-label"><i class="bi bi-arrow-left-right"></i> Welcome back</span>
-                <h1>Return to the <span>exchange</span>.</h1>
-                <p>Your knowledge is part of a living network. Log in to continue learning, teaching, and meeting people who move your goals forward.</p>
-                <div class="login-signals">
-                    <div class="login-signal"><i class="bi bi-stars"></i><span>Continue your learning path</span></div>
-                    <div class="login-signal"><i class="bi bi-people"></i><span>Reconnect with your communities</span></div>
-                    <div class="login-signal"><i class="bi bi-lightning-charge"></i><span>Find your next skill exchange</span></div>
-                </div>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #08111f;
+            --ink-soft: #122338;
+            --lime: #c8f36a;
+            --sky: #73d6f5;
+            --paper: #f5f7f3;
+            --muted: #8c9aaa;
+            --line: rgba(255, 255, 255, .12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .auth-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr);
+        }
+
+        .auth-story {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            padding: 34px clamp(28px, 6vw, 96px) 42px;
+            background: var(--ink);
+            color: white;
+        }
+
+        .auth-story::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            right: -250px;
+            bottom: -260px;
+            border: 1px solid rgba(200, 243, 106, .18);
+            border-radius: 50%;
+            box-shadow: 0 0 0 56px rgba(200, 243, 106, .03), 0 0 0 112px rgba(115, 214, 245, .03);
+        }
+
+        .auth-story::after {
+            content: '↗';
+            position: absolute;
+            right: 11%;
+            top: 42%;
+            color: rgba(200, 243, 106, .1);
+            font: 700 14rem/1 'Space Grotesk', sans-serif;
+            transform: rotate(-12deg);
+        }
+
+        .brand {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: max-content;
+            font: 700 1.15rem 'Space Grotesk', sans-serif;
+            letter-spacing: -.04em;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border: 2px solid var(--lime);
+            border-radius: 11px 11px 11px 3px;
+            color: var(--lime);
+            font-size: 1.1rem;
+            transform: rotate(-8deg);
+        }
+
+        .story-copy {
+            position: relative;
+            z-index: 1;
+            max-width: 590px;
+            margin: auto 0;
+            padding: 80px 0;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--lime);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow i {
+            font-size: .9rem;
+        }
+
+        .story-copy h1 {
+            max-width: 620px;
+            margin: 22px 0;
+            font: 600 clamp(3rem, 6vw, 6.4rem)/.94 'Space Grotesk', sans-serif;
+            letter-spacing: -.07em;
+        }
+
+        .story-copy h1 span {
+            color: var(--lime);
+        }
+
+        .story-copy p {
+            max-width: 470px;
+            color: #aab7c3;
+            font-size: 1.08rem;
+            line-height: 1.8;
+        }
+
+        .story-proof {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            color: #aab7c3;
+            font-size: .8rem;
+        }
+
+        .story-proof strong {
+            display: block;
+            margin-bottom: 3px;
+            color: white;
+            font: 600 1.25rem 'Space Grotesk', sans-serif;
+        }
+
+        .auth-form-side {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 42px clamp(24px, 6vw, 92px);
+            background: var(--paper);
+        }
+
+        .login-card {
+            width: min(100%, 430px);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 52px;
+            color: #687686;
+            font-size: .78rem;
+        }
+
+        .card-top a {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .form-heading {
+            margin-bottom: 30px;
+        }
+
+        .form-heading h2 {
+            margin: 0 0 10px;
+            font: 600 clamp(2.2rem, 4vw, 3.3rem)/1 'Space Grotesk', sans-serif;
+            letter-spacing: -.06em;
+        }
+
+        .form-heading p {
+            margin: 0;
+            color: #718091;
+            line-height: 1.6;
+        }
+
+        .login-error {
+            margin: 0 0 18px;
+            padding: 11px 13px;
+            border: 1px solid #f0b8b8;
+            border-radius: 10px;
+            background: #fff4f4;
+            color: #9b2c2c;
+            font-size: .78rem;
+        }
+
+        .login-form {
+            display: grid;
+            gap: 19px;
+        }
+
+        .toast-stack {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .knot-toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-width: 320px;
+            max-width: 420px;
+            padding: 14px 16px 14px 12px;
+            border-radius: 16px;
+            background: rgba(8, 17, 31, 0.96);
+            color: #edf5f1;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 18px 38px rgba(8, 17, 31, 0.25);
+            border-left: 4px solid var(--lime);
+            animation: knotToastIn 0.28s ease;
+            pointer-events: auto;
+        }
+
+        .knot-toast.success { border-left-color: #c8f36a; }
+        .knot-toast.error { border-left-color: #ff6b6b; }
+        .knot-toast.warning { border-left-color: #f9c74f; }
+        .knot-toast.info { border-left-color: #73d6f5; }
+
+        .knot-toast .icon-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,0.08);
+            color: var(--lime);
+            flex-shrink: 0;
+        }
+
+        .knot-toast-copy {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .knot-toast-copy strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .knot-toast-copy span {
+            display: block;
+            font-size: 0.84rem;
+            color: rgba(237, 245, 241, 0.85);
+            line-height: 1.5;
+        }
+
+        .knot-toast-close {
+            width: 28px;
+            height: 28px;
+            border: 0;
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .knot-toast-close:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        @keyframes knotToastIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .toast-stack {
+                top: 16px;
+                left: 16px;
+                right: 16px;
+            }
+
+            .knot-toast {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #263545;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            color: #8c9aaa;
+            transform: translateY(-50%);
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 15px 15px 15px 44px;
+            border: 1px solid #dbe1e5;
+            border-radius: 12px;
+            outline: 0;
+            background: white;
+            color: var(--ink);
+            font: inherit;
+            transition: .2s ease;
+        }
+
+        .input-wrap input:focus {
+            border-color: #7dc5da;
+            box-shadow: 0 0 0 4px rgba(115, 214, 245, .15);
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            display: grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #8c9aaa;
+            cursor: pointer;
+            transform: translateY(-50%);
+        }
+
+        .password-toggle:hover {
+            color: var(--ink);
+        }
+
+        .input-wrap input[type="password"],
+        .input-wrap input[type="text"] {
+            padding-right: 46px;
+        }
+
+        .password-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .password-row a {
+            color: #567384;
+            font-size: .76rem;
+            font-weight: 700;
+        }
+
+        .login-options {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #718091;
+            font-size: .8rem;
+        }
+
+        .login-options input {
+            accent-color: #86a93b;
+        }
+
+        .submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 7px;
+            padding: 16px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--ink);
+            color: white;
+            cursor: pointer;
+            font: 700 .9rem 'DM Sans', sans-serif;
+            transition: .25s ease;
+        }
+
+        .submit:hover {
+            background: var(--ink-soft);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(8, 17, 31, .16);
+        }
+
+        .form-footer {
+            margin-top: 26px;
+            color: #718091;
+            font-size: .84rem;
+            text-align: center;
+        }
+
+        .form-footer a {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .security-note {
+            display: flex;
+            gap: 8px;
+            margin-top: 34px;
+            padding-top: 17px;
+            border-top: 1px solid #dde3e5;
+            color: #8996a3;
+            font-size: .73rem;
+            line-height: 1.5;
+        }
+
+        .security-note i {
+            color: #8cae3f;
+        }
+
+        @media (max-width:850px) {
+            .auth-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-story {
+                min-height: 390px;
+                padding: 26px 24px 34px;
+            }
+
+            .story-copy {
+                padding: 55px 0 35px;
+                margin: auto 0 0;
+            }
+
+            .story-copy h1 {
+                font-size: clamp(2.8rem, 12vw, 5rem);
+            }
+
+            .story-copy p {
+                font-size: .95rem;
+            }
+
+            .story-proof {
+                display: none;
+            }
+
+            .auth-form-side {
+                padding: 58px 24px 72px;
+            }
+
+            .card-top {
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="auth-shell">
+        <section class="auth-story">
+            <a class="brand" href="{% url 'home' %}"><span class="brand-mark">∞</span><span>KnotWork</span></a>
+            <div class="story-copy"><span class="eyebrow"><i class="bi bi-arrow-left-right"></i> Mutual learning network</span>
+                <h1>Pick up where your <span>curiosity</span> left off.</h1>
+                <p>Your next useful conversation is already waiting. Return to the people, skills, and ideas that keep you moving.</p>
             </div>
-
+            <div class="story-proof">
+                <div><strong>12k+</strong>active learners</div>
+                <div><strong>340+</strong>topics shared</div>
+                <div><strong>4.8/5</strong>session rating</div>
+            </div>
+        </section>
+        <section class="auth-form-side">
             <div class="login-card">
-                <div class="login-card-inner">
-                    <div class="login-card-header"><h2>Log in</h2><p>Access your KnotWork account</p></div>
-                    <form class="login-form" method="post" action="{% url 'login' %}">
-                        {% csrf_token %}
-                        <div><label for="login-email">Email address</label><input id="login-email" type="email" name="email" required autocomplete="email" placeholder="you@example.com"></div>
-                        <div><label class="password-label" for="login-password"><span>Password</span><a href="{% url 'help' %}">Need help?</a></label><input id="login-password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"></div>
-                        <label class="login-options"><input type="checkbox" name="remember_me"><span>Keep me logged in</span></label>
-                        <button type="submit" class="btn btn-primary login-submit"><i class="bi bi-arrow-right-circle"></i> Log in</button>
-                    </form>
-                    <div class="login-divider"><span>new to KnotWork?</span></div>
-                    <p class="login-create">Create an account to start exchanging. <a href="{% url 'sign_up' %}">Sign up free</a></p>
-                    <p class="login-note"><i class="bi bi-shield-check"></i><span>Your account keeps your learning goals, matches, and conversations in one place.</span></p>
+                <div class="card-top">
+                    <span>Member access</span>
+                    <a href="{% url 'home' %}">
+                    <i class="bi bi-arrow-left"></i> Back home</a>
                 </div>
+                <div class="form-heading">
+                    <h2>Welcome back.</h2>
+                    <p>Sign in and keep the exchange moving.</p>
+                </div>
+                {% if form.errors %}
+                <div class="login-error" role="alert">{{ form.non_field_errors|striptags }}</div>
+                {% endif %}
+                <form class="login-form" method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="field">
+                        <label for="login-email">Email address</label>
+                        <div class="input-wrap">
+                            <i class="bi bi-envelope"></i>
+                            <input id="login-email" type="email" name="email" required autocomplete="email" placeholder="you@example.com">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="password-row">
+                            <label for="login-password">Password</label>
+                            <a href="{% url 'help' %}">Need help?</a>
+                        </div>
+                        <div class="input-wrap">
+                            <i class="bi bi-key"></i>
+                            <input id="login-password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+                            <button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <label class="login-options"><input type="checkbox" name="remember_me"> Keep me logged in</label>
+                    <button class="submit" type="submit">Enter KnotWork <i class="bi bi-arrow-up-right"></i></button>
+                </form>
+                <p class="form-footer">New to the exchange? <a href="{% url 'get_started' %}">Create a free account</a></p>
+                <p class="security-note">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Your learning goals, matches, and conversations stay together in your account.</span>
+                </p>
             </div>
-        </div>
-    </div>
-</section>
-{% endblock content %}
+        </section>
+    </main>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        document.querySelectorAll('.password-toggle').forEach((toggle) => {
+            toggle.addEventListener('click', () => {
+                const input = toggle.parentElement.querySelector('input');
+                const isVisible = input.type === 'text';
+                input.type = isVisible ? 'password' : 'text';
+                toggle.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+                toggle.querySelector('i').className = isVisible ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+        });
+    </script>
+    <script src="{% static 'bootstrap-5.3.3-dist/bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
+
+    <div class="toast-stack" id="knotToastStack" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+        window.showKnotToast = function (message, type = 'success') {
+            const stack = document.getElementById('knotToastStack');
+            if (!stack || !message) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'knot-toast ' + (type || 'success');
+
+            const icons = {
+                success: 'bi-check-circle-fill',
+                error: 'bi-x-circle-fill',
+                warning: 'bi-exclamation-triangle-fill',
+                info: 'bi-info-circle-fill'
+            };
+
+            const label = {
+                success: 'Success',
+                error: 'Error',
+                warning: 'Warning',
+                info: 'Info'
+            };
+
+            toast.innerHTML = `
+                <span class="icon-badge"><i class="bi ${icons[type] || icons.success}"></i></span>
+                <div class="knot-toast-copy">
+                    <strong>${label[type] || 'Success'}</strong>
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="knot-toast-close" aria-label="Close notification"><i class="bi bi-x-lg"></i></button>
+            `;
+
+            const closeBtn = toast.querySelector('.knot-toast-close');
+            closeBtn.addEventListener('click', () => {
+                toast.remove();
+            });
+
+            stack.appendChild(toast);
+            window.setTimeout(() => toast.remove(), 4500);
+        };
+    </script>
+
+    {% for message in messages %}
+        <input type="hidden" class="knot-message" value="{{ message }}" data-type="{{ message.tags|default:'success' }}">
+        <script>
+            (function () {
+                const input = document.currentScript.previousElementSibling;
+                if (!input || !input.value || !window.showKnotToast) return;
+                const type = input.dataset.type || 'success';
+                window.showKnotToast(input.value, type);
+            })();
+        </script>
+    {% endfor %}
+
+</body>
+</html>

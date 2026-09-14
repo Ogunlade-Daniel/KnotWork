@@ -1,0 +1,1906 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Find Courses{% endblock %}
+
+{% block breadcrumb %}Find Courses{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       FIND COURSES — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Hero / search banner ---------- */
+    .fc-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 42px 44px 40px;
+        color: var(--white);
+        box-shadow: var(--shadow-md);
+    }
+    .fc-hero::before {
+        content: '';
+        position: absolute;
+        top: -45%;
+        right: -8%;
+        width: 58%;
+        height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.11) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .fc-hero::after {
+        content: '✦';
+        position: absolute;
+        bottom: -80px;
+        left: 34%;
+        font-family: 'Playfair Display', serif;
+        font-size: 17rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.02);
+        pointer-events: none;
+    }
+    .fc-hero-inner { position: relative; z-index: 2; max-width: 720px; }
+    .fc-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 3.8vw, 2.85rem);
+        font-weight: 700;
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin-bottom: 12px;
+    }
+    .fc-hero h1 span { color: var(--secondary); font-style: italic; }
+    .fc-hero > .fc-hero-inner > p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.98rem;
+        line-height: 1.75;
+        max-width: 560px;
+        margin-bottom: 26px;
+    }
+    .fc-hero p strong { color: var(--white); font-weight: 600; }
+
+    /* Big search bar */
+    .fc-searchbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--white);
+        border-radius: 60px;
+        padding: 7px 7px 7px 22px;
+        box-shadow: 0 18px 48px rgba(2, 6, 23, 0.35);
+        max-width: 640px;
+    }
+    .fc-searchbar > i {
+        color: var(--gray-300);
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .fc-searchbar input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.92rem;
+        color: var(--gray-800);
+        padding: 12px 4px;
+    }
+    .fc-searchbar input::placeholder { color: var(--gray-300); }
+    .fc-searchbar .divider {
+        width: 1px;
+        height: 30px;
+        background: var(--gray-200);
+        flex-shrink: 0;
+    }
+    .fc-searchbar select {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        padding: 12px 6px;
+        cursor: pointer;
+        max-width: 150px;
+        flex-shrink: 0;
+    }
+    .fc-searchbar .btn { flex-shrink: 0; padding: 12px 24px; }
+
+    /* Trending tags */
+    .fc-trends {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+    }
+    .fc-trends .lbl {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.35);
+    }
+    .fc-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.78);
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    .fc-trend:hover {
+        background: rgba(190, 242, 100, 0.14);
+        border-color: rgba(190, 242, 100, 0.4);
+        color: var(--secondary-light);
+        transform: translateY(-2px);
+    }
+
+    /* ---------- Trust bar ---------- */
+    .fc-trust {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .fc-trust .item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    .fc-trust .item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .fc-trust .item i {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .fc-trust .item.sky i { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .fc-trust .item.violet i { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .fc-trust .item.amber i { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .fc-trust .item strong {
+        display: block;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .fc-trust .item span { font-size: 0.72rem; color: var(--gray-600); }
+
+    /* ---------- Layout ---------- */
+    .fc-layout {
+        display: grid;
+        grid-template-columns: 264px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* ---------- Filter rail ---------- */
+    .fc-filters {
+        position: sticky;
+        top: calc(var(--topbar-h) + 18px);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .fc-panel {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 20px 20px 18px;
+    }
+    .fc-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .fc-panel-head h4 {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .fc-panel-head h4 i { color: var(--secondary-deep); font-size: 0.8rem; }
+    .fc-panel-head .reset {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        font-family: inherit;
+    }
+    .fc-panel-head .reset:hover { color: var(--primary-dark); }
+
+    /* Checkbox rows */
+    .fc-check {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 8px 0;
+        cursor: pointer;
+        font-size: 0.82rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        transition: var(--transition);
+        user-select: none;
+    }
+    .fc-check:hover { color: var(--primary-dark); }
+    .fc-check input { position: absolute; opacity: 0; pointer-events: none; }
+    .fc-check .box {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1.5px solid var(--gray-300);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        transition: var(--transition);
+        background: var(--white);
+    }
+    .fc-check .box i {
+        font-size: 0.62rem;
+        color: var(--primary-dark);
+        opacity: 0;
+        transform: scale(0.5);
+        transition: var(--transition);
+    }
+    .fc-check input:checked + .box {
+        background: var(--secondary);
+        border-color: var(--secondary);
+    }
+    .fc-check input:checked + .box i { opacity: 1; transform: scale(1); }
+    .fc-check input:focus-visible + .box {
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.28);
+    }
+    .fc-check .n {
+        margin-left: auto;
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--gray-300);
+    }
+    .fc-check input:checked ~ .n { color: #4D7C0F; }
+
+    /* Price slider-ish */
+    .fc-price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    .fc-price-row .val {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .fc-range {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 50px;
+        background: linear-gradient(90deg, var(--secondary) 0%, var(--secondary) 62%, var(--gray-200) 62%, var(--gray-200) 100%);
+        outline: none;
+        cursor: pointer;
+    }
+    .fc-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary-dark);
+        border: 3px solid var(--secondary);
+        box-shadow: 0 3px 10px rgba(11, 17, 33, 0.3);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .fc-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
+    .fc-range::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary-dark);
+        border: 3px solid var(--secondary);
+        cursor: pointer;
+    }
+
+    /* Star rating rows */
+    .fc-stars { display: flex; flex-direction: column; }
+    .fc-star-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        background: none;
+        border: none;
+        font-family: inherit;
+        text-align: left;
+        transition: var(--transition);
+    }
+    .fc-star-row:hover { color: var(--primary-dark); }
+    .fc-star-row .stars { color: #F59E0B; font-size: 0.76rem; letter-spacing: 1px; }
+    .fc-star-row .n { margin-left: auto; font-size: 0.68rem; color: var(--gray-300); font-weight: 600; }
+
+    /* Promo card in rail */
+    .fc-promo {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+        border-radius: var(--radius);
+        padding: 22px 20px;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .fc-promo::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -25%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.16), transparent 65%);
+        pointer-events: none;
+    }
+    .fc-promo .pbadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(190, 242, 100, 0.16);
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        color: var(--secondary-light);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 4px 11px;
+        border-radius: 50px;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 2;
+    }
+    .fc-promo h5 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 2;
+    }
+    .fc-promo p {
+        font-size: 0.76rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+    }
+    .fc-promo .btn {
+        width: 100%;
+        padding: 10px 18px;
+        font-size: 0.78rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ---------- Results header ---------- */
+    .fc-results-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+    .fc-results-head .count {
+        font-size: 0.86rem;
+        color: var(--gray-600);
+    }
+    .fc-results-head .count strong { color: var(--primary-dark); font-weight: 700; }
+    .fc-results-head .count em { font-style: normal; color: var(--secondary-deep); font-weight: 600; }
+
+    .fc-view {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+    }
+    .fc-sort {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .fc-sort label { font-size: 0.72rem; font-weight: 600; color: var(--gray-600); }
+    .fc-sort select {
+        padding: 9px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        cursor: pointer;
+        outline: none;
+        transition: var(--transition);
+    }
+    .fc-sort select:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    .fc-viewbtn {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+    .fc-viewbtn:hover { border-color: var(--secondary); color: var(--primary-dark); }
+    .fc-viewbtn.active {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: var(--secondary);
+    }
+
+    /* Active filter chips */
+    .fc-active-chips {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+    .fc-chip-active {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px 6px 14px;
+        border-radius: 50px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.2);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+    }
+    .fc-chip-active button {
+        border: none;
+        background: rgba(11, 17, 33, 0.08);
+        color: var(--primary-dark);
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.6rem;
+        transition: var(--transition);
+        line-height: 1;
+    }
+    .fc-chip-active button:hover { background: var(--primary-dark); color: var(--secondary); }
+    .fc-clear-all {
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        padding: 6px 4px;
+        transition: var(--transition);
+    }
+    .fc-clear-all:hover { color: var(--danger); }
+
+    /* ---------- Course grid ---------- */
+    .fc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+        gap: 20px;
+    }
+
+    .fc-card {
+        display: flex;
+        flex-direction: column;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.07);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(11, 17, 33, 0.04);
+        transition: var(--transition);
+        position: relative;
+    }
+    .fc-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.42);
+    }
+
+    /* Thumb */
+    .fc-thumb {
+        position: relative;
+        height: 128px;
+        display: grid;
+        place-items: center;
+        font-size: 2rem;
+        color: var(--white);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+        overflow: hidden;
+    }
+    .fc-thumb::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 78% -10%, rgba(190, 242, 100, 0.30), transparent 62%);
+        pointer-events: none;
+    }
+    .fc-thumb > i { position: relative; z-index: 2; }
+    .fc-thumb.t-sky    { background: linear-gradient(135deg, #0B1121, #075985); }
+    .fc-thumb.t-violet { background: linear-gradient(135deg, #0B1121, #4C1D95); }
+    .fc-thumb.t-amber  { background: linear-gradient(135deg, #0B1121, #78350F); }
+    .fc-thumb.t-green  { background: linear-gradient(135deg, #0B1121, #14532D); }
+    .fc-thumb.t-rose   { background: linear-gradient(135deg, #0B1121, #7F1D1D); }
+
+    .fc-flag {
+        position: absolute;
+        top: 11px;
+        left: 11px;
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--white);
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+    .fc-flag.hot  { background: rgba(239, 68, 68, 0.92); border-color: transparent; }
+    .fc-flag.new  { background: rgba(190, 242, 100, 0.94); border-color: transparent; color: var(--primary-dark); }
+    .fc-flag.top  { background: rgba(56, 189, 248, 0.9); border-color: transparent; color: #04293F; }
+
+    .fc-book {
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        z-index: 3;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.82rem;
+        color: var(--white);
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    .fc-book:hover,
+    .fc-book.on {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        transform: scale(1.06);
+    }
+
+    /* Preview play */
+    .fc-preview {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        background: rgba(2, 6, 23, 0.4);
+        backdrop-filter: blur(2px);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .fc-card:hover .fc-preview { opacity: 1; }
+    .fc-preview span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--primary-dark);
+        font-size: 0.76rem;
+        font-weight: 700;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+    }
+    .fc-preview span i { color: var(--secondary-deep); }
+
+    /* Body */
+    .fc-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        padding: 16px 18px 0;
+    }
+    .fc-cat {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+    }
+    .fc-cat .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--secondary);
+        flex-shrink: 0;
+    }
+    .fc-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.35;
+        letter-spacing: -0.005em;
+        transition: var(--transition);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .fc-title:hover { color: #4D7C0F; }
+
+    .fc-desc {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .fc-mentor {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        margin-top: 2px;
+    }
+    .avatar.xs { width: 24px; height: 24px; font-size: 0.58rem; }
+    .fc-mentor .verified { color: var(--accent); font-size: 0.72rem; }
+    .fc-mentor strong { color: var(--gray-800); font-weight: 600; }
+
+    .fc-rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+    .fc-rating .stars { color: #F59E0B; font-size: 0.72rem; letter-spacing: 0.5px; }
+    .fc-rating strong { color: var(--primary-dark); font-weight: 700; }
+    .fc-rating .sep { color: var(--gray-300); }
+
+    .fc-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--gray-600);
+        padding-top: 2px;
+    }
+    .fc-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .fc-meta i { color: var(--gray-300); font-size: 0.76rem; }
+
+    /* Foot */
+    .fc-foot {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 18px 18px;
+        margin-top: auto;
+        border-top: 1px solid var(--gray-100);
+    }
+    .fc-foot .btn { flex: 1; }
+    .fc-price {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+    }
+    .fc-price .now {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        letter-spacing: -0.01em;
+    }
+    .fc-price .now.free { color: var(--secondary-deep); }
+    .fc-price .was {
+        font-size: 0.68rem;
+        color: var(--gray-300);
+        text-decoration: line-through;
+        font-weight: 500;
+    }
+
+    /* ---------- List view ---------- */
+    .fc-grid.list-view { grid-template-columns: 1fr; }
+    .fc-grid.list-view .fc-card {
+        flex-direction: row;
+        align-items: stretch;
+    }
+    .fc-grid.list-view .fc-thumb {
+        width: 220px;
+        height: auto;
+        flex-shrink: 0;
+    }
+    .fc-grid.list-view .fc-body {
+        padding: 18px 20px 0;
+        justify-content: center;
+    }
+    .fc-grid.list-view .fc-title { -webkit-line-clamp: 1; font-size: 1.02rem; }
+    .fc-grid.list-view .fc-foot {
+        flex-direction: column;
+        justify-content: center;
+        border-top: none;
+        border-left: 1px solid var(--gray-100);
+        padding: 18px 22px;
+        min-width: 190px;
+        gap: 12px;
+    }
+    .fc-grid.list-view .fc-foot .btn { width: 100%; flex: 0 0 auto; }
+
+    /* ---------- Empty state ---------- */
+    .fc-empty {
+        padding: 70px 24px 76px;
+        text-align: center;
+        background: var(--white);
+        border: 1px dashed var(--gray-200);
+        border-radius: var(--radius);
+    }
+    .fc-empty .ic {
+        width: 66px;
+        height: 66px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.5rem;
+        background: var(--gray-100);
+        color: var(--gray-300);
+    }
+    .fc-empty h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .fc-empty p {
+        max-width: 380px;
+        margin: 0 auto 18px;
+        font-size: 0.84rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+
+    /* ---------- Pagination ---------- */
+    .fc-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    .fc-page {
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: 11px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: var(--transition);
+    }
+    .fc-page:hover { border-color: var(--secondary); color: var(--primary-dark); }
+    .fc-page.active {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .fc-page:disabled { opacity: 0.42; cursor: not-allowed; }
+    .fc-page:disabled:hover { border-color: var(--gray-200); color: var(--gray-600); }
+    .fc-page .dots { color: var(--gray-300); letter-spacing: 2px; }
+
+    /* ---------- Collections strip ---------- */
+    .fc-collections {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+    .fc-coll {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radius);
+        padding: 24px 22px;
+        color: var(--white);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+        min-height: 132px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .fc-coll:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .fc-coll::before {
+        content: '';
+        position: absolute;
+        top: -55%;
+        right: -18%;
+        width: 78%;
+        height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.16), transparent 65%);
+        pointer-events: none;
+    }
+    .fc-coll.c-sky::before    { background: radial-gradient(ellipse, rgba(56, 189, 248, 0.20), transparent 65%); }
+    .fc-coll.c-violet::before { background: radial-gradient(ellipse, rgba(139, 92, 246, 0.22), transparent 65%); }
+    .fc-coll .cnum {
+        position: relative;
+        z-index: 2;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.42);
+        margin-bottom: 10px;
+    }
+    .fc-coll h4 {
+        position: relative;
+        z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.12rem;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 6px;
+    }
+    .fc-coll .go {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--secondary);
+        transition: var(--transition);
+    }
+    .fc-coll:hover .go { gap: 11px; }
+
+    /* ---------- Trust footer band ---------- */
+    .fc-assurance {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        border-radius: var(--radius);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.3);
+        font-size: 0.8rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+    }
+    .fc-assurance > i {
+        font-size: 1.5rem;
+        color: var(--accent);
+        flex-shrink: 0;
+    }
+    .fc-assurance strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .fc-trust { grid-template-columns: repeat(2, 1fr); }
+        .fc-collections { grid-template-columns: 1fr 1fr; }
+        .fc-layout { grid-template-columns: 236px 1fr; }
+    }
+
+    @media (max-width: 980px) {
+        .fc-layout { grid-template-columns: 1fr; }
+        .fc-filters {
+            position: static;
+            display: none;
+        }
+        .fc-filters.open { display: flex; }
+        .fc-hero { padding: 34px 26px 32px; }
+        .fc-searchbar { flex-wrap: wrap; border-radius: var(--radius); padding: 12px; }
+        .fc-searchbar input { width: 100%; padding: 10px 4px; }
+        .fc-searchbar .divider { display: none; }
+        .fc-searchbar select { max-width: none; flex: 1; }
+        .fc-searchbar .btn { width: 100%; }
+    }
+
+    @media (max-width: 860px) {
+        .fc-grid.list-view .fc-card { flex-direction: column; }
+        .fc-grid.list-view .fc-thumb { width: 100%; height: 128px; }
+        .fc-grid.list-view .fc-foot {
+            border-left: none;
+            border-top: 1px solid var(--gray-100);
+            flex-direction: row;
+            min-width: 0;
+        }
+        .fc-grid.list-view .fc-foot .btn { width: auto; }
+    }
+
+    @media (max-width: 640px) {
+        .fc-trust { grid-template-columns: 1fr; }
+        .fc-collections { grid-template-columns: 1fr; }
+        .fc-grid { grid-template-columns: 1fr; }
+        .fc-results-head { gap: 10px; }
+        .fc-view { margin-left: 0; }
+        .fc-sort { flex: 1; }
+        .fc-sort select { flex: 1; }
+        .fc-assurance { flex-direction: column; text-align: center; gap: 10px; }
+        .fc-foot { flex-wrap: wrap; }
+    }
+</style>
+
+
+<!-- ====================================================
+     HERO / SEARCH
+     ==================================================== -->
+<section class="fc-hero fade-up">
+    <div class="fc-hero-inner">
+        <span class="hero-badge"><i class="bi bi-compass"></i> 1,240+ verified courses</span>
+        <h1>Find your next <span>skill</span></h1>
+        <p>Every course is reviewed by a verified mentor, rated by real learners, and built for skill exchange — not just watching videos.</p>
+
+        <form class="fc-searchbar" onsubmit="return false;">
+            <i class="bi bi-search"></i>
+            <input type="text" id="fcSearch" placeholder="Search courses, skills, or mentors…" aria-label="Search courses">
+            <span class="divider"></span>
+            <select aria-label="Category">
+                <option value="">All categories</option>
+                <option value="frontend">Frontend</option>
+                <option value="backend">Backend</option>
+                <option value="design">Design</option>
+                <option value="data">Data</option>
+                <option value="mobile">Mobile</option>
+                <option value="soft">Communication</option>
+            </select>
+            <button type="button" class="btn btn-secondary" data-toast="Searching courses…">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </form>
+    </div>
+
+    <div class="fc-trends">
+        <span class="lbl">Trending</span>
+        <button class="fc-trend" data-toast="Filtering: React…"><i class="bi bi-fire"></i> React</button>
+        <button class="fc-trend" data-toast="Filtering: Figma…"><i class="bi bi-fire"></i> Figma</button>
+        <button class="fc-trend" data-toast="Filtering: Python…"><i class="bi bi-fire"></i> Python</button>
+        <button class="fc-trend" data-toast="Filtering: TypeScript…"><i class="bi bi-fire"></i> TypeScript</button>
+        <button class="fc-trend" data-toast="Filtering: Public Speaking…"><i class="bi bi-fire"></i> Public Speaking</button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     TRUST BAR
+     ==================================================== -->
+<section class="fc-trust">
+    <div class="fc-trust item fade-up">
+        <i class="bi bi-patch-check-fill"></i>
+        <div>
+            <strong>100% verified mentors</strong>
+            <span>Every instructor is screened</span>
+        </div>
+    </div>
+    <div class="fc-trust item sky fade-up">
+        <i class="bi bi-arrow-left-right"></i>
+        <div>
+            <strong>Skill exchange ready</strong>
+            <span>Swap instead of paying</span>
+        </div>
+    </div>
+    <div class="fc-trust item violet fade-up">
+        <i class="bi bi-shield-lock-fill"></i>
+        <div>
+            <strong>7-day guarantee</strong>
+            <span>Full refund, no questions</span>
+        </div>
+    </div>
+    <div class="fc-trust item amber fade-up">
+        <i class="bi bi-award-fill"></i>
+        <div>
+            <strong>Shareable certificates</strong>
+            <span>Permanent &amp; verifiable</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="fc-layout">
+
+    <!-- ============================================
+         FILTER RAIL
+         ============================================ -->
+    <aside class="fc-filters" id="fcFilters">
+
+        <!-- Categories -->
+        <div class="fc-panel">
+            <div class="fc-panel-head">
+                <h4><i class="bi bi-grid"></i> Category</h4>
+                <button class="reset" data-toast="Category filter reset">Reset</button>
+            </div>
+            <label class="fc-check">
+                <input type="checkbox" checked>
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Frontend <span class="n">312</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Backend <span class="n">248</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Design <span class="n">196</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Data &amp; AI <span class="n">174</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Mobile <span class="n">88</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Communication <span class="n">122</span>
+            </label>
+        </div>
+
+        <!-- Level -->
+        <div class="fc-panel">
+            <div class="fc-panel-head">
+                <h4><i class="bi bi-bar-chart-steps"></i> Level</h4>
+            </div>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Beginner <span class="n">420</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox" checked>
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Intermediate <span class="n">536</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Advanced <span class="n">284</span>
+            </label>
+        </div>
+
+        <!-- Price -->
+        <div class="fc-panel">
+            <div class="fc-panel-head">
+                <h4><i class="bi bi-tag"></i> Price</h4>
+                <span class="reset" id="priceOut" style="color:var(--primary-dark);cursor:default;">≤ 240 credits</span>
+            </div>
+            <div class="fc-price-row">
+                <span style="font-size:0.72rem;color:var(--gray-600);font-weight:600;">0</span>
+                <span class="val" id="priceVal">240 credits</span>
+            </div>
+            <input type="range" class="fc-range" id="priceRange" min="0" max="500" step="10" value="240" aria-label="Maximum price in credits">
+            <label class="fc-check" style="margin-top:12px;">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Free courses only <span class="n">68</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox" checked>
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Exchange-eligible <span class="n">904</span>
+            </label>
+        </div>
+
+        <!-- Rating -->
+        <div class="fc-panel">
+            <div class="fc-panel-head">
+                <h4><i class="bi bi-star"></i> Minimum rating</h4>
+            </div>
+            <div class="fc-stars">
+                <button class="fc-star-row" data-toast="Filtering 4.5★ and up…">
+                    <span class="stars">★★★★★</span> 4.5 &amp; up <span class="n">284</span>
+                </button>
+                <button class="fc-star-row" data-toast="Filtering 4.0★ and up…">
+                    <span class="stars">★★★★</span> 4.0 &amp; up <span class="n">612</span>
+                </button>
+                <button class="fc-star-row" data-toast="Filtering 3.5★ and up…">
+                    <span class="stars">★★★</span> 3.5 &amp; up <span class="n">948</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Duration -->
+        <div class="fc-panel">
+            <div class="fc-panel-head">
+                <h4><i class="bi bi-clock-history"></i> Duration</h4>
+            </div>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                Under 5 hours <span class="n">186</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox" checked>
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                5 – 15 hours <span class="n">742</span>
+            </label>
+            <label class="fc-check">
+                <input type="checkbox">
+                <span class="box"><i class="bi bi-check-lg"></i></span>
+                15+ hours <span class="n">312</span>
+            </label>
+        </div>
+
+        <!-- Promo -->
+        <div class="fc-promo">
+            <span class="pbadge"><i class="bi bi-lightning-charge-fill"></i> Bonus</span>
+            <h5>Swap skills, skip the fee</h5>
+            <p>Teach what you know and unlock eligible courses for free through the exchange programme.</p>
+            <button class="btn btn-secondary" data-toast="Opening the skill exchange programme…">
+                Learn how <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================
+         RESULTS
+         ============================================ -->
+    <div class="fc-results">
+
+        <!-- Results head -->
+        <div class="fc-results-head">
+            <p class="count"><strong>1,240</strong> courses · showing <em>1 – 9</em></p>
+
+            <button class="btn-ghost" id="fcFilterToggle" style="display:none;">
+                <i class="bi bi-sliders"></i> Filters
+            </button>
+
+            <div class="fc-view">
+                <div class="fc-sort">
+                    <label for="fcSort">Sort by</label>
+                    <select id="fcSort">
+                        <option>Most relevant</option>
+                        <option>Highest rated</option>
+                        <option>Newest</option>
+                        <option>Price: low to high</option>
+                        <option>Price: high to low</option>
+                        <option>Shortest first</option>
+                    </select>
+                </div>
+                <button class="fc-viewbtn active" id="viewGrid" aria-label="Grid view" aria-pressed="true">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                </button>
+                <button class="fc-viewbtn" id="viewList" aria-label="List view" aria-pressed="false">
+                    <i class="bi bi-list-ul"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Active filter chips -->
+        <div class="fc-active-chips">
+            <span class="fc-chip-active">
+                Frontend <button type="button" aria-label="Remove Frontend filter" data-toast="Removed Frontend filter">×</button>
+            </span>
+            <span class="fc-chip-active">
+                Intermediate <button type="button" aria-label="Remove Intermediate filter" data-toast="Removed Intermediate filter">×</button>
+            </span>
+            <span class="fc-chip-active">
+                ≤ 240 credits <button type="button" aria-label="Remove price filter" data-toast="Removed price filter">×</button>
+            </span>
+            <span class="fc-chip-active">
+                Exchange-eligible <button type="button" aria-label="Remove exchange filter" data-toast="Removed exchange filter">×</button>
+            </span>
+            <button class="fc-clear-all" data-toast="All filters cleared">Clear all</button>
+        </div>
+
+        <!-- ============================================
+             COURSE GRID
+             Backend: {% for course in courses %} … {% endfor %}
+             ============================================ -->
+        <div class="fc-grid" id="fcGrid">
+
+            <!-- ---- Course 1 ---- -->
+            <article class="fc-card" data-cat="frontend" data-title="Advanced React Patterns">
+                <div class="fc-thumb">
+                    <span class="fc-flag top"><i class="bi bi-award-fill"></i> Bestseller</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-filetype-jsx"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Frontend · Intermediate</div>
+                    <a href="#" class="fc-title">Advanced React Patterns</a>
+                    <p class="fc-desc">Composition, render props, state machines and the performance patterns senior teams actually ship.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">DO</span>
+                        <span><strong>Daniel Okafor</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.9</strong>
+                        <span class="sep">·</span>
+                        <span>1,284 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 12 modules</span>
+                        <span><i class="bi bi-clock"></i> 9h 40m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">180 credits</span>
+                        <span class="was">240 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 2 ---- -->
+            <article class="fc-card" data-cat="design" data-title="UI/UX Design Systems Masterclass">
+                <div class="fc-thumb t-sky">
+                    <span class="fc-flag hot"><i class="bi bi-fire"></i> Hot</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-vector-pen"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Design · Intermediate</div>
+                    <a href="#" class="fc-title">UI/UX Design Systems Masterclass</a>
+                    <p class="fc-desc">Build tokens, component APIs and documentation that scale across an entire product org.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">FB</span>
+                        <span><strong>Fatima Bello</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.8</strong>
+                        <span class="sep">·</span>
+                        <span>942 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 16 modules</span>
+                        <span><i class="bi bi-clock"></i> 14h 20m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">220 credits</span>
+                        <span class="was">300 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 3 ---- -->
+            <article class="fc-card" data-cat="backend" data-title="Backend Engineering with Django">
+                <div class="fc-thumb t-violet">
+                    <span class="fc-flag new"><i class="bi bi-stars"></i> New</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-server"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Backend · Intermediate</div>
+                    <a href="#" class="fc-title">Backend Engineering with Django</a>
+                    <p class="fc-desc">Models, views, auth, APIs and deployment — the full path from first endpoint to production.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">CN</span>
+                        <span><strong>Chidi Nwosu</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.7</strong>
+                        <span class="sep">·</span>
+                        <span>768 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 14 modules</span>
+                        <span><i class="bi bi-clock"></i> 18h 40m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">200 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 4 ---- -->
+            <article class="fc-card" data-cat="data" data-title="Data Storytelling with Python">
+                <div class="fc-thumb t-amber">
+                    <span class="fc-flag top"><i class="bi bi-award-fill"></i> Bestseller</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Data · Intermediate</div>
+                    <a href="#" class="fc-title">Data Storytelling with Python</a>
+                    <p class="fc-desc">Turn messy datasets into clear, persuasive narratives with pandas, matplotlib and honest charts.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">MR</span>
+                        <span><strong>Maya Rahman</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.9</strong>
+                        <span class="sep">·</span>
+                        <span>1,540 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 10 modules</span>
+                        <span><i class="bi bi-clock"></i> 9h 10m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">160 credits</span>
+                        <span class="was">220 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 5 ---- -->
+            <article class="fc-card" data-cat="frontend" data-title="TypeScript for React Developers">
+                <div class="fc-thumb t-sky">
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-braces"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Frontend · Intermediate</div>
+                    <a href="#" class="fc-title">TypeScript for React Developers</a>
+                    <p class="fc-desc">Generics, discriminated unions and typed component APIs that catch bugs before your users do.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">CN</span>
+                        <span><strong>Chidi Nwosu</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.8</strong>
+                        <span class="sep">·</span>
+                        <span>624 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 11 modules</span>
+                        <span><i class="bi bi-clock"></i> 8h 40m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">150 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 6 ---- -->
+            <article class="fc-card" data-cat="soft" data-title="Public Speaking Lab">
+                <div class="fc-thumb t-rose">
+                    <span class="fc-flag hot"><i class="bi bi-fire"></i> Hot</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-mic"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Communication · All levels</div>
+                    <a href="#" class="fc-title">Public Speaking Lab</a>
+                    <p class="fc-desc">Structure, delivery and nerves — practise weekly with feedback from peers and a coach.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">TK</span>
+                        <span><strong>Tunde Kalu</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.8</strong>
+                        <span class="sep">·</span>
+                        <span>1,102 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 8 modules</span>
+                        <span><i class="bi bi-clock"></i> 6h 15m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now free">Free</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 7 ---- -->
+            <article class="fc-card" data-cat="mobile" data-title="React Native in Practice">
+                <div class="fc-thumb t-green">
+                    <span class="fc-flag new"><i class="bi bi-stars"></i> New</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-phone"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Mobile · Intermediate</div>
+                    <a href="#" class="fc-title">React Native in Practice</a>
+                    <p class="fc-desc">Ship a real cross-platform app: navigation, native modules, offline storage and the app stores.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">JT</span>
+                        <span><strong>Jonas Tan</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★</span>
+                        <strong>4.6</strong>
+                        <span class="sep">·</span>
+                        <span>386 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 13 modules</span>
+                        <span><i class="bi bi-clock"></i> 12h 30m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">210 credits</span>
+                        <span class="was">280 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 8 ---- -->
+            <article class="fc-card" data-cat="data" data-title="Product Analytics Bootcamp">
+                <div class="fc-thumb t-violet">
+                    <span class="fc-flag top"><i class="bi bi-award-fill"></i> Bestseller</span>
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Data · Advanced</div>
+                    <a href="#" class="fc-title">Product Analytics Bootcamp</a>
+                    <p class="fc-desc">Funnels, cohorts, experimentation and the metrics that actually move product decisions.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">AN</span>
+                        <span><strong>Amara Nwosu</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★★</span>
+                        <strong>4.9</strong>
+                        <span class="sep">·</span>
+                        <span>840 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 18 modules</span>
+                        <span><i class="bi bi-clock"></i> 21h 00m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">260 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+            <!-- ---- Course 9 ---- -->
+            <article class="fc-card" data-cat="design" data-title="Motion Design Basics">
+                <div class="fc-thumb t-amber">
+                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
+                        <i class="bi bi-bookmark"></i>
+                    </button>
+                    <div class="fc-preview" data-toast="Playing course preview…">
+                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+                    </div>
+                    <i class="bi bi-magic"></i>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-cat"><span class="dot"></span> Design · Beginner</div>
+                    <a href="#" class="fc-title">Motion Design Basics</a>
+                    <p class="fc-desc">Easing, timing and micro-interactions — the small details that make interfaces feel alive.</p>
+                    <div class="fc-mentor">
+                        <span class="avatar xs">FB</span>
+                        <span><strong>Fatima Bello</strong></span>
+                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
+                    </div>
+                    <div class="fc-rating">
+                        <span class="stars">★★★★</span>
+                        <strong>4.7</strong>
+                        <span class="sep">·</span>
+                        <span>512 learners</span>
+                    </div>
+                    <div class="fc-meta">
+                        <span><i class="bi bi-collection"></i> 9 modules</span>
+                        <span><i class="bi bi-clock"></i> 5h 30m</span>
+                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
+                    </div>
+                </div>
+                <div class="fc-foot">
+                    <div class="fc-price">
+                        <span class="now">120 credits</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
+                        Enrol
+                    </button>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- Empty state (shown by JS when filters exclude everything) -->
+        <div class="fc-empty" id="fcEmpty" style="display:none;">
+            <div class="ic"><i class="bi bi-search"></i></div>
+            <h4>No courses match those filters</h4>
+            <p>Try widening your price range or removing a category. New courses are added every week.</p>
+            <button class="btn btn-line btn-sm" data-toast="All filters cleared">Clear all filters</button>
+        </div>
+
+        <!-- Pagination -->
+        <nav class="fc-pagination" aria-label="Course pagination">
+            <button class="fc-page" disabled aria-label="Previous page">
+                <i class="bi bi-chevron-left"></i> Prev
+            </button>
+            <button class="fc-page active">1</button>
+            <button class="fc-page" data-toast="Loading page 2…">2</button>
+            <button class="fc-page" data-toast="Loading page 3…">3</button>
+            <button class="fc-page" data-toast="Loading page 4…">4</button>
+            <span class="fc-page" style="border:none;background:none;"><span class="dots">···</span></span>
+            <button class="fc-page" data-toast="Loading page 138…">138</button>
+            <button class="fc-page" data-toast="Loading next page…" aria-label="Next page">
+                Next <i class="bi bi-chevron-right"></i>
+            </button>
+        </nav>
+
+    </div>
+</section>
+
+
+<!-- ====================================================
+     CURATED COLLECTIONS
+     ==================================================== -->
+<section class="card fade-up">
+    <div class="card-head">
+        <h3><i class="bi bi-collection-fill"></i> Curated collections</h3>
+        <a href="#" class="link">See all collections <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="fc-collections">
+        <div class="fc-coll" data-toast="Opening the Frontend track collection…">
+            <div>
+                <div class="cnum">42 courses · Track</div>
+                <h4>Become a Frontend Engineer</h4>
+            </div>
+            <span class="go">Explore track <i class="bi bi-arrow-right"></i></span>
+        </div>
+
+        <div class="fc-coll c-sky" data-toast="Opening the Design collection…">
+            <div>
+                <div class="cnum">28 courses · Collection</div>
+                <h4>Design Systems &amp; Product Craft</h4>
+            </div>
+            <span class="go">Explore collection <i class="bi bi-arrow-right"></i></span>
+        </div>
+
+        <div class="fc-coll c-violet" data-toast="Opening the Career collection…">
+            <div>
+                <div class="cnum">19 courses · Collection</div>
+                <h4>Career Growth &amp; Communication</h4>
+            </div>
+            <span class="go">Explore collection <i class="bi bi-arrow-right"></i></span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     ASSURANCE BAND
+     ==================================================== -->
+<div class="fc-assurance fade-up">
+    <i class="bi bi-shield-check"></i>
+    <span>
+        <strong>Buy with confidence.</strong> Every paid course comes with a 7-day full refund, lifetime access,
+        and a verified certificate on completion. Skill-exchange enrolments are always free — teach to learn.
+    </span>
+</div>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           GRID / LIST VIEW TOGGLE
+           ====================================================== */
+        var grid = document.getElementById('fcGrid');
+        var viewGrid = document.getElementById('viewGrid');
+        var viewList = document.getElementById('viewList');
+
+        function setView(mode) {
+            if (!grid) return;
+            var isList = mode === 'list';
+            grid.classList.toggle('list-view', isList);
+            if (viewGrid) {
+                viewGrid.classList.toggle('active', !isList);
+                viewGrid.setAttribute('aria-pressed', String(!isList));
+            }
+            if (viewList) {
+                viewList.classList.toggle('active', isList);
+                viewList.setAttribute('aria-pressed', String(isList));
+            }
+        }
+
+        if (viewGrid) viewGrid.addEventListener('click', function () { setView('grid'); });
+        if (viewList) viewList.addEventListener('click', function () { setView('list'); });
+
+        /* ======================================================
+           SAVE / BOOKMARK TOGGLE
+           ====================================================== */
+        document.querySelectorAll('.fc-book').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var on = this.classList.toggle('on');
+                this.setAttribute('aria-pressed', String(on));
+                var icon = this.querySelector('i');
+                if (icon) {
+                    icon.className = on ? 'bi bi-bookmark-fill' : 'bi bi-bookmark';
+                }
+                if (window.__toast) {
+                    window.__toast(on ? 'Course saved to your list' : 'Removed from saved', on ? 'success' : '');
+                }
+            });
+        });
+
+        /* ======================================================
+           PRICE RANGE
+           ====================================================== */
+        var priceRange = document.getElementById('priceRange');
+        var priceVal = document.getElementById('priceVal');
+        var priceOut = document.getElementById('priceOut');
+        var rangeTrack = null;
+
+        if (priceRange) {
+            rangeTrack = function () {
+                var pct = (priceRange.value - priceRange.min) / (priceRange.max - priceRange.min) * 100;
+                priceRange.style.background =
+                    'linear-gradient(90deg, var(--secondary) 0%, var(--secondary) ' + pct +
+                    '%, var(--gray-200) ' + pct + '%, var(--gray-200) 100%)';
+            };
+
+            priceRange.addEventListener('input', function () {
+                if (priceVal) priceVal.textContent = this.value + ' credits';
+                if (priceOut) priceOut.textContent = '≤ ' + this.value + ' credits';
+                rangeTrack();
+            });
+
+            rangeTrack();
+        }
+
+        /* ======================================================
+           LIVE SEARCH (client-side demo filter)
+           ====================================================== */
+        var searchInput = document.getElementById('fcSearch');
+        var emptyState = document.getElementById('fcEmpty');
+
+        function runFilter() {
+            if (!grid) return;
+            var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            var cards = grid.querySelectorAll('.fc-card');
+            var visible = 0;
+
+            Array.prototype.forEach.call(cards, function (card) {
+                var text = (card.dataset.title || card.textContent).toLowerCase();
+                var show = !q || text.indexOf(q) !== -1;
+                card.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if (emptyState) emptyState.style.display = visible ? 'none' : 'block';
+            if (grid) grid.style.display = visible ? '' : 'none';
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', runFilter);
+        }
+
+        /* Trending tag → fill search box */
+        document.querySelectorAll('.fc-trend').forEach(function (tag) {
+            tag.addEventListener('click', function () {
+                var text = this.textContent.trim();
+                if (searchInput) {
+                    searchInput.value = text;
+                    runFilter();
+                }
+            });
+        });
+
+        /* ======================================================
+           MOBILE FILTER TOGGLE
+           ====================================================== */
+        var filterToggle = document.getElementById('fcFilterToggle');
+        var filterRail = document.getElementById('fcFilters');
+
+        function syncFilterBtn() {
+            if (!filterToggle) return;
+            filterToggle.style.display = window.innerWidth <= 980 ? 'inline-flex' : 'none';
+        }
+
+        if (filterToggle && filterRail) {
+            filterToggle.addEventListener('click', function () {
+                var open = filterRail.classList.toggle('open');
+                this.innerHTML = open
+                    ? '<i class="bi bi-x-lg"></i> Close'
+                    : '<i class="bi bi-sliders"></i> Filters';
+            });
+        }
+
+        window.addEventListener('resize', syncFilterBtn);
+        syncFilterBtn();
+
+        /* ======================================================
+           RESET BUTTONS (visual feedback)
+           ====================================================== */
+        document.querySelectorAll('.fc-panel-head .reset').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var panel = this.closest('.fc-panel');
+                if (!panel) return;
+                panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+                    cb.checked = false;
+                });
+            });
+        });
+
+    })();
+</script>
+
+{% endblock content %}

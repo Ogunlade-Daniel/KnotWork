@@ -1,0 +1,2859 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}The Faculty Atelier{% endblock %}
+{% block page_title %}The Atelier{% endblock %}
+{% block breadcrumb %}Atelier{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   THE FACULTY ATELIER
+   A unified, signature teacher dashboard.
+   ============================================================ */
+
+.atelier{
+    /* palette — inherits from base, with safe fallbacks */
+    --gold:        var(--secondary, #BEF264);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.30);
+
+    --ink:         var(--primary-dark, #0B1121);
+    --ink-2:       var(--primary, #1E293B);
+    --ink-3:       var(--primary-light, #334155);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #FAFAF7);
+    --line:        var(--gray-200, #E5E7EB);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #4B5563);
+    --faint:       var(--gray-300, #D1D5DB);
+
+    --leaf:        var(--secondary, #BEF264);
+    --leaf-deep:   var(--secondary-deep, #65A30D);
+    --sky:         var(--accent, #38BDF8);
+    --violet:      var(--accent, #38BDF8);
+
+    --r:           var(--radius, 14px);
+    --r-xl:        var(--radius-xl, 22px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    position: relative;
+}
+
+/* ---------- shared fade-up entry ---------- */
+.atelier .rise{
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise .7s var(--ease) forwards;
+}
+.atelier .rise:nth-child(1){ animation-delay: .02s; }
+.atelier .rise:nth-child(2){ animation-delay: .08s; }
+.atelier .rise:nth-child(3){ animation-delay: .14s; }
+.atelier .rise:nth-child(4){ animation-delay: .20s; }
+.atelier .rise:nth-child(5){ animation-delay: .26s; }
+.atelier .rise:nth-child(6){ animation-delay: .32s; }
+@keyframes rise{
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   1 · COMMAND STRIP
+   ============================================================ */
+.cmd-strip{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 4px 4px 20px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.cmd-strip::after{
+    content: '';
+    position: absolute;
+    left: 4px; right: 4px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 18%,
+        transparent 42%,
+        transparent 100%);
+    border-radius: 2px;
+}
+.cmd-left .cmd-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+}
+.cmd-left .cmd-kicker i{ color: var(--gold); }
+.cmd-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+.cmd-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.cmd-left .cmd-sub{
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.cmd-left .cmd-sub .dot{
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.cmd-left .cmd-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.cmd-right{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.cmd-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+}
+.cmd-chip i{ color: var(--gold); font-size: 0.85rem; }
+.cmd-chip strong{ color: var(--gold-deep); }
+
+/* ============================================================
+   2 · CREST CHAMBER (hero)
+   ============================================================ */
+.chamber{
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 36px;
+    padding: 44px 46px;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(ellipse at 88% 12%, rgba(190, 242, 100, 0.16), transparent 55%),
+        radial-gradient(ellipse at 15% 100%, rgba(190, 242, 100, 0.10), transparent 55%),
+        radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.12), transparent 70%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+}
+@media (max-width: 1180px){
+    .chamber{ grid-template-columns: 1fr; gap: 26px; padding: 32px 28px; }
+}
+
+.chamber::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 25%,
+        var(--leaf) 55%,
+        var(--sky) 80%,
+        var(--violet) 100%);
+}
+.chamber::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 26px 26px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+}
+
+/* aurora blobs */
+.chamber .aurora{
+    position: absolute;
+    inset: -40%;
+    background:
+        radial-gradient(circle at 30% 40%, rgba(190, 242, 100, 0.14), transparent 30%),
+        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.16), transparent 32%);
+    animation: auroraDrift 18s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(20px);
+}
+@keyframes auroraDrift{
+    0%, 100%{ transform: translate(0, 0) scale(1); }
+    50%     { transform: translate(-4%, 3%) scale(1.08); }
+}
+
+.chamber-text{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+}
+.chamber-eyebrow{
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 15px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.14);
+    border: 1px solid rgba(190, 242, 100, 0.42);
+    color: var(--gold-light);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    align-self: flex-start;
+    margin-bottom: 22px;
+}
+.chamber-eyebrow i{ color: var(--gold-light); }
+
+.chamber h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.9rem, 3.6vw, 2.85rem);
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -0.022em;
+    color: #fff;
+    margin-bottom: 16px;
+    max-width: 620px;
+}
+.chamber h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-light), var(--leaf));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.chamber-text > p{
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.96rem;
+    line-height: 1.78;
+    max-width: 540px;
+    margin-bottom: 28px;
+}
+.chamber-text > p strong{ color: #fff; font-weight: 600; }
+.chamber-text > p em{
+    color: var(--gold-light);
+    font-style: normal;
+    font-weight: 700;
+}
+
+.chamber-actions{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+/* pinned micro-stats */
+.chamber-pins{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 26px;
+    max-width: 540px;
+}
+.pin-chip{
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: var(--transition, all .25s ease);
+}
+.pin-chip:hover{
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-3px);
+    border-color: rgba(190, 242, 100, 0.35);
+}
+.pin-chip .k{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 6px;
+}
+.pin-chip .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.pin-chip .v em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+}
+.pin-chip .v.gold{ color: var(--gold-light); }
+.pin-chip .v.leaf{ color: var(--leaf); }
+
+/* ---------- the crest seal ---------- */
+.crest-wrap{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+}
+.crest{
+    position: relative;
+    width: 260px;
+    height: 260px;
+    display: grid;
+    place-items: center;
+}
+.crest::before{
+    content: '';
+    position: absolute;
+    inset: -28px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(190, 242, 100, 0.24), transparent 62%);
+    animation: crestGlow 4s ease-in-out infinite;
+}
+@keyframes crestGlow{
+    0%, 100%{ transform: scale(1); opacity: 0.75; }
+    50%     { transform: scale(1.09); opacity: 1; }
+}
+.crest::after{
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+        transparent 0deg,
+        rgba(190, 242, 100, 0.18) 30deg,
+        transparent 60deg,
+        transparent 360deg);
+    animation: crestSweep 5s linear infinite;
+    pointer-events: none;
+    mask-image: radial-gradient(circle, transparent 40%, #000 45%, transparent 70%);
+    -webkit-mask-image: radial-gradient(circle, transparent 40%, #000 45%, transparent 70%);
+}
+@keyframes crestSweep{
+    to { transform: rotate(360deg); }
+}
+
+.crest svg{
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 22px 44px rgba(190, 242, 100, 0.28));
+    animation: crestFloat 6s ease-in-out infinite;
+}
+@keyframes crestFloat{
+    0%, 100%{ transform: translateY(0) rotate(0deg); }
+    50%     { transform: translateY(-9px) rotate(0.8deg); }
+}
+
+.crest .ring-a{ transform-origin: 130px 130px; animation: spinCW 26s linear infinite; }
+.crest .ring-b{ transform-origin: 130px 130px; animation: spinCCW 40s linear infinite; }
+.crest .ring-c{ transform-origin: 130px 130px; animation: spinCW 60s linear infinite; }
+@keyframes spinCW  { to { transform: rotate(360deg); } }
+@keyframes spinCCW { to { transform: rotate(-360deg); } }
+
+/* orbiting dots */
+.crest .orbit{
+    position: absolute;
+    top: 50%; left: 50%;
+    border-radius: 50%;
+    border: 1px dashed rgba(190, 242, 100, 0.22);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.crest .orbit.o1{ width: 78%; height: 78%; animation: spinCW 18s linear infinite; }
+.crest .orbit.o2{ width: 96%; height: 96%; animation: spinCCW 32s linear infinite; }
+.crest .orbit span{
+    position: absolute;
+    top: -4px; left: 50%;
+    width: 8px; height: 8px;
+    margin-left: -4px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.18), 0 0 14px rgba(190, 242, 100, 0.55);
+}
+.crest .orbit.o2 span{
+    background: var(--leaf);
+    box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.18), 0 0 14px rgba(190, 242, 100, 0.7);
+    width: 6px; height: 6px; margin-left: -3px;
+}
+
+.crest-overlay{
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    padding-bottom: 4px;
+}
+.crest-overlay .rank-kicker{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+}
+.crest-overlay .rank-num{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.9rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: #fff;
+    text-shadow: 0 4px 24px rgba(190, 242, 100, 0.42);
+}
+.crest-overlay .rank-tier{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--leaf);
+    margin-top: 7px;
+}
+.crest-overlay .rank-glyph{
+    display: grid;
+    place-items: center;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    margin: 9px auto 0;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    font-size: 1rem;
+    box-shadow: 0 6px 18px rgba(190, 242, 100, 0.42);
+    animation: crestPulse 2.6s ease-in-out infinite;
+}
+@keyframes crestPulse{
+    0%, 100%{ transform: scale(1); }
+    50%     { transform: scale(1.09); }
+}
+
+.crest-caption{
+    text-align: center;
+    font-size: 0.7rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.55);
+    max-width: 240px;
+}
+.crest-caption strong{ color: var(--gold-light); font-weight: 700; }
+
+/* ============================================================
+   3 · CONSTELLATION (KPI ribbon with sparklines)
+   ============================================================ */
+.constellation{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+@media (max-width: 1180px){ .constellation{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .constellation{ grid-template-columns: 1fr; } }
+
+.kpi{
+    position: relative;
+    padding: 22px 20px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.kpi::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 3px 3px 0 0;
+}
+.kpi.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+.kpi.violet::before{ background: linear-gradient(90deg, var(--violet), #6D28D9); }
+.kpi.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+
+.kpi:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    border-color: rgba(190, 242, 100, 0.24);
+}
+
+.kpi-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.kpi-icon{
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.kpi.sky .kpi-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+.kpi.violet .kpi-icon{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+.kpi.leaf .kpi-icon  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+
+.kpi-spark{
+    width: 78px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.kpi-num{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.028em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.kpi-num em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+.kpi-label{
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+.kpi-trend{
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.22);
+    color: var(--leaf-deep);
+    letter-spacing: 0.02em;
+    align-self: flex-start;
+}
+.kpi.sky .kpi-trend   { background: rgba(56, 189, 248, 0.16); color: #0284C7; }
+.kpi.violet .kpi-trend{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+.kpi.leaf .kpi-trend  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+.kpi-trend i{ font-size: 0.6rem; }
+
+/* ============================================================
+   4 · BENTO GRID
+   ============================================================ */
+.bento{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+.bento > *{ min-width: 0; }
+
+.s-1{ grid-column: span 1; }
+.s-2{ grid-column: span 2; }
+.s-3{ grid-column: span 3; }
+.s-4{ grid-column: span 4; }
+
+@media (max-width: 1080px){
+    .bento{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-1, .s-2, .s-3, .s-4{ grid-column: span 2; }
+}
+@media (max-width: 620px){
+    .bento{ grid-template-columns: 1fr; }
+    .s-1, .s-2, .s-3, .s-4{ grid-column: span 1; }
+}
+
+/* ---------- panel base ---------- */
+.panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+    overflow: hidden;
+    transition: var(--transition, all .25s ease);
+    position: relative;
+}
+.panel:hover{ box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08)); }
+
+.panel-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.panel-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.panel-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 0.78rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.panel-head.sky h3 i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+.panel-head.violet h3 i{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+.panel-head.leaf h3 i  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+
+.panel-link{
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+.panel-body{ padding: 18px 22px 22px; }
+
+/* ============================================================
+   4a · LIVE DECK
+   ============================================================ */
+.live-deck{
+    position: relative;
+    padding: 28px 30px;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(ellipse at 92% 20%, rgba(190, 242, 100, 0.24), transparent 55%),
+        radial-gradient(ellipse at 10% 100%, rgba(56, 189, 248, 0.18), transparent 55%),
+        linear-gradient(135deg, #7C3AED 0%, var(--violet, #8B5CF6) 60%, #A78BFA 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 22px 52px rgba(124, 58, 237, 0.30);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+.live-deck::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 80% 40%, #000 10%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 80% 40%, #000 10%, transparent 70%);
+}
+
+.live-head{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.live-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 15px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.22);
+    border: 1px solid rgba(190, 242, 100, 0.45);
+    color: var(--leaf);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.live-badge .blip{
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--leaf);
+    animation: blip 1.6s ease-in-out infinite;
+}
+@keyframes blip{
+    0%, 100%{ box-shadow: 0 0 0 0 rgba(190, 242, 100, 0.9); }
+    50%     { box-shadow: 0 0 0 7px rgba(190, 242, 100, 0); }
+}
+
+.live-countdown{
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 5px 13px;
+    border-radius: 50px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+.live-countdown span{
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.live-body{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.live-body .live-info{ flex: 1; min-width: 220px; }
+.live-body h2{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.live-body p{
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.6;
+}
+.live-body p strong{ color: #fff; font-weight: 700; }
+.live-body p .sep{
+    display: inline-block;
+    width: 3px; height: 3px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    vertical-align: middle;
+    margin: 0 8px;
+}
+
+.live-join{
+    padding: 14px 26px;
+    border-radius: 50px;
+    border: none;
+    background: #fff;
+    color: #7C3AED;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+    flex-shrink: 0;
+}
+.live-join:hover{
+    transform: translateY(-3px);
+    background: var(--leaf);
+    color: var(--ink);
+    box-shadow: 0 20px 44px rgba(190, 242, 100, 0.45);
+}
+
+.live-next{
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+@media (max-width: 520px){ .live-next{ grid-template-columns: 1fr; } }
+
+.live-next .nx{
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: var(--transition, all .25s ease);
+}
+.live-next .nx:hover{ background: rgba(255, 255, 255, 0.11); }
+.live-next .nx .t{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+.live-next .nx .n{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.live-next .nx .d{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+/* ============================================================
+   4b · PULSE (timeline)
+   ============================================================ */
+.pulse{ position: relative; }
+.pulse-item{
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    position: relative;
+}
+.pulse-item:first-child{ padding-top: 0; }
+.pulse-item:last-child{ padding-bottom: 0; }
+.pulse-item::before{
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 34px;
+    bottom: -4px;
+    width: 1.5px;
+    background: var(--line-soft);
+}
+.pulse-item:last-child::before{ display: none; }
+
+.pulse-marker{
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 0.7rem;
+    background: var(--paper);
+    border: 2px solid var(--leaf);
+    color: var(--leaf-deep);
+    z-index: 2;
+    position: relative;
+}
+.pulse-marker.sky   { border-color: var(--sky); color: #0284C7; }
+.pulse-marker.amber { border-color: var(--gold); color: var(--gold-deep); }
+.pulse-marker.violet{ border-color: var(--violet); color: #6D28D9; }
+.pulse-marker.green { border-color: #22C55E; color: #15803D; }
+
+.pulse-body{ flex: 1; min-width: 0; padding-top: 2px; }
+.pulse-body h5{
+    font-size: 0.79rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    line-height: 1.45;
+}
+.pulse-body h5 strong{ color: var(--ink); font-weight: 700; }
+.pulse-body h5 .name{ color: var(--gold-deep); font-weight: 700; }
+.pulse-body .time{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.pulse-body .time i{ font-size: 0.62rem; }
+
+/* ============================================================
+   4c · LEDGER
+   ============================================================ */
+.ledger-slip{
+    position: relative;
+    padding: 22px 22px 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+.ledger-slip::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+.ledger-slip::after{
+    content: '❖';
+    position: absolute;
+    bottom: -70px; right: -8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 12rem;
+    line-height: 1;
+    color: rgba(190, 242, 100, 0.07);
+    pointer-events: none;
+}
+.ledger-slip .kick{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+}
+.ledger-slip .amount{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #fff;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    position: relative;
+    z-index: 2;
+    font-variant-numeric: tabular-nums;
+}
+.ledger-slip .amount em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+}
+.ledger-slip .foot{
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 10px;
+    position: relative;
+    z-index: 2;
+}
+.ledger-slip .foot strong{ color: var(--gold-light); font-weight: 700; }
+
+.ledger-row{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 0.78rem;
+    border-bottom: 1px dotted var(--line);
+}
+.ledger-row:last-of-type{ border-bottom: none; }
+.ledger-row .k{
+    color: var(--muted);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+.ledger-row .k i{ color: var(--faint); font-size: 0.8rem; }
+.ledger-row .leader{
+    flex: 1;
+    height: 1px;
+    border-bottom: 1px dotted var(--line);
+    margin: 0 6px 3px;
+}
+.ledger-row .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+.ledger-row .v.gold{ color: var(--gold-deep); }
+.ledger-row .v.leaf{ color: var(--leaf-deep); }
+
+.ledger-btn{
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 18px;
+    border-radius: 50px;
+    border: none;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 24px rgba(190, 242, 100, 0.30);
+}
+.ledger-btn:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.40);
+    background: var(--gold-light);
+}
+
+/* ============================================================
+   4d · WEEK (timetable)
+   ============================================================ */
+.timetable{
+    display: grid;
+    grid-template-columns: 56px repeat(5, 1fr);
+    gap: 6px;
+    font-size: 0.72rem;
+}
+.tt-head{
+    padding: 10px 6px;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-size: 0.56rem;
+}
+.tt-head.today{
+    color: var(--gold-deep);
+    position: relative;
+}
+.tt-head.today::after{
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 50%;
+    transform: translateX(-50%);
+    width: 16px; height: 2px;
+    border-radius: 2px;
+    background: var(--gold);
+}
+.tt-time{
+    padding: 14px 12px 14px 0;
+    text-align: right;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--muted);
+    border-right: 1px solid var(--line-soft);
+    font-variant-numeric: tabular-nums;
+}
+.tt-cell{
+    min-height: 64px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    position: relative;
+    overflow: hidden;
+}
+.tt-cell:hover{
+    border-color: var(--gold-line);
+    background: var(--paper);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+}
+.tt-cell.empty{
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--line);
+    cursor: default;
+}
+.tt-cell.empty:hover{ transform: none; box-shadow: none; background: rgba(245,158,11,0.03); }
+
+.tt-cell .tt-title{
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.tt-cell .tt-with{
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+.tt-cell.live{
+    background: linear-gradient(135deg, var(--ink), var(--ink-3));
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.24);
+}
+.tt-cell.live::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: var(--gold);
+}
+.tt-cell.live .tt-title{ color: #fff; }
+.tt-cell.live .tt-with{ color: rgba(255,255,255,0.55); }
+
+.tt-cell.blue{
+    background: rgba(56, 189, 248, 0.08);
+    border-color: rgba(56, 189, 248, 0.24);
+}
+.tt-cell.blue .tt-title{ color: #075985; }
+.tt-cell.blue .tt-with{ color: #0369A1; }
+
+.tt-cell.gold{
+    background: var(--gold-soft);
+    border-color: var(--gold-line);
+}
+.tt-cell.gold .tt-title{ color: #78350F; }
+.tt-cell.gold .tt-with{ color: var(--gold-deep); }
+
+.tt-cell.leaf{
+    background: rgba(190, 242, 100, 0.18);
+    border-color: rgba(190, 242, 100, 0.42);
+}
+.tt-cell.leaf .tt-title{ color: #365314; }
+.tt-cell.leaf .tt-with{ color: var(--leaf-deep); }
+
+@media (max-width: 780px){
+    .timetable{ grid-template-columns: 1fr; }
+    .tt-head, .tt-time{ display: none; }
+    .tt-cell{ min-height: auto; padding: 12px 14px; }
+    .tt-cell::before{
+        content: attr(data-day) ' · ';
+        font-weight: 800;
+        font-size: 0.6rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        margin-right: 8px;
+    }
+    .tt-cell.live::before{ content: attr(data-day) ' · '; color: var(--gold-light); }
+}
+
+/* ============================================================
+   4e · GRADEBOOK
+   ============================================================ */
+.grade-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px dotted var(--line);
+}
+.grade-row:first-child{ padding-top: 0; }
+.grade-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+.grade-body{ flex: 1; min-width: 0; }
+.grade-body .top{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 7px;
+}
+.grade-body .top h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.grade-body .top strong{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.bar{
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    overflow: hidden;
+    position: relative;
+}
+.bar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transition: width 1.1s var(--ease);
+}
+.bar.leaf > span{ background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+.bar.sky > span { background: linear-gradient(90deg, var(--sky), #0284C7); }
+.bar.violet > span{ background: linear-gradient(90deg, var(--violet), #6D28D9); }
+
+.grade-body .meta{
+    font-size: 0.66rem;
+    color: var(--muted);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 500;
+}
+.grade-body .meta i{ color: var(--gold); font-size: 0.72rem; }
+.grade-body .meta i.ok  { color: var(--leaf-deep); }
+.grade-body .meta i.warn{ color: var(--gold-deep); }
+.grade-body .meta i.bad { color: #DC2626; }
+
+/* ============================================================
+   4f · CERTIFICATE
+   ============================================================ */
+.cert{
+    position: relative;
+    padding: 30px 30px 26px;
+    border-radius: var(--r-xl);
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.cert::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+}
+.cert::after{
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid var(--gold-line);
+    border-radius: calc(var(--r-xl) - 10px);
+    pointer-events: none;
+}
+
+.cert-seal{
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--ink);
+    box-shadow: 0 12px 28px rgba(190, 242, 100, 0.36);
+    position: relative;
+    z-index: 2;
+}
+.cert-seal::before{
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(11, 17, 33, 0.18);
+}
+
+.cert-pill{
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.14);
+    border: 1px solid rgba(190, 242, 100, 0.42);
+    color: var(--gold-light);
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    align-self: flex-start;
+}
+
+.cert h3{
+    position: relative;
+    z-index: 2;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: -0.012em;
+    color: #fff;
+    margin-bottom: 2px;
+}
+.cert h3 em{
+    color: var(--gold-light);
+    font-style: italic;
+}
+.cert p{
+    position: relative;
+    z-index: 2;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.68);
+    line-height: 1.7;
+    max-width: 460px;
+}
+.cert p strong{ color: #fff; font-weight: 700; }
+
+.cert-metrics{
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: auto;
+}
+.cert-metrics > div{
+    padding: 14px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    text-align: center;
+    transition: var(--transition, all .25s ease);
+}
+.cert-metrics > div:hover{
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--gold-line);
+}
+.cert-metrics strong{
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+.cert-metrics strong em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: 2px;
+}
+.cert-metrics span{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+    margin-top: 6px;
+    display: block;
+}
+
+.cert-actions{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   4g · HONOUR ROLL
+   ============================================================ */
+.roll-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dotted var(--line);
+}
+.roll-item:first-child{ padding-top: 0; }
+.roll-item:last-child{ border-bottom: none; padding-bottom: 0; }
+
+.roll-num{
+    width: 26px;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+    text-align: center;
+    flex-shrink: 0;
+}
+.roll-item:nth-child(1) .roll-num{ color: var(--gold); }
+.roll-item:nth-child(2) .roll-num{ color: var(--muted); }
+.roll-item:nth-child(3) .roll-num{ color: var(--gold-deep); }
+
+.roll-avatar{
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--leaf), var(--sky));
+    position: relative;
+}
+.roll-avatar.v2{ background: linear-gradient(135deg, var(--sky), var(--leaf)); }
+.roll-avatar.v3{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; }
+.roll-avatar.v4{ background: linear-gradient(135deg, var(--gold-light), var(--gold)); }
+.roll-avatar.gold{
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    box-shadow: 0 6px 16px rgba(190, 242, 100, 0.30);
+}
+.roll-avatar .crown{
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--paper);
+    color: var(--gold);
+    font-size: 0.6rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.16);
+}
+
+.roll-body{ flex: 1; min-width: 0; }
+.roll-body h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.roll-body p{
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+.roll-score{
+    text-align: right;
+    flex-shrink: 0;
+}
+.roll-score strong{
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.roll-score span{
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+/* ============================================================
+   5 · ATELIER — signature courses
+   ============================================================ */
+.sect-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 4px 4px 0;
+}
+.sect-head h2{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.42rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.sect-head h2::before{
+    content: '';
+    width: 24px;
+    height: 2px;
+    background: var(--gold);
+    display: inline-block;
+}
+.sect-head .meta{
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.sect-head .meta i{ color: var(--gold); }
+
+.courses-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.plate{
+    position: relative;
+    padding: 24px 22px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.plate::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .5s var(--ease);
+}
+.plate:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    border-color: var(--gold-line);
+}
+.plate:hover::before{ transform: scaleX(1); }
+
+.plate.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+.plate.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+.plate.violet::before{ background: linear-gradient(90deg, var(--violet), #6D28D9); }
+
+.plate-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.plate-num{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.plate-num::before{
+    content: '';
+    width: 14px;
+    height: 1.5px;
+    background: currentColor;
+    display: inline-block;
+}
+.plate.leaf .plate-num  { color: var(--leaf-deep); }
+.plate.sky .plate-num   { color: #0284C7; }
+.plate.violet .plate-num{ color: #6D28D9; }
+
+.plate-tier{
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+}
+.plate-tier.live{
+    background: rgba(190, 242, 100, 0.22);
+    color: var(--leaf-deep);
+}
+.plate-tier.draft{
+    background: rgba(139, 92, 246, 0.12);
+    color: #6D28D9;
+}
+
+.plate h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.24;
+    letter-spacing: -0.005em;
+}
+.plate p{
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.58;
+    min-height: 36px;
+    flex: 1;
+}
+
+.plate-stats{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+}
+.plate-stats > div{ text-align: left; }
+.plate-stats .k{
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 4px;
+}
+.plate-stats .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.plate-stats .v.gold{ color: var(--gold-deep); }
+.plate.leaf .plate-stats .v.gold  { color: var(--leaf-deep); }
+.plate.sky .plate-stats .v.gold   { color: #0284C7; }
+.plate.violet .plate-stats .v.gold{ color: #6D28D9; }
+
+.plate-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+}
+.plate-foot i{ color: var(--gold); font-size: 0.72rem; }
+
+.plate-add{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    padding: 30px 22px;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--r);
+    background: transparent;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    font-family: inherit;
+    text-align: center;
+    min-height: 220px;
+}
+.plate-add:hover{
+    border-color: var(--gold);
+    background: var(--gold-soft);
+    transform: translateY(-4px);
+}
+.plate-add .icon{
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    font-size: 1.15rem;
+    transition: var(--transition, all .25s ease);
+}
+.plate-add:hover .icon{
+    background: var(--gold);
+    color: var(--ink);
+}
+.plate-add strong{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: block;
+}
+.plate-add span{
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 180px;
+}
+
+/* ============================================================
+   6 · HONOURS WALL
+   ============================================================ */
+.honours-wall{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-top: 18px;
+}
+@media (max-width: 1180px){ .honours-wall{ grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 640px) { .honours-wall{ grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 420px) { .honours-wall{ grid-template-columns: repeat(2, 1fr); } }
+
+.medal{
+    text-align: center;
+    padding: 20px 12px 18px;
+    border-radius: var(--r);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    transition: var(--transition, all .25s ease);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+.medal::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    opacity: 0;
+    transition: var(--transition, all .25s ease);
+}
+.medal:hover{
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    border-color: var(--gold-line);
+}
+.medal:hover::before{ opacity: 1; }
+
+.medal-disc{
+    width: 56px; height: 56px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    box-shadow: 0 10px 24px rgba(190, 242, 100, 0.30);
+    position: relative;
+}
+.medal-disc::before{
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(11, 17, 33, 0.14);
+}
+.medal.leaf .medal-disc  { background: linear-gradient(135deg, var(--leaf), var(--leaf-deep)); box-shadow: 0 10px 24px rgba(190, 242, 100, 0.4); }
+.medal.sky .medal-disc   { background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; box-shadow: 0 10px 24px rgba(56, 189, 248, 0.36); }
+.medal.violet .medal-disc{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; box-shadow: 0 10px 24px rgba(139, 92, 246, 0.36); }
+
+.medal.locked{ opacity: 0.55; }
+.medal.locked .medal-disc{
+    background: var(--line);
+    color: var(--faint);
+    box-shadow: none;
+}
+.medal.locked .medal-disc::before{ border-color: rgba(203, 213, 225, 0.4); }
+
+.medal h5{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.medal p{
+    font-size: 0.62rem;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+/* ============================================================
+   fallback button styles (safe if base lacks them)
+   ============================================================ */
+.atelier .btn-gold{
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 22px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.30);
+    text-decoration: none;
+}
+.atelier .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.40);
+}
+.atelier .btn-outline{
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 22px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    text-decoration: none;
+}
+.atelier .btn-outline:hover{
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+.atelier .btn-ghost{
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    text-decoration: none;
+}
+.atelier .btn-ghost:hover{
+    border-color: var(--gold);
+    color: var(--gold-deep);
+    transform: translateY(-2px);
+}
+
+/* certificate actions keep their own look */
+.cert .btn-gold,
+.cert .btn-outline{
+    font-size: 0.76rem;
+    padding: 11px 20px;
+}
+</style>
+
+
+<div class="atelier">
+
+    <!-- ====================================================
+         1 · COMMAND STRIP
+         ==================================================== -->
+    <header class="cmd-strip rise">
+        <div class="cmd-left">
+            <span class="cmd-kicker"><i class="bi bi-brightcast"></i> Faculty Command · Level XII</span>
+            <h1 id="greetingText">Good evening, <em>Professor Daniel</em></h1>
+            <p class="cmd-sub">
+                Tuesday · 4 March 2026
+                <span class="dot"></span>
+                <span data-clock>18:12</span>
+                <span class="dot"></span>
+                <strong>18</strong> week streak
+                <span class="dot"></span>
+                Ranked <strong>#3 of 94</strong>
+            </p>
+        </div>
+        <div class="cmd-right">
+            <span class="cmd-chip"><i class="bi bi-fire"></i> <span><strong>18</strong> weeks</span></span>
+            <button class="btn-ghost" data-toast="Opening weekly report…">
+                <i class="bi bi-file-earmark-bar-graph"></i> Weekly report
+            </button>
+            <button class="btn-gold" data-toast="Opening course composer…">
+                <i class="bi bi-plus-lg"></i> Compose course
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · CREST CHAMBER
+         ==================================================== -->
+    <section class="chamber rise">
+        <div class="aurora"></div>
+
+        <div class="chamber-text">
+            <span class="chamber-eyebrow"><i class="bi bi-award-fill"></i> Faculty Crest · Master Tier</span>
+            <h1>Your cohort is thriving, <em>Professor.</em></h1>
+            <p>
+                <strong>148 students</strong> enrolled, a <strong>96% completion rate</strong>, and
+                <strong>three assignments</strong> waiting for your mark. The studio opens at
+                <em>18:30</em> for React Hooks. Your reputation for clarity is why they keep enrolling.
+            </p>
+
+            <div class="chamber-actions">
+                <button class="btn-gold" data-toast="Entering the studio…">
+                    <i class="bi bi-broadcast-pin"></i> Enter studio
+                </button>
+                <button class="btn-outline" data-toast="Opening course composer…">
+                    <i class="bi bi-plus-circle"></i> Compose a course
+                </button>
+            </div>
+
+            <div class="chamber-pins">
+                <div class="pin-chip">
+                    <div class="k">Sessions</div>
+                    <div class="v">96</div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Rating</div>
+                    <div class="v gold">4.9<em>★</em></div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Earned</div>
+                    <div class="v leaf">$1.84<em>k</em></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="crest-wrap">
+            <div class="crest">
+                <!-- orbiting rings -->
+                <div class="orbit o1"><span></span></div>
+                <div class="orbit o2"><span></span></div>
+
+                <svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="crestHex" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%"   stop-color="#8B5CF6"/>
+                            <stop offset="50%"  stop-color="#38BDF8"/>
+                            <stop offset="100%" stop-color="#BEF264"/>
+                        </linearGradient>
+                        <linearGradient id="crestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%"   stop-color="#D9F99D"/>
+                            <stop offset="100%" stop-color="#BEF264"/>
+                        </linearGradient>
+                        <filter id="crestShadow" x="-25%" y="-25%" width="150%" height="150%">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                            <feOffset dx="0" dy="4"/>
+                            <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- outer rotating dashed ring -->
+                    <g class="ring-a">
+                        <circle cx="130" cy="130" r="120"
+                                fill="none" stroke="#D9F99D" stroke-width="1"
+                                stroke-dasharray="2 10" opacity="0.45"/>
+                    </g>
+
+                    <!-- tick marks -->
+                    <g class="ring-b">
+                        <circle cx="130" cy="130" r="112"
+                                fill="none" stroke="#BEF264" stroke-width="0.8"
+                                stroke-dasharray="1 22" opacity="0.5"/>
+                    </g>
+
+                    <!-- hexagon shield -->
+                    <polygon points="130,30 216,80 216,180 130,230 44,180 44,80"
+                             fill="url(#crestHex)"
+                             stroke="url(#crestGold)"
+                             stroke-width="2"
+                             filter="url(#crestShadow)"/>
+
+                    <!-- inner hexagon outline -->
+                    <polygon points="130,52 196,90 196,170 130,208 64,170 64,90"
+                             fill="none"
+                             stroke="rgba(255,255,255,0.28)"
+                             stroke-width="1"/>
+
+                    <!-- corner dots -->
+                    <circle cx="130" cy="36"  r="3"   fill="#D9F99D"/>
+                    <circle cx="130" cy="224" r="3"   fill="#D9F99D"/>
+                    <circle cx="46"  cy="84"  r="2.5" fill="#BEF264"/>
+                    <circle cx="214" cy="84"  r="2.5" fill="#BEF264"/>
+                    <circle cx="46"  cy="176" r="2.5" fill="#BEF264"/>
+                    <circle cx="214" cy="176" r="2.5" fill="#BEF264"/>
+
+                    <!-- centre medallion -->
+                    <circle cx="130" cy="130" r="58" fill="#0B1121"/>
+                    <circle cx="130" cy="130" r="58" fill="none"
+                            stroke="url(#crestGold)" stroke-width="2.5"/>
+                    <circle cx="130" cy="130" r="51" fill="none"
+                            stroke="url(#crestGold)" stroke-width="0.8"
+                            stroke-dasharray="2 5" opacity="0.65"/>
+
+                    <!-- subtle decorative arcs -->
+                    <path d="M 130 72 A 58 58 0 0 1 188 130"
+                          fill="none" stroke="url(#crestGold)"
+                          stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                    <path d="M 130 188 A 58 58 0 0 1 72 130"
+                          fill="none" stroke="url(#crestGold)"
+                          stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                </svg>
+
+                <div class="crest-overlay">
+                    <div class="rank-kicker">Faculty Rank</div>
+                    <div class="rank-num">#3</div>
+                    <div class="rank-tier">Master</div>
+                    <div class="rank-glyph"><i class="bi bi-mortarboard-fill"></i></div>
+                </div>
+            </div>
+
+            <p class="crest-caption">
+                <strong>Level XII Faculty</strong><br>
+                Top 3% of 94 instructors this quarter
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         3 · CONSTELLATION — KPI ribbon
+         ==================================================== -->
+    <section class="constellation">
+        <article class="kpi rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-people-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#BEF264" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7 L78,28 L0,28 Z"
+                          fill="url(#sg1)"/>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7"
+                          fill="none" stroke="#BEF264" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num" data-count="148">0</div>
+            <div class="kpi-label">Active students</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +12 this month</span>
+        </article>
+
+        <article class="kpi sky rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-journal-bookmark-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6 L78,28 L0,28 Z"
+                          fill="url(#sg2)"/>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6"
+                          fill="none" stroke="#38BDF8" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num" data-count="6">0</div>
+            <div class="kpi-label">Courses published</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +2 this term</span>
+        </article>
+
+        <article class="kpi violet rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-camera-video-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#8B5CF6" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9 L78,28 L0,28 Z"
+                          fill="url(#sg3)"/>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9"
+                          fill="none" stroke="#8B5CF6" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num" data-count="96">0</div>
+            <div class="kpi-label">Sessions taught</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +18 this week</span>
+        </article>
+
+        <article class="kpi leaf rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-cash-coin"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sg4" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#65A30D" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#65A30D" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8 L78,28 L0,28 Z"
+                          fill="url(#sg4)"/>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8"
+                          fill="none" stroke="#65A30D" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">$1,<span data-count="840">0</span></div>
+            <div class="kpi-label">Earned this month</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +$420 vs Feb</span>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         4 · BENTO GRID
+         ==================================================== -->
+    <section class="bento">
+
+        <!-- ---------- LIVE DECK (span 2) ---------- -->
+        <div class="s-2 rise">
+            <div class="live-deck">
+                <div class="live-head">
+                    <span class="live-badge"><span class="blip"></span> Live in 18 min</span>
+                    <span class="live-countdown">
+                        <span>Starts in</span>
+                        <span data-countdown-minutes="18">18:00</span>
+                    </span>
+                </div>
+
+                <div class="live-body">
+                    <div class="live-info">
+                        <h2>React Hooks Deep Dive</h2>
+                        <p>
+                            with <strong>Sara Kim</strong>
+                            <span class="sep"></span>
+                            Session 8 of 12
+                            <span class="sep"></span>
+                            <strong>45 minutes</strong>
+                        </p>
+                    </div>
+                    <button class="live-join" data-toast="Opening live studio…">
+                        <i class="bi bi-camera-video-fill"></i> Join studio
+                    </button>
+                </div>
+
+                <div class="live-next">
+                    <div class="nx">
+                        <div class="d">Today · 20:00</div>
+                        <div class="t">20:00</div>
+                        <div class="n">Design Systems Deep Dive · Tunde K.</div>
+                    </div>
+                    <div class="nx">
+                        <div class="d">Tomorrow · 10:00</div>
+                        <div class="t">10:00</div>
+                        <div class="n">API Design Workshop · Maya R.</div>
+                    </div>
+                    <div class="nx">
+                        <div class="d">Wed · 14:00</div>
+                        <div class="t">14:00</div>
+                        <div class="n">TypeScript Office Hours · Open Q&amp;A</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- PULSE (span 1) ---------- -->
+        <article class="panel s-1 rise">
+            <div class="panel-head sky">
+                <h3><i class="bi bi-activity"></i> Cohort pulse</h3>
+                <button class="panel-link" data-toast="Opening full log…">
+                    Full log <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="pulse">
+                    <div class="pulse-item">
+                        <span class="pulse-marker"><i class="bi bi-person-plus-fill"></i></span>
+                        <div class="pulse-body">
+                            <h5><span class="name">Sara Kim</span> enrolled in Advanced React Patterns</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 20 min ago</div>
+                        </div>
+                    </div>
+                    <div class="pulse-item">
+                        <span class="pulse-marker sky"><i class="bi bi-file-earmark-check"></i></span>
+                        <div class="pulse-body">
+                            <h5><strong>Tunde Kalu</strong> submitted Portfolio Review</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 1 hour ago</div>
+                        </div>
+                    </div>
+                    <div class="pulse-item">
+                        <span class="pulse-marker amber"><i class="bi bi-star-fill"></i></span>
+                        <div class="pulse-body">
+                            <h5><span class="name">Maya Rahman</span> left a 5-star review</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 3 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="pulse-item">
+                        <span class="pulse-marker violet"><i class="bi bi-trophy-fill"></i></span>
+                        <div class="pulse-body">
+                            <h5><strong>Jonas Tan</strong> finished every module · 100%</h5>
+                            <div class="time"><i class="bi bi-clock"></i> Yesterday</div>
+                        </div>
+                    </div>
+                    <div class="pulse-item">
+                        <span class="pulse-marker green"><i class="bi bi-cash-coin"></i></span>
+                        <div class="pulse-body">
+                            <h5>Payout scheduled for <strong>1 April</strong></h5>
+                            <div class="time"><i class="bi bi-clock"></i> Yesterday</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ---------- LEDGER (span 1) ---------- -->
+        <article class="panel s-1 rise">
+            <div class="panel-head">
+                <h3><i class="bi bi-receipt-cutoff"></i> Ledger</h3>
+                <button class="panel-link" data-toast="Opening earnings report…">
+                    Report <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="ledger-slip">
+                    <div class="kick">Available for payout</div>
+                    <div class="amount">$1,840<em>.00</em></div>
+                    <div class="foot">Next cycle · <strong>1 Apr 2026</strong></div>
+                </div>
+
+                <div class="ledger-row">
+                    <span class="k"><i class="bi bi-hourglass-split"></i> Pending release</span>
+                    <span class="leader"></span>
+                    <span class="v">$420.00</span>
+                </div>
+                <div class="ledger-row">
+                    <span class="k"><i class="bi bi-graph-up-arrow"></i> Lifetime</span>
+                    <span class="leader"></span>
+                    <span class="v leaf">$12,560</span>
+                </div>
+                <div class="ledger-row">
+                    <span class="k"><i class="bi bi-bank"></i> Payout method</span>
+                    <span class="leader"></span>
+                    <span class="v">•••• 8813</span>
+                </div>
+                <div class="ledger-row">
+                    <span class="k"><i class="bi bi-percent"></i> Platform fee</span>
+                    <span class="leader"></span>
+                    <span class="v gold">12%</span>
+                </div>
+
+                <button class="ledger-btn" data-toast="Requesting payout…">
+                    <i class="bi bi-cash-stack"></i> Request payout
+                </button>
+            </div>
+        </article>
+
+        <!-- ---------- WEEK (span 3) ---------- -->
+        <article class="panel s-3 rise">
+            <div class="panel-head violet">
+                <h3><i class="bi bi-calendar3"></i> Teaching week</h3>
+                <button class="panel-link" data-toast="Opening full calendar…">
+                    Full calendar <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="timetable">
+                    <div></div>
+                    <div class="tt-head">Mon</div>
+                    <div class="tt-head">Tue</div>
+                    <div class="tt-head today">Wed</div>
+                    <div class="tt-head">Thu</div>
+                    <div class="tt-head">Fri</div>
+
+                    <div class="tt-time">09:00</div>
+                    <div class="tt-cell leaf" data-day="Mon">
+                        <div class="tt-title">React Fundamentals</div>
+                        <div class="tt-with">Group · 12 students</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Tue"></div>
+                    <div class="tt-cell blue" data-day="Wed">
+                        <div class="tt-title">TypeScript Office Hours</div>
+                        <div class="tt-with">Open Q&amp;A · 8 students</div>
+                    </div>
+                    <div class="tt-cell leaf" data-day="Thu">
+                        <div class="tt-title">React Fundamentals</div>
+                        <div class="tt-with">Group · 12 students</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Fri"></div>
+
+                    <div class="tt-time">11:00</div>
+                    <div class="tt-cell empty" data-day="Mon"></div>
+                    <div class="tt-cell gold" data-day="Tue">
+                        <div class="tt-title">Design Systems Masterclass</div>
+                        <div class="tt-with">Tunde K. · 1:1</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Wed"></div>
+                    <div class="tt-cell empty" data-day="Thu"></div>
+                    <div class="tt-cell blue" data-day="Fri">
+                        <div class="tt-title">Portfolio Reviews</div>
+                        <div class="tt-with">3 slots booked</div>
+                    </div>
+
+                    <div class="tt-time">14:00</div>
+                    <div class="tt-cell blue" data-day="Mon">
+                        <div class="tt-title">TypeScript Deep Dive</div>
+                        <div class="tt-with">Group · 6 students</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Tue"></div>
+                    <div class="tt-cell leaf" data-day="Wed">
+                        <div class="tt-title">API Design Workshop</div>
+                        <div class="tt-with">Group · 4 students</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Thu"></div>
+                    <div class="tt-cell gold" data-day="Fri">
+                        <div class="tt-title">Mentor Circles</div>
+                        <div class="tt-with">Sara K. · 1:1</div>
+                    </div>
+
+                    <div class="tt-time">16:00</div>
+                    <div class="tt-cell empty" data-day="Mon"></div>
+                    <div class="tt-cell empty" data-day="Tue"></div>
+                    <div class="tt-cell empty" data-day="Wed"></div>
+                    <div class="tt-cell gold" data-day="Thu">
+                        <div class="tt-title">Advanced Patterns</div>
+                        <div class="tt-with">Maya R. · 1:1</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Fri"></div>
+
+                    <div class="tt-time">18:30</div>
+                    <div class="tt-cell live" data-day="Mon">
+                        <div class="tt-title">React Hooks Deep Dive</div>
+                        <div class="tt-with">Live · Sara K.</div>
+                    </div>
+                    <div class="tt-cell live" data-day="Tue">
+                        <div class="tt-title">Design Critique Circle</div>
+                        <div class="tt-with">Live · 4 students</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Wed"></div>
+                    <div class="tt-cell live" data-day="Thu">
+                        <div class="tt-title">Advanced Patterns</div>
+                        <div class="tt-with">Live · Tunde K.</div>
+                    </div>
+                    <div class="tt-cell empty" data-day="Fri"></div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ---------- GRADEBOOK (span 1) ---------- -->
+        <article class="panel s-1 rise">
+            <div class="panel-head leaf">
+                <h3><i class="bi bi-clipboard-data-fill"></i> Gradebook</h3>
+                <button class="panel-link" data-toast="Opening full gradebook…">
+                    Open <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="grade-row">
+                    <div class="grade-body">
+                        <div class="top">
+                            <h5>Sara Kim</h5>
+                            <strong>96%</strong>
+                        </div>
+                        <div class="bar"><span data-value="96"></span></div>
+                        <div class="meta"><i class="bi bi-check2-circle ok"></i> 12 of 12 graded</div>
+                    </div>
+                </div>
+
+                <div class="grade-row">
+                    <div class="grade-body">
+                        <div class="top">
+                            <h5>Tunde Kalu</h5>
+                            <strong>92%</strong>
+                        </div>
+                        <div class="bar"><span data-value="92"></span></div>
+                        <div class="meta"><i class="bi bi-check2-circle ok"></i> 11 of 12 graded</div>
+                    </div>
+                </div>
+
+                <div class="grade-row">
+                    <div class="grade-body">
+                        <div class="top">
+                            <h5>Maya Rahman</h5>
+                            <strong>88%</strong>
+                        </div>
+                        <div class="bar"><span data-value="88"></span></div>
+                        <div class="meta"><i class="bi bi-hourglass-split warn"></i> 1 assignment pending</div>
+                    </div>
+                </div>
+
+                <div class="grade-row">
+                    <div class="grade-body">
+                        <div class="top">
+                            <h5>Jonas Tan</h5>
+                            <strong>76%</strong>
+                        </div>
+                        <div class="bar"><span data-value="76"></span></div>
+                        <div class="meta"><i class="bi bi-exclamation-circle bad"></i> 2 assignments overdue</div>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+        <!-- ---------- CERTIFICATE (span 2) ---------- -->
+        <div class="s-2 rise">
+            <div class="cert">
+                <span class="cert-pill"><i class="bi bi-patch-check-fill"></i> Top 3% This Quarter</span>
+
+                <div class="cert-seal">★</div>
+
+                <h3>Certificate of <em>Excellence</em></h3>
+                <p>
+                    Ranked <strong>#3 of 94 instructors</strong> this quarter. Your students complete more often,
+                    rate higher, and return sooner than <strong>96%</strong> of the faculty. This certificate is
+                    awarded in recognition of exceptional teaching craft.
+                </p>
+
+                <div class="cert-metrics">
+                    <div>
+                        <strong>96<em>%</em></strong>
+                        <span>Completion</span>
+                    </div>
+                    <div>
+                        <strong>4.9<em>★</em></strong>
+                        <span>Avg rating</span>
+                    </div>
+                    <div>
+                        <strong>#3</strong>
+                        <span>Faculty rank</span>
+                    </div>
+                </div>
+
+                <div class="cert-actions">
+                    <button class="btn-gold" data-toast="Downloading your certificate…">
+                        <i class="bi bi-download"></i> Download
+                    </button>
+                    <button class="btn-outline" data-toast="Opening share options…">
+                        <i class="bi bi-share-fill"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- HONOUR ROLL (span 2) ---------- -->
+        <article class="panel s-2 rise">
+            <div class="panel-head">
+                <h3><i class="bi bi-award-fill"></i> Honour roll · March</h3>
+                <button class="panel-link" data-toast="Opening full ranking…">
+                    Full list <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="roll-item">
+                    <span class="roll-num">I</span>
+                    <span class="roll-avatar gold">SK<i class="bi bi-crown-fill crown"></i></span>
+                    <div class="roll-body">
+                        <h5>Sara Kim</h5>
+                        <p>Advanced React Patterns · 92% completion</p>
+                    </div>
+                    <div class="roll-score">
+                        <strong>4.9</strong>
+                        <span>Avg</span>
+                    </div>
+                </div>
+
+                <div class="roll-item">
+                    <span class="roll-num">II</span>
+                    <span class="roll-avatar v2">TK</span>
+                    <div class="roll-body">
+                        <h5>Tunde Kalu</h5>
+                        <p>UI/UX Design Systems · 88% completion</p>
+                    </div>
+                    <div class="roll-score">
+                        <strong>4.8</strong>
+                        <span>Avg</span>
+                    </div>
+                </div>
+
+                <div class="roll-item">
+                    <span class="roll-num">III</span>
+                    <span class="roll-avatar v3">MR</span>
+                    <div class="roll-body">
+                        <h5>Maya Rahman</h5>
+                        <p>Backend Fundamentals · 84% completion</p>
+                    </div>
+                    <div class="roll-score">
+                        <strong>4.7</strong>
+                        <span>Avg</span>
+                    </div>
+                </div>
+
+                <div class="roll-item">
+                    <span class="roll-num">IV</span>
+                    <span class="roll-avatar v4">JT</span>
+                    <div class="roll-body">
+                        <h5>Jonas Tan</h5>
+                        <p>Advanced React Patterns · 76% completion</p>
+                    </div>
+                    <div class="roll-score">
+                        <strong>4.6</strong>
+                        <span>Avg</span>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- ====================================================
+         5 · ATELIER — signature courses
+         ==================================================== -->
+    <section class="rise">
+        <div class="sect-head">
+            <h2>Your Atelier</h2>
+            <span class="meta"><i class="bi bi-palette2"></i> 6 signature courses · 148 enrolled</span>
+        </div>
+
+        <div class="courses-grid">
+
+            <article class="plate" data-toast="Opening Advanced React Patterns…">
+                <div class="plate-head">
+                    <span class="plate-num">Course I</span>
+                    <span class="plate-tier live">Live</span>
+                </div>
+                <h4>Advanced React Patterns</h4>
+                <p>Composition, state machines and the performance patterns senior teams actually ship.</p>
+                <div class="plate-stats">
+                    <div><div class="k">Students</div><div class="v">42</div></div>
+                    <div><div class="k">Rating</div><div class="v gold">4.9★</div></div>
+                    <div><div class="k">Progress</div><div class="v">68%</div></div>
+                </div>
+                <div class="plate-foot">
+                    <span><i class="bi bi-collection"></i> 12 modules</span>
+                    <span><i class="bi bi-arrow-right"></i></span>
+                </div>
+            </article>
+
+            <article class="plate sky" data-toast="Opening UI/UX Design Systems…">
+                <div class="plate-head">
+                    <span class="plate-num">Course II</span>
+                    <span class="plate-tier live">Live</span>
+                </div>
+                <h4>UI/UX Design Systems</h4>
+                <p>Tokens, component APIs, documentation and the craft behind a scalable system.</p>
+                <div class="plate-stats">
+                    <div><div class="k">Students</div><div class="v">36</div></div>
+                    <div><div class="k">Rating</div><div class="v gold">4.8★</div></div>
+                    <div><div class="k">Progress</div><div class="v">54%</div></div>
+                </div>
+                <div class="plate-foot">
+                    <span><i class="bi bi-collection"></i> 16 modules</span>
+                    <span><i class="bi bi-arrow-right"></i></span>
+                </div>
+            </article>
+
+            <article class="plate violet" data-toast="Opening Backend Fundamentals…">
+                <div class="plate-head">
+                    <span class="plate-num">Course III</span>
+                    <span class="plate-tier live">Live</span>
+                </div>
+                <h4>Backend Fundamentals</h4>
+                <p>Models, auth, APIs and deployment — the full path from first endpoint to production.</p>
+                <div class="plate-stats">
+                    <div><div class="k">Students</div><div class="v">28</div></div>
+                    <div><div class="k">Rating</div><div class="v gold">4.7★</div></div>
+                    <div><div class="k">Progress</div><div class="v">47%</div></div>
+                </div>
+                <div class="plate-foot">
+                    <span><i class="bi bi-collection"></i> 14 modules</span>
+                    <span><i class="bi bi-arrow-right"></i></span>
+                </div>
+            </article>
+
+            <article class="plate leaf" data-toast="Opening TypeScript for React…">
+                <div class="plate-head">
+                    <span class="plate-num">Course IV</span>
+                    <span class="plate-tier live">Live</span>
+                </div>
+                <h4>TypeScript for React</h4>
+                <p>Generics, discriminated unions and typed component APIs that catch bugs before users do.</p>
+                <div class="plate-stats">
+                    <div><div class="k">Students</div><div class="v">22</div></div>
+                    <div><div class="k">Rating</div><div class="v gold">4.9★</div></div>
+                    <div><div class="k">Progress</div><div class="v">61%</div></div>
+                </div>
+                <div class="plate-foot">
+                    <span><i class="bi bi-collection"></i> 10 modules</span>
+                    <span><i class="bi bi-arrow-right"></i></span>
+                </div>
+            </article>
+
+            <article class="plate" data-toast="Opening Motion Design…">
+                <div class="plate-head">
+                    <span class="plate-num">Course V</span>
+                    <span class="plate-tier draft">Draft</span>
+                </div>
+                <h4>Motion Design Basics</h4>
+                <p>Easing, timing and micro-interactions — the details that make interfaces feel alive.</p>
+                <div class="plate-stats">
+                    <div><div class="k">Students</div><div class="v">—</div></div>
+                    <div><div class="k">Rating</div><div class="v">—</div></div>
+                    <div><div class="k">Progress</div><div class="v">20%</div></div>
+                </div>
+                <div class="plate-foot">
+                    <span><i class="bi bi-collection"></i> 8 modules</span>
+                    <span><i class="bi bi-arrow-right"></i></span>
+                </div>
+            </article>
+
+            <article class="plate" data-toast="Opening Testing React…">
+                <div class="plate-head">
+                    <span class="plate-num">Course VI</span>
+                    <span class="plate-tier draft">Draft</span>
+                </div>
+                <h4>Testing React Apps</h4>
+                <p>Vitest, React Testing Library and the habits that keep a growing codebase honest.</p>
+                <div class="plate-stats">
+                    <div><div class="k">Students</div><div class="v">—</div></div>
+                    <div><div class="k">Rating</div><div class="v">—</div></div>
+                    <div><div class="k">Progress</div><div class="v">8%</div></div>
+                </div>
+                <div class="plate-foot">
+                    <span><i class="bi bi-collection"></i> 12 modules</span>
+                    <span><i class="bi bi-arrow-right"></i></span>
+                </div>
+            </article>
+
+            <button class="plate-add" data-toast="Opening course composer…">
+                <div class="icon"><i class="bi bi-plus-lg"></i></div>
+                <strong>Compose a new course</strong>
+                <span>Draft a signature course and publish it when ready.</span>
+            </button>
+
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         6 · HONOURS WALL
+         ==================================================== -->
+    <section class="rise">
+        <div class="sect-head">
+            <h2>Honours Wall</h2>
+            <span class="meta"><i class="bi bi-trophy-fill"></i> 5 of 12 distinctions earned</span>
+        </div>
+
+        <div class="honours-wall">
+            <div class="medal">
+                <div class="medal-disc"><i class="bi bi-star-fill"></i></div>
+                <h5>Top Rated</h5>
+                <p>4.8★ x 40 reviews</p>
+            </div>
+
+            <div class="medal leaf">
+                <div class="medal-disc"><i class="bi bi-people-fill"></i></div>
+                <h5>Century Club</h5>
+                <p>100+ students taught</p>
+            </div>
+
+            <div class="medal sky">
+                <div class="medal-disc"><i class="bi bi-journal-bookmark-fill"></i></div>
+                <h5>Author</h5>
+                <p>6 published courses</p>
+            </div>
+
+            <div class="medal violet">
+                <div class="medal-disc"><i class="bi bi-lightning-charge-fill"></i></div>
+                <h5>Marathon</h5>
+                <p>240 hours taught</p>
+            </div>
+
+            <div class="medal">
+                <div class="medal-disc"><i class="bi bi-mortarboard-fill"></i></div>
+                <h5>Master Faculty</h5>
+                <p>Rank #3 of 94</p>
+            </div>
+
+            <div class="medal locked">
+                <div class="medal-disc"><i class="bi bi-lock-fill"></i></div>
+                <h5>Legendary</h5>
+                <p>500 students taught</p>
+            </div>
+        </div>
+    </section>
+
+</div><!-- /.atelier -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    /* -------------------------------------------------
+       Animated counters
+       ------------------------------------------------- */
+    document.querySelectorAll('.atelier [data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+
+        function step(ts) {
+            if (start === null) start = ts;
+            var progress = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* -------------------------------------------------
+       Progress bars — animate from 0 → value
+       ------------------------------------------------- */
+    requestAnimationFrame(function () {
+        document.querySelectorAll('.atelier .bar > span[data-value]').forEach(function (el) {
+            var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+            el.style.width = v + '%';
+        });
+    });
+
+    /* -------------------------------------------------
+       Countdown (minutes → mm:ss)
+       ------------------------------------------------- */
+    var cd = document.querySelector('.atelier [data-countdown-minutes]');
+    if (cd) {
+        var minutes = parseFloat(cd.dataset.countdownMinutes) || 0;
+        var target = Date.now() + minutes * 60 * 1000;
+
+        function tickCountdown() {
+            var diff = Math.max(0, target - Date.now());
+            var m = Math.floor(diff / 60000);
+            var s = Math.floor((diff % 60000) / 1000);
+            cd.textContent =
+                String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            if (diff <= 0) cd.textContent = 'LIVE';
+        }
+        tickCountdown();
+        setInterval(tickCountdown, 1000);
+    }
+
+    /* -------------------------------------------------
+       Live clock in the command strip
+       ------------------------------------------------- */
+    var clock = document.querySelector('.atelier [data-clock]');
+    if (clock) {
+        function tickClock() {
+            var d = new Date();
+            clock.textContent =
+                String(d.getHours()).padStart(2, '0') + ':' +
+                String(d.getMinutes()).padStart(2, '0');
+        }
+        tickClock();
+        setInterval(tickClock, 20000);
+    }
+
+    /* -------------------------------------------------
+       Subtle parallax on the crest (pointer-aware)
+       ------------------------------------------------- */
+    var crest = document.querySelector('.atelier .crest');
+    if (crest && window.matchMedia('(pointer:fine)').matches) {
+        var wrap = crest.closest('.chamber') || crest;
+        wrap.addEventListener('mousemove', function (e) {
+            var r = wrap.getBoundingClientRect();
+            var px = (e.clientX - r.left) / r.width - 0.5;
+            var py = (e.clientY - r.top) / r.height - 0.5;
+            crest.style.transform =
+                'translate(' + (px * 10) + 'px,' + (py * 10) + 'px)';
+        });
+        wrap.addEventListener('mouseleave', function () {
+            crest.style.transform = '';
+        });
+    }
+})();
+</script>
+
+{% endblock content %}

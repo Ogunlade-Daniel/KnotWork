@@ -1,0 +1,2677 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Settings & Preferences{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       THE FACULTY SETTINGS CHAMBER
+       Account · Security · Preferences — all under your control.
+       Scoped entirely under .settings
+       ============================================================ */
+
+    .settings{
+        /* palette — inherits from base, with safe fallbacks */
+        --gold:        var(--secondary, #BEF264);
+        --gold-deep:   var(--secondary-deep, #7ED321);
+        --gold-light:  var(--secondary-light, #D9F99D);
+        --gold-soft:   rgba(190, 242, 100, 0.12);
+        --gold-line:   rgba(190, 242, 100, 0.30);
+
+        --ink:         var(--primary-dark, #0B1121);
+        --ink-2:       var(--primary, #1E293B);
+        --ink-3:       var(--primary-light, #334155);
+
+        --paper:       var(--white, #FFFFFF);
+        --paper-2:     var(--cream, #FAFAF7);
+        --line:        var(--gray-200, #E5E7EB);
+        --line-soft:   var(--gray-100, #F1F5F9);
+        --muted:       var(--gray-600, #4B5563);
+        --faint:       var(--gray-300, #D1D5DB);
+
+        --leaf:        var(--secondary, #BEF264);
+        --leaf-deep:   var(--secondary-deep, #65A30D);
+        --sky:         var(--accent, #38BDF8);
+        --violet:      #8B5CF6;
+        --rose:        #F43F5E;
+        --green:       #22C55E;
+        --amber:       #F59E0B;
+
+        --r:           var(--radius, 14px);
+        --r-xl:        var(--radius-xl, 22px);
+        --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        position: relative;
+    }
+
+    /* ---------- shared fade-up entry ---------- */
+    .settings .rise{
+        opacity: 0;
+        transform: translateY(14px);
+        animation: sRise .7s var(--ease) forwards;
+    }
+    .settings .rise:nth-child(1){ animation-delay: .02s; }
+    .settings .rise:nth-child(2){ animation-delay: .08s; }
+    .settings .rise:nth-child(3){ animation-delay: .14s; }
+    .settings .rise:nth-child(4){ animation-delay: .20s; }
+    .settings .rise:nth-child(5){ animation-delay: .26s; }
+    @keyframes sRise{ to { opacity: 1; transform: translateY(0); } }
+
+    /* ---------- shared bar ---------- */
+    .settings .bar{
+        height: 6px;
+        border-radius: 6px;
+        background: var(--line-soft);
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+    .settings .bar > span{
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 6px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        transition: width 1.2s var(--ease);
+    }
+    .settings .bar.leaf > span  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .settings .bar.sky > span   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .settings .bar.violet > span{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .settings .bar.rose > span  { background: linear-gradient(90deg, #FB7185, #E11D48); }
+
+    /* ============================================================
+       1 · COMMAND STRIP
+       ============================================================ */
+    .cmd-strip{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding: 4px 4px 20px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+    }
+    .cmd-strip::after{
+        content: '';
+        position: absolute;
+        left: 4px; right: 4px; bottom: -1px;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 18%,
+            transparent 42%,
+            transparent 100%);
+        border-radius: 2px;
+    }
+    .cmd-kicker{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        margin-bottom: 10px;
+    }
+    .cmd-kicker i{ color: var(--gold); }
+    .cmd-left h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .cmd-left h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .cmd-sub{
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .cmd-sub .dot{
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--faint);
+    }
+    .cmd-sub strong{ color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .cmd-right{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .cmd-chip{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.02em;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+    }
+    .cmd-chip i{ color: var(--gold); font-size: 0.85rem; }
+    .cmd-chip strong{ color: var(--gold-deep); }
+
+    /* ============================================================
+       2 · IDENTITY CHAMBER (hero)
+       ============================================================ */
+    .identity{
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 36px;
+        padding: 40px 44px;
+        border-radius: var(--r-xl);
+        background:
+            radial-gradient(ellipse at 88% 12%, rgba(190, 242, 100, 0.16), transparent 55%),
+            radial-gradient(ellipse at 15% 100%, rgba(190, 242, 100, 0.10), transparent 55%),
+            radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.12), transparent 70%),
+            linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    }
+    @media (max-width: 1080px){
+        .identity{ grid-template-columns: 1fr; gap: 26px; padding: 32px 28px; }
+    }
+    .identity::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 25%,
+            var(--leaf) 55%,
+            var(--sky) 80%,
+            var(--violet) 100%);
+    }
+    .identity::after{
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+        background-size: 26px 26px;
+        pointer-events: none;
+        mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+    }
+    .identity .aurora{
+        position: absolute;
+        inset: -40%;
+        background:
+            radial-gradient(circle at 30% 40%, rgba(190, 242, 100, 0.14), transparent 30%),
+            radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.16), transparent 32%);
+        animation: auroraDrift 18s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(20px);
+    }
+    @keyframes auroraDrift{
+        0%, 100%{ transform: translate(0, 0) scale(1); }
+        50%     { transform: translate(-4%, 3%) scale(1.08); }
+    }
+
+    .identity-info{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 26px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    .identity-avatar{
+        position: relative;
+        width: 118px; height: 118px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--ink);
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        box-shadow: 0 20px 44px rgba(190, 242, 100, 0.32);
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+    }
+    .identity-avatar::before{
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+    }
+    .identity-avatar::after{
+        content: '';
+        position: absolute;
+        inset: -10px;
+        border-radius: 50%;
+        border: 1px dashed rgba(190, 242, 100, 0.28);
+        animation: spinCW 40s linear infinite;
+    }
+    @keyframes spinCW { to { transform: rotate(360deg); } }
+    .identity-avatar:hover{ transform: translateY(-3px) scale(1.02); }
+
+    .identity-avatar .cam{
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--paper);
+        color: var(--ink);
+        font-size: 0.82rem;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.28);
+        border: 2px solid var(--ink);
+        z-index: 2;
+    }
+
+    .identity-text{ flex: 1; min-width: 220px; }
+    .identity-eyebrow{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 5px 13px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: var(--gold-light);
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+    }
+    .identity-text h2{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.5rem, 2.6vw, 2rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.018em;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+    .identity-text h2 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-light), var(--leaf));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .identity-text .handle{
+        font-size: 0.86rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .identity-text .handle .verified{
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: rgba(74, 222, 128, 0.16);
+        border: 1px solid rgba(74, 222, 128, 0.4);
+        color: #4ADE80;
+    }
+    .identity-text .bio{
+        font-size: 0.86rem;
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.7;
+        max-width: 480px;
+        margin-bottom: 18px;
+    }
+
+    .identity-tags{
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .identity-tags span{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.82);
+        letter-spacing: 0.02em;
+    }
+    .identity-tags span i{ color: var(--gold-light); font-size: 0.72rem; }
+
+    /* completion ring */
+    .identity-meter{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+    }
+    .meter-ring{
+        position: relative;
+        width: 190px; height: 190px;
+    }
+    .meter-ring svg{
+        width: 100%; height: 100%;
+        transform: rotate(-90deg);
+    }
+    .meter-ring .bg{
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.10);
+        stroke-width: 10;
+    }
+    .meter-ring .fg{
+        fill: none;
+        stroke: url(#meterGrad);
+        stroke-width: 10;
+        stroke-linecap: round;
+        stroke-dasharray: 502;
+        stroke-dashoffset: 502;
+        transition: stroke-dashoffset 1.6s var(--ease);
+    }
+    .meter-core{
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        text-align: center;
+    }
+    .meter-core .pct{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 4px 24px rgba(190, 242, 100, 0.32);
+    }
+    .meter-core .pct em{
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.55);
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-style: normal;
+    }
+    .meter-core .lbl{
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+        margin-top: 6px;
+    }
+    .identity-meter p{
+        text-align: center;
+        font-size: 0.7rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.55);
+        max-width: 220px;
+    }
+    .identity-meter p strong{ color: var(--gold-light); font-weight: 700; }
+
+    /* ============================================================
+       3 · CONSTELLATION — KPI ribbon
+       ============================================================ */
+    .constellation{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+    @media (max-width: 1180px){ .constellation{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .constellation{ grid-template-columns: 1fr; } }
+
+    .kpi{
+        position: relative;
+        padding: 22px 20px 18px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        transition: var(--transition, all .25s ease);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .kpi::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        border-radius: 3px 3px 0 0;
+    }
+    .kpi.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .kpi.violet::before{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .kpi.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .kpi.rose::before  { background: linear-gradient(90deg, #FB7185, #E11D48); }
+    .kpi:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: rgba(190, 242, 100, 0.24);
+    }
+
+    .kpi-top{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .kpi-icon{
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .kpi.sky .kpi-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .kpi.violet .kpi-icon{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi.leaf .kpi-icon  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .kpi.rose .kpi-icon  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    .kpi-spark{ width: 78px; height: 28px; flex-shrink: 0; }
+
+    .kpi-num{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.05rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.028em;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+    .kpi-num em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--muted);
+    }
+    .kpi-label{
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--muted);
+        letter-spacing: 0.01em;
+    }
+    .kpi-trend{
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.22);
+        color: var(--leaf-deep);
+        letter-spacing: 0.02em;
+        align-self: flex-start;
+    }
+    .kpi.sky .kpi-trend   { background: rgba(56, 189, 248, 0.16); color: #0284C7; }
+    .kpi.violet .kpi-trend{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi.rose .kpi-trend  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .kpi-trend i{ font-size: 0.6rem; }
+
+    /* ============================================================
+       4 · TAB SWITCHER
+       ============================================================ */
+    .tab-bar{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 50px;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        align-self: flex-start;
+        flex-wrap: wrap;
+        margin-top: 4px;
+        max-width: 100%;
+    }
+    .tab-btn{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 20px;
+        border-radius: 50px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .tab-btn i{ font-size: 0.88rem; }
+    .tab-btn:hover{ color: var(--ink); background: var(--paper-2); }
+    .tab-btn.active{
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+
+    /* tab panels */
+    .tab-panel{ display: none; }
+    .tab-panel.active{ display: block; animation: panelIn .4s var(--ease); }
+    @keyframes panelIn{
+        from{ opacity: 0; transform: translateY(8px); }
+        to  { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       5 · BENTO GRID
+       ============================================================ */
+    .bento{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+    .bento > *{ min-width: 0; }
+    .s-1{ grid-column: span 1; }
+    .s-2{ grid-column: span 2; }
+    .s-3{ grid-column: span 3; }
+    .s-4{ grid-column: span 4; }
+
+    @media (max-width: 1080px){
+        .bento{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 2; }
+    }
+    @media (max-width: 620px){
+        .bento{ grid-template-columns: 1fr; }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 1; }
+    }
+
+    /* ---------- panel base ---------- */
+    .panel{
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        overflow: hidden;
+        transition: var(--transition, all .25s ease);
+        position: relative;
+    }
+    .panel:hover{ box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08)); }
+
+    .panel-head{
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .panel-head h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.005em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .panel-head h3 i{
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .panel-head.sky h3 i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .panel-head.violet h3 i{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .panel-head.leaf h3 i  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .panel-head.rose h3 i  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    .panel-link{
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: var(--transition, all .25s ease);
+        flex-shrink: 0;
+    }
+    .panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+    .panel-body{ padding: 18px 22px 22px; }
+
+    /* ============================================================
+       6 · FORM ELEMENTS
+       ============================================================ */
+    .field{
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-bottom: 18px;
+    }
+    .field:last-child{ margin-bottom: 0; }
+
+    .field label{
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: space-between;
+    }
+    .field label .req{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: var(--gold-deep);
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--gold-soft);
+    }
+    .field label .opt{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: var(--faint);
+    }
+
+    .field .hint{
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.5;
+        margin-top: 2px;
+    }
+    .field .hint i{ color: var(--gold); margin-right: 4px; }
+
+    .input,
+    .textarea,
+    .select{
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        font-family: inherit;
+        font-size: 0.86rem;
+        color: var(--ink);
+        outline: none;
+        transition: var(--transition, all .25s ease);
+    }
+    .input::placeholder,
+    .textarea::placeholder{ color: var(--faint); }
+    .input:focus,
+    .textarea:focus,
+    .select:focus{
+        border-color: var(--gold);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .input:disabled,
+    .textarea:disabled{
+        background: var(--paper-2);
+        color: var(--muted);
+        cursor: not-allowed;
+    }
+    .textarea{
+        resize: vertical;
+        min-height: 96px;
+        line-height: 1.6;
+    }
+    .select{
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23CBD5E1'%3e%3cpath d='M8 11L3 6h10z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 14px;
+        padding-right: 42px;
+        cursor: pointer;
+    }
+
+    /* input with prefix icon */
+    .input-wrap{
+        position: relative;
+    }
+    .input-wrap > i{
+        position: absolute;
+        left: 16px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--faint);
+        font-size: 0.88rem;
+        pointer-events: none;
+    }
+    .input-wrap .input{ padding-left: 42px; }
+
+    /* input with suffix action */
+    .input-action{
+        position: relative;
+    }
+    .input-action .input{ padding-right: 92px; }
+    .input-action .btn-inline{
+        position: absolute;
+        right: 6px; top: 50%;
+        transform: translateY(-50%);
+        padding: 7px 14px;
+        border-radius: 9px;
+        border: none;
+        background: var(--ink);
+        color: var(--gold-light);
+        font-family: inherit;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+    }
+    .input-action .btn-inline:hover{ background: var(--ink-2); }
+
+    /* field row (two columns) */
+    .field-row{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    @media (max-width: 620px){ .field-row{ grid-template-columns: 1fr; } }
+
+    /* character counter */
+    .char-count{
+        font-size: 0.62rem;
+        color: var(--faint);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        align-self: flex-end;
+    }
+
+    /* ============================================================
+       7 · TOGGLE SWITCH
+       ============================================================ */
+    .toggle-row{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .toggle-row:first-child{ padding-top: 0; }
+    .toggle-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+    .toggle-body{ flex: 1; min-width: 0; }
+    .toggle-body h5{
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .toggle-body h5 .tag{
+        font-size: 0.5rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 50px;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .toggle-body p{
+        font-size: 0.7rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .toggle{
+        position: relative;
+        width: 46px;
+        height: 26px;
+        border-radius: 50px;
+        background: var(--line);
+        border: none;
+        cursor: pointer;
+        transition: var(--transition, all .3s ease);
+        flex-shrink: 0;
+        padding: 0;
+    }
+    .toggle::after{
+        content: '';
+        position: absolute;
+        top: 3px; left: 3px;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: var(--paper);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+        transition: var(--transition, all .3s ease);
+    }
+    .toggle.on{
+        background: linear-gradient(135deg, var(--leaf), var(--leaf-deep));
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.34);
+    }
+    .toggle.on::after{
+        left: 23px;
+        background: #fff;
+    }
+
+    /* ============================================================
+       8 · SESSION / DEVICE ROW
+       ============================================================ */
+    .device-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .device-row:first-child{ padding-top: 0; }
+    .device-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+    .device-icon{
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .device-icon.sky   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .device-icon.violet{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+
+    .device-body{ flex: 1; min-width: 0; }
+    .device-body h5{
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .device-body h5 .current{
+        font-size: 0.5rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(74, 222, 128, 0.16);
+        color: #15803D;
+    }
+    .device-body p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+
+    .device-action{
+        flex-shrink: 0;
+    }
+    .device-revoke{
+        padding: 7px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .device-revoke:hover{
+        border-color: #FCA5A5;
+        color: #BE123C;
+        background: rgba(244, 63, 94, 0.06);
+    }
+
+    /* ============================================================
+       9 · AUDIT LOG
+       ============================================================ */
+    .audit-item{
+        display: flex;
+        gap: 14px;
+        padding: 12px 0;
+        position: relative;
+    }
+    .audit-item:first-child{ padding-top: 0; }
+    .audit-item:last-child{ padding-bottom: 0; }
+    .audit-item::before{
+        content: '';
+        position: absolute;
+        left: 12px;
+        top: 34px;
+        bottom: -4px;
+        width: 1.5px;
+        background: var(--line-soft);
+    }
+    .audit-item:last-child::before{ display: none; }
+
+    .audit-marker{
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.7rem;
+        background: var(--paper);
+        border: 2px solid var(--leaf);
+        color: var(--leaf-deep);
+        z-index: 2;
+        position: relative;
+    }
+    .audit-marker.sky   { border-color: var(--sky); color: #0284C7; }
+    .audit-marker.violet{ border-color: #A78BFA; color: #7C3AED; }
+    .audit-marker.amber { border-color: #FCD34D; color: #B45309; }
+    .audit-marker.rose  { border-color: #FB7185; color: #BE123C; }
+
+    .audit-body{ flex: 1; min-width: 0; padding-top: 2px; }
+    .audit-body h5{
+        font-size: 0.79rem;
+        font-weight: 500;
+        color: var(--ink-2);
+        line-height: 1.45;
+    }
+    .audit-body h5 strong{ color: var(--ink); font-weight: 700; }
+    .audit-body .meta{
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin-top: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .audit-body .meta i{ font-size: 0.62rem; }
+
+    /* ============================================================
+       10 · API KEY CARD
+       ============================================================ */
+    .key-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .key-row:first-child{ padding-top: 0; }
+    .key-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+    .key-body{ flex: 1; min-width: 0; }
+    .key-body h5{
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+    }
+    .key-body .token{
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 5px;
+        padding: 6px 11px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        display: inline-block;
+        word-break: break-all;
+        letter-spacing: 0.02em;
+    }
+    .key-body p{
+        font-size: 0.66rem;
+        color: var(--faint);
+        margin-top: 4px;
+        font-weight: 600;
+    }
+
+    /* ============================================================
+       11 · BADGE / PILL
+       ============================================================ */
+    .pill-tag{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 11px;
+        border-radius: 50px;
+        white-space: nowrap;
+    }
+    .pill-tag i{ font-size: 0.68rem; }
+    .pill-tag.on    { background: rgba(34, 197, 94, 0.12); color: #15803D; }
+    .pill-tag.off   { background: var(--line-soft); color: var(--muted); }
+    .pill-tag.warn  { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .pill-tag.bad   { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .pill-tag.info  { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+
+    /* ============================================================
+       12 · DANGER ZONE
+       ============================================================ */
+    .danger-panel{
+        position: relative;
+        padding: 26px 26px 22px;
+        border-radius: var(--r-xl);
+        background:
+            radial-gradient(ellipse at 92% 20%, rgba(244, 63, 94, 0.12), transparent 55%),
+            linear-gradient(135deg, #1E0A15 0%, var(--ink) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .danger-panel::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #FB7185, #E11D48, #FB7185);
+    }
+    .danger-panel .dp-badge{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 13px;
+        border-radius: 50px;
+        background: rgba(244, 63, 94, 0.16);
+        border: 1px solid rgba(244, 63, 94, 0.42);
+        color: #FB7185;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        align-self: flex-start;
+    }
+    .danger-panel h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.012em;
+        color: #fff;
+    }
+    .danger-panel h3 em{ color: #FB7185; font-style: italic; }
+    .danger-panel > p{
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.7;
+        max-width: 560px;
+    }
+
+    .danger-actions{
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+    .btn-danger{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        border: 1px solid rgba(244, 63, 94, 0.5);
+        background: rgba(244, 63, 94, 0.10);
+        color: #FB7185;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .btn-danger:hover{
+        background: #E11D48;
+        border-color: #E11D48;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+    .btn-danger-solid{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        border: none;
+        background: linear-gradient(135deg, #FB7185, #E11D48);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        box-shadow: 0 10px 26px rgba(225, 29, 72, 0.32);
+        text-decoration: none;
+    }
+    .btn-danger-solid:hover{
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(225, 29, 72, 0.42);
+    }
+
+    /* ============================================================
+       13 · TRUST / INFO CARDS
+       ============================================================ */
+    .info-card{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 16px;
+        border-radius: 12px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        transition: var(--transition, all .25s ease);
+        margin-bottom: 10px;
+    }
+    .info-card:last-child{ margin-bottom: 0; }
+    .info-card:hover{ border-color: var(--gold-line); background: var(--paper); }
+    .info-card > i{
+        width: 30px; height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .info-card.sky > i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .info-card.violet > i{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+    .info-card.green > i { background: rgba(34, 197, 94, 0.14); color: #15803D; }
+    .info-card.rose > i  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .info-card h6{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 3px;
+    }
+    .info-card p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       14 · SECTION HEAD
+       ============================================================ */
+    .sect-head{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 4px 4px 0;
+    }
+    .sect-head h2{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.42rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.012em;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .sect-head h2::before{
+        content: '';
+        width: 24px;
+        height: 2px;
+        background: var(--gold);
+        display: inline-block;
+    }
+    .sect-head .meta{
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sect-head .meta i{ color: var(--gold); }
+
+    /* ============================================================
+       15 · FORM FOOTER (sticky action bar)
+       ============================================================ */
+    .form-foot{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding-top: 18px;
+        margin-top: 18px;
+        border-top: 1px solid var(--line-soft);
+    }
+    .form-foot .note{
+        font-size: 0.7rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .form-foot .note i{ color: var(--leaf-deep); }
+    .form-foot .actions{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       FALLBACK BUTTONS
+       ============================================================ */
+    .settings .btn-gold{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        border: none;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.30);
+        text-decoration: none;
+    }
+    .settings .btn-gold:hover{
+        transform: translateY(-3px);
+        box-shadow: 0 16px 34px rgba(190, 242, 100, 0.40);
+    }
+    .settings .btn-outline{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .settings .btn-outline:hover{
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    .settings .btn-ghost{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 18px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .settings .btn-ghost:hover{
+        border-color: var(--gold);
+        color: var(--gold-deep);
+        transform: translateY(-2px);
+    }
+    .settings .btn-solid{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .settings .btn-solid:hover{
+        background: var(--ink-2);
+        border-color: var(--ink-2);
+        transform: translateY(-2px);
+    }
+</style>
+
+
+<div class="settings">
+
+    <!-- ====================================================
+         1 · COMMAND STRIP
+         ==================================================== -->
+    <header class="cmd-strip rise">
+        <div class="cmd-left">
+            <span class="cmd-kicker"><i class="bi bi-sliders"></i> Faculty Settings · Level XII</span>
+            <h1>Your account, <em>your rules.</em></h1>
+            <p class="cmd-sub">
+                <span data-clock>18:12</span>
+                <span class="dot"></span>
+                Last saved <strong>2 min ago</strong>
+                <span class="dot"></span>
+                2FA <strong>Enabled</strong>
+                <span class="dot"></span>
+                Profile <strong>84%</strong> complete
+            </p>
+        </div>
+        <div class="cmd-right">
+            <span class="cmd-chip"><i class="bi bi-shield-check"></i> <span><strong>Secured</strong></span></span>
+            <button class="btn-ghost" data-toast="Opening change log…">
+                <i class="bi bi-clock-history"></i> Change log
+            </button>
+            <button class="btn-gold" data-toast="All changes saved…" data-toast-type="success">
+                <i class="bi bi-check2-circle"></i> Save changes
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · IDENTITY CHAMBER
+         ==================================================== -->
+    <section class="identity rise">
+        <div class="aurora"></div>
+
+        <div class="identity-info">
+            <div class="identity-avatar" data-toast="Opening avatar uploader…">
+                DO
+                <span class="cam"><i class="bi bi-camera-fill"></i></span>
+            </div>
+
+            <div class="identity-text">
+                <span class="identity-eyebrow"><i class="bi bi-patch-check-fill"></i> Verified Faculty</span>
+                <h2>Daniel <em>Okafor</em></h2>
+                <div class="handle">
+                    daniel.okafor@knotwork.io
+                    <span class="verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                </div>
+                <p class="bio">
+                    Master Instructor · Level XII. Teaching React, TypeScript and design systems to
+                    148 active students across 12 countries. Ten years of craft, eighteen months on the faculty.
+                </p>
+
+                <div class="identity-tags">
+                    <span><i class="bi bi-mortarboard-fill"></i> Master Instructor</span>
+                    <span><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria</span>
+                    <span><i class="bi bi-translate"></i> English · Igbo</span>
+                    <span><i class="bi bi-clock-fill"></i> WAT (UTC+1)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="identity-meter">
+            <div class="meter-ring">
+                <svg viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="meterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%"   stop-color="#D9F99D"/>
+                            <stop offset="60%"  stop-color="#BEF264"/>
+                            <stop offset="100%" stop-color="#7ED321"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="bg" cx="100" cy="100" r="80"/>
+                    <circle class="fg" cx="100" cy="100" r="80" data-meter="84"/>
+                </svg>
+                <div class="meter-core">
+                    <div>
+                        <div class="pct">84<em>%</em></div>
+                        <div class="lbl">Profile</div>
+                    </div>
+                </div>
+            </div>
+            <p>
+                Add a <strong>profile photo</strong> and a <strong>short intro video</strong> to reach 100%.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         3 · CONSTELLATION — KPI ribbon
+         ==================================================== -->
+    <section class="constellation">
+        <article class="kpi rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-person-check-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="tg1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#BEF264" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7 L78,28 L0,28 Z" fill="url(#tg1)"/>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7" fill="none" stroke="#BEF264" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="84">0</span><em>%</em></div>
+            <div class="kpi-label">Profile complete</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +6% this month</span>
+        </article>
+
+        <article class="kpi sky rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-shield-lock-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6 L78,28 L0,28 Z" fill="url(#tg2)"/>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6" fill="none" stroke="#38BDF8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="92">0</span><em>/100</em></div>
+            <div class="kpi-label">Security score</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> Strong</span>
+        </article>
+
+        <article class="kpi violet rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-laptop"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="tg3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#8B5CF6" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9 L78,28 L0,28 Z" fill="url(#tg3)"/>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9" fill="none" stroke="#8B5CF6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="3">0</span></div>
+            <div class="kpi-label">Active sessions</div>
+            <span class="kpi-trend"><i class="bi bi-shield-check"></i> All verified</span>
+        </article>
+
+        <article class="kpi leaf rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-bell-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="tg4" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#65A30D" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#65A30D" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8 L78,28 L0,28 Z" fill="url(#tg4)"/>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8" fill="none" stroke="#65A30D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="7">0</span></div>
+            <div class="kpi-label">Notification channels</div>
+            <span class="kpi-trend"><i class="bi bi-check2-circle"></i> All configured</span>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         4 · TABS
+         ==================================================== -->
+    <div class="tab-bar rise" role="tablist" aria-label="Settings sections">
+        <button class="tab-btn active" data-tab="profile" role="tab" aria-selected="true">
+            <i class="bi bi-person-fill"></i> Profile
+        </button>
+        <button class="tab-btn" data-tab="account" role="tab" aria-selected="false">
+            <i class="bi bi-key-fill"></i> Account
+        </button>
+        <button class="tab-btn" data-tab="security" role="tab" aria-selected="false">
+            <i class="bi bi-shield-lock-fill"></i> Security
+        </button>
+        <button class="tab-btn" data-tab="notifications" role="tab" aria-selected="false">
+            <i class="bi bi-bell-fill"></i> Notifications
+        </button>
+        <button class="tab-btn" data-tab="preferences" role="tab" aria-selected="false">
+            <i class="bi bi-sliders2"></i> Preferences
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         TAB · PROFILE
+         ==================================================== -->
+    <div class="tab-panel active" id="tab-profile" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- PUBLIC PROFILE (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-person-vcard"></i> Public profile</h3>
+                    <span class="pill-tag on"><i class="bi bi-eye-fill"></i> Visible to students</span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>First name <span class="req">Required</span></label>
+                            <input type="text" class="input" value="Daniel" placeholder="First name">
+                        </div>
+                        <div class="field">
+                            <label>Last name <span class="req">Required</span></label>
+                            <input type="text" class="input" value="Okafor" placeholder="Last name">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Display name</label>
+                        <input type="text" class="input" value="Professor Daniel" placeholder="How students see you">
+                        <p class="hint"><i class="bi bi-info-circle"></i> Shown on your faculty profile, courses and reviews.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>
+                            Bio
+                            <span class="char-count" data-count-for="bioField">0 / 320</span>
+                        </label>
+                        <textarea class="textarea" id="bioField" maxlength="320" placeholder="Tell students who you are and how you teach…">Master Instructor · Level XII. Teaching React, TypeScript and design systems to 148 active students across 12 countries. Ten years of craft, eighteen months on the faculty.</textarea>
+                        <p class="hint"><i class="bi bi-lightbulb"></i> A short, honest bio outperforms a list of credentials.</p>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Headline</label>
+                            <input type="text" class="input" value="React &amp; Design Systems Instructor" placeholder="e.g. Senior Frontend Engineer">
+                        </div>
+                        <div class="field">
+                            <label>Location</label>
+                            <div class="input-wrap">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <input type="text" class="input" value="Lagos, Nigeria" placeholder="City, Country">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Expertise tags</label>
+                        <div class="identity-tags" style="margin-top: 4px;">
+                            <span><i class="bi bi-tag-fill"></i> React</span>
+                            <span><i class="bi bi-tag-fill"></i> TypeScript</span>
+                            <span><i class="bi bi-tag-fill"></i> Design Systems</span>
+                            <span><i class="bi bi-tag-fill"></i> Frontend Architecture</span>
+                            <span style="background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold-deep);"><i class="bi bi-plus"></i> Add tag</span>
+                        </div>
+                        <p class="hint"><i class="bi bi-search"></i> Tags help students discover your courses in search.</p>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- CONTACT (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-envelope-fill"></i> Contact &amp; links</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field">
+                        <label>Email address <span class="req">Required</span></label>
+                        <div class="input-action">
+                            <input type="email" class="input" value="daniel.okafor@knotwork.io" placeholder="you@example.com">
+                            <button class="btn-inline" data-toast="Verification email sent…">Verify</button>
+                        </div>
+                        <p class="hint"><i class="bi bi-patch-check-fill"></i> Verified · Used for student enquiries and payouts.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Public contact email <span class="opt">Optional</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-envelope"></i>
+                            <input type="email" class="input" value="hello@danielokafor.dev" placeholder="Shown on your profile">
+                        </div>
+                        <p class="hint"><i class="bi bi-shield-lock"></i> Leave blank to hide your email from students.</p>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Website <span class="opt">Optional</span></label>
+                            <div class="input-wrap">
+                                <i class="bi bi-link-45deg"></i>
+                                <input type="url" class="input" value="https://danielokafor.dev" placeholder="https://">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>LinkedIn <span class="opt">Optional</span></label>
+                            <div class="input-wrap">
+                                <i class="bi bi-linkedin"></i>
+                                <input type="url" class="input" value="linkedin.com/in/danielokafor" placeholder="linkedin.com/in/…">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>X / Twitter <span class="opt">Optional</span></label>
+                            <div class="input-wrap">
+                                <i class="bi bi-twitter-x"></i>
+                                <input type="text" class="input" value="@danielokafor" placeholder="@handle">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>GitHub <span class="opt">Optional</span></label>
+                            <div class="input-wrap">
+                                <i class="bi bi-github"></i>
+                                <input type="text" class="input" value="github.com/danielokafor" placeholder="github.com/…">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- PROFILE PREVIEW (span 4) ---------- -->
+            <article class="panel s-4 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-eye-fill"></i> How students see you</h3>
+                    <button class="panel-link" data-toast="Opening public profile…">
+                        Preview live <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+                    <div class="info-card">
+                        <i class="bi bi-eye-fill"></i>
+                        <div>
+                            <h6>Preview is live</h6>
+                            <p>Changes you save here appear immediately on your public faculty page. Students see your display name, headline, bio, expertise tags, and any contact links you chose to publish.</p>
+                        </div>
+                    </div>
+                    <div class="info-card sky">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <div>
+                            <h6>Private fields stay private</h6>
+                            <p>Your account email, phone number, bank details, and billing address are never shown publicly. Only the fields on this tab marked "visible to students" are exposed.</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /profile -->
+
+
+    <!-- ====================================================
+         TAB · ACCOUNT
+         ==================================================== -->
+    <div class="tab-panel" id="tab-account" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- LOGIN DETAILS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-key-fill"></i> Login &amp; password</h3>
+                    <span class="pill-tag on"><i class="bi bi-shield-check"></i> Strong</span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field">
+                        <label>Account email <span class="req">Primary</span></label>
+                        <div class="input-action">
+                            <input type="email" class="input" value="daniel.okafor@knotwork.io" disabled>
+                            <button class="btn-inline" data-toast="Opening email change flow…">Change</button>
+                        </div>
+                        <p class="hint"><i class="bi bi-info-circle"></i> Changing your email requires re-verification. Your account stays active throughout.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Current password <span class="req">Required</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-lock-fill"></i>
+                            <input type="password" class="input" value="••••••••••••" placeholder="Enter current password">
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>New password</label>
+                            <div class="input-wrap">
+                                <i class="bi bi-key-fill"></i>
+                                <input type="password" class="input" placeholder="Minimum 12 characters">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Confirm new password</label>
+                            <div class="input-wrap">
+                                <i class="bi bi-key-fill"></i>
+                                <input type="password" class="input" placeholder="Repeat new password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-bottom: 0;">
+                        <label>Password strength</label>
+                        <div class="bar leaf"><span data-value="78"></span></div>
+                        <p class="hint"><i class="bi bi-check2-circle" style="color: var(--leaf-deep);"></i> Good · Add a symbol and two more characters for "Excellent".</p>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- LINKED ACCOUNTS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head violet">
+                    <h3><i class="bi bi-link-45deg"></i> Linked accounts</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Google <span class="tag">Connected</span></h5>
+                            <p>daniel.okafor@gmail.com · Used for single sign-on.</p>
+                        </div>
+                        <button class="device-revoke" data-toast="Unlinking Google account…">Unlink</button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>GitHub <span class="tag">Connected</span></h5>
+                            <p>@danielokafor · Used for portfolio sync.</p>
+                        </div>
+                        <button class="device-revoke" data-toast="Unlinking GitHub account…">Unlink</button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>LinkedIn</h5>
+                            <p>Not connected · Link to import your professional history.</p>
+                        </div>
+                        <button class="device-revoke" style="border-color: var(--gold-line); color: var(--gold-deep);" data-toast="Opening LinkedIn link flow…">Connect</button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Apple</h5>
+                            <p>Not connected · Use Apple ID for single sign-on.</p>
+                        </div>
+                        <button class="device-revoke" style="border-color: var(--gold-line); color: var(--gold-deep);" data-toast="Opening Apple link flow…">Connect</button>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- ACCOUNT DETAILS (span 4) ---------- -->
+            <article class="panel s-4 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-person-badge-fill"></i> Account details</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Faculty ID</label>
+                            <input type="text" class="input" value="KNW-FAC-2026-0394-XII" disabled>
+                            <p class="hint"><i class="bi bi-lock-fill"></i> Immutable · Assigned at onboarding.</p>
+                        </div>
+                        <div class="field">
+                            <label>Member since</label>
+                            <input type="text" class="input" value="12 September 2024" disabled>
+                            <p class="hint"><i class="bi bi-clock-history"></i> 18 months of tenure on the faculty.</p>
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Phone number <span class="opt">Optional</span></label>
+                            <div class="input-wrap">
+                                <i class="bi bi-telephone-fill"></i>
+                                <input type="tel" class="input" value="+234 803 555 8813" placeholder="+country code">
+                            </div>
+                            <p class="hint"><i class="bi bi-shield-lock"></i> Used only for security alerts. Never shared publicly.</p>
+                        </div>
+                        <div class="field">
+                            <label>Preferred language</label>
+                            <select class="select">
+                                <option>English (UK)</option>
+                                <option>English (US)</option>
+                                <option>Igbo</option>
+                                <option>Français</option>
+                                <option>العربية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /account -->
+
+
+    <!-- ====================================================
+         TAB · SECURITY
+         ==================================================== -->
+    <div class="tab-panel" id="tab-security" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- SECURITY SCORE (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head leaf">
+                    <h3><i class="bi bi-shield-check"></i> Security score</h3>
+                    <span class="pill-tag on"><i class="bi bi-check2-circle"></i> Strong · 92/100</span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field" style="margin-bottom: 16px;">
+                        <div class="bar leaf"><span data-value="92"></span></div>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5><i class="bi bi-check-circle-fill" style="color: var(--leaf-deep);"></i> Two-factor authentication</h5>
+                            <p>Authenticator app · Added 12 Feb 2026</p>
+                        </div>
+                        <button class="toggle on" data-toast="2FA setting changed…" aria-label="Toggle 2FA"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5><i class="bi bi-check-circle-fill" style="color: var(--leaf-deep);"></i> Strong password</h5>
+                            <p>Last changed 94 days ago · Recommend every 180 days</p>
+                        </div>
+                        <button class="toggle on" aria-label="Strong password"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5><i class="bi bi-check-circle-fill" style="color: var(--leaf-deep);"></i> Recovery email</h5>
+                            <p>d•••@gmail.com · Verified</p>
+                        </div>
+                        <button class="toggle on" aria-label="Recovery email"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5><i class="bi bi-exclamation-circle-fill" style="color: #B45309;"></i> Passkey</h5>
+                            <p>Not yet configured · Skip the password entirely</p>
+                        </div>
+                        <button class="toggle" data-toast="Opening passkey setup…" aria-label="Toggle passkey"></button>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- 2FA DETAILS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-phone-fill"></i> Two-factor authentication</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="info-card green">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <h6>Authenticator app enabled</h6>
+                            <p>You will be asked for a 6-digit code when signing in from a new device.</p>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-top: 18px;">
+                        <label>Backup codes</label>
+                        <div class="key-body">
+                            <span class="token">KNW-2FA-8813-2291-4402-7781 · 8 codes remaining</span>
+                            <p>Store these somewhere safe. Each code can be used once if you lose access to your authenticator.</p>
+                        </div>
+                        <div class="form-foot" style="margin-top: 10px; padding-top: 10px;">
+                            <span class="note"><i class="bi bi-shield-lock"></i> Never share your backup codes.</span>
+                            <div class="actions">
+                                <button class="btn-ghost" data-toast="Downloading backup codes…"><i class="bi bi-download"></i> Download</button>
+                                <button class="btn-ghost" data-toast="Regenerating backup codes…"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-top: 18px; margin-bottom: 0;">
+                        <label>Recovery phone</label>
+                        <div class="input-action">
+                            <input type="tel" class="input" value="+234 803 555 8813" disabled>
+                            <button class="btn-inline" data-toast="Opening phone change flow…">Change</button>
+                        </div>
+                        <p class="hint"><i class="bi bi-shield-check"></i> Used as a fallback if you lose your authenticator.</p>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- ACTIVE SESSIONS (span 4) ---------- -->
+            <article class="panel s-4 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-laptop"></i> Active sessions</h3>
+                    <button class="panel-link" data-toast="Signing out all other devices…" data-toast-type="error">
+                        Sign out all others <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="device-row">
+                        <span class="device-icon"><i class="bi bi-laptop"></i></span>
+                        <div class="device-body">
+                            <h5>MacBook Pro · Chrome 122 <span class="current">This device</span></h5>
+                            <p>Lagos, Nigeria · Session started 2 hours ago · IP 102.89.•••.14</p>
+                        </div>
+                        <div class="device-action">
+                            <span class="pill-tag on"><i class="bi bi-check-circle-fill"></i> Active</span>
+                        </div>
+                    </div>
+
+                    <div class="device-row">
+                        <span class="device-icon sky"><i class="bi bi-phone"></i></span>
+                        <div class="device-body">
+                            <h5>iPhone 15 Pro · Knotwork app</h5>
+                            <p>Lagos, Nigeria · Last active 4 hours ago · IP 102.89.•••.22</p>
+                        </div>
+                        <div class="device-action">
+                            <button class="device-revoke" data-toast="Revoking session…" data-toast-type="error">Revoke</button>
+                        </div>
+                    </div>
+
+                    <div class="device-row">
+                        <span class="device-icon violet"><i class="bi bi-tablet"></i></span>
+                        <div class="device-body">
+                            <h5>iPad Air · Safari 17</h5>
+                            <p>Abuja, Nigeria · Last active 2 days ago · IP 197.210.•••.8</p>
+                        </div>
+                        <div class="device-action">
+                            <button class="device-revoke" data-toast="Revoking session…" data-toast-type="error">Revoke</button>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- API KEYS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head violet">
+                    <h3><i class="bi bi-code-slash"></i> API keys</h3>
+                    <button class="panel-link" data-toast="Generating new API key…">
+                        New key <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="key-row">
+                        <div class="key-body">
+                            <h5>Production key</h5>
+                            <span class="token">knw_live_••••••••••••••••••3f81</span>
+                            <p>Created 12 Feb 2026 · Last used 2 hours ago</p>
+                        </div>
+                        <button class="device-revoke" data-toast="Revoking API key…" data-toast-type="error">Revoke</button>
+                    </div>
+
+                    <div class="key-row">
+                        <div class="key-body">
+                            <h5>Test key</h5>
+                            <span class="token">knw_test_••••••••••••••••••a204</span>
+                            <p>Created 04 Jan 2026 · Last used 3 weeks ago</p>
+                        </div>
+                        <button class="device-revoke" data-toast="Revoking API key…" data-toast-type="error">Revoke</button>
+                    </div>
+
+                    <div class="info-card" style="margin-top: 14px;">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>
+                            <h6>Keep keys secret</h6>
+                            <p>API keys grant full access to your faculty data. Never commit them to a public repository or share them in chats.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- AUDIT LOG (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-clock-history"></i> Recent security activity</h3>
+                    <button class="panel-link" data-toast="Opening full audit log…">
+                        Full log <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+                    <div class="audit-list">
+
+                        <div class="audit-item">
+                            <span class="audit-marker"><i class="bi bi-check-lg"></i></span>
+                            <div class="audit-body">
+                                <h5>Signed in from <strong>Chrome on MacBook Pro</strong></h5>
+                                <div class="meta"><i class="bi bi-clock"></i> 2 hours ago · Lagos, Nigeria</div>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <span class="audit-marker sky"><i class="bi bi-key-fill"></i></span>
+                            <div class="audit-body">
+                                <h5>2FA verified via <strong>authenticator app</strong></h5>
+                                <div class="meta"><i class="bi bi-clock"></i> 2 hours ago</div>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <span class="audit-marker violet"><i class="bi bi-pencil-fill"></i></span>
+                            <div class="audit-body">
+                                <h5>Password changed</h5>
+                                <div class="meta"><i class="bi bi-clock"></i> 94 days ago</div>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <span class="audit-marker amber"><i class="bi bi-shield-lock-fill"></i></span>
+                            <div class="audit-body">
+                                <h5>Two-factor authentication <strong>enabled</strong></h5>
+                                <div class="meta"><i class="bi bi-clock"></i> 12 Feb 2026</div>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <span class="audit-marker rose"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                            <div class="audit-body">
+                                <h5>Failed sign-in attempt blocked</h5>
+                                <div class="meta"><i class="bi bi-clock"></i> 03 Feb 2026 · Unknown device · IP 41.58.•••.91</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /security -->
+
+
+    <!-- ====================================================
+         TAB · NOTIFICATIONS
+         ==================================================== -->
+    <div class="tab-panel" id="tab-notifications" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- EMAIL NOTIFICATIONS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-envelope-fill"></i> Email notifications</h3>
+                    <button class="panel-link" data-toast="Opening email digest settings…">
+                        Digest settings <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>New enrolments</h5>
+                            <p>Get an email each time a student enrols in one of your courses.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Enrolment emails updated…" aria-label="Toggle enrolments"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Assignment submissions</h5>
+                            <p>Notified when a student submits work for review.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Submission emails updated…" aria-label="Toggle submissions"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>New reviews &amp; ratings</h5>
+                            <p>Emails for each new review, plus a weekly summary.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Review emails updated…" aria-label="Toggle reviews"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Payout confirmations</h5>
+                            <p>Confirmation when a payout is initiated, sent and settled.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Payout emails updated…" aria-label="Toggle payouts"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Product updates <span class="tag">Monthly</span></h5>
+                            <p>New faculty features, tools and platform improvements.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Product emails updated…" aria-label="Toggle product"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Marketing &amp; promotions</h5>
+                            <p>Partner offers and non-essential communications.</p>
+                        </div>
+                        <button class="toggle" data-toast="Marketing emails updated…" aria-label="Toggle marketing"></button>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- PUSH NOTIFICATIONS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-phone-fill"></i> Push notifications</h3>
+                    <span class="pill-tag info"><i class="bi bi-app-indicator"></i> App installed</span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Live session reminders</h5>
+                            <p>Ping 15 minutes before each scheduled studio session.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Session reminders updated…" aria-label="Toggle session reminders"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Direct messages</h5>
+                            <p>Push when a student sends you a message.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Message pushes updated…" aria-label="Toggle messages"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Grading queue</h5>
+                            <p>Daily reminder when assignments are waiting to be marked.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Grading pushes updated…" aria-label="Toggle grading"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Milestones &amp; honours</h5>
+                            <p>Celebrate when you unlock a distinction or rank milestone.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Milestone pushes updated…" aria-label="Toggle milestones"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Quiet hours</h5>
+                            <p>Pause all push notifications between 22:00 and 07:00 WAT.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Quiet hours updated…" aria-label="Toggle quiet hours"></button>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- FREQUENCY (span 4) ---------- -->
+            <article class="panel s-4 rise">
+                <div class="panel-head violet">
+                    <h3><i class="bi bi-calendar-week"></i> Delivery frequency</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Email digest</label>
+                            <select class="select">
+                                <option>Daily at 08:00 WAT</option>
+                                <option>Weekly on Mondays</option>
+                                <option>Monthly on the 1st</option>
+                                <option>Never — real-time only</option>
+                            </select>
+                            <p class="hint"><i class="bi bi-info-circle"></i> A single summary email instead of many individual pings.</p>
+                        </div>
+                        <div class="field">
+                            <label>Weekly report</label>
+                            <select class="select">
+                                <option>Every Monday at 09:00 WAT</option>
+                                <option>Every Friday at 17:00 WAT</option>
+                                <option>Monthly</option>
+                                <option>Disabled</option>
+                            </select>
+                            <p class="hint"><i class="bi bi-bar-chart-fill"></i> Enrolments, completions, ratings and revenue in one email.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card violet">
+                        <i class="bi bi-envelope-paper-fill"></i>
+                        <div>
+                            <h6>Notifications are private to your account</h6>
+                            <p>Your notification preferences are stored against your account and never shared with students or other faculty. You can change them at any time.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /notifications -->
+
+
+    <!-- ====================================================
+         TAB · PREFERENCES
+         ==================================================== -->
+    <div class="tab-panel" id="tab-preferences" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- DISPLAY (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-palette-fill"></i> Display</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field">
+                        <label>Theme</label>
+                        <div class="field-row" style="margin-top: 4px;">
+                            <button class="btn-solid" style="justify-content: center;" data-toast="Theme set to Light…">
+                                <i class="bi bi-sun-fill"></i> Light
+                            </button>
+                            <button class="btn-ghost" style="justify-content: center;" data-toast="Theme set to Dark…">
+                                <i class="bi bi-moon-stars-fill"></i> Dark
+                            </button>
+                        </div>
+                        <p class="hint"><i class="bi bi-info-circle"></i> "System" follows your OS setting and switches automatically.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Timezone</label>
+                        <select class="select">
+                            <option>WAT — West Africa Time (UTC+1) · Lagos</option>
+                            <option>GMT — Greenwich Mean Time (UTC+0)</option>
+                            <option>CET — Central European Time (UTC+1)</option>
+                            <option>EST — Eastern Standard Time (UTC−5)</option>
+                            <option>PST — Pacific Standard Time (UTC−8)</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Date format</label>
+                        <select class="select">
+                            <option>12 March 2026</option>
+                            <option>12/03/2026</option>
+                            <option>03/12/2026</option>
+                            <option>2026-03-12</option>
+                        </select>
+                    </div>
+
+                    <div class="field" style="margin-bottom: 0;">
+                        <label>Currency for earnings</label>
+                        <select class="select">
+                            <option>USD — US Dollar ($)</option>
+                            <option>NGN — Nigerian Naira (₦)</option>
+                            <option>GBP — Pound Sterling (£)</option>
+                            <option>EUR — Euro (€)</option>
+                        </select>
+                        <p class="hint"><i class="bi bi-currency-exchange"></i> Display currency only. Payout currency is set in your payout method.</p>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- TEACHING (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head leaf">
+                    <h3><i class="bi bi-mortarboard-fill"></i> Teaching preferences</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Accept new students</h5>
+                            <p>When off, your courses stop appearing in the catalogue.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Enrolment setting updated…" aria-label="Toggle enrolments"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Auto-approve enrolments</h5>
+                            <p>Students join your courses instantly without manual review.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Auto-approve updated…" aria-label="Toggle auto-approve"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Enable 1:1 mentorship bookings</h5>
+                            <p>Students can book paid sessions from your profile.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Mentorship setting updated…" aria-label="Toggle mentorship"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Allow student messages</h5>
+                            <p>Students can send you direct messages via the platform.</p>
+                        </div>
+                        <button class="toggle on" data-toast="Messaging setting updated…" aria-label="Toggle messaging"></button>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-body">
+                            <h5>Publish reviews automatically</h5>
+                            <p>New reviews appear on your profile without your approval.</p>
+                        </div>
+                        <button class="toggle" data-toast="Review setting updated…" aria-label="Toggle reviews"></button>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- ACCESSIBILITY (span 4) ---------- -->
+            <article class="panel s-4 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-universal-access-circle"></i> Accessibility</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Reduced motion</label>
+                            <select class="select">
+                                <option>Follow system setting</option>
+                                <option>Always reduce motion</option>
+                                <option>Never reduce motion</option>
+                            </select>
+                            <p class="hint"><i class="bi bi-info-circle"></i> Disables entrance animations, parallax and the spinning crest.</p>
+                        </div>
+                        <div class="field">
+                            <label>Text size</label>
+                            <select class="select">
+                                <option>Default (100%)</option>
+                                <option>Large (115%)</option>
+                                <option>Extra large (130%)</option>
+                            </select>
+                            <p class="hint"><i class="bi bi-fonts"></i> Scales the faculty interface for easier reading.</p>
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Colour contrast</label>
+                            <select class="select">
+                                <option>Standard</option>
+                                <option>High contrast</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Screen reader hints</label>
+                            <select class="select">
+                                <option>Enabled</option>
+                                <option>Disabled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- DANGER ZONE (span 4) ---------- -->
+            <div class="s-4 rise">
+                <div class="danger-panel">
+                    <span class="dp-badge"><i class="bi bi-exclamation-triangle-fill"></i> Danger zone</span>
+                    <h3>Deactivate or <em>delete</em> your account</h3>
+                    <p>
+                        Deactivating hides your profile and pauses new enrolments while keeping all your data intact.
+                        Deleting is permanent — courses, student records and payout history cannot be recovered.
+                        Both options require your password and 2FA confirmation.
+                    </p>
+
+                    <div class="danger-actions">
+                        <button class="btn-danger" data-toast="Opening deactivation flow…" data-toast-type="error">
+                            <i class="bi bi-pause-circle-fill"></i> Deactivate account
+                        </button>
+                        <button class="btn-danger-solid" data-toast="Opening deletion confirmation…" data-toast-type="error">
+                            <i class="bi bi-trash3-fill"></i> Delete account
+                        </button>
+                    </div>
+
+                    <div class="form-foot" style="border-top-color: rgba(255,255,255,0.10); margin-top: 10px;">
+                        <span class="note" style="color: rgba(255,255,255,0.55);">
+                            <i class="bi bi-shield-check" style="color: #FB7185;"></i>
+                            Both actions require re-authentication.
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </div><!-- /preferences -->
+
+</div><!-- /.settings -->
+
+
+<script>
+    (function () {
+        'use strict';
+
+        var root = document.querySelector('.settings');
+        if (!root) return;
+
+        /* -------------------------------------------------
+           Tabs
+           ------------------------------------------------- */
+        var tabButtons = root.querySelectorAll('.tab-btn');
+        var tabPanels  = root.querySelectorAll('.tab-panel');
+
+        function activateTab(id) {
+            tabButtons.forEach(function (btn) {
+                var on = btn.dataset.tab === id;
+                btn.classList.toggle('active', on);
+                btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            tabPanels.forEach(function (panel) {
+                panel.classList.toggle('active', panel.id === 'tab-' + id);
+            });
+
+            /* animate bars inside the freshly shown panel */
+            requestAnimationFrame(function () {
+                var active = root.querySelector('.tab-panel.active');
+                if (!active) return;
+                active.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                    el.style.width = '0';
+                    requestAnimationFrame(function () {
+                        setTimeout(function () {
+                            el.style.width = Math.min(parseFloat(el.dataset.value) || 0, 100) + '%';
+                        }, 60);
+                    });
+                });
+            });
+
+            /* re-observe reveal for the new panel */
+            var fresh = root.querySelector('.tab-panel.active');
+            if (fresh) {
+                fresh.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                    var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+                    setTimeout(function () { el.style.width = v + '%'; }, 80);
+                });
+            }
+        }
+
+        tabButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                activateTab(btn.dataset.tab);
+            });
+        });
+
+        /* -------------------------------------------------
+           Animated counters
+           ------------------------------------------------- */
+        root.querySelectorAll('[data-count]').forEach(function (el) {
+            var target = parseFloat(el.dataset.count) || 0;
+            var duration = 1300;
+            var start = null;
+
+            function step(ts) {
+                if (start === null) start = ts;
+                var progress = Math.min((ts - start) / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+
+        /* -------------------------------------------------
+           Profile completion meter (ring)
+           ------------------------------------------------- */
+        var ring = root.querySelector('.meter-ring .fg');
+        if (ring) {
+            var pct = Math.min(parseFloat(ring.dataset.meter) || 0, 100);
+            var circumference = 502;
+            var offset = circumference - (pct / 100) * circumference;
+            setTimeout(function () {
+                ring.style.strokeDashoffset = offset;
+            }, 200);
+        }
+
+        /* -------------------------------------------------
+           Progress bars — initial animation
+           ------------------------------------------------- */
+        requestAnimationFrame(function () {
+            var active = root.querySelector('.tab-panel.active');
+            if (!active) return;
+            active.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+                el.style.width = v + '%';
+            });
+        });
+
+        /* -------------------------------------------------
+           Toggle switches
+           ------------------------------------------------- */
+        root.querySelectorAll('.toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function () {
+                toggle.classList.toggle('on');
+            });
+        });
+
+        /* -------------------------------------------------
+           Character counter for the bio textarea
+           ------------------------------------------------- */
+        var bio = root.querySelector('#bioField');
+        var bioCount = root.querySelector('[data-count-for="bioField"]');
+        if (bio && bioCount) {
+            var update = function () {
+                bioCount.textContent = bio.value.length + ' / ' + (bio.maxLength || 320);
+            };
+            update();
+            bio.addEventListener('input', update);
+        }
+
+        /* -------------------------------------------------
+           Live clock
+           ------------------------------------------------- */
+        var clock = root.querySelector('[data-clock]');
+        if (clock) {
+            var tick = function () {
+                var d = new Date();
+                clock.textContent =
+                    String(d.getHours()).padStart(2, '0') + ':' +
+                    String(d.getMinutes()).padStart(2, '0');
+            };
+            tick();
+            setInterval(tick, 20000);
+        }
+    })();
+</script>
+
+{% endblock content %}

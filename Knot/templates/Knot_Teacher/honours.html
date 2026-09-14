@@ -1,0 +1,2674 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Honours & Distinctions{% endblock %}
+{% block page_title %}Honours{% endblock %}
+{% block breadcrumb %}Honours{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       THE HONOURS WALL
+       Ranks · Distinctions · Verifiable credentials
+       Scoped entirely under .honours
+       ============================================================ */
+
+    .honours{
+        /* palette — inherits from base, with safe fallbacks */
+        --gold:        var(--secondary, #BEF264);
+        --gold-deep:   var(--secondary-deep, #7ED321);
+        --gold-light:  var(--secondary-light, #D9F99D);
+        --gold-soft:   rgba(190, 242, 100, 0.12);
+        --gold-line:   rgba(190, 242, 100, 0.30);
+
+        --ink:         var(--primary-dark, #0B1121);
+        --ink-2:       var(--primary, #1E293B);
+        --ink-3:       var(--primary-light, #334155);
+
+        --paper:       var(--white, #FFFFFF);
+        --paper-2:     var(--cream, #FAFAF7);
+        --line:        var(--gray-200, #E5E7EB);
+        --line-soft:   var(--gray-100, #F1F5F9);
+        --muted:       var(--gray-600, #4B5563);
+        --faint:       var(--gray-300, #D1D5DB);
+
+        --leaf:        var(--secondary, #BEF264);
+        --leaf-deep:   var(--secondary-deep, #65A30D);
+        --sky:         var(--accent, #38BDF8);
+        --violet:      var(--accent, #38BDF8);
+        --rose:        #F43F5E;
+
+        --r:           var(--radius, 14px);
+        --r-xl:        var(--radius-xl, 22px);
+        --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        position: relative;
+    }
+
+    /* ---------- shared fade-up entry ---------- */
+    .honours .rise{
+        opacity: 0;
+        transform: translateY(14px);
+        animation: hRise .7s var(--ease) forwards;
+    }
+    .honours .rise:nth-child(1){ animation-delay: .02s; }
+    .honours .rise:nth-child(2){ animation-delay: .08s; }
+    .honours .rise:nth-child(3){ animation-delay: .14s; }
+    .honours .rise:nth-child(4){ animation-delay: .20s; }
+    .honours .rise:nth-child(5){ animation-delay: .26s; }
+    .honours .rise:nth-child(6){ animation-delay: .32s; }
+    @keyframes hRise{ to { opacity: 1; transform: translateY(0); } }
+
+    /* ---------- shared bar ---------- */
+    .honours .bar{
+        height: 6px;
+        border-radius: 6px;
+        background: var(--line-soft);
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+    .honours .bar > span{
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 6px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        transition: width 1.2s var(--ease);
+    }
+    .honours .bar.leaf > span  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .honours .bar.sky > span   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .honours .bar.violet > span{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .honours .bar.rose > span  { background: linear-gradient(90deg, #FB7185, #E11D48); }
+
+    /* ============================================================
+       1 · COMMAND STRIP
+       ============================================================ */
+    .cmd-strip{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding: 4px 4px 20px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+    }
+    .cmd-strip::after{
+        content: '';
+        position: absolute;
+        left: 4px; right: 4px; bottom: -1px;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 18%,
+            transparent 42%,
+            transparent 100%);
+        border-radius: 2px;
+    }
+    .cmd-kicker{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        margin-bottom: 10px;
+    }
+    .cmd-kicker i{ color: var(--gold); }
+    .cmd-left h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .cmd-left h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .cmd-sub{
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .cmd-sub .dot{
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--faint);
+    }
+    .cmd-sub strong{ color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .cmd-right{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .cmd-chip{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.02em;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+    }
+    .cmd-chip i{ color: var(--gold); font-size: 0.85rem; }
+    .cmd-chip strong{ color: var(--gold-deep); }
+
+    /* ============================================================
+       2 · RANK HALL
+       ============================================================ */
+    .rank-hall{
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 36px;
+        padding: 44px 46px;
+        border-radius: var(--r-xl);
+        background:
+            radial-gradient(ellipse at 88% 12%, rgba(190, 242, 100, 0.16), transparent 55%),
+            radial-gradient(ellipse at 15% 100%, rgba(190, 242, 100, 0.10), transparent 55%),
+            radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.12), transparent 70%),
+            linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    }
+    @media (max-width: 1180px){
+        .rank-hall{ grid-template-columns: 1fr; gap: 26px; padding: 32px 28px; }
+    }
+    .rank-hall::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 25%,
+            var(--leaf) 55%,
+            var(--sky) 80%,
+            #A78BFA 100%);
+    }
+    .rank-hall::after{
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+        background-size: 26px 26px;
+        pointer-events: none;
+        mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+    }
+    .rank-hall .aurora{
+        position: absolute;
+        inset: -40%;
+        background:
+            radial-gradient(circle at 30% 40%, rgba(190, 242, 100, 0.14), transparent 30%),
+            radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.16), transparent 32%);
+        animation: auroraDrift 18s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(20px);
+    }
+    @keyframes auroraDrift{
+        0%, 100%{ transform: translate(0, 0) scale(1); }
+        50%     { transform: translate(-4%, 3%) scale(1.08); }
+    }
+
+    .rank-text{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+    }
+    .rank-eyebrow{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 6px 15px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: var(--gold-light);
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        align-self: flex-start;
+        margin-bottom: 22px;
+    }
+    .rank-text h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.9rem, 3.6vw, 2.85rem);
+        font-weight: 700;
+        line-height: 1.06;
+        letter-spacing: -0.022em;
+        color: #fff;
+        margin-bottom: 16px;
+        max-width: 620px;
+    }
+    .rank-text h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-light), var(--leaf));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .rank-text > p{
+        color: rgba(255, 255, 255, 0.66);
+        font-size: 0.96rem;
+        line-height: 1.78;
+        max-width: 560px;
+        margin-bottom: 26px;
+    }
+    .rank-text > p strong{ color: #fff; font-weight: 600; }
+    .rank-text > p em{
+        color: var(--gold-light);
+        font-style: normal;
+        font-weight: 700;
+    }
+
+    /* ---- progress toward next tier ---- */
+    .tier-progress{
+        max-width: 560px;
+        padding: 18px 20px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        margin-bottom: 24px;
+    }
+    .tier-progress .tp-top{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .tier-progress .tp-top span{
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .tier-progress .tp-top strong{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--gold-light);
+        font-variant-numeric: tabular-nums;
+    }
+    .tier-progress .bar{
+        background: rgba(255, 255, 255, 0.10);
+        height: 8px;
+    }
+    .tier-progress .bar > span{
+        background: linear-gradient(90deg, var(--gold-light), var(--gold));
+        box-shadow: 0 0 16px rgba(190, 242, 100, 0.45);
+    }
+    .tier-progress .tp-foot{
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 10px;
+        font-size: 0.66rem;
+        color: rgba(255, 255, 255, 0.48);
+        font-weight: 600;
+    }
+    .tier-progress .tp-foot b{ color: rgba(255, 255, 255, 0.82); font-weight: 700; }
+
+    .rank-actions{
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: auto;
+    }
+
+    /* ---- pinned micro-stats ---- */
+    .rank-pins{
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 26px;
+        max-width: 560px;
+    }
+    .pin-chip{
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: var(--transition, all .25s ease);
+    }
+    .pin-chip:hover{
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-3px);
+        border-color: rgba(190, 242, 100, 0.35);
+    }
+    .pin-chip .k{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 6px;
+    }
+    .pin-chip .v{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+    .pin-chip .v em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .pin-chip .v.gold{ color: var(--gold-light); }
+    .pin-chip .v.leaf{ color: var(--leaf); }
+
+    /* ---- the seal ---- */
+    .seal-wrap{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+    }
+    .seal{
+        position: relative;
+        width: 262px;
+        height: 262px;
+        display: grid;
+        place-items: center;
+    }
+    .seal::before{
+        content: '';
+        position: absolute;
+        inset: -28px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(190, 242, 100, 0.24), transparent 62%);
+        animation: sealGlow 4s ease-in-out infinite;
+    }
+    @keyframes sealGlow{
+        0%, 100%{ transform: scale(1); opacity: 0.75; }
+        50%     { transform: scale(1.09); opacity: 1; }
+    }
+    .seal::after{
+        content: '';
+        position: absolute;
+        inset: -12px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg,
+            transparent 0deg,
+            rgba(190, 242, 100, 0.20) 30deg,
+            transparent 60deg,
+            transparent 360deg);
+        animation: sealSweep 5s linear infinite;
+        pointer-events: none;
+        mask-image: radial-gradient(circle, transparent 40%, #000 45%, transparent 70%);
+        -webkit-mask-image: radial-gradient(circle, transparent 40%, #000 45%, transparent 70%);
+    }
+    @keyframes sealSweep{ to { transform: rotate(360deg); } }
+
+    .seal svg{
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 22px 44px rgba(190, 242, 100, 0.28));
+        animation: sealFloat 6s ease-in-out infinite;
+    }
+    @keyframes sealFloat{
+        0%, 100%{ transform: translateY(0) rotate(0deg); }
+        50%     { transform: translateY(-9px) rotate(0.8deg); }
+    }
+    .seal .ring-a{ transform-origin: 130px 130px; animation: spinCW 26s linear infinite; }
+    .seal .ring-b{ transform-origin: 130px 130px; animation: spinCCW 40s linear infinite; }
+    .seal .ring-c{ transform-origin: 130px 130px; animation: spinCW 60s linear infinite; }
+    @keyframes spinCW  { to { transform: rotate(360deg); } }
+    @keyframes spinCCW { to { transform: rotate(-360deg); } }
+
+    .seal .orbit{
+        position: absolute;
+        top: 50%; left: 50%;
+        border-radius: 50%;
+        border: 1px dashed rgba(190, 242, 100, 0.22);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+    .seal .orbit.o1{ width: 78%; height: 78%; animation: spinCW 18s linear infinite; }
+    .seal .orbit.o2{ width: 96%; height: 96%; animation: spinCCW 32s linear infinite; }
+    .seal .orbit span{
+        position: absolute;
+        top: -4px; left: 50%;
+        width: 8px; height: 8px;
+        margin-left: -4px;
+        border-radius: 50%;
+        background: var(--gold);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.18), 0 0 14px rgba(190, 242, 100, 0.55);
+    }
+    .seal .orbit.o2 span{
+        background: var(--leaf);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.18), 0 0 14px rgba(190, 242, 100, 0.7);
+        width: 6px; height: 6px; margin-left: -3px;
+    }
+
+    .seal-overlay{
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        padding-bottom: 4px;
+    }
+    .seal-overlay .lvl-kicker{
+        font-size: 0.52rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+        margin-bottom: 6px;
+    }
+    .seal-overlay .lvl-num{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.6rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: #fff;
+        text-shadow: 0 4px 24px rgba(190, 242, 100, 0.42);
+    }
+    .seal-overlay .lvl-tier{
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--leaf);
+        margin-top: 7px;
+    }
+    .seal-overlay .lvl-glyph{
+        display: grid;
+        place-items: center;
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        margin: 9px auto 0;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        font-size: 1rem;
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.42);
+        animation: glyphPulse 2.6s ease-in-out infinite;
+    }
+    @keyframes glyphPulse{
+        0%, 100%{ transform: scale(1); }
+        50%     { transform: scale(1.09); }
+    }
+    .seal-caption{
+        text-align: center;
+        font-size: 0.7rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.55);
+        max-width: 250px;
+    }
+    .seal-caption strong{ color: var(--gold-light); font-weight: 700; }
+
+    /* ============================================================
+       3 · CONSTELLATION — KPI ribbon
+       ============================================================ */
+    .constellation{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+    @media (max-width: 1180px){ .constellation{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .constellation{ grid-template-columns: 1fr; } }
+
+    .kpi{
+        position: relative;
+        padding: 22px 20px 18px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        transition: var(--transition, all .25s ease);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .kpi::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        border-radius: 3px 3px 0 0;
+    }
+    .kpi.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .kpi.violet::before{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .kpi.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .kpi:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: rgba(190, 242, 100, 0.24);
+    }
+
+    .kpi-top{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .kpi-icon{
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .kpi.sky .kpi-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .kpi.violet .kpi-icon{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi.leaf .kpi-icon  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+
+    .kpi-spark{ width: 78px; height: 28px; flex-shrink: 0; }
+
+    .kpi-num{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.05rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.028em;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+    .kpi-num em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--muted);
+    }
+    .kpi-label{
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--muted);
+        letter-spacing: 0.01em;
+    }
+    .kpi-trend{
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.22);
+        color: var(--leaf-deep);
+        letter-spacing: 0.02em;
+        align-self: flex-start;
+    }
+    .kpi.sky .kpi-trend   { background: rgba(56, 189, 248, 0.16); color: #0284C7; }
+    .kpi.violet .kpi-trend{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi-trend i{ font-size: 0.6rem; }
+
+    /* ============================================================
+       4 · BENTO GRID
+       ============================================================ */
+    .bento{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+    .bento > *{ min-width: 0; }
+    .s-1{ grid-column: span 1; }
+    .s-2{ grid-column: span 2; }
+    .s-3{ grid-column: span 3; }
+    .s-4{ grid-column: span 4; }
+
+    @media (max-width: 1080px){
+        .bento{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 2; }
+    }
+    @media (max-width: 620px){
+        .bento{ grid-template-columns: 1fr; }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 1; }
+    }
+
+    /* ---------- panel base ---------- */
+    .panel{
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        overflow: hidden;
+        transition: var(--transition, all .25s ease);
+        position: relative;
+    }
+    .panel:hover{ box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08)); }
+
+    .panel-head{
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .panel-head h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.005em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .panel-head h3 i{
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .panel-head.sky h3 i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .panel-head.violet h3 i{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .panel-head.leaf h3 i  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+
+    .panel-link{
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: var(--transition, all .25s ease);
+        flex-shrink: 0;
+    }
+    .panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+    .panel-body{ padding: 18px 22px 22px; }
+
+    /* ============================================================
+       4a · TIER LADDER
+       ============================================================ */
+    .ladder{
+        display: flex;
+        list-style: none;
+        margin: 0 0 22px;
+        padding: 0;
+    }
+    .ladder .step{
+        flex: 1;
+        position: relative;
+        text-align: center;
+        min-width: 0;
+    }
+    .ladder .step::before{
+        content: '';
+        position: absolute;
+        top: 15px; left: 50%;
+        width: 100%;
+        height: 3px;
+        background: var(--line-soft);
+        z-index: 0;
+    }
+    .ladder .step:last-child::before{ display: none; }
+    .ladder .step.done::before{
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    }
+    .ladder .step .dot{
+        position: relative;
+        z-index: 2;
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 10px;
+        background: var(--paper);
+        border: 2px solid var(--line);
+        color: var(--faint);
+        font-size: 0.78rem;
+        font-weight: 800;
+        transition: var(--transition, all .25s ease);
+    }
+    .ladder .step.done .dot{
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        border-color: transparent;
+        color: var(--ink);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .ladder .step.current .dot{
+        background: var(--ink);
+        border-color: var(--gold);
+        color: var(--gold-light);
+        box-shadow: 0 0 0 5px rgba(190, 242, 100, 0.18);
+        animation: nodePulse 2.4s ease-in-out infinite;
+    }
+    @keyframes nodePulse{
+        0%, 100%{ box-shadow: 0 0 0 5px rgba(190, 242, 100, 0.18); }
+        50%     { box-shadow: 0 0 0 10px rgba(190, 242, 100, 0.05); }
+    }
+    .ladder .step h6{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.2;
+        margin-bottom: 2px;
+    }
+    .ladder .step.future h6{ color: var(--faint); }
+    .ladder .step p{
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--faint);
+    }
+    .ladder .step.current p{ color: var(--gold-deep); }
+
+    /* tier perks */
+    .perk-list{
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line-soft);
+    }
+    @media (max-width: 520px){ .perk-list{ grid-template-columns: 1fr; } }
+
+    .perk{
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        transition: var(--transition, all .25s ease);
+    }
+    .perk:hover{ border-color: var(--gold-line); background: var(--paper); }
+    .perk i{
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.78rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .perk.locked{ opacity: 0.55; }
+    .perk.locked i{ background: var(--line-soft); color: var(--faint); }
+    .perk .perk-body{ min-width: 0; }
+    .perk h6{
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 2px;
+    }
+    .perk p{
+        font-size: 0.66rem;
+        color: var(--muted);
+        line-height: 1.45;
+    }
+
+    /* ============================================================
+       4b · XP LEDGER
+       ============================================================ */
+    .xp-slip{
+        position: relative;
+        padding: 22px 22px 20px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+    .xp-slip::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    }
+    .xp-slip::after{
+        content: '✦';
+        position: absolute;
+        bottom: -70px; right: -6px;
+        font-family: 'Playfair Display', serif;
+        font-size: 12rem;
+        line-height: 1;
+        color: rgba(190, 242, 100, 0.07);
+        pointer-events: none;
+    }
+    .xp-slip .kick{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 2;
+    }
+    .xp-slip .amount{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.1rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: #fff;
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        position: relative;
+        z-index: 2;
+        font-variant-numeric: tabular-nums;
+    }
+    .xp-slip .amount em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.55);
+    }
+    .xp-slip .foot{
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 10px;
+        position: relative;
+        z-index: 2;
+    }
+    .xp-slip .foot strong{ color: var(--gold-light); font-weight: 700; }
+
+    .xp-row{
+        padding: 11px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .xp-row:last-of-type{ border-bottom: none; }
+    .xp-row .xr-top{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 7px;
+    }
+    .xp-row .xr-top span{
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .xp-row .xr-top span i{ color: var(--faint); font-size: 0.78rem; }
+    .xp-row .xr-top strong{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .xp-row .xr-top strong.gold{ color: var(--gold-deep); }
+
+    /* ============================================================
+       4c · RECENT UNLOCKS (timeline)
+       ============================================================ */
+    .unlock-item{
+        display: flex;
+        gap: 14px;
+        padding: 12px 0;
+        position: relative;
+    }
+    .unlock-item:first-child{ padding-top: 0; }
+    .unlock-item:last-child{ padding-bottom: 0; }
+    .unlock-item::before{
+        content: '';
+        position: absolute;
+        left: 12px;
+        top: 34px;
+        bottom: -4px;
+        width: 1.5px;
+        background: var(--line-soft);
+    }
+    .unlock-item:last-child::before{ display: none; }
+
+    .unlock-marker{
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.7rem;
+        background: var(--paper);
+        border: 2px solid var(--gold);
+        color: var(--gold-deep);
+        z-index: 2;
+        position: relative;
+    }
+    .unlock-marker.sky   { border-color: var(--sky); color: #0284C7; }
+    .unlock-marker.violet{ border-color: #A78BFA; color: #7C3AED; }
+    .unlock-marker.leaf  { border-color: var(--leaf); color: var(--leaf-deep); }
+
+    .unlock-body{ flex: 1; min-width: 0; padding-top: 2px; }
+    .unlock-body h5{
+        font-size: 0.79rem;
+        font-weight: 500;
+        color: var(--ink-2);
+        line-height: 1.45;
+    }
+    .unlock-body h5 strong{ color: var(--ink); font-weight: 700; }
+    .unlock-body h5 .name{ color: var(--gold-deep); font-weight: 700; }
+    .unlock-body .time{
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin-top: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* ============================================================
+       4d · LEADERBOARD
+       ============================================================ */
+    .lb-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 14px;
+        border-radius: 12px;
+        transition: var(--transition, all .25s ease);
+        border: 1px solid transparent;
+    }
+    .lb-row + .lb-row{ margin-top: 4px; }
+    .lb-row:hover{ background: var(--paper-2); border-color: var(--line-soft); }
+    .lb-row.me{
+        background: linear-gradient(90deg, rgba(190, 242, 100, 0.14), rgba(190, 242, 100, 0.03));
+        border-color: var(--gold-line);
+    }
+
+    .lb-rank{
+        width: 30px;
+        flex-shrink: 0;
+        text-align: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--faint);
+        font-variant-numeric: tabular-nums;
+    }
+    .lb-row:nth-child(1) .lb-rank{ color: var(--gold); }
+    .lb-row:nth-child(2) .lb-rank{ color: #94A3B8; }
+    .lb-row:nth-child(3) .lb-rank{ color: var(--gold-deep); }
+    .lb-row.me .lb-rank{ color: var(--ink); }
+
+    .lb-avatar{
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        background: linear-gradient(135deg, var(--leaf), var(--sky));
+        position: relative;
+    }
+    .lb-avatar.v2{ background: linear-gradient(135deg, var(--sky), var(--leaf)); }
+    .lb-avatar.v3{ background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .lb-avatar.v4{ background: linear-gradient(135deg, var(--gold-light), var(--gold)); }
+    .lb-avatar.v5{ background: linear-gradient(135deg, #CBD5E1, #94A3B8); }
+
+    .lb-body{ flex: 1; min-width: 0; }
+    .lb-body h5{
+        font-size: 0.83rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .lb-body h5 .you{
+        font-size: 0.52rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--ink);
+        color: var(--gold-light);
+    }
+    .lb-body .lb-meta{
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .lb-body .lb-meta i{ color: var(--faint); font-size: 0.7rem; }
+
+    .lb-score{
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .lb-score strong{
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+    .lb-score span{
+        font-size: 0.54rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--faint);
+    }
+    .lb-row.me .lb-score strong{ color: var(--gold-deep); }
+
+    /* ============================================================
+       4e · VERIFICATION
+       ============================================================ */
+    .cred-card{
+        position: relative;
+        padding: 24px 24px 22px;
+        border-radius: var(--r-xl);
+        background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+    .cred-card::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+    }
+    .cred-card::after{
+        content: '';
+        position: absolute;
+        inset: 12px;
+        border: 1px solid var(--gold-line);
+        border-radius: calc(var(--r-xl) - 10px);
+        pointer-events: none;
+    }
+    .cred-top{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .cred-badge{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: var(--gold-light);
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+    .cred-status{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #4ADE80;
+    }
+    .cred-status .led{
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: #4ADE80;
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+    }
+    .cred-card h3{
+        position: relative;
+        z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.012em;
+        color: #fff;
+    }
+    .cred-card h3 em{ color: var(--gold-light); font-style: italic; }
+
+    .cred-fields{
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    @media (max-width: 520px){ .cred-fields{ grid-template-columns: 1fr; } }
+    .cred-field{
+        padding: 11px 13px;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+    .cred-field .k{
+        font-size: 0.52rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.42);
+        margin-bottom: 5px;
+    }
+    .cred-field .v{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.01em;
+        word-break: break-all;
+    }
+    .cred-field .v.mono{
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 0.72rem;
+        color: var(--gold-light);
+    }
+
+    .cred-actions{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+    }
+
+    .trust-list{ display: flex; flex-direction: column; gap: 10px; }
+    .trust-item{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 13px 14px;
+        border-radius: 12px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        transition: var(--transition, all .25s ease);
+    }
+    .trust-item:hover{ border-color: var(--gold-line); background: var(--paper); }
+    .trust-item > i{
+        width: 30px; height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .trust-item.sky > i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .trust-item.violet > i{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+    .trust-item h6{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 3px;
+    }
+    .trust-item p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       5 · SECTION HEADS
+       ============================================================ */
+    .sect-head{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 4px 4px 0;
+    }
+    .sect-head h2{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.42rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.012em;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .sect-head h2::before{
+        content: '';
+        width: 24px;
+        height: 2px;
+        background: var(--gold);
+        display: inline-block;
+    }
+    .sect-head .meta{
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sect-head .meta i{ color: var(--gold); }
+
+    /* ============================================================
+       6 · FILTER BAR
+       ============================================================ */
+    .filter-bar{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 18px 0 4px;
+    }
+    .filter-chip{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border-radius: 50px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .filter-chip i{ font-size: 0.78rem; }
+    .filter-chip .count{
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 50px;
+        background: var(--line-soft);
+        color: var(--muted);
+    }
+    .filter-chip:hover{ border-color: var(--gold-line); color: var(--ink); }
+    .filter-chip.active{
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+    }
+    .filter-chip.active .count{ background: rgba(190, 242, 100, 0.22); color: var(--gold-light); }
+
+    /* ============================================================
+       7 · HONOURS WALL — badge grid
+       ============================================================ */
+    .badge-wall{
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+    }
+
+    .badge-card{
+        position: relative;
+        padding: 24px 20px 18px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        transition: var(--transition, all .25s ease);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        cursor: pointer;
+    }
+    .badge-card::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        opacity: 0;
+        transition: var(--transition, all .25s ease);
+    }
+    .badge-card:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: var(--gold-line);
+    }
+    .badge-card:hover::before{ opacity: 1; }
+    .badge-card.earned::before{ opacity: 1; }
+    .badge-card.locked{ opacity: 0.92; }
+    .badge-card.is-hidden{ display: none; }
+
+    /* rarity ribbon */
+    .rarity{
+        position: absolute;
+        top: 12px; right: 12px;
+        font-size: 0.5rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: var(--line-soft);
+        color: var(--muted);
+        z-index: 3;
+    }
+    .rarity.rare     { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .rarity.epic     { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .rarity.legendary{
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        box-shadow: 0 4px 12px rgba(190, 242, 100, 0.34);
+    }
+
+    .badge-disc{
+        width: 62px; height: 62px;
+        margin: 6px auto 4px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.4rem;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        box-shadow: 0 12px 28px rgba(190, 242, 100, 0.32);
+        position: relative;
+        flex-shrink: 0;
+    }
+    .badge-disc::before{
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(11, 17, 33, 0.14);
+    }
+    .badge-card.tone-leaf   .badge-disc{ background: linear-gradient(135deg, var(--leaf), var(--leaf-deep)); box-shadow: 0 12px 28px rgba(190, 242, 100, 0.40); }
+    .badge-card.tone-sky    .badge-disc{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; box-shadow: 0 12px 28px rgba(56, 189, 248, 0.34); }
+    .badge-card.tone-violet .badge-disc{ background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; box-shadow: 0 12px 28px rgba(139, 92, 246, 0.34); }
+
+    .badge-card.locked .badge-disc{
+        background: var(--line-soft);
+        color: var(--faint);
+        box-shadow: none;
+    }
+    .badge-card.locked .badge-disc::before{ border-color: rgba(203, 213, 225, 0.45); }
+
+    .badge-lock{
+        position: absolute;
+        top: -4px; right: -4px;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        color: var(--faint);
+        font-size: 0.62rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .badge-card h4{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.24;
+        letter-spacing: -0.005em;
+    }
+    .badge-card .criteria{
+        font-size: 0.71rem;
+        color: var(--muted);
+        line-height: 1.55;
+        flex: 1;
+        min-height: 34px;
+    }
+
+    .badge-card .bar{ margin-top: 2px; }
+
+    .badge-meta{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding-top: 11px;
+        border-top: 1px solid var(--line-soft);
+        margin-top: auto;
+    }
+    .badge-meta .status{
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--leaf-deep);
+    }
+    .badge-meta .status i{ font-size: 0.72rem; }
+    .badge-meta .status.pending{ color: var(--muted); }
+    .badge-meta .scarcity{
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: var(--faint);
+        letter-spacing: 0.04em;
+    }
+
+    /* ============================================================
+       8 · CHARTER
+       ============================================================ */
+    .charter{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+    }
+    @media (max-width: 1080px){ .charter{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px) { .charter{ grid-template-columns: 1fr; } }
+
+    .charter-card{
+        padding: 22px 20px 20px;
+        border-radius: var(--r);
+        background: var(--paper);
+        border: 1px solid var(--line);
+        transition: var(--transition, all .25s ease);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .charter-card::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        opacity: 0;
+        transition: var(--transition, all .25s ease);
+    }
+    .charter-card:hover{
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: var(--gold-line);
+    }
+    .charter-card:hover::before{ opacity: 1; }
+
+    .charter-card .num{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .charter-card .num::before{
+        content: '';
+        width: 14px;
+        height: 1.5px;
+        background: currentColor;
+        display: inline-block;
+    }
+    .charter-card h4{
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.28;
+    }
+    .charter-card p{
+        font-size: 0.73rem;
+        color: var(--muted);
+        line-height: 1.62;
+    }
+    .charter-card p strong{ color: var(--ink); font-weight: 700; }
+
+    /* ============================================================
+       FALLBACK BUTTONS
+       ============================================================ */
+    .honours .btn-gold{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        border: none;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.30);
+        text-decoration: none;
+    }
+    .honours .btn-gold:hover{
+        transform: translateY(-3px);
+        box-shadow: 0 16px 34px rgba(190, 242, 100, 0.40);
+    }
+    .honours .btn-outline{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .honours .btn-outline:hover{
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    .honours .btn-ghost{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 18px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .honours .btn-ghost:hover{
+        border-color: var(--gold);
+        color: var(--gold-deep);
+        transform: translateY(-2px);
+    }
+    .cred-card .btn-gold,
+    .cred-card .btn-outline{ font-size: 0.76rem; padding: 11px 20px; }
+</style>
+
+
+<div class="honours">
+
+    <!-- ====================================================
+         1 · COMMAND STRIP
+         ==================================================== -->
+    <header class="cmd-strip rise">
+        <div class="cmd-left">
+            <span class="cmd-kicker"><i class="bi bi-trophy-fill"></i> Faculty Honours · Season 2026</span>
+            <h1>Distinctions, <em>earned in craft.</em></h1>
+            <p class="cmd-sub">
+                <span data-clock>18:12</span>
+                <span class="dot"></span>
+                <strong>5</strong> of <strong>12</strong> distinctions
+                <span class="dot"></span>
+                <strong>3,940</strong> XP
+                <span class="dot"></span>
+                Ranked <strong>#3 of 94</strong>
+            </p>
+        </div>
+        <div class="cmd-right">
+            <span class="cmd-chip"><i class="bi bi-patch-check-fill"></i> <span><strong>5</strong> verified</span></span>
+            <button class="btn-ghost" data-toast="Opening honours handbook…">
+                <i class="bi bi-journal-text"></i> Honours handbook
+            </button>
+            <button class="btn-gold" data-toast="Opening share sheet…">
+                <i class="bi bi-share-fill"></i> Share honours
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · RANK HALL
+         ==================================================== -->
+    <section class="rank-hall rise">
+        <div class="aurora"></div>
+
+        <div class="rank-text">
+            <span class="rank-eyebrow"><i class="bi bi-award-fill"></i> Faculty Crest · Master Tier</span>
+            <h1>Level XII — <em>Master Instructor.</em></h1>
+            <p>
+                You sit in the <strong>top 3% of the faculty</strong>. Five distinctions verified this season,
+                <strong>3,940 XP</strong> earned across teaching, craft and community — and a
+                <em>96% cohort completion rate</em> that keeps your name in the conversation.
+            </p>
+
+            <!-- progress to next tier -->
+            <div class="tier-progress">
+                <div class="tp-top">
+                    <span>Progress to Level XIII</span>
+                    <strong>3,940 / 6,400 XP</strong>
+                </div>
+                <div class="bar"><span data-value="62"></span></div>
+                <div class="tp-foot">
+                    <span><b>2,460 XP</b> remaining</span>
+                    <span>Est. <b>Level XIII</b> · Aug 2026</span>
+                </div>
+            </div>
+
+            <div class="rank-actions">
+                <button class="btn-gold" data-toast="Opening your honours record…">
+                    <i class="bi bi-file-earmark-medical"></i> View full record
+                </button>
+                <button class="btn-outline" data-toast="Opening XP breakdown…">
+                    <i class="bi bi-graph-up-arrow"></i> How XP is earned
+                </button>
+            </div>
+
+            <div class="rank-pins">
+                <div class="pin-chip">
+                    <div class="k">Total XP</div>
+                    <div class="v">3,940</div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Faculty rank</div>
+                    <div class="v gold">#3</div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Distinctions</div>
+                    <div class="v leaf">5<em>/12</em></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="seal-wrap">
+            <div class="seal">
+                <div class="orbit o1"><span></span></div>
+                <div class="orbit o2"><span></span></div>
+
+                <svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="hSealHex" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%"   stop-color="#7C3AED"/>
+                            <stop offset="50%"  stop-color="#38BDF8"/>
+                            <stop offset="100%" stop-color="#BEF264"/>
+                        </linearGradient>
+                        <linearGradient id="hSealGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%"   stop-color="#D9F99D"/>
+                            <stop offset="100%" stop-color="#BEF264"/>
+                        </linearGradient>
+                        <filter id="hSealShadow" x="-25%" y="-25%" width="150%" height="150%">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                            <feOffset dx="0" dy="4"/>
+                            <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- outer dashed rings -->
+                    <g class="ring-a">
+                        <circle cx="130" cy="130" r="120"
+                                fill="none" stroke="#D9F99D" stroke-width="1"
+                                stroke-dasharray="2 10" opacity="0.45"/>
+                    </g>
+                    <g class="ring-b">
+                        <circle cx="130" cy="130" r="112"
+                                fill="none" stroke="#BEF264" stroke-width="0.8"
+                                stroke-dasharray="1 22" opacity="0.5"/>
+                    </g>
+                    <g class="ring-c">
+                        <circle cx="130" cy="130" r="104"
+                                fill="none" stroke="#38BDF8" stroke-width="0.7"
+                                stroke-dasharray="18 30" opacity="0.35"/>
+                    </g>
+
+                    <!-- hexagon shield -->
+                    <polygon points="130,30 216,80 216,180 130,230 44,180 44,80"
+                             fill="url(#hSealHex)"
+                             stroke="url(#hSealGold)"
+                             stroke-width="2"
+                             filter="url(#hSealShadow)"/>
+
+                    <polygon points="130,52 196,90 196,170 130,208 64,170 64,90"
+                             fill="none"
+                             stroke="rgba(255,255,255,0.28)"
+                             stroke-width="1"/>
+
+                    <!-- corner studs -->
+                    <circle cx="130" cy="36"  r="3"   fill="#D9F99D"/>
+                    <circle cx="130" cy="224" r="3"   fill="#D9F99D"/>
+                    <circle cx="46"  cy="84"  r="2.5" fill="#BEF264"/>
+                    <circle cx="214" cy="84"  r="2.5" fill="#BEF264"/>
+                    <circle cx="46"  cy="176" r="2.5" fill="#BEF264"/>
+                    <circle cx="214" cy="176" r="2.5" fill="#BEF264"/>
+
+                    <!-- centre medallion -->
+                    <circle cx="130" cy="130" r="58" fill="#0B1121"/>
+                    <circle cx="130" cy="130" r="58" fill="none"
+                            stroke="url(#hSealGold)" stroke-width="2.5"/>
+                    <circle cx="130" cy="130" r="51" fill="none"
+                            stroke="url(#hSealGold)" stroke-width="0.8"
+                            stroke-dasharray="2 5" opacity="0.65"/>
+
+                    <!-- laurel arcs -->
+                    <path d="M 130 72 A 58 58 0 0 1 188 130"
+                          fill="none" stroke="url(#hSealGold)"
+                          stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                    <path d="M 130 188 A 58 58 0 0 1 72 130"
+                          fill="none" stroke="url(#hSealGold)"
+                          stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                </svg>
+
+                <div class="seal-overlay">
+                    <div class="lvl-kicker">Faculty Level</div>
+                    <div class="lvl-num">XII</div>
+                    <div class="lvl-tier">Master</div>
+                    <div class="lvl-glyph"><i class="bi bi-mortarboard-fill"></i></div>
+                </div>
+            </div>
+
+            <p class="seal-caption">
+                <strong>Level XII Faculty</strong><br>
+                Top 3% of 94 instructors · Season 2026
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         3 · CONSTELLATION — KPI ribbon
+         ==================================================== -->
+    <section class="constellation">
+        <article class="kpi rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#BEF264" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7 L78,28 L0,28 Z"
+                          fill="url(#hg1)"/>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7"
+                          fill="none" stroke="#BEF264" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num" data-count="3940">0</div>
+            <div class="kpi-label">Total XP earned</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +320 this week</span>
+        </article>
+
+        <article class="kpi sky rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-patch-check-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6 L78,28 L0,28 Z"
+                          fill="url(#hg2)"/>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6"
+                          fill="none" stroke="#38BDF8" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num" data-count="5">0<em>/12</em></div>
+            <div class="kpi-label">Distinctions earned</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +1 this month</span>
+        </article>
+
+        <article class="kpi violet rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-trophy-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#8B5CF6" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9 L78,28 L0,28 Z"
+                          fill="url(#hg3)"/>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9"
+                          fill="none" stroke="#8B5CF6" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">#<span data-count="3">0</span></div>
+            <div class="kpi-label">Faculty rank</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> Up 2 places</span>
+        </article>
+
+        <article class="kpi leaf rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg4" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#65A30D" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#65A30D" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8 L78,28 L0,28 Z"
+                          fill="url(#hg4)"/>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8"
+                          fill="none" stroke="#65A30D" stroke-width="1.6"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">Top <span data-count="3">0</span><em>%</em></div>
+            <div class="kpi-label">Peer percentile</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> Season best</span>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         4 · BENTO GRID
+         ==================================================== -->
+    <section class="bento">
+
+        <!-- ---------- TIER LADDER (span 2) ---------- -->
+        <article class="panel s-2 rise">
+            <div class="panel-head">
+                <h3><i class="bi bi-bar-chart-steps"></i> Faculty ladder</h3>
+                <button class="panel-link" data-toast="Opening full tier chart…">
+                    Tier chart <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <ol class="ladder">
+                    <li class="step done">
+                        <span class="dot"><i class="bi bi-check-lg"></i></span>
+                        <h6>Level X</h6>
+                        <p>Artisan</p>
+                    </li>
+                    <li class="step done">
+                        <span class="dot"><i class="bi bi-check-lg"></i></span>
+                        <h6>Level XI</h6>
+                        <p>Senior</p>
+                    </li>
+                    <li class="step current">
+                        <span class="dot">XII</span>
+                        <h6>Level XII</h6>
+                        <p>Master</p>
+                    </li>
+                    <li class="step future">
+                        <span class="dot">XIII</span>
+                        <h6>Level XIII</h6>
+                        <p>Grand</p>
+                    </li>
+                    <li class="step future">
+                        <span class="dot">XIV</span>
+                        <h6>Level XIV</h6>
+                        <p>Laureate</p>
+                    </li>
+                </ol>
+
+                <div class="perk-list">
+                    <div class="perk">
+                        <i class="bi bi-percent"></i>
+                        <div class="perk-body">
+                            <h6>Reduced platform fee</h6>
+                            <p>12% instead of the standard 20%.</p>
+                        </div>
+                    </div>
+                    <div class="perk">
+                        <i class="bi bi-broadcast-pin"></i>
+                        <div class="perk-body">
+                            <h6>Priority studio slots</h6>
+                            <p>Prime-time scheduling, first refusal.</p>
+                        </div>
+                    </div>
+                    <div class="perk">
+                        <i class="bi bi-patch-check-fill"></i>
+                        <div class="perk-body">
+                            <h6>Verified faculty crest</h6>
+                            <p>Public credential on your dossier.</p>
+                        </div>
+                    </div>
+                    <div class="perk locked">
+                        <i class="bi bi-lock-fill"></i>
+                        <div class="perk-body">
+                            <h6>Grand Faculty council seat</h6>
+                            <p>Unlocks at Level XIII.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+        <!-- ---------- XP LEDGER (span 1) ---------- -->
+        <article class="panel s-1 rise">
+            <div class="panel-head">
+                <h3><i class="bi bi-receipt-cutoff"></i> XP ledger</h3>
+                <button class="panel-link" data-toast="Opening XP statement…">
+                    Statement <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="xp-slip">
+                    <div class="kick">Earned this season</div>
+                    <div class="amount">3,940<em> XP</em></div>
+                    <div class="foot">Level XII · <strong>62%</strong> to next tier</div>
+                </div>
+
+                <div class="xp-row">
+                    <div class="xr-top">
+                        <span><i class="bi bi-camera-video-fill"></i> Sessions taught</span>
+                        <strong>1,440</strong>
+                    </div>
+                    <div class="bar violet"><span data-value="66"></span></div>
+                </div>
+
+                <div class="xp-row">
+                    <div class="xr-top">
+                        <span><i class="bi bi-star-fill"></i> Ratings &amp; reviews</span>
+                        <strong class="gold">980</strong>
+                    </div>
+                    <div class="bar"><span data-value="48"></span></div>
+                </div>
+
+                <div class="xp-row">
+                    <div class="xr-top">
+                        <span><i class="bi bi-mortarboard-fill"></i> Student completions</span>
+                        <strong>820</strong>
+                    </div>
+                    <div class="bar leaf"><span data-value="38"></span></div>
+                </div>
+
+                <div class="xp-row">
+                    <div class="xr-top">
+                        <span><i class="bi bi-people-fill"></i> Community &amp; mentorship</span>
+                        <strong>520</strong>
+                    </div>
+                    <div class="bar sky"><span data-value="26"></span></div>
+                </div>
+
+                <div class="xp-row">
+                    <div class="xr-top">
+                        <span><i class="bi bi-journal-bookmark-fill"></i> Course authoring</span>
+                        <strong>180</strong>
+                    </div>
+                    <div class="bar rose"><span data-value="12"></span></div>
+                </div>
+
+            </div>
+        </article>
+
+        <!-- ---------- RECENT UNLOCKS (span 1) ---------- -->
+        <article class="panel s-1 rise">
+            <div class="panel-head sky">
+                <h3><i class="bi bi-stars"></i> Recent unlocks</h3>
+                <button class="panel-link" data-toast="Opening unlock history…">
+                    History <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="unlock-list">
+
+                    <div class="unlock-item">
+                        <span class="unlock-marker"><i class="bi bi-mortarboard-fill"></i></span>
+                        <div class="unlock-body">
+                            <h5><strong>Master Faculty</strong> unlocked · Rank #3 of 94</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 12 Feb 2026</div>
+                        </div>
+                    </div>
+
+                    <div class="unlock-item">
+                        <span class="unlock-marker violet"><i class="bi bi-journal-bookmark-fill"></i></span>
+                        <div class="unlock-body">
+                            <h5><strong>Author</strong> unlocked · 5 courses published</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 28 Jan 2026</div>
+                        </div>
+                    </div>
+
+                    <div class="unlock-item">
+                        <span class="unlock-marker leaf"><i class="bi bi-lightning-charge-fill"></i></span>
+                        <div class="unlock-body">
+                            <h5><strong>Marathon</strong> unlocked · 240 hours taught</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 09 Jan 2026</div>
+                        </div>
+                    </div>
+
+                    <div class="unlock-item">
+                        <span class="unlock-marker sky"><i class="bi bi-people-fill"></i></span>
+                        <div class="unlock-body">
+                            <h5><strong>Century Club</strong> unlocked · 100 students</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 21 Nov 2025</div>
+                        </div>
+                    </div>
+
+                    <div class="unlock-item">
+                        <span class="unlock-marker"><i class="bi bi-star-fill"></i></span>
+                        <div class="unlock-body">
+                            <h5><strong>Top Rated</strong> unlocked · 4.8★ over 40 reviews</h5>
+                            <div class="time"><i class="bi bi-clock"></i> 03 Oct 2025</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </article>
+
+        <!-- ---------- LEADERBOARD (span 2) ---------- -->
+        <article class="panel s-2 rise">
+            <div class="panel-head">
+                <h3><i class="bi bi-list-ol"></i> Faculty standings · Season 2026</h3>
+                <button class="panel-link" data-toast="Opening full ranking…">
+                    Full ranking <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <!-- Django: {% for instructor in leaderboard %} … {% endfor %} -->
+                <div class="lb-row">
+                    <span class="lb-rank">1</span>
+                    <span class="lb-avatar v2">AN</span>
+                    <div class="lb-body">
+                        <h5>Amara Nwosu</h5>
+                        <div class="lb-meta"><i class="bi bi-patch-check-fill"></i> 8 distinctions · Level XIII Grand</div>
+                    </div>
+                    <div class="lb-score">
+                        <strong>4,120</strong>
+                        <span>XP</span>
+                    </div>
+                </div>
+
+                <div class="lb-row">
+                    <span class="lb-rank">2</span>
+                    <span class="lb-avatar v5">IB</span>
+                    <div class="lb-body">
+                        <h5>Ifeoma Balogun</h5>
+                        <div class="lb-meta"><i class="bi bi-patch-check-fill"></i> 7 distinctions · Level XIII Grand</div>
+                    </div>
+                    <div class="lb-score">
+                        <strong>4,010</strong>
+                        <span>XP</span>
+                    </div>
+                </div>
+
+                <div class="lb-row me">
+                    <span class="lb-rank">3</span>
+                    <span class="lb-avatar v4">DO</span>
+                    <div class="lb-body">
+                        <h5>Daniel Okafor <span class="you">You</span></h5>
+                        <div class="lb-meta"><i class="bi bi-patch-check-fill"></i> 5 distinctions · Level XII Master</div>
+                    </div>
+                    <div class="lb-score">
+                        <strong>3,940</strong>
+                        <span>XP</span>
+                    </div>
+                </div>
+
+                <div class="lb-row">
+                    <span class="lb-rank">4</span>
+                    <span class="lb-avatar v3">MR</span>
+                    <div class="lb-body">
+                        <h5>Maya Rahman</h5>
+                        <div class="lb-meta"><i class="bi bi-patch-check-fill"></i> 5 distinctions · Level XII Master</div>
+                    </div>
+                    <div class="lb-score">
+                        <strong>3,760</strong>
+                        <span>XP</span>
+                    </div>
+                </div>
+
+                <div class="lb-row">
+                    <span class="lb-rank">5</span>
+                    <span class="lb-avatar">TK</span>
+                    <div class="lb-body">
+                        <h5>Tunde Kalu</h5>
+                        <div class="lb-meta"><i class="bi bi-patch-check-fill"></i> 4 distinctions · Level XI Senior</div>
+                    </div>
+                    <div class="lb-score">
+                        <strong>3,510</strong>
+                        <span>XP</span>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+        <!-- ---------- VERIFICATION (span 2) ---------- -->
+        <article class="panel s-2 rise">
+            <div class="panel-head leaf">
+                <h3><i class="bi bi-shield-check"></i> Verification &amp; credentials</h3>
+                <button class="panel-link" data-toast="Opening verification registry…">
+                    Registry <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="cred-card">
+                    <div class="cred-top">
+                        <span class="cred-badge"><i class="bi bi-patch-check-fill"></i> Verifiable credential</span>
+                        <span class="cred-status"><span class="led"></span> Active</span>
+                    </div>
+
+                    <h3>Level XII · <em>Master Instructor</em></h3>
+
+                    <div class="cred-fields">
+                        <div class="cred-field">
+                            <div class="k">Credential ID</div>
+                            <div class="v mono">KNW-FAC-2026-0394-XII</div>
+                        </div>
+                        <div class="cred-field">
+                            <div class="k">Issued</div>
+                            <div class="v">12 Feb 2026</div>
+                        </div>
+                        <div class="cred-field">
+                            <div class="k">Issuer</div>
+                            <div class="v">Knotwork Faculty Council</div>
+                        </div>
+                        <div class="cred-field">
+                            <div class="k">Valid through</div>
+                            <div class="v">31 Dec 2026</div>
+                        </div>
+                    </div>
+
+                    <div class="cred-actions">
+                        <button class="btn-gold" data-toast="Copying verification link…">
+                            <i class="bi bi-link-45deg"></i> Copy verify link
+                        </button>
+                        <button class="btn-outline" data-toast="Downloading credential PDF…">
+                            <i class="bi bi-download"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="trust-list">
+                    <div class="trust-item">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <div>
+                            <h6>Tamper-evident issuance</h6>
+                            <p>Every credential carries a unique ID and is signed at issuance. Anyone can verify it against the public registry.</p>
+                        </div>
+                    </div>
+
+                    <div class="trust-item sky">
+                        <i class="bi bi-clipboard-data-fill"></i>
+                        <div>
+                            <h6>Criteria are published, not judged</h6>
+                            <p>Each distinction has a fixed, measurable threshold. No panels, no discretion — you either meet it or you don't.</p>
+                        </div>
+                    </div>
+
+                    <div class="trust-item violet">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <div>
+                            <h6>Revocable &amp; auditable</h6>
+                            <p>Awards are reviewed each season. If a threshold is no longer met, the distinction is retired with a written reason.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- ====================================================
+         5 · HONOURS WALL
+         ==================================================== -->
+    <section class="rise">
+        <div class="sect-head">
+            <h2>Honours Wall</h2>
+            <span class="meta"><i class="bi bi-trophy-fill"></i> 5 of 12 distinctions earned</span>
+        </div>
+
+        <div class="filter-bar" role="tablist" aria-label="Filter distinctions">
+            <button class="filter-chip active" data-filter="all" role="tab" aria-selected="true">
+                <i class="bi bi-grid-3x3-gap-fill"></i> All <span class="count">12</span>
+            </button>
+            <button class="filter-chip" data-filter="earned" role="tab" aria-selected="false">
+                <i class="bi bi-patch-check-fill"></i> Earned <span class="count">5</span>
+            </button>
+            <button class="filter-chip" data-filter="teaching" role="tab" aria-selected="false">
+                <i class="bi bi-easel2-fill"></i> Teaching <span class="count">3</span>
+            </button>
+            <button class="filter-chip" data-filter="craft" role="tab" aria-selected="false">
+                <i class="bi bi-palette2"></i> Craft <span class="count">2</span>
+            </button>
+            <button class="filter-chip" data-filter="community" role="tab" aria-selected="false">
+                <i class="bi bi-people-fill"></i> Community <span class="count">3</span>
+            </button>
+            <button class="filter-chip" data-filter="milestone" role="tab" aria-selected="false">
+                <i class="bi bi-flag-fill"></i> Milestone <span class="count">4</span>
+            </button>
+        </div>
+
+        <div class="badge-wall" id="badgeWall">
+
+            <!-- ===== EARNED ===== -->
+
+            <article class="badge-card earned tone-leaf" data-cat="teaching" data-state="earned">
+                <span class="rarity legendary">Legendary</span>
+                <div class="badge-disc"><i class="bi bi-star-fill"></i></div>
+                <h4>Top Rated</h4>
+                <p class="criteria">Hold a 4.8★ average across 40 or more verified reviews.</p>
+                <div class="badge-meta">
+                    <span class="status"><i class="bi bi-patch-check-fill"></i> Earned 03 Oct 2025</span>
+                    <span class="scarcity">4% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card earned tone-sky" data-cat="community" data-state="earned">
+                <span class="rarity rare">Rare</span>
+                <div class="badge-disc"><i class="bi bi-people-fill"></i></div>
+                <h4>Century Club</h4>
+                <p class="criteria">Teach 100 students to a verified enrolment.</p>
+                <div class="badge-meta">
+                    <span class="status"><i class="bi bi-patch-check-fill"></i> Earned 21 Nov 2025</span>
+                    <span class="scarcity">11% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card earned tone-violet" data-cat="craft" data-state="earned">
+                <span class="rarity epic">Epic</span>
+                <div class="badge-disc"><i class="bi bi-journal-bookmark-fill"></i></div>
+                <h4>Author</h4>
+                <p class="criteria">Publish five courses that each reach 20 students.</p>
+                <div class="badge-meta">
+                    <span class="status"><i class="bi bi-patch-check-fill"></i> Earned 28 Jan 2026</span>
+                    <span class="scarcity">7% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card earned tone-leaf" data-cat="milestone" data-state="earned">
+                <span class="rarity rare">Rare</span>
+                <div class="badge-disc"><i class="bi bi-lightning-charge-fill"></i></div>
+                <h4>Marathon</h4>
+                <p class="criteria">Deliver 240 hours of live teaching.</p>
+                <div class="badge-meta">
+                    <span class="status"><i class="bi bi-patch-check-fill"></i> Earned 09 Jan 2026</span>
+                    <span class="scarcity">9% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card earned" data-cat="milestone" data-state="earned">
+                <span class="rarity legendary">Legendary</span>
+                <div class="badge-disc"><i class="bi bi-mortarboard-fill"></i></div>
+                <h4>Master Faculty</h4>
+                <p class="criteria">Finish a season inside the top 3 of the faculty.</p>
+                <div class="badge-meta">
+                    <span class="status"><i class="bi bi-patch-check-fill"></i> Earned 12 Feb 2026</span>
+                    <span class="scarcity">3% of faculty</span>
+                </div>
+            </article>
+
+            <!-- ===== LOCKED ===== -->
+
+            <article class="badge-card locked" data-cat="community" data-state="locked">
+                <span class="rarity epic">Epic</span>
+                <div class="badge-disc">
+                    <i class="bi bi-person-hearts"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Legendary Mentor</h4>
+                <p class="criteria">Guide 500 students to course completion.</p>
+                <div class="bar"><span data-value="30"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">148 of 500 students</span>
+                    <span class="scarcity">1% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card locked" data-cat="teaching" data-state="locked">
+                <span class="rarity legendary">Legendary</span>
+                <div class="badge-disc">
+                    <i class="bi bi-bullseye"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Perfect Term</h4>
+                <p class="criteria">Finish a term with a 100% cohort completion rate.</p>
+                <div class="bar"><span data-value="96"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">96% — so close</span>
+                    <span class="scarcity">2% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card locked" data-cat="milestone" data-state="locked">
+                <span class="rarity epic">Epic</span>
+                <div class="badge-disc">
+                    <i class="bi bi-hourglass-split"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Studio Stalwart</h4>
+                <p class="criteria">Deliver 500 hours of live teaching.</p>
+                <div class="bar"><span data-value="48"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">240 of 500 hours</span>
+                    <span class="scarcity">6% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card locked" data-cat="community" data-state="locked">
+                <span class="rarity epic">Epic</span>
+                <div class="badge-disc">
+                    <i class="bi bi-globe2"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Global Reach</h4>
+                <p class="criteria">Teach students across 25 different countries.</p>
+                <div class="bar"><span data-value="48"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">12 of 25 countries</span>
+                    <span class="scarcity">5% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card locked" data-cat="teaching" data-state="locked">
+                <span class="rarity epic">Epic</span>
+                <div class="badge-disc">
+                    <i class="bi bi-star-half"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Five-Star Streak</h4>
+                <p class="criteria">Receive 100 consecutive 5-star reviews.</p>
+                <div class="bar"><span data-value="62"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">62 of 100 reviews</span>
+                    <span class="scarcity">4% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card locked" data-cat="craft" data-state="locked">
+                <span class="rarity rare">Rare</span>
+                <div class="badge-disc">
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Curriculum Architect</h4>
+                <p class="criteria">Publish ten full courses with a 4.5★ average.</p>
+                <div class="bar"><span data-value="60"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">6 of 10 courses</span>
+                    <span class="scarcity">8% of faculty</span>
+                </div>
+            </article>
+
+            <article class="badge-card locked" data-cat="milestone" data-state="locked">
+                <span class="rarity legendary">Legendary</span>
+                <div class="badge-disc">
+                    <i class="bi bi-gem"></i>
+                    <span class="badge-lock"><i class="bi bi-lock-fill"></i></span>
+                </div>
+                <h4>Decade of Craft</h4>
+                <p class="criteria">Serve ten continuous years on the faculty.</p>
+                <div class="bar"><span data-value="15"></span></div>
+                <div class="badge-meta">
+                    <span class="status pending">18 of 120 months</span>
+                    <span class="scarcity">&lt;1% of faculty</span>
+                </div>
+            </article>
+
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         6 · HONOURS CHARTER
+         ==================================================== -->
+    <section class="rise">
+        <div class="sect-head">
+            <h2>How honours work</h2>
+            <span class="meta"><i class="bi bi-book"></i> Faculty charter · Revised Jan 2026</span>
+        </div>
+
+        <div class="charter">
+
+            <article class="charter-card">
+                <span class="num">Article I</span>
+                <h4>Thresholds, not opinions</h4>
+                <p>
+                    Every distinction maps to a <strong>published numeric threshold</strong> — hours taught,
+                    completion rate, review count. Progress is calculated nightly from platform records.
+                </p>
+            </article>
+
+            <article class="charter-card">
+                <span class="num">Article II</span>
+                <h4>XP is transparent</h4>
+                <p>
+                    XP is awarded by a fixed schedule across <strong>five categories</strong>. Your ledger shows
+                    exactly where every point came from, and it never expires mid-season.
+                </p>
+            </article>
+
+            <article class="charter-card">
+                <span class="num">Article III</span>
+                <h4>Awards are auditable</h4>
+                <p>
+                    Each credential carries a <strong>unique ID</strong> and can be verified publicly.
+                    Awards may be retired if the underlying threshold is no longer met — always with a written reason.
+                </p>
+            </article>
+
+            <article class="charter-card">
+                <span class="num">Article IV</span>
+                <h4>The right to appeal</h4>
+                <p>
+                    Disagree with a decision? Lodge an appeal within <strong>30 days</strong>. It is reviewed by
+                    the Faculty Council and answered in writing, either way.
+                </p>
+            </article>
+
+        </div>
+    </section>
+
+</div><!-- /.honours -->
+
+
+<script>
+    (function () {
+        'use strict';
+
+        var root = document.querySelector('.honours');
+        if (!root) return;
+
+        /* -------------------------------------------------
+           Animated counters
+           ------------------------------------------------- */
+        root.querySelectorAll('[data-count]').forEach(function (el) {
+            var target = parseFloat(el.dataset.count) || 0;
+            var duration = 1300;
+            var start = null;
+
+            function step(ts) {
+                if (start === null) start = ts;
+                var progress = Math.min((ts - start) / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+
+        /* -------------------------------------------------
+           Progress bars — animate 0 → value
+           ------------------------------------------------- */
+        requestAnimationFrame(function () {
+            root.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+                el.style.width = v + '%';
+            });
+        });
+
+        /* -------------------------------------------------
+           Live clock
+           ------------------------------------------------- */
+        var clock = root.querySelector('[data-clock]');
+        if (clock) {
+            var tick = function () {
+                var d = new Date();
+                clock.textContent =
+                    String(d.getHours()).padStart(2, '0') + ':' +
+                    String(d.getMinutes()).padStart(2, '0');
+            };
+            tick();
+            setInterval(tick, 20000);
+        }
+
+        /* -------------------------------------------------
+           Badge filtering
+           ------------------------------------------------- */
+        var chips = root.querySelectorAll('.filter-chip');
+        var cards = root.querySelectorAll('#badgeWall .badge-card');
+
+        chips.forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                var filter = chip.dataset.filter;
+
+                chips.forEach(function (c) {
+                    c.classList.toggle('active', c === chip);
+                    c.setAttribute('aria-selected', c === chip ? 'true' : 'false');
+                });
+
+                cards.forEach(function (card) {
+                    var show = filter === 'all'
+                        || (filter === 'earned' && card.dataset.state === 'earned')
+                        || card.dataset.cat === filter;
+                    card.classList.toggle('is-hidden', !show);
+                });
+            });
+        });
+
+        /* -------------------------------------------------
+           Badge card tap → toast summary
+           ------------------------------------------------- */
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () {
+                var name = card.querySelector('h4') ? card.querySelector('h4').textContent : 'Distinction';
+                var earned = card.dataset.state === 'earned';
+                if (typeof window.__toast === 'function') {
+                    window.__toast(
+                        earned ? name + ' — verified credential' : name + ' — keep going',
+                        earned ? 'success' : null
+                    );
+                }
+            });
+        });
+
+        /* -------------------------------------------------
+           Subtle parallax on the seal
+           ------------------------------------------------- */
+        var seal = root.querySelector('.seal');
+        if (seal && window.matchMedia('(pointer:fine)').matches) {
+            var wrap = seal.closest('.rank-hall') || seal;
+            wrap.addEventListener('mousemove', function (e) {
+                var r = wrap.getBoundingClientRect();
+                var px = (e.clientX - r.left) / r.width - 0.5;
+                var py = (e.clientY - r.top) / r.height - 0.5;
+                seal.style.transform =
+                    'translate(' + (px * 10) + 'px,' + (py * 10) + 'px)';
+            });
+            wrap.addEventListener('mouseleave', function () {
+                seal.style.transform = '';
+            });
+        }
+    })();
+</script>
+
+{% endblock content %}

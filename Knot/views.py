@@ -1,5 +1,15 @@
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+
+
+from django.contrib import messages, auth
+from django.contrib.auth import login as auth_login
+from .forms import LoginForm, OnboardingForm
+from .models import OnboardingProfile, Student
+
 
 
 
@@ -76,25 +86,286 @@ def communities(request):
     return render(request, 'Knot_Base/communities.html', context)
 
 def pricing(request):
-    return render(request, 'Knot_Base/pricing.html')
+    context = {
+        'plans': [
+            {'name': 'Starter', 'price': '$0', 'description': 'Begin your exchange with the essentials.', 'features': ['Skill exchange', 'Basic matching', 'Join 3 communities', 'Messaging and chat']},
+            {'name': 'Pro', 'price': '$12', 'description': 'For serious learners and teachers.', 'features': ['Everything in Starter', 'Advanced matching', 'Unlimited communities', 'AI tutor and roadmaps', 'Video and live classes'], 'popular': True},
+            {'name': 'Mentor', 'price': '$29', 'description': 'For dedicated mentors and professionals.', 'features': ['Everything in Pro', 'Paid session tools', 'Advanced analytics', 'Portfolio builder', 'Priority support']},
+        ],
+    }
+    return render(request, 'Knot_Base/pricing.html', context)
 
 def about(request):
-    return render(request, 'Knot_Base/about.html')
+    return render(request, 'Knot_Base/about.html', {'team_count': '12k+', 'topic_count': '340+', 'country_count': '116+'})
 
 def blog(request):
-    return render(request, 'Knot_Base/blog.html')
+    context = {
+        'posts': [
+            {'category': 'Learning', 'title': 'Why teaching is one of the fastest ways to learn', 'excerpt': 'The strongest knowledge sticks when you have to make it useful for another person.', 'date': 'Sep 04, 2026', 'read_time': '5 min read', 'icon': 'bi bi-lightbulb'},
+            {'category': 'Community', 'title': 'How to find your people in a new learning community', 'excerpt': 'A few small habits can turn a quiet room into a place where your questions belong.', 'date': 'Aug 28, 2026', 'read_time': '4 min read', 'icon': 'bi bi-people'},
+            {'category': 'Practice', 'title': 'The small-session method for making steady progress', 'excerpt': 'You do not need a perfect schedule. You need a rhythm you can return to.', 'date': 'Aug 19, 2026', 'read_time': '6 min read', 'icon': 'bi bi-arrow-repeat'},
+            {'category': 'Stories', 'title': 'From UX research to Python: Aria and Marcus exchange notes', 'excerpt': 'Two KnotWorkers share what changed when learning became reciprocal.', 'date': 'Aug 11, 2026', 'read_time': '7 min read', 'icon': 'bi bi-chat-heart'},
+        ],
+    }
+    return render(request, 'Knot_Base/blog.html', context)
 
 def help(request):
-    return render(request, 'Knot_Base/help.html')
+    context = {
+        'faqs': [
+            {'question': 'What is KnotWork?', 'answer': 'KnotWork is a mutual learning network where people teach what they know and learn from others.'},
+            {'question': 'Is it free to join?', 'answer': 'Yes. You can create a free account, explore communities, and start skill exchanges without a paid plan.'},
+            {'question': 'Can I be both a student and a teacher?', 'answer': 'That is the heart of KnotWork. Your profile can include skills you want to learn and skills you are ready to share.'},
+            {'question': 'How are matches made?', 'answer': 'Matches consider your skills, learning goals, preferred format, and availability.'},
+        ],
+    }
+    return render(request, 'Knot_Base/help.html', context)
 
 
 
 
+# The Authentication Parts
 
 def get_started(request):
-    return render(request, 'Auth/get_started.html')
+    role = request.POST.get('role', 'student')
+    form = OnboardingForm(
+        request.POST or None,
+        request.FILES or None,
+        initial={'role': role},
+    )
+
+    if request.method == 'POST' and form.is_valid():
+        data = form.cleaned_data
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=data['email'],
+                email=data['email'],
+                password=data['password'],
+                first_name=data['first_name'],
+                last_name=data['surname'],
+            )
+            profile_data = {
+                field_name: data.get(field_name)
+                for field_name in OnboardingForm.PROFILE_FIELDS
+                if data.get(field_name) is not None
+            }
+            OnboardingProfile.objects.create(
+                user=user,
+                role=data['role'],
+                **profile_data,
+            )
+            if data['role'] == 'student':
+                Student.objects.create(user=user)
+        messages.success(request, 'Your account is ready. You can log in now.')
+        return redirect('login')
+
+    return render(request, 'Auth/get_started.html', {'form': form, 'selected_role': role})
 
 def login(request):
-    return render(request, 'Auth/login.html')
+    form = LoginForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        auth_login(request, form.cleaned_data['user'])
+        messages.success(request, "You have logged successfully in!")
+        return redirect('student_dashboard')
+    return render(request, 'Auth/login.html', {'form': form})
+
+
+
+# STUDENT VIEWS SECTIONS
+@login_required(login_url='login')
+def student_dashboard(request):
+    profile = getattr(request.user, 'onboarding_profile', None)
+    mentor = {
+        'initials': 'TF',
+        'name': 'Tolu Fashina',
+        'role': 'Senior Fullstack Mentor',
+    }
+    if profile and profile.current_role_company:
+        mentor['role'] = profile.current_role_company
+
+    return render(request, 'Knot_Student/student_dashboard.html', {'mentor': mentor})
+
+
+def student_my_learning(request):
+    return render(request, 'Knot_Student/my_learning.html')
+
+def student_find_courses(request):
+    return render(request, 'Knot_Student/find_courses.html')
+
+def student_skill_matches(request):
+    return render(request, 'Knot_Student/skill_matches.html')
+
+def student_browse(request):
+    return render(request, 'Knot_Student/browse.html')
+
+def student_my_connections(request):
+    return render(request, 'Knot_Student/my_connections.html')
+
+def student_requests(request):
+    return render(request, 'Knot_Student/requests.html')
+
+def student_messages(request):
+    return render(request, 'Knot_Student/messages.html')
+
+def student_sessions(request):
+    return render(request, 'Knot_Student/sessions.html')
+
+def student_community(request):
+    return render(request, 'Knot_Student/community.html')
+
+def student_progress(request):
+    return render(request, 'Knot_Student/progress.html')
+
+def student_achievements(request):
+    return render(request, 'Knot_Student/achievements.html')
+
+def student_credits_and_billing(request):
+    return render(request, 'Knot_Student/credits_and_billing.html')
+
+def student_settings(request):
+    return render(request, 'Knot_Student/settings.html')
+
+def student_help(request):
+    return render(request, 'Knot_Student/help_centre.html')
+
+def student_profile(request):
+    return render(request, 'Knot_Student/profile.html')
+
+
+def student_logout(request):
+    auth.logout(request)
+    messages.success(request, "You have successfully logged out!")
+    return redirect('/login')
+
+
+# TEACHER VIEWS SECTIONS
+def teacher_dashboard(request):
+    return render(request, 'Knot_Teacher/teacher_dashboard.html')
+
+def teacher_atelier(request):
+    return render(request, 'Knot_Teacher/atelier.html')
+
+def teacher_cohort(request):
+    return render(request, 'Knot_Teacher/cohort.html')
+
+def teacher_studio(request):
+    return render(request, 'Knot_Teacher/studio.html')
+
+def teacher_grading(request):
+    return render(request, 'Knot_Teacher/grading.html')
+
+def teacher_assignments(request):
+    return render(request, 'Knot_Teacher/assignments.html')
+
+def teacher_seminar(request):
+    return render(request, 'Knot_Teacher/seminar.html')
+
+def teacher_messages(request):
+    return render(request, 'Knot_Teacher/messages.html')
+
+def teacher_enrolments(request):
+    return render(request, 'Knot_Teacher/enrolments.html')
+
+def teacher_network(request):
+    return render(request, 'Knot_Teacher/network.html')
+
+def teacher_reviews(request):
+    return render(request, 'Knot_Teacher/reviews.html')
+
+def teacher_analytics(request):
+    return render(request, 'Knot_Teacher/analytics.html')
+
+def teacher_honours(request):
+    return render(request, 'Knot_Teacher/honours.html')
+
+def teacher_earnings(request):
+    return render(request, 'Knot_Teacher/earnings.html')
+
+def teacher_settings(request):
+    return render(request, 'Knot_Teacher/settings.html')
+
+def teacher_help(request):
+    return render(request, 'Knot_Teacher/help.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_logout(request):
+    auth.logout(request)
+    messages.success(request, "You have successfully logged out!")
+    return redirect('login')
+
+
+# MENTOR VIEWS SECTIONS
+
+def mentor_dashboard(request):
+    return render(request, 'Knot_Mentor/mentor_dashboard.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+def teacher_dossier(request):
+    return render(request, 'Knot_Teacher/dossier.html')
+
+
+
+
+
+# MENTOR VIEWS SECTIONS
+
+def admin_dashboard(request):
+    return render(request, 'Knot_Teacher/admin_dashboard.html')
+
+
+
+
+
 
 

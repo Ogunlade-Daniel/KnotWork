@@ -193,7 +193,7 @@
         <p>Explore practical topics, generous mentors, and communities built around the simple idea that learning gets better when it moves in both directions.</p>
         <div class="explore-actions">
             <a href="#topics" class="btn btn-secondary"><i class="bi bi-search"></i> Browse topics</a>
-            <a href="{% url 'sign_up' %}" class="btn btn-outline"><i class="bi bi-person-plus"></i> Create your profile</a>
+            <a href="{% url 'get_started' %}" class="btn btn-outline"><i class="bi bi-person-plus"></i> Create your profile</a>
         </div>
         <div class="explore-stats" aria-label="KnotWork community statistics">
             <div class="explore-stat"><strong>340+</strong><span>topics to explore</span></div>
@@ -226,7 +226,7 @@
                     <p>{{ topic.description }}</p>
                     <div class="topic-meta">
                         <span>{{ topic.count }} learning paths</span>
-                        <a href="{% url 'sign_up' %}">Explore <i class="bi bi-arrow-up-right"></i></a>
+                        <a href="{% url 'get_started' %}">Explore <i class="bi bi-arrow-up-right"></i></a>
                     </div>
                 </article>
             </div>
@@ -282,7 +282,7 @@
     <div class="container">
         <h2>Your next useful conversation is probably closer than you think.</h2>
         <p>Bring one skill you know, one skill you want, and let the exchange begin.</p>
-        <a href="{% url 'sign_up' %}" class="btn btn-secondary"><i class="bi bi-arrow-right-circle"></i> Join KnotWork</a>
+        <a href="{% url 'get_started' %}" class="btn btn-secondary"><i class="bi bi-arrow-right-circle"></i> Join KnotWork</a>
     </div>
 </section>
 

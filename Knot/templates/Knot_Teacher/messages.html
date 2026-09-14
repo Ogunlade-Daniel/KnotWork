@@ -1,0 +1,2456 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages{% endblock %}
+{% block breadcrumb %}Messages{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   MESSAGES — one-to-one & cohort conversations
+   Layout: list rail · live thread · context rail
+   ============================================================ */
+
+.messages{
+    --gold:        var(--secondary, #BEF264);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.32);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-light:   #7DD3FC;
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+    --sky-line:    rgba(56, 189, 248, 0.34);
+
+    --violet:      #8B5CF6;
+    --violet-light:#A78BFA;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+
+    --rose:        #F43F5E;
+    --rose-soft:   rgba(244, 63, 94, 0.10);
+    --mint:        #10B981;
+    --mint-soft:   rgba(16, 185, 129, 0.12);
+    --amber:       #F59E0B;
+    --amber-soft:  rgba(245, 158, 11, 0.12);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ---------- entrance ---------- */
+.messages .m-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: mRise .7s var(--ease) forwards;
+}
+.messages .m-rise:nth-child(1){ animation-delay: .02s; }
+.messages .m-rise:nth-child(2){ animation-delay: .08s; }
+.messages .m-rise:nth-child(3){ animation-delay: .14s; }
+.messages .m-rise:nth-child(4){ animation-delay: .20s; }
+@keyframes mRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.m-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.m-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--sky) 0%,
+        var(--sky-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.m-mast-left .mm-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 10px;
+}
+.m-mast-left .mm-kicker i{ color: var(--sky); font-size: 0.72rem; }
+.m-mast-left .mm-kicker .unread-pill{
+    padding: 2px 9px;
+    border-radius: 50px;
+    background: var(--sky);
+    color: #fff;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-left: 4px;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.36);
+}
+
+.m-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.m-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--sky), var(--sky-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.m-mast-left .mm-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.m-mast-left .mm-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.m-mast-left .mm-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.m-mast-left .mm-sub .live-tag{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 50px;
+    background: var(--mint-soft);
+    color: var(--mint);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.m-mast-left .mm-sub .live-tag .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--mint);
+    animation: livePulse 1.8s ease-in-out infinite;
+}
+@keyframes livePulse{
+    0%, 100%{ box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    50%     { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+
+.m-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---------- buttons ---------- */
+.messages .btn-gold{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+}
+.messages .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+.messages .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.messages .btn-ghost:hover{
+    border-color: var(--sky); color: var(--sky);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+.messages .btn-sky{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--sky-light), var(--sky));
+    color: #fff; font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(56, 189, 248, 0.34);
+}
+.messages .btn-sky:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(56, 189, 248, 0.48);
+}
+
+/* ============================================================
+   2 · TRIAGE STRIP
+   ============================================================ */
+.triage{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 1180px){ .triage{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .triage{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tri-tile{
+    position: relative;
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tri-tile::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sky), var(--sky-light));
+    border-radius: 3px 3px 0 0;
+}
+.tri-tile.gold::before{ background: linear-gradient(90deg, var(--gold), var(--gold-deep)); }
+.tri-tile.violet::before{ background: linear-gradient(90deg, var(--violet-light), var(--violet)); }
+.tri-tile.mint::before{ background: linear-gradient(90deg, #6EE7B7, var(--mint)); }
+.tri-tile.rose::before{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+
+.tri-tile:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--sky-line);
+}
+
+.tt-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tt-icon{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--sky-soft);
+    color: var(--sky);
+    flex-shrink: 0;
+}
+.tri-tile.gold .tt-icon{ background: var(--gold-soft); color: var(--gold-deep); }
+.tri-tile.violet .tt-icon{ background: var(--violet-soft); color: var(--violet); }
+.tri-tile.mint .tt-icon{ background: var(--mint-soft); color: var(--mint); }
+.tri-tile.rose .tt-icon{ background: var(--rose-soft); color: var(--rose); }
+
+.tt-micro{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.tt-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.tt-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+.tt-val.sky{ color: var(--sky); }
+.tt-val.rose{ color: var(--rose); }
+.tt-label{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   3 · WORKSPACE — three-panel messaging
+   ============================================================ */
+.msg-workspace{
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) minmax(240px, 300px);
+    gap: 0;
+    height: 76vh;
+    min-height: 620px;
+    max-height: 900px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+}
+@media (max-width: 1280px){
+    .msg-workspace{ grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); }
+    .msg-context{ display: none !important; }
+}
+@media (max-width: 900px){
+    .msg-workspace{ grid-template-columns: 1fr; }
+    .msg-list{
+        border-right: none !important;
+        display: none !important;
+    }
+    .msg-workspace.list-open .msg-list{
+        display: flex !important;
+    }
+    .msg-workspace.list-open .msg-thread{
+        display: none;
+    }
+}
+
+/* ============================================================
+   4 · LEFT PANEL — CONVERSATION LIST
+   ============================================================ */
+.msg-list{
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--line-soft);
+    min-width: 0;
+    overflow: hidden;
+    background: var(--paper-2);
+}
+.msg-list-head{
+    padding: 18px 18px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--paper);
+}
+.msg-list-head-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.msg-list-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.msg-list-head h3 i{
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    background: var(--sky-soft);
+    color: var(--sky);
+    flex-shrink: 0;
+}
+.msg-compose-btn{
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--sky-light), var(--sky));
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.28);
+}
+.msg-compose-btn:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(56, 189, 248, 0.42);
+}
+
+.msg-search{
+    position: relative;
+}
+.msg-search i{
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-size: 0.76rem;
+    pointer-events: none;
+}
+.msg-search input{
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .25s ease);
+}
+.msg-search input::placeholder{ color: var(--faint); }
+.msg-search input:focus{
+    border-color: var(--sky);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--sky-soft);
+}
+
+.msg-filters{
+    display: flex;
+    gap: 5px;
+    padding: 10px 18px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-soft);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.msg-filters::-webkit-scrollbar{ display: none; }
+
+.mf-chip{
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.mf-chip:hover{
+    border-color: var(--sky-line);
+    color: var(--ink);
+    background: var(--paper);
+}
+.mf-chip.active{
+    background: var(--sky-soft);
+    border-color: var(--sky-line);
+    color: var(--sky);
+}
+.mf-chip .n{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 50px;
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 0.54rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.mf-chip.active .n{
+    background: var(--sky);
+    color: #fff;
+}
+
+/* conversation list scroll area */
+.msg-conversations{
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    scrollbar-width: thin;
+}
+.msg-conversations::-webkit-scrollbar{ width: 4px; }
+.msg-conversations::-webkit-scrollbar-thumb{
+    background: rgba(56, 189, 248, 0.35);
+    border-radius: 10px;
+}
+
+/* conversation item */
+.conv-item{
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 12px 12px 12px 14px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.conv-item:hover{
+    background: var(--paper);
+    border-color: var(--line-soft);
+}
+.conv-item.active{
+    background: linear-gradient(90deg, var(--sky-soft) 0%, transparent 100%);
+    border-color: var(--sky-line);
+}
+.conv-item.active::before{
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    border-radius: 0 3px 3px 0;
+    background: var(--sky);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+}
+
+.conv-av{
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+}
+.conv-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.conv-av.v3{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; }
+.conv-av.v4{ background: linear-gradient(135deg, #FB7185, var(--rose)); color: #fff; }
+.conv-av.cohort{
+    background: linear-gradient(135deg, var(--sky-light), var(--violet));
+    color: #fff;
+    border-radius: 12px;
+}
+.conv-av .presence{
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--mint);
+    border: 2px solid var(--paper-2);
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+}
+.conv-av .presence.away{ background: var(--amber); box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2); }
+.conv-av .presence.offline{ background: var(--faint); box-shadow: none; }
+
+.conv-item.active .conv-av .presence{ border-color: var(--paper); }
+
+.conv-body{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.conv-top{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+.conv-name{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.conv-name i{ font-size: 0.7rem; color: var(--sky); flex-shrink: 0; }
+.conv-name i.pin{ color: var(--gold-deep); }
+.conv-time{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--faint);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+}
+.conv-item.unread .conv-time{ color: var(--sky); }
+
+.conv-preview{
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+.conv-item.unread .conv-preview{
+    color: var(--ink-3);
+    font-weight: 600;
+}
+.conv-preview em{
+    font-style: italic;
+    color: var(--sky);
+    font-weight: 700;
+}
+
+.conv-foot{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+}
+
+.conv-tag{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+}
+.conv-tag.cohort{ background: var(--violet-soft); color: var(--violet); }
+.conv-tag.direct{ background: var(--sky-soft); color: var(--sky); }
+.conv-tag.mentor{ background: var(--gold-soft); color: var(--gold-deep); }
+.conv-tag.urgent{ background: var(--rose-soft); color: var(--rose); }
+
+.conv-badge{
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--sky-light), var(--sky));
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(56, 189, 248, 0.32);
+}
+.conv-badge.muted{
+    background: var(--line-soft);
+    color: var(--muted);
+    box-shadow: none;
+}
+
+/* ============================================================
+   5 · CENTER PANEL — LIVE THREAD
+   ============================================================ */
+.msg-thread{
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--paper);
+}
+
+/* thread header */
+.thread-head{
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--paper);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 3;
+}
+
+.thread-back{
+    display: none;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    place-items: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+@media (max-width: 900px){ .thread-back{ display: grid; } }
+
+.thread-who{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+.thread-av{
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+}
+.thread-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.thread-av.v3{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; }
+.thread-av.cohort{
+    background: linear-gradient(135deg, var(--sky-light), var(--violet));
+    color: #fff;
+    border-radius: 14px;
+}
+.thread-av .presence{
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--mint);
+    border: 2px solid var(--paper);
+}
+.thread-av .presence.away{ background: var(--amber); }
+.thread-av .presence.offline{ background: var(--faint); }
+
+.thread-info{ flex: 1; min-width: 0; }
+.thread-info h2{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.thread-info h2 .badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--violet-soft);
+    color: var(--violet);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.thread-info p{
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+.thread-info p .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.thread-info p .online{
+    color: var(--mint);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.thread-info p .online::before{
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--mint);
+}
+
+.thread-actions{
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.ta-btn{
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    display: grid; place-items: center;
+    font-size: 0.85rem;
+    transition: var(--transition, all .2s ease);
+}
+.ta-btn:hover{
+    border-color: var(--sky);
+    color: var(--sky);
+    background: var(--sky-soft);
+    transform: translateY(-1px);
+}
+.ta-btn.call{
+    background: linear-gradient(135deg, var(--sky-light), var(--sky));
+    border: none;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(56, 189, 248, 0.28);
+}
+.ta-btn.call:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(56, 189, 248, 0.42);
+    color: #fff;
+}
+
+/* message feed */
+.thread-feed{
+    flex: 1;
+    padding: 22px 26px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scrollbar-width: thin;
+    background:
+        radial-gradient(ellipse at 90% 0%, rgba(56, 189, 248, 0.04), transparent 55%),
+        radial-gradient(ellipse at 10% 100%, rgba(139, 92, 246, 0.03), transparent 55%),
+        var(--paper);
+}
+.thread-feed::-webkit-scrollbar{ width: 6px; }
+.thread-feed::-webkit-scrollbar-thumb{
+    background: rgba(56, 189, 248, 0.35);
+    border-radius: 10px;
+}
+
+/* date separator */
+.date-sep{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 12px;
+    color: var(--faint);
+}
+.date-sep::before,
+.date-sep::after{
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line-soft);
+}
+.date-sep span{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--faint);
+    white-space: nowrap;
+}
+
+/* message bubble */
+.msg-row{
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    max-width: 78%;
+    margin-bottom: 2px;
+}
+.msg-row.out{
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+.msg-row.in{ align-self: flex-start; }
+
+.msg-row .bub-av{
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    flex-shrink: 0;
+    margin-bottom: 2px;
+}
+.msg-row .bub-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.msg-row .bub-av.v3{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; }
+.msg-row.out .bub-av{
+    background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+    color: var(--ink);
+    box-shadow: 0 4px 10px rgba(190, 242, 100, 0.3);
+}
+
+.bub-wrap{
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+.msg-row.out .bub-wrap{ align-items: flex-end; }
+.msg-row.in .bub-wrap{ align-items: flex-start; }
+
+.bub{
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--ink-3);
+    word-wrap: break-word;
+    max-width: 100%;
+    position: relative;
+}
+.msg-row.in .bub{
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    border-bottom-left-radius: 4px;
+}
+.msg-row.out .bub{
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 6px 16px rgba(11, 17, 33, 0.12);
+}
+.bub strong{ font-weight: 700; }
+.msg-row.in .bub strong{ color: var(--ink); }
+.msg-row.out .bub strong{ color: var(--gold-light); }
+.bub em{
+    font-style: italic;
+    color: var(--sky);
+}
+.msg-row.out .bub em{ color: var(--sky-light); }
+.bub code{
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 0.78rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--violet);
+}
+.msg-row.out .bub code{
+    background: rgba(190, 242, 100, 0.14);
+    color: var(--gold-light);
+}
+
+.bub-meta{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+    padding: 0 4px;
+}
+.bub-meta .check{
+    color: var(--sky);
+    font-size: 0.7rem;
+}
+.bub-meta .check.read{ color: var(--mint); }
+
+/* file bubble */
+.bub-file{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    max-width: 300px;
+}
+.msg-row.out .bub-file{
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+.bub-file:hover{
+    border-color: var(--sky-line);
+    background: var(--sky-soft);
+}
+.msg-row.out .bub-file:hover{
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.24);
+}
+.bub-file .fi{
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    background: var(--sky-soft);
+    color: var(--sky);
+    font-size: 0.82rem;
+    flex-shrink: 0;
+}
+.msg-row.out .bub-file .fi{
+    background: rgba(190, 242, 100, 0.14);
+    color: var(--gold-light);
+}
+.bub-file .fb{ flex: 1; min-width: 0; }
+.bub-file .fb h6{
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.msg-row.out .bub-file .fb h6{ color: #fff; }
+.bub-file .fb p{
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+.msg-row.out .bub-file .fb p{ color: rgba(255,255,255,0.55); }
+
+/* quick reply chips shown above composer */
+.quick-replies{
+    display: flex;
+    gap: 6px;
+    padding: 0 22px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.quick-replies::-webkit-scrollbar{ display: none; }
+.qr{
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.qr:hover{
+    border-color: var(--sky-line);
+    color: var(--sky);
+    background: var(--sky-soft);
+    transform: translateY(-1px);
+}
+.qr i{ font-size: 0.72rem; }
+
+/* typing indicator */
+.typing{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 26px 8px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-weight: 500;
+    flex-shrink: 0;
+    height: 24px;
+    transition: var(--transition, all .25s ease);
+    opacity: 0;
+}
+.typing.show{ opacity: 1; }
+.typing .dots{
+    display: inline-flex;
+    gap: 3px;
+}
+.typing .dots span{
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--sky);
+    animation: typing 1.4s ease-in-out infinite;
+}
+.typing .dots span:nth-child(2){ animation-delay: 0.15s; }
+.typing .dots span:nth-child(3){ animation-delay: 0.3s; }
+@keyframes typing{
+    0%, 60%, 100%{ transform: translateY(0); opacity: 0.4; }
+    30%          { transform: translateY(-3px); opacity: 1; }
+}
+
+/* composer */
+.msg-composer{
+    padding: 14px 22px 18px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--paper);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.composer-shell{
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 6px 6px 6px 14px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    transition: var(--transition, all .25s ease);
+}
+.composer-shell:focus-within{
+    border-color: var(--sky);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--sky-soft);
+}
+.composer-shell textarea{
+    flex: 1;
+    min-height: 24px;
+    max-height: 140px;
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--ink-3);
+    resize: none;
+    outline: none;
+}
+.composer-shell textarea::placeholder{ color: var(--faint); }
+
+.composer-tools{
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.ct-btn{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    display: grid; place-items: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.ct-btn:hover{
+    background: var(--sky-soft);
+    color: var(--sky);
+}
+.composer-send{
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--sky-light), var(--sky));
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    box-shadow: 0 6px 14px rgba(56, 189, 248, 0.34);
+    flex-shrink: 0;
+}
+.composer-send:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(56, 189, 248, 0.48);
+}
+.composer-send:disabled{
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.composer-hints{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.62rem;
+    color: var(--faint);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0 2px;
+}
+.composer-hints kbd{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    font-family: 'Inter', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    color: var(--muted);
+    line-height: 1;
+    min-width: 18px;
+    margin: 0 1px;
+}
+.composer-hints strong{
+    color: var(--muted);
+    font-weight: 700;
+}
+
+/* ============================================================
+   6 · RIGHT PANEL — CONTEXT RAIL
+   ============================================================ */
+.msg-context{
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--line-soft);
+    background: var(--paper-2);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.msg-context::-webkit-scrollbar{ width: 4px; }
+.msg-context::-webkit-scrollbar-thumb{
+    background: rgba(56, 189, 248, 0.35);
+    border-radius: 10px;
+}
+
+.ctx-block{
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.ctx-block:last-child{ border-bottom: none; }
+
+.ctx-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.ctx-head h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ctx-head h4 i{
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    display: grid; place-items: center;
+    font-size: 0.68rem;
+    background: var(--sky-soft);
+    color: var(--sky);
+    flex-shrink: 0;
+}
+.ctx-head h4 i.gold{ background: var(--gold-soft); color: var(--gold-deep); }
+.ctx-head h4 i.violet{ background: var(--violet-soft); color: var(--violet); }
+.ctx-head h4 i.mint{ background: var(--mint-soft); color: var(--mint); }
+.ctx-head h4 i.rose{ background: var(--rose-soft); color: var(--rose); }
+.ctx-head .count{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+.ctx-head .link{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sky);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+}
+
+/* profile card */
+.ctx-profile{
+    text-align: center;
+    padding: 20px 20px 18px;
+}
+.ctx-profile .big-av{
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+    box-shadow: 0 10px 24px rgba(190, 242, 100, 0.28);
+}
+.ctx-profile .big-av.v2{
+    background: linear-gradient(135deg, var(--sky), #0284C7);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(56, 189, 248, 0.28);
+}
+.ctx-profile .big-av.v3{
+    background: linear-gradient(135deg, var(--violet-light), var(--violet));
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(139, 92, 246, 0.28);
+}
+.ctx-profile .big-av.cohort{
+    background: linear-gradient(135deg, var(--sky-light), var(--violet));
+    color: #fff;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(139, 92, 246, 0.28);
+}
+.ctx-profile .big-av .presence{
+    position: absolute;
+    bottom: 2px; right: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--mint);
+    border: 3px solid var(--paper-2);
+}
+.ctx-profile .big-av .presence.away{ background: var(--amber); }
+.ctx-profile .big-av .presence.offline{ background: var(--faint); }
+
+.ctx-profile h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.ctx-profile p{
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-weight: 500;
+    line-height: 1.5;
+}
+.ctx-profile p strong{ color: var(--sky); font-weight: 700; }
+
+.ctx-quick{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 14px;
+}
+.ctx-quick button{
+    padding: 8px 6px 6px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.ctx-quick button:hover{
+    border-color: var(--sky-line);
+    color: var(--sky);
+    background: var(--sky-soft);
+}
+.ctx-quick button i{ font-size: 0.85rem; }
+
+/* shared files */
+.file-list{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.file-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.file-row:hover{
+    border-color: var(--sky-line);
+    background: var(--sky-soft);
+}
+.file-row .fr-ic{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    background: var(--violet-soft);
+    color: var(--violet);
+    flex-shrink: 0;
+}
+.file-row .fr-ic.code{ background: var(--sky-soft); color: var(--sky); }
+.file-row .fr-ic.pdf{ background: var(--rose-soft); color: var(--rose); }
+.file-row .fr-ic.img{ background: var(--mint-soft); color: var(--mint); }
+.file-row .fr-body{ flex: 1; min-width: 0; }
+.file-row .fr-body h6{
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.file-row .fr-body p{
+    font-size: 0.58rem;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: 2px;
+}
+.file-row .fr-dl{
+    color: var(--faint);
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+
+/* private notes */
+.note-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.note-item{
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--gold-soft);
+    border-left: 3px solid var(--gold-deep);
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--ink-3);
+    font-style: italic;
+}
+.note-item .meta{
+    font-style: normal;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-top: 6px;
+    display: block;
+}
+
+/* upcoming with person */
+.up-mini{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.up-mini .um-item{
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.up-mini .um-item:hover{
+    border-color: var(--sky-line);
+    background: var(--sky-soft);
+}
+.up-mini .um-date{
+    width: 36px;
+    flex-shrink: 0;
+    text-align: center;
+    padding: 5px 2px 4px;
+    border-radius: 8px;
+    background: var(--sky-soft);
+}
+.up-mini .um-date .m{
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sky);
+    line-height: 1;
+}
+.up-mini .um-date .d{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+.up-mini .um-body{ flex: 1; min-width: 0; }
+.up-mini .um-body h6{
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.up-mini .um-body p{
+    font-size: 0.6rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* ============================================================
+   7 · EMPTY THREAD STATE
+   ============================================================ */
+.thread-empty{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 30px;
+    text-align: center;
+}
+.thread-empty .te-ic{
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--sky-soft);
+    color: var(--sky);
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+}
+.thread-empty h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+.thread-empty p{
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 340px;
+}
+
+/* ============================================================
+   8 · FOOT BAR
+   ============================================================ */
+.msg-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 4px 4px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.msg-foot strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.msg-foot .foot-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .m-mast-left h1{ font-size: 1.5rem; }
+    .msg-workspace{ height: auto; min-height: 560px; }
+    .msg-list-head{ padding: 14px 14px 10px; }
+    .msg-filters{ padding: 8px 14px; }
+    .thread-head{ padding: 12px 14px; }
+    .thread-feed{ padding: 16px 16px 8px; }
+    .msg-row{ max-width: 88%; }
+    .msg-composer{ padding: 10px 14px 14px; }
+    .composer-hints{ display: none; }
+    .quick-replies{ padding: 0 14px 8px; }
+    .typing{ padding: 0 16px 8px; }
+}
+</style>
+
+
+<div class="messages">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="m-mast m-rise">
+        <div class="m-mast-left">
+            <span class="mm-kicker">
+                <i class="bi bi-chat-left-text-fill"></i> Messages
+                <span class="unread-pill">2 new</span>
+            </span>
+            <h1>Your <em>private channel.</em></h1>
+            <p class="mm-sub">
+                <strong>3</strong> unread
+                <span class="sep"></span>
+                <strong>6</strong> conversations
+                <span class="sep"></span>
+                Avg response <strong>42 min</strong>
+                <span class="sep"></span>
+                <span class="live-tag"><span class="dot"></span> 4 online now</span>
+            </p>
+        </div>
+        <div class="m-mast-right">
+            <button class="btn-ghost" data-toast="Opening templates…">
+                <i class="bi bi-bookmarks"></i> Templates
+            </button>
+            <button class="btn-ghost" data-toast="Opening broadcast…">
+                <i class="bi bi-megaphone"></i> Broadcast
+            </button>
+            <button class="btn-sky" data-toast="Opening new message…">
+                <i class="bi bi-pencil-square"></i> New message
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · TRIAGE STRIP
+         ==================================================== -->
+    <section class="triage">
+        <article class="tri-tile m-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-chat-dots-fill"></i></span>
+                <span class="tt-micro">Open</span>
+            </div>
+            <div class="tt-val sky" data-count="6">0</div>
+            <div class="tt-label">Active conversations</div>
+        </article>
+
+        <article class="tri-tile rose m-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-envelope-fill"></i></span>
+                <span class="tt-micro">Attention</span>
+            </div>
+            <div class="tt-val rose" data-count="3">0</div>
+            <div class="tt-label">Unread messages</div>
+        </article>
+
+        <article class="tri-tile violet m-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-reply-fill"></i></span>
+                <span class="tt-micro">Waiting</span>
+            </div>
+            <div class="tt-val" data-count="2">0</div>
+            <div class="tt-label">Awaiting your reply</div>
+        </article>
+
+        <article class="tri-tile gold m-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-stopwatch"></i></span>
+                <span class="tt-micro">Average</span>
+            </div>
+            <div class="tt-val">42<em>min</em></div>
+            <div class="tt-label">Response time</div>
+        </article>
+
+        <article class="tri-tile mint m-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-people-fill"></i></span>
+                <span class="tt-micro">Right now</span>
+            </div>
+            <div class="tt-val" data-count="4">0</div>
+            <div class="tt-label">Online students</div>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         3 · WORKSPACE
+         ==================================================== -->
+    <section class="msg-workspace m-rise">
+
+        <!-- ============================================
+             LEFT · CONVERSATION LIST
+             ============================================ -->
+        <aside class="msg-list">
+            <div class="msg-list-head">
+                <div class="msg-list-head-top">
+                    <h3><i class="bi bi-inbox-fill"></i> Conversations</h3>
+                    <button class="msg-compose-btn" aria-label="New message" data-toast="Opening new message…">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                <div class="msg-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search conversations…" aria-label="Search conversations" data-conv-search>
+                </div>
+            </div>
+
+            <div class="msg-filters">
+                <button class="mf-chip active" data-filter="all">All <span class="n">6</span></button>
+                <button class="mf-chip" data-filter="unread">Unread <span class="n">3</span></button>
+                <button class="mf-chip" data-filter="cohort">Cohort <span class="n">1</span></button>
+                <button class="mf-chip" data-filter="direct">1:1 <span class="n">5</span></button>
+                <button class="mf-chip" data-filter="pinned">Pinned <span class="n">1</span></button>
+            </div>
+
+            <div class="msg-conversations" data-conv-list>
+
+                <!-- PINNED · Sara Kim -->
+                <div class="conv-item unread active" data-conv="sara" data-tags="unread,pinned,direct">
+                    <span class="conv-av">
+                        SK
+                        <span class="presence"></span>
+                    </span>
+                    <div class="conv-body">
+                        <div class="conv-top">
+                            <span class="conv-name">
+                                <i class="bi bi-pin-angle-fill pin"></i> Sara Kim
+                            </span>
+                            <span class="conv-time">2m</span>
+                        </div>
+                        <p class="conv-preview">Thanks for the feedback on the hooks assignment — I reworked the effect cleanup and it <em>finally clicks</em>. Could we schedule a 1:1 to talk…</p>
+                        <div class="conv-foot">
+                            <span class="conv-tag mentor">Mentor</span>
+                            <span class="conv-badge">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COHORT thread -->
+                <div class="conv-item unread" data-conv="cohort" data-tags="unread,cohort">
+                    <span class="conv-av cohort">
+                        <i class="bi bi-people-fill"></i>
+                    </span>
+                    <div class="conv-body">
+                        <div class="conv-top">
+                            <span class="conv-name">
+                                <i class="bi bi-people-fill"></i> React Cohort · March
+                            </span>
+                            <span class="conv-time">18m</span>
+                        </div>
+                        <p class="conv-preview"><strong>Tunde K.</strong> asked about context vs custom hooks — 4 replies already. <em>Want to weigh in?</em></p>
+                        <div class="conv-foot">
+                            <span class="conv-tag cohort">Cohort</span>
+                            <span class="conv-badge">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tunde Kalu -->
+                <div class="conv-item unread" data-conv="tunde" data-tags="unread,direct">
+                    <span class="conv-av v2">
+                        TK
+                        <span class="presence"></span>
+                    </span>
+                    <div class="conv-body">
+                        <div class="conv-top">
+                            <span class="conv-name">Tunde Kalu</span>
+                            <span class="conv-time">1h</span>
+                        </div>
+                        <p class="conv-preview">Finished the design system case study — sent it your way. Any thoughts before I publish?</p>
+                        <div class="conv-foot">
+                            <span class="conv-tag direct">Direct</span>
+                            <span class="conv-badge">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maya Rahman -->
+                <div class="conv-item" data-conv="maya" data-tags="direct">
+                    <span class="conv-av v3">
+                        MR
+                        <span class="presence away"></span>
+                    </span>
+                    <div class="conv-body">
+                        <div class="conv-top">
+                            <span class="conv-name">Maya Rahman</span>
+                            <span class="conv-time">Yest.</span>
+                        </div>
+                        <p class="conv-preview">Sorry for the silence — work got heavy. I'll pick back up this weekend. Any tips for staying consistent?</p>
+                        <div class="conv-foot">
+                            <span class="conv-tag direct">Direct</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amara Obi -->
+                <div class="conv-item" data-conv="amara" data-tags="direct">
+                    <span class="conv-av v4">
+                        AO
+                        <span class="presence"></span>
+                    </span>
+                    <div class="conv-body">
+                        <div class="conv-top">
+                            <span class="conv-name">Amara Obi</span>
+                            <span class="conv-time">2d</span>
+                        </div>
+                        <p class="conv-preview">Just wanted to say — the TypeScript generics module was the clearest I've seen. Thank you.</p>
+                        <div class="conv-foot">
+                            <span class="conv-tag direct">Direct</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jonas Tan -->
+                <div class="conv-item" data-conv="jonas" data-tags="direct">
+                    <span class="conv-av">
+                        JT
+                        <span class="presence offline"></span>
+                    </span>
+                    <div class="conv-body">
+                        <div class="conv-top">
+                            <span class="conv-name">Jonas Tan</span>
+                            <span class="conv-time">3d</span>
+                        </div>
+                        <p class="conv-preview">New to the cohort — loving the pace so far. Anything I should focus on first?</p>
+                        <div class="conv-foot">
+                            <span class="conv-tag direct">Direct</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+
+        <!-- ============================================
+             CENTER · LIVE THREAD
+             ============================================ -->
+        <div class="msg-thread">
+
+            <header class="thread-head">
+                <button class="thread-back" aria-label="Back to conversations">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div class="thread-who">
+                    <span class="thread-av" data-thread-av>
+                        SK
+                        <span class="presence"></span>
+                    </span>
+                    <div class="thread-info">
+                        <h2 data-thread-name>Sara Kim</h2>
+                        <p>
+                            <span class="online">Online</span>
+                            <span class="sep"></span>
+                            Mentor track · 18 months with you
+                        </p>
+                    </div>
+                </div>
+
+                <div class="thread-actions">
+                    <button class="ta-btn call" aria-label="Video call" data-toast="Starting video call…">
+                        <i class="bi bi-camera-video-fill"></i>
+                    </button>
+                    <button class="ta-btn" aria-label="Search" data-toast="Search in conversation…">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <button class="ta-btn" aria-label="More" data-toast="Opening menu…">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- message feed -->
+            <div class="thread-feed" data-feed>
+
+                <div class="date-sep"><span>Yesterday</span></div>
+
+                <div class="msg-row in">
+                    <span class="bub-av v2">SK</span>
+                    <div class="bub-wrap">
+                        <div class="bub">
+                            Hey professor — I've been thinking about the <strong>effect cleanup</strong> feedback you gave on my hooks assignment. I want to show you what I reworked.
+                        </div>
+                        <div class="bub-meta"><i class="bi bi-clock"></i> 14:02</div>
+                    </div>
+                </div>
+
+                <div class="msg-row out">
+                    <div class="bub-wrap">
+                        <div class="bub">
+                            Please do — I'm curious. Send it over and I'll take a look before office hours.
+                        </div>
+                        <div class="bub-meta"><span class="check read"><i class="bi bi-check2-all"></i></span> 14:08</div>
+                    </div>
+                    <span class="bub-av">DO</span>
+                </div>
+
+                <div class="msg-row in">
+                    <span class="bub-av v2">SK</span>
+                    <div class="bub-wrap">
+                        <div class="bub-file" data-toast="Opening file…">
+                            <span class="fi"><i class="bi bi-filetype-tsx"></i></span>
+                            <div class="fb">
+                                <h6>useDebounce.tsx</h6>
+                                <p>4.2 KB · TypeScript · Updated 14:12</p>
+                            </div>
+                            <i class="bi bi-download fr-dl"></i>
+                        </div>
+                        <div class="bub-meta"><i class="bi bi-clock"></i> 14:12</div>
+                    </div>
+                </div>
+
+                <div class="date-sep"><span>Today</span></div>
+
+                <div class="msg-row in">
+                    <span class="bub-av v2">SK</span>
+                    <div class="bub-wrap">
+                        <div class="bub">
+                            The change was small but the mental model shifted — I stopped treating cleanup as the <em>opposite</em> of setup and started treating it as a <strong>paired contract</strong>.
+                        </div>
+                        <div class="bub-meta"><i class="bi bi-clock"></i> 09:34</div>
+                    </div>
+                </div>
+
+                <div class="msg-row in">
+                    <span class="bub-av v2">SK</span>
+                    <div class="bub-wrap">
+                        <div class="bub">
+                            Could we <strong>schedule a 1:1</strong> to talk about the mentor track? I want to see if it's a fit and I'd rather hear it from you than guess.
+                        </div>
+                        <div class="bub-meta"><i class="bi bi-clock"></i> 09:35</div>
+                    </div>
+                </div>
+
+                <div class="msg-row out">
+                    <div class="bub-wrap">
+                        <div class="bub">
+                            That framing is exactly right — <code>useEffect</code> makes it easy to think of cleanup as optional, but the moment you see it as a contract, the whole hook starts writing itself differently.
+                        </div>
+                        <div class="bub-meta"><span class="check read"><i class="bi bi-check2-all"></i></span> 09:41</div>
+                    </div>
+                    <span class="bub-av">DO</span>
+                </div>
+
+                <div class="msg-row out">
+                    <div class="bub-wrap">
+                        <div class="bub">
+                            And yes to the 1:1 — let's do it. I'll send you times for next week. Thrilled you're considering the mentor track; you'd be excellent at it.
+                        </div>
+                        <div class="bub-meta"><span class="check"><i class="bi bi-check2-all"></i></span> just now</div>
+                    </div>
+                    <span class="bub-av">DO</span>
+                </div>
+
+            </div>
+
+            <!-- typing indicator -->
+            <div class="typing" data-typing>
+                <span class="dots"><span></span><span></span><span></span></span>
+                <span data-typing-name>Sara Kim</span> is typing…
+            </div>
+
+            <!-- quick replies -->
+            <div class="quick-replies">
+                <button class="qr" data-quick="Sounds great — I'll send times this afternoon.">
+                    <i class="bi bi-calendar-check"></i> Send times
+                </button>
+                <button class="qr" data-quick="Let me know what you think of the reworked cleanup — happy to walk through it.">
+                    <i class="bi bi-code-slash"></i> Review the code
+                </button>
+                <button class="qr" data-quick="Love that framing. Keep noticing; it's working.">
+                    <i class="bi bi-star-fill"></i> Praise framing
+                </button>
+                <button class="qr" data-quick="Ping me any time before Friday if anything shifts.">
+                    <i class="bi bi-clock"></i> Open window
+                </button>
+            </div>
+
+            <!-- composer -->
+            <div class="msg-composer">
+                <form class="composer-shell" data-composer onsubmit="return false;">
+                    <textarea
+                        placeholder="Write a message to Sara Kim…"
+                        rows="1"
+                        aria-label="Write a message"
+                        data-composer-input></textarea>
+
+                    <div class="composer-tools">
+                        <button type="button" class="ct-btn" aria-label="Attach a file" data-toast="Opening file picker…">
+                            <i class="bi bi-paperclip"></i>
+                        </button>
+                        <button type="button" class="ct-btn" aria-label="Insert emoji" data-toast="Opening emoji picker…">
+                            <i class="bi bi-emoji-smile"></i>
+                        </button>
+                        <button type="button" class="ct-btn" aria-label="Voice note" data-toast="Recording voice note…">
+                            <i class="bi bi-mic"></i>
+                        </button>
+                        <button type="button" class="composer-send" aria-label="Send" data-composer-send>
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="composer-hints">
+                    <span><strong>Tip:</strong> <kbd>Shift</kbd>+<kbd>↵</kbd> for a new line</span>
+                    <span><kbd>↵</kbd> to send</span>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ============================================
+             RIGHT · CONTEXT RAIL
+             ============================================ -->
+        <aside class="msg-context">
+
+            <!-- profile -->
+            <div class="ctx-block ctx-profile">
+                <span class="big-av" data-ctx-av>
+                    SK
+                    <span class="presence"></span>
+                </span>
+                <h3 data-ctx-name>Sara Kim</h3>
+                <p data-ctx-sub>Lagos, Nigeria · <strong>18 months</strong> with you</p>
+
+                <div class="ctx-quick">
+                    <button data-toast="Opening profile…">
+                        <i class="bi bi-person-badge"></i>
+                        Profile
+                    </button>
+                    <button data-toast="Opening session scheduler…">
+                        <i class="bi bi-calendar-plus"></i>
+                        Schedule
+                    </button>
+                    <button data-toast="Opening notes…">
+                        <i class="bi bi-journal-text"></i>
+                        Notes
+                    </button>
+                </div>
+            </div>
+
+            <!-- shared files -->
+            <div class="ctx-block">
+                <div class="ctx-head">
+                    <h4><i class="bi bi-paperclip"></i> Shared files</h4>
+                    <span class="count">3</span>
+                </div>
+
+                <div class="file-list">
+                    <div class="file-row" data-toast="Opening useDebounce.tsx…">
+                        <span class="fr-ic code"><i class="bi bi-filetype-tsx"></i></span>
+                        <div class="fr-body">
+                            <h6>useDebounce.tsx</h6>
+                            <p>4.2 KB · today</p>
+                        </div>
+                        <i class="bi bi-download fr-dl"></i>
+                    </div>
+
+                    <div class="file-row" data-toast="Opening hooks-notes.pdf…">
+                        <span class="fr-ic pdf"><i class="bi bi-file-earmark-pdf"></i></span>
+                        <div class="fr-body">
+                            <h6>hooks-notes.pdf</h6>
+                            <p>842 KB · 2 days ago</p>
+                        </div>
+                        <i class="bi bi-download fr-dl"></i>
+                    </div>
+
+                    <div class="file-row" data-toast="Opening effect-cleanup.png…">
+                        <span class="fr-ic img"><i class="bi bi-image"></i></span>
+                        <div class="fr-body">
+                            <h6>effect-cleanup.png</h6>
+                            <p>210 KB · 3 days ago</p>
+                        </div>
+                        <i class="bi bi-download fr-dl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- private notes -->
+            <div class="ctx-block">
+                <div class="ctx-head">
+                    <h4><i class="bi bi-journal-text gold"></i> Private notes</h4>
+                    <button class="link" data-toast="Opening note editor…">Add</button>
+                </div>
+
+                <div class="note-list">
+                    <div class="note-item">
+                        <p>Strong candidate for the mentor track — she notices her own decisions, not just the outcome. Consider suggesting it at the next 1:1.</p>
+                        <span class="meta">2 days ago · you</span>
+                    </div>
+                    <div class="note-item">
+                        <p>Goes quiet when a project is heavy at work. Reach out proactively — she responds well to a check-in before deadlines.</p>
+                        <span class="meta">2 weeks ago · you</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- upcoming with this person -->
+            <div class="ctx-block">
+                <div class="ctx-head">
+                    <h4><i class="bi bi-calendar-event violet"></i> Upcoming</h4>
+                    <span class="count">2</span>
+                </div>
+
+                <div class="up-mini">
+                    <div class="um-item" data-toast="Opening session details…">
+                        <div class="um-date">
+                            <div class="m">Apr</div>
+                            <div class="d">8</div>
+                        </div>
+                        <div class="um-body">
+                            <h6>1:1 · Mentor track conversation</h6>
+                            <p>Tomorrow · 16:00 · 30 min</p>
+                        </div>
+                    </div>
+
+                    <div class="um-item" data-toast="Opening session details…">
+                        <div class="um-date">
+                            <div class="m">Apr</div>
+                            <div class="d">10</div>
+                        </div>
+                        <div class="um-body">
+                            <h6>Advanced React Patterns · S9</h6>
+                            <p>Thu · 18:30 · Group of 12</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+    </section>
+
+
+    <!-- ====================================================
+         4 · FOOT
+         ==================================================== -->
+    <div class="msg-foot">
+        <span>Showing <strong>6</strong> active conversations · <strong>3</strong> unread · sorted by most recent</span>
+        <div class="foot-actions">
+            <button class="btn-ghost" data-toast="Opening archive…">
+                <i class="bi bi-archive"></i> Archive
+            </button>
+            <button class="btn-ghost" data-toast="Opening settings…">
+                <i class="bi bi-sliders"></i> Preferences
+            </button>
+        </div>
+    </div>
+
+</div><!-- /.messages -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.messages');
+    if (!root) return;
+
+    /* ---------- animated counters ---------- */
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ================================================================
+       CONVERSATION SWITCHING
+       ================================================================ */
+    var convs = root.querySelectorAll('.conv-item');
+    var threadName = root.querySelector('[data-thread-name]');
+    var threadAv = root.querySelector('[data-thread-av]');
+    var ctxName = root.querySelector('[data-ctx-name]');
+    var ctxSub = root.querySelector('[data-ctx-sub]');
+    var ctxAv = root.querySelector('[data-ctx-av]');
+    var composerInput = root.querySelector('[data-composer-input]');
+
+    function makeInitials(name){
+        return name.split(/\s+/).filter(Boolean).map(function(w){ return w[0]; }).slice(0,2).join('').toUpperCase();
+    }
+
+    convs.forEach(function (conv) {
+        conv.addEventListener('click', function () {
+            convs.forEach(function (c) {
+                c.classList.remove('active');
+                c.classList.remove('unread');
+            });
+            conv.classList.add('active');
+
+            // Clear the unread badge
+            var badge = conv.querySelector('.conv-badge');
+            if (badge) {
+                badge.classList.add('muted');
+                badge.textContent = '0';
+                setTimeout(function(){
+                    if (badge.textContent === '0') badge.remove();
+                }, 800);
+            }
+
+            // Update names based on the conversation
+            var nameEl = conv.querySelector('.conv-name');
+            var name = nameEl ? nameEl.textContent.replace(/^[^\w]+/, '').trim() : 'Conversation';
+            // strip any leading icon character
+            name = name.replace(/^[\s]*(?:\u200d|\p{Emoji})+/u, '').trim() || name;
+
+            if (threadName) threadName.textContent = name;
+            if (ctxName) ctxName.textContent = name;
+            if (composerInput) {
+                composerInput.placeholder = 'Write a message to ' + name.split(' · ')[0] + '…';
+            }
+
+            var avClass = 'thread-av';
+            var ctxAvClass = 'big-av';
+            var convAv = conv.querySelector('.conv-av');
+            if (convAv) {
+                if (convAv.classList.contains('v2')) { avClass += ' v2'; ctxAvClass += ' v2'; }
+                if (convAv.classList.contains('v3')) { avClass += ' v3'; ctxAvClass += ' v3'; }
+                if (convAv.classList.contains('cohort')) { avClass += ' cohort'; ctxAvClass += ' cohort'; }
+            }
+            var initials = makeInitials(name);
+            if (threadAv) {
+                threadAv.className = avClass;
+                threadAv.innerHTML = initials + '<span class="presence"></span>';
+            }
+            if (ctxAv) {
+                ctxAv.className = ctxAvClass;
+                ctxAv.innerHTML = initials + '<span class="presence"></span>';
+            }
+            if (ctxSub) {
+                if (conv.dataset.conv === 'cohort') {
+                    ctxSub.innerHTML = 'Cohort thread · <strong>21 members</strong> · 3 online';
+                } else {
+                    ctxSub.innerHTML = 'Lagos, Nigeria · <strong>18 months</strong> with you';
+                }
+            }
+
+            // On mobile, open the list/thread panel correctly
+            if (window.innerWidth <= 900) {
+                var ws = root.querySelector('.msg-workspace');
+                if (ws) ws.classList.remove('list-open');
+            }
+        });
+    });
+
+    /* ================================================================
+       FILTER CHIPS
+       ================================================================ */
+    var chips = root.querySelectorAll('.mf-chip');
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chips.forEach(function (c) { c.classList.remove('active'); });
+            chip.classList.add('active');
+
+            var filter = chip.dataset.filter;
+            convs.forEach(function (conv) {
+                var tags = (conv.dataset.tags || '').split(',');
+                var show = (filter === 'all') || tags.indexOf(filter) !== -1;
+                conv.style.display = show ? '' : 'none';
+            });
+        });
+    });
+
+    /* ================================================================
+       SEARCH
+       ================================================================ */
+    var search = root.querySelector('[data-conv-search]');
+    if (search) {
+        search.addEventListener('input', function (e) {
+            var q = (e.target.value || '').toLowerCase().trim();
+            convs.forEach(function (conv) {
+                var text = conv.textContent.toLowerCase();
+                conv.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+            });
+        });
+    }
+
+    /* ================================================================
+       COMPOSER — auto-grow, send
+       ================================================================ */
+    var input = root.querySelector('[data-composer-input]');
+    var sendBtn = root.querySelector('[data-composer-send]');
+    var feed = root.querySelector('[data-feed]');
+    var typing = root.querySelector('[data-typing]');
+    var typingName = root.querySelector('[data-typing-name]');
+
+    function autoGrow() {
+        if (!input) return;
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+    }
+    if (input) {
+        input.addEventListener('input', autoGrow);
+    }
+
+    function nowTime() {
+        var d = new Date();
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function sendMessage(text) {
+        if (!text || !text.trim() || !feed) return;
+        text = text.trim();
+
+        var row = document.createElement('div');
+        row.className = 'msg-row out';
+        row.innerHTML =
+            '<div class="bub-wrap">' +
+                '<div class="bub">' + escapeHtml(text) + '</div>' +
+                '<div class="bub-meta"><span class="check"><i class="bi bi-check2-all"></i></span> ' + nowTime() + '</div>' +
+            '</div>' +
+            '<span class="bub-av">DO</span>';
+        feed.appendChild(row);
+        feed.scrollTop = feed.scrollHeight;
+
+        if (input) {
+            input.value = '';
+            input.style.height = 'auto';
+        }
+
+        // Simulate a reply with typing indicator
+        if (typing) {
+            var name = (threadName && threadName.textContent) ? threadName.textContent : 'Student';
+            if (typingName) typingName.textContent = name.split(' · ')[0];
+            setTimeout(function () {
+                typing.classList.add('show');
+                setTimeout(function () {
+                    typing.classList.remove('show');
+
+                    var replyRow = document.createElement('div');
+                    replyRow.className = 'msg-row in';
+                    var initials = makeInitials(name);
+                    var avClass = 'bub-av v2';
+                    if (threadAv && threadAv.classList.contains('v3')) avClass = 'bub-av v3';
+                    if (threadAv && threadAv.classList.contains('cohort')) avClass = 'bub-av v3';
+                    replyRow.innerHTML =
+                        '<span class="' + avClass + '">' + initials + '</span>' +
+                        '<div class="bub-wrap">' +
+                            '<div class="bub">Thanks — that helps a lot. I\'ll reply properly once I\'ve had a chance to sit with it.</div>' +
+                            '<div class="bub-meta"><i class="bi bi-clock"></i> ' + nowTime() + '</div>' +
+                        '</div>';
+                    feed.appendChild(replyRow);
+                    feed.scrollTop = feed.scrollHeight;
+                }, 2400);
+            }, 700);
+        }
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', function () {
+            sendMessage(input ? input.value : '');
+        });
+    }
+
+    if (input) {
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(input.value);
+            }
+        });
+    }
+
+    /* ================================================================
+       QUICK REPLY CHIPS
+       ================================================================ */
+    root.querySelectorAll('.qr').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            var text = chip.dataset.quick || chip.textContent.trim();
+            if (input) {
+                input.value = text;
+                autoGrow();
+                input.focus();
+            }
+        });
+    });
+
+    /* ================================================================
+       MOBILE: list ↔ thread toggle
+       ================================================================ */
+    var ws = root.querySelector('.msg-workspace');
+    var backBtn = root.querySelector('.thread-back');
+    if (backBtn && ws) {
+        backBtn.addEventListener('click', function () {
+            ws.classList.add('list-open');
+        });
+    }
+    // On mobile, start with list open
+    if (ws && window.innerWidth <= 900) {
+        ws.classList.add('list-open');
+    }
+    // When user selects a conversation on mobile, hide list
+    // (already handled in conv click handler above)
+
+})();
+</script>
+
+{% endblock content %}

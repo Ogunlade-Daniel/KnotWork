@@ -1,0 +1,1721 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Progress{% endblock %}
+
+{% block breadcrumb %}Progress{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       PROGRESS — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .pg-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .pg-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .pg-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .pg-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 620px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Period tabs (7d / 30d / term / all) ---------- */
+    .pg-period {
+        display: inline-flex;
+        gap: 3px;
+        padding: 4px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+    }
+    .pg-period button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 50px;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .pg-period button:hover { color: var(--primary-dark); }
+    .pg-period button.active {
+        background: var(--primary-dark);
+        color: var(--secondary);
+        box-shadow: 0 4px 12px rgba(11, 17, 33, 0.16);
+    }
+
+    /* ---------- KPI hero banner ---------- */
+    .pg-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        box-shadow: var(--shadow-md);
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 36px;
+        align-items: center;
+    }
+    .pg-hero::before {
+        content: '';
+        position: absolute;
+        top: -55%;
+        right: -10%;
+        width: 60%;
+        height: 210%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.12), transparent 68%);
+        pointer-events: none;
+    }
+    .pg-hero::after {
+        content: '∞';
+        position: absolute;
+        bottom: -90px;
+        left: 40%;
+        font-family: 'Playfair Display', serif;
+        font-size: 17rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.02);
+        pointer-events: none;
+    }
+    .pg-hero-text { position: relative; z-index: 2; }
+    .pg-hero-text h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+        font-weight: 700;
+        line-height: 1.18;
+        margin-bottom: 10px;
+    }
+    .pg-hero-text h2 span { color: var(--secondary); font-style: italic; }
+    .pg-hero-text p {
+        color: rgba(255, 255, 255, 0.66);
+        font-size: 0.9rem;
+        line-height: 1.7;
+        margin-bottom: 18px;
+        max-width: 460px;
+    }
+    .pg-hero-text p strong { color: var(--white); font-weight: 600; }
+    .pg-hero-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .pg-hero-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.86);
+    }
+    .pg-hero-pill i { color: var(--secondary); font-size: 0.82rem; }
+    .pg-hero-pill strong { color: var(--white); font-weight: 700; }
+
+    /* XP progress ring */
+    .pg-xp {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 22px;
+    }
+    .pg-xp-ring {
+        position: relative;
+        width: 148px;
+        height: 148px;
+        flex-shrink: 0;
+    }
+    .pg-xp-ring svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+    .pg-xp-ring .bg { fill: none; stroke: rgba(255, 255, 255, 0.08); stroke-width: 11; }
+    .pg-xp-ring .fg {
+        fill: none;
+        stroke: url(#pgXpGrad);
+        stroke-width: 11;
+        stroke-linecap: round;
+        stroke-dasharray: 408;
+        stroke-dashoffset: 408;
+        transition: stroke-dashoffset 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .pg-xp-ring .lbl {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+    }
+    .pg-xp-ring .lbl strong {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .pg-xp-ring .lbl span {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: rgba(255, 255, 255, 0.45);
+        font-weight: 600;
+        margin-top: 4px;
+    }
+    .pg-xp-meta { min-width: 0; }
+    .pg-xp-meta .lvl {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.16);
+        border: 1px solid rgba(190, 242, 100, 0.3);
+        color: var(--secondary-light);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+    .pg-xp-meta h4 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 4px;
+        line-height: 1.25;
+    }
+    .pg-xp-meta p {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.55;
+    }
+    .pg-xp-meta p strong { color: var(--secondary); font-weight: 700; }
+
+    /* ---------- KPI grid ---------- */
+    .pg-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .pg-kpi {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .pg-kpi::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .pg-kpi:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .pg-kpi:hover::before { opacity: 1; }
+
+    .pg-kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .pg-kpi .ic {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .pg-kpi .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .pg-kpi .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .pg-kpi .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+
+    .pg-kpi-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.66rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .pg-kpi-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .pg-kpi-trend i { font-size: 0.6rem; }
+
+    .pg-kpi .v {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+    .pg-kpi .v em {
+        font-style: normal;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .pg-kpi .l { font-size: 0.78rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Layout ---------- */
+    .pg-layout {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    .pg-col {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        min-width: 0;
+    }
+
+    /* ---------- Streak panel (feature) ---------- */
+    .pg-streak {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 26px 28px;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .pg-streak::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -15%;
+        width: 65%;
+        height: 220%;
+        background: radial-gradient(ellipse, rgba(245, 158, 11, 0.22), transparent 68%);
+        pointer-events: none;
+    }
+    .pg-streak-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+        position: relative;
+        z-index: 2;
+    }
+    .pg-streak-head h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--white);
+    }
+    .pg-streak-head h3 i { color: #FCD34D; font-size: 0.95rem; }
+    .pg-streak-head .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: rgba(252, 211, 77, 0.16);
+        border: 1px solid rgba(252, 211, 77, 0.32);
+        color: #FCD34D;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .pg-streak-main {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .pg-flame {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(252, 211, 77, 0.2), rgba(239, 68, 68, 0.06));
+        border: 2px solid rgba(252, 211, 77, 0.35);
+    }
+    .pg-flame > i {
+        font-size: 2.6rem;
+        color: #FCD34D;
+        filter: drop-shadow(0 0 14px rgba(252, 211, 77, 0.6));
+        animation: pgFlame 2.2s ease-in-out infinite;
+    }
+    @keyframes pgFlame {
+        0%, 100% { transform: scale(1) rotate(-2deg); }
+        50% { transform: scale(1.08) rotate(2deg); }
+    }
+    .pg-flame .num {
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 3px 12px;
+        border-radius: 50px;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.42);
+    }
+
+    .pg-streak-info { flex: 1; min-width: 0; }
+    .pg-streak-info h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+        margin-bottom: 6px;
+    }
+    .pg-streak-info h4 span { color: #FCD34D; }
+    .pg-streak-info p {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.62);
+        line-height: 1.6;
+    }
+    .pg-streak-info p strong { color: var(--white); font-weight: 600; }
+
+    /* Week dots */
+    .pg-week {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        position: relative;
+        z-index: 2;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .pg-day {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+    }
+    .pg-day .dow {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+    }
+    .pg-day .dot {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1.5px solid rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.5);
+        transition: var(--transition);
+    }
+    .pg-day.done .dot {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.36);
+    }
+    .pg-day.today .dot {
+        background: transparent;
+        border-color: #FCD34D;
+        color: #FCD34D;
+        box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.18);
+        animation: pgPulse 1.8s infinite;
+    }
+    @keyframes pgPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+    }
+    .pg-day.miss .dot { color: rgba(255, 255, 255, 0.24); }
+    .pg-day .hrs {
+        font-size: 0.58rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.42);
+    }
+
+    /* ---------- Chart card ---------- */
+    .pg-chart-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px 22px;
+    }
+    .pg-chart-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+    .pg-chart-head h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .pg-chart-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .pg-chart-head .legend {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .pg-chart-head .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    .pg-chart-head .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        display: inline-block;
+    }
+    .pg-chart-head .legend i.green { background: linear-gradient(180deg, var(--secondary), #7ED321); }
+    .pg-chart-head .legend i.blue  { background: linear-gradient(180deg, var(--accent), #0284C7); }
+    .pg-chart-head .legend i.violet { background: linear-gradient(180deg, #A78BFA, #7C3AED); }
+
+    /* Bar chart — learning hours */
+    .pg-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        height: 200px;
+        padding-top: 10px;
+        position: relative;
+    }
+    .pg-bars::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 26px 0;
+        background-image: linear-gradient(var(--gray-100) 1px, transparent 1px);
+        background-size: 100% 25%;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .pg-bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        height: 100%;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+    .pg-bar-track {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+    .pg-bar {
+        width: 100%;
+        max-width: 34px;
+        border-radius: 9px 9px 5px 5px;
+        background: var(--gray-200);
+        height: 0;
+        transition: height 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    background 0.3s ease;
+        position: relative;
+    }
+    .pg-bar.goal { background: linear-gradient(180deg, var(--secondary), #7ED321); }
+    .pg-bar.miss { background: var(--gray-200); }
+    .pg-bar.today { background: linear-gradient(180deg, var(--accent), #0284C7); box-shadow: 0 6px 18px rgba(56, 189, 248, 0.3); }
+
+    .pg-bar::after {
+        content: attr(data-val);
+        position: absolute;
+        top: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.66rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        opacity: 0;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .pg-bar-col:hover .pg-bar::after { opacity: 1; }
+    .pg-bar-col:hover .pg-bar { filter: brightness(1.06); }
+
+    .pg-bar-col .day {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        flex-shrink: 0;
+    }
+    .pg-bar-col.today .day { color: var(--accent); }
+
+    /* Line chart — XP growth */
+    .pg-line {
+        position: relative;
+        height: 200px;
+        padding: 10px 0 26px;
+    }
+    .pg-line svg { width: 100%; height: 100%; overflow: visible; }
+    .pg-line .grid { stroke: var(--gray-100); stroke-width: 1; }
+    .pg-line .axis { fill: var(--gray-300); font-size: 9px; font-weight: 600; letter-spacing: 0.04em; }
+    .pg-line .area { fill: url(#pgAreaGrad); opacity: 0; transition: opacity 1s ease 0.4s; }
+    .pg-line.drawn .area { opacity: 1; }
+    .pg-line .path {
+        fill: none;
+        stroke: var(--secondary-deep);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 1200;
+        stroke-dashoffset: 1200;
+        transition: stroke-dashoffset 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .pg-line.drawn .path { stroke-dashoffset: 0; }
+    .pg-line .dot {
+        fill: var(--white);
+        stroke: var(--secondary-deep);
+        stroke-width: 2.5;
+        opacity: 0;
+        transition: opacity 0.4s ease 1.2s;
+        cursor: pointer;
+    }
+    .pg-line.drawn .dot { opacity: 1; }
+    .pg-line .dot:hover { stroke-width: 3.5; }
+
+    /* Skill mastery bars */
+    .pg-skill {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .pg-skill:first-of-type { padding-top: 0; }
+    .pg-skill:last-of-type { padding-bottom: 0; border-bottom: none; }
+    .pg-skill-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .pg-skill-top .name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        min-width: 0;
+    }
+    .pg-skill-top .name i {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        flex-shrink: 0;
+    }
+    .pg-skill-top .name i.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .pg-skill-top .name i.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .pg-skill-top .name i.amber { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .pg-skill-top .name i.rose { background: rgba(239, 68, 68, 0.12); color: #DC2626; }
+    .pg-skill-top .name span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .pg-skill-top .pct {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        flex-shrink: 0;
+    }
+    .pg-skill-top .pct em {
+        font-style: normal;
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 4px;
+    }
+
+    /* ---------- Milestones timeline ---------- */
+    .pg-miles { display: flex; flex-direction: column; }
+    .pg-mile {
+        position: relative;
+        display: flex;
+        gap: 14px;
+        padding-bottom: 18px;
+    }
+    .pg-mile:last-child { padding-bottom: 0; }
+    .pg-mile::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 32px;
+        bottom: 0;
+        width: 2px;
+        border-radius: 2px;
+        background: var(--gray-100);
+    }
+    .pg-mile:last-child::before { display: none; }
+    .pg-mile.done::before {
+        background: linear-gradient(180deg, var(--secondary-deep), rgba(190, 242, 100, 0.3));
+    }
+    .pg-mile-dot {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.72rem;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 2px solid var(--white);
+        box-shadow: 0 0 0 1px var(--gray-200);
+        z-index: 2;
+        font-weight: 700;
+    }
+    .pg-mile.done .pg-mile-dot {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 0 0 1px var(--secondary-deep);
+    }
+    .pg-mile.now .pg-mile-dot {
+        background: var(--primary-dark);
+        color: var(--secondary);
+        box-shadow: 0 0 0 1px var(--primary-dark);
+        animation: pgPulse 2s infinite;
+    }
+    .pg-mile-body { flex: 1; min-width: 0; padding-top: 2px; }
+    .pg-mile-body h5 {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        margin-bottom: 3px;
+    }
+    .pg-mile-body p {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .pg-mile-body .stamp {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 6px;
+        padding: 3px 9px;
+        border-radius: 50px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .pg-mile.done .pg-mile-body .stamp {
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+    }
+    .pg-mile.now .pg-mile-body .stamp {
+        background: rgba(56, 189, 248, 0.14);
+        color: #0284C7;
+    }
+
+    /* ---------- Achievements grid ---------- */
+    .pg-ach-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+    .pg-ach {
+        text-align: center;
+        padding: 18px 12px 16px;
+        border-radius: var(--radius);
+        background: var(--cream);
+        border: 1px solid rgba(11, 17, 33, 0.04);
+        transition: var(--transition);
+        position: relative;
+    }
+    .pg-ach:hover {
+        transform: translateY(-5px);
+        background: var(--white);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.32);
+    }
+    .pg-ach .medal {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 11px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.2rem;
+        background: linear-gradient(135deg, var(--secondary), #7ED321);
+        color: var(--primary-dark);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.36);
+    }
+    .pg-ach.blue .medal { background: linear-gradient(135deg, var(--accent), #0284C7); color: #fff; box-shadow: 0 8px 20px rgba(56, 189, 248, 0.32); }
+    .pg-ach.violet .medal { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.32); }
+    .pg-ach.amber .medal { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: var(--primary-dark); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.32); }
+    .pg-ach.locked .medal {
+        background: var(--gray-200);
+        color: var(--gray-300);
+        box-shadow: none;
+    }
+    .pg-ach.locked { opacity: 0.62; }
+    .pg-ach h5 {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+        margin-bottom: 3px;
+    }
+    .pg-ach p {
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        line-height: 1.4;
+    }
+    .pg-ach .progress-mini {
+        margin-top: 8px;
+        height: 4px;
+        border-radius: 50px;
+        background: var(--gray-200);
+        overflow: hidden;
+    }
+    .pg-ach .progress-mini > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--secondary), #7ED321);
+        border-radius: 50px;
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* ---------- Consistency heatmap ---------- */
+    .pg-heat {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 5px;
+    }
+    .pg-heat-cell {
+        aspect-ratio: 1;
+        border-radius: 4px;
+        background: var(--gray-100);
+        transition: var(--transition);
+        cursor: pointer;
+        position: relative;
+    }
+    .pg-heat-cell:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(11, 17, 33, 0.12);
+        z-index: 3;
+    }
+    .pg-heat-cell.l1 { background: rgba(190, 242, 100, 0.24); }
+    .pg-heat-cell.l2 { background: rgba(190, 242, 100, 0.46); }
+    .pg-heat-cell.l3 { background: rgba(190, 242, 100, 0.72); }
+    .pg-heat-cell.l4 { background: var(--secondary-deep); }
+
+    .pg-heat-legend {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--gray-100);
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .pg-heat-legend .swatches {
+        display: flex;
+        gap: 3px;
+    }
+    .pg-heat-legend .swatches i {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        display: inline-block;
+    }
+
+    /* ---------- Insight callout ---------- */
+    .pg-insight {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 18px;
+        border-radius: 12px;
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+        font-size: 0.79rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+    }
+    .pg-insight > i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; margin-top: 2px; }
+    .pg-insight strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .pg-kpis { grid-template-columns: repeat(2, 1fr); }
+        .pg-layout { grid-template-columns: 1fr; }
+        .pg-hero { grid-template-columns: 1fr; gap: 24px; }
+        .pg-xp { justify-content: flex-start; }
+    }
+
+    @media (max-width: 900px) {
+        .pg-ach-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+        .pg-kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .pg-kpi { padding: 16px; }
+        .pg-kpi .ic { width: 36px; height: 36px; font-size: 0.9rem; }
+        .pg-kpi .v { font-size: 1.35rem; }
+        .pg-hero { padding: 24px 22px; }
+        .pg-xp { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .pg-xp-ring { width: 120px; height: 120px; }
+        .pg-xp-ring .lbl strong { font-size: 1.6rem; }
+        .pg-streak { padding: 22px 20px; }
+        .pg-streak-main { gap: 14px; }
+        .pg-flame { width: 68px; height: 68px; }
+        .pg-flame > i { font-size: 2rem; }
+        .pg-streak-info h4 { font-size: 1.12rem; }
+        .pg-chart-card { padding: 20px 18px; }
+        .pg-bars { height: 160px; gap: 6px; }
+        .pg-bar-col .day { font-size: 0.62rem; }
+        .pg-week { gap: 4px; }
+        .pg-day .dot { width: 26px; height: 26px; font-size: 0.66rem; }
+        .pg-heat { grid-template-columns: repeat(12, 1fr); gap: 4px; }
+        .pg-head-actions { width: 100%; }
+        .pg-head-actions .btn { flex: 1; }
+        .pg-period { width: 100%; justify-content: space-between; }
+        .pg-period button { flex: 1; padding: 8px 6px; font-size: 0.7rem; }
+    }
+
+    @media (max-width: 460px) {
+        .pg-ach-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pg-ach { padding: 14px 8px 12px; }
+        .pg-ach .medal { width: 44px; height: 44px; font-size: 1rem; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="pg-head fade-up">
+    <div>
+        <span class="badge-soft"><i class="bi bi-graph-up-arrow"></i> Level 7 · Rising Mentor</span>
+        <h1>Your <span>Progress</span></h1>
+        <p>A full picture of your learning: XP earned, streak health, skill mastery, and the milestones you've unlocked. Everything is updated in real time.</p>
+    </div>
+
+    <div class="pg-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div class="pg-period" role="tablist" aria-label="Time range">
+            <button data-range="7d">7 days</button>
+            <button data-range="30d" class="active">30 days</button>
+            <button data-range="term">This term</button>
+            <button data-range="all">All time</button>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     KPI HERO (XP RING)
+     ==================================================== -->
+<section class="pg-hero fade-up">
+    <div class="pg-hero-text">
+        <h2>You're <span>68%</span> through your Frontend track</h2>
+        <p>Two more sessions this week keeps your streak alive and unlocks the <strong>Momentum</strong> badge. You're outpacing <strong>82%</strong> of your cohort.</p>
+
+        <div class="pg-hero-pills">
+            <span class="pg-hero-pill">
+                <i class="bi bi-fire"></i> <strong>12</strong> day streak
+            </span>
+            <span class="pg-hero-pill">
+                <i class="bi bi-lightning-charge-fill"></i> <strong>2,480</strong> XP
+            </span>
+            <span class="pg-hero-pill">
+                <i class="bi bi-trophy-fill"></i> Top <strong>5%</strong> of cohort
+            </span>
+            <span class="pg-hero-pill">
+                <i class="bi bi-clock-history"></i> <strong>48h</strong> learned
+            </span>
+        </div>
+    </div>
+
+    <div class="pg-xp">
+        <div class="pg-xp-ring">
+            <svg viewBox="0 0 150 150">
+                <defs>
+                    <linearGradient id="pgXpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#BEF264"/>
+                        <stop offset="100%" stop-color="#38BDF8"/>
+                    </linearGradient>
+                </defs>
+                <circle class="bg" cx="75" cy="75" r="65"></circle>
+                <circle class="fg" id="pgXpRing" cx="75" cy="75" r="65"></circle>
+            </svg>
+            <div class="lbl">
+                <strong>2,480</strong>
+                <span>Total XP</span>
+            </div>
+        </div>
+
+        <div class="pg-xp-meta">
+            <span class="lvl"><i class="bi bi-award-fill"></i> Level 7</span>
+            <h4>520 XP to Level 8</h4>
+            <p>Keep up the pace — you're on track to hit it by <strong>next Friday</strong>.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     KPI GRID
+     ==================================================== -->
+<section class="pg-kpis">
+    <div class="pg-kpi fade-up">
+        <div class="pg-kpi-top">
+            <div class="ic"><i class="bi bi-mortarboard-fill"></i></div>
+            <span class="pg-kpi-trend"><i class="bi bi-arrow-up"></i> +3</span>
+        </div>
+        <div class="v" data-count="14">0</div>
+        <div class="l">Skills learned</div>
+    </div>
+
+    <div class="pg-kpi fade-up">
+        <div class="pg-kpi-top">
+            <div class="ic accent"><i class="bi bi-camera-video-fill"></i></div>
+            <span class="pg-kpi-trend"><i class="bi bi-arrow-up"></i> +6</span>
+        </div>
+        <div class="v" data-count="32">0</div>
+        <div class="l">Sessions attended</div>
+    </div>
+
+    <div class="pg-kpi fade-up">
+        <div class="pg-kpi-top">
+            <div class="ic violet"><i class="bi bi-clock-history"></i></div>
+            <span class="pg-kpi-trend"><i class="bi bi-arrow-up"></i> +8.5h</span>
+        </div>
+        <div class="v"><span data-count="48">0</span><em>h</em></div>
+        <div class="l">Total learning time</div>
+    </div>
+
+    <div class="pg-kpi fade-up">
+        <div class="pg-kpi-top">
+            <div class="ic amber"><i class="bi bi-graph-up-arrow"></i></div>
+            <span class="pg-kpi-trend"><i class="bi bi-arrow-up"></i> +12%</span>
+        </div>
+        <div class="v">96<em>%</em></div>
+        <div class="l">Attendance rate</div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="pg-layout">
+
+    <!-- ============================================
+         LEFT COLUMN
+         ============================================ -->
+    <div class="pg-col">
+
+        <!-- ---------- Learning hours (bar chart) ---------- -->
+        <div class="pg-chart-card fade-up">
+            <div class="pg-chart-head">
+                <h3><i class="bi bi-bar-chart-line"></i> Learning hours · this week</h3>
+                <div class="legend">
+                    <span><i class="green"></i> Goal met</span>
+                    <span><i class="blue"></i> Today</span>
+                </div>
+            </div>
+
+            <div class="pg-bars" id="pgBars">
+                <div class="pg-bar-col">
+                    <div class="pg-bar-track"><div class="pg-bar goal" data-h="45" data-val="1.2h"></div></div>
+                    <span class="day">Mon</span>
+                </div>
+                <div class="pg-bar-col">
+                    <div class="pg-bar-track"><div class="pg-bar goal" data-h="70" data-val="2.0h"></div></div>
+                    <span class="day">Tue</span>
+                </div>
+                <div class="pg-bar-col">
+                    <div class="pg-bar-track"><div class="pg-bar miss" data-h="30" data-val="0.8h"></div></div>
+                    <span class="day">Wed</span>
+                </div>
+                <div class="pg-bar-col">
+                    <div class="pg-bar-track"><div class="pg-bar goal" data-h="85" data-val="2.4h"></div></div>
+                    <span class="day">Thu</span>
+                </div>
+                <div class="pg-bar-col">
+                    <div class="pg-bar-track"><div class="pg-bar miss" data-h="20" data-val="0.5h"></div></div>
+                    <span class="day">Fri</span>
+                </div>
+                <div class="pg-bar-col">
+                    <div class="pg-bar-track"><div class="pg-bar goal" data-h="55" data-val="1.5h"></div></div>
+                    <span class="day">Sat</span>
+                </div>
+                <div class="pg-bar-col today">
+                    <div class="pg-bar-track"><div class="pg-bar today" data-h="12" data-val="0.3h"></div></div>
+                    <span class="day">Sun</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- XP growth (line chart) ---------- -->
+        <div class="pg-chart-card fade-up">
+            <div class="pg-chart-head">
+                <h3><i class="bi bi-activity"></i> XP growth · last 30 days</h3>
+                <div class="legend">
+                    <span style="color:#4D7C0F;font-weight:700;">+680 XP this month</span>
+                </div>
+            </div>
+
+            <div class="pg-line" id="pgLine">
+                <svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-label="XP growth over 30 days">
+                    <defs>
+                        <linearGradient id="pgAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#BEF264" stop-opacity="0.34"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- horizontal grid -->
+                    <line class="grid" x1="0" y1="30"  x2="600" y2="30"></line>
+                    <line class="grid" x1="0" y1="80"  x2="600" y2="80"></line>
+                    <line class="grid" x1="0" y1="130" x2="600" y2="130"></line>
+                    <line class="grid" x1="0" y1="180" x2="600" y2="180"></line>
+
+                    <!-- y-axis labels -->
+                    <text class="axis" x="4" y="26">3k</text>
+                    <text class="axis" x="4" y="76">2k</text>
+                    <text class="axis" x="4" y="126">1k</text>
+                    <text class="axis" x="4" y="176">0</text>
+
+                    <!-- area fill -->
+                    <path class="area" d="
+                        M 0 168
+                        L 50 158
+                        L 100 162
+                        L 150 142
+                        L 200 138
+                        L 250 118
+                        L 300 108
+                        L 350 96
+                        L 400 78
+                        L 450 68
+                        L 500 52
+                        L 550 44
+                        L 600 38
+                        L 600 180
+                        L 0 180 Z
+                    "></path>
+
+                    <!-- line -->
+                    <path class="path" d="
+                        M 0 168
+                        L 50 158
+                        L 100 162
+                        L 150 142
+                        L 200 138
+                        L 250 118
+                        L 300 108
+                        L 350 96
+                        L 400 78
+                        L 450 68
+                        L 500 52
+                        L 550 44
+                        L 600 38
+                    "></path>
+
+                    <!-- points -->
+                    <circle class="dot" cx="0"   cy="168" r="4"></circle>
+                    <circle class="dot" cx="100" cy="162" r="4"></circle>
+                    <circle class="dot" cx="200" cy="138" r="4"></circle>
+                    <circle class="dot" cx="300" cy="108" r="4"></circle>
+                    <circle class="dot" cx="400" cy="78"  r="4"></circle>
+                    <circle class="dot" cx="500" cy="52"  r="4"></circle>
+                    <circle class="dot" cx="600" cy="38"  r="4"></circle>
+                </svg>
+            </div>
+
+            <div class="pg-heat-legend" style="justify-content:flex-start;border-top:1px solid var(--gray-100);">
+                <span style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <span>Feb 24 · 1,800 XP</span>
+                    <span style="color:var(--gray-300);">·</span>
+                    <span>Mar 26 · <strong style="color:var(--primary-dark);">2,480 XP</strong></span>
+                </span>
+            </div>
+        </div>
+
+        <!-- ---------- Skill mastery ---------- -->
+        <div class="pg-chart-card fade-up">
+            <div class="pg-chart-head">
+                <h3><i class="bi bi-bar-chart-steps"></i> Skill mastery</h3>
+                <span style="font-size:0.74rem;color:var(--gray-600);font-weight:600;">Top 5 of 14 skills</span>
+            </div>
+
+            <div class="pg-skill">
+                <div class="pg-skill-top">
+                    <span class="name">
+                        <i class="bi bi-filetype-jsx"></i>
+                        <span>React</span>
+                    </span>
+                    <span class="pct">92%<em>Advanced</em></span>
+                </div>
+                <div class="bar"><span data-value="92"></span></div>
+            </div>
+
+            <div class="pg-skill">
+                <div class="pg-skill-top">
+                    <span class="name">
+                        <i class="sky bi bi-braces"></i>
+                        <span>JavaScript</span>
+                    </span>
+                    <span class="pct">88%<em>Advanced</em></span>
+                </div>
+                <div class="bar accent"><span data-value="88"></span></div>
+            </div>
+
+            <div class="pg-skill">
+                <div class="pg-skill-top">
+                    <span class="name">
+                        <i class="violet bi bi-palette"></i>
+                        <span>UI Design</span>
+                    </span>
+                    <span class="pct">72%<em>Intermediate</em></span>
+                </div>
+                <div class="bar violet"><span data-value="72"></span></div>
+            </div>
+
+            <div class="pg-skill">
+                <div class="pg-skill-top">
+                    <span class="name">
+                        <i class="amber bi bi-database"></i>
+                        <span>Backend / Django</span>
+                    </span>
+                    <span class="pct">54%<em>Intermediate</em></span>
+                </div>
+                <div class="bar" style="background:rgba(245,158,11,0.14);"><span data-value="54" style="background:linear-gradient(90deg,#FCD34D,#F59E0B);"></span></div>
+            </div>
+
+            <div class="pg-skill">
+                <div class="pg-skill-top">
+                    <span class="name">
+                        <i class="rose bi bi-mic"></i>
+                        <span>Public Speaking</span>
+                    </span>
+                    <span class="pct">38%<em>Beginner</em></span>
+                </div>
+                <div class="bar" style="background:rgba(239,68,68,0.12);"><span data-value="38" style="background:linear-gradient(90deg,#FCA5A5,#EF4444);"></span></div>
+            </div>
+        </div>
+
+        <!-- ---------- Consistency heatmap ---------- -->
+        <div class="pg-chart-card fade-up">
+            <div class="pg-chart-head">
+                <h3><i class="bi bi-grid-3x3-gap-fill"></i> Consistency · last 12 weeks</h3>
+                <span style="font-size:0.74rem;color:var(--gray-600);font-weight:600;">84 active days</span>
+            </div>
+
+            <div class="pg-heat" id="pgHeat" aria-label="Learning consistency heatmap"></div>
+
+            <div class="pg-heat-legend">
+                <span>Less</span>
+                <span class="swatches">
+                    <i style="background:var(--gray-100);"></i>
+                    <i style="background:rgba(190,242,100,0.24);"></i>
+                    <i style="background:rgba(190,242,100,0.46);"></i>
+                    <i style="background:rgba(190,242,100,0.72);"></i>
+                    <i style="background:var(--secondary-deep);"></i>
+                </span>
+                <span>More</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================
+         RIGHT COLUMN
+         ============================================ -->
+    <div class="pg-col">
+
+        <!-- ---------- Streak panel ---------- -->
+        <div class="pg-streak fade-up">
+            <div class="pg-streak-head">
+                <h3><i class="bi bi-fire"></i> Learning streak</h3>
+                <span class="chip"><i class="bi bi-trophy-fill"></i> Personal best</span>
+            </div>
+
+            <div class="pg-streak-main">
+                <div class="pg-flame">
+                    <i class="bi bi-fire"></i>
+                    <span class="num">12 days</span>
+                </div>
+
+                <div class="pg-streak-info">
+                    <h4>You're on a <span>12-day</span> roll</h4>
+                    <p>Your longest streak was <strong>18 days</strong>. Two more days and you'll break your record.</p>
+                </div>
+            </div>
+
+            <div class="pg-week">
+                <div class="pg-day done">
+                    <span class="dow">Mon</span>
+                    <span class="dot"><i class="bi bi-check-lg"></i></span>
+                    <span class="hrs">1.2h</span>
+                </div>
+                <div class="pg-day done">
+                    <span class="dow">Tue</span>
+                    <span class="dot"><i class="bi bi-check-lg"></i></span>
+                    <span class="hrs">2.0h</span>
+                </div>
+                <div class="pg-day miss">
+                    <span class="dow">Wed</span>
+                    <span class="dot"><i class="bi bi-dash"></i></span>
+                    <span class="hrs">0.8h</span>
+                </div>
+                <div class="pg-day done">
+                    <span class="dow">Thu</span>
+                    <span class="dot"><i class="bi bi-check-lg"></i></span>
+                    <span class="hrs">2.4h</span>
+                </div>
+                <div class="pg-day miss">
+                    <span class="dow">Fri</span>
+                    <span class="dot"><i class="bi bi-dash"></i></span>
+                    <span class="hrs">0.5h</span>
+                </div>
+                <div class="pg-day done">
+                    <span class="dow">Sat</span>
+                    <span class="dot"><i class="bi bi-check-lg"></i></span>
+                    <span class="hrs">1.5h</span>
+                </div>
+                <div class="pg-day today">
+                    <span class="dow">Sun</span>
+                    <span class="dot">•</span>
+                    <span class="hrs">Today</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- Milestones timeline ---------- -->
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-signpost-split"></i> Milestones</h3>
+                <a href="#" class="link">Full roadmap <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="pg-miles">
+                <div class="pg-mile done">
+                    <div class="pg-mile-dot"><i class="bi bi-check-lg"></i></div>
+                    <div class="pg-mile-body">
+                        <h5>First 100 XP</h5>
+                        <p>Earned your first 100 XP during your first week.</p>
+                        <span class="stamp"><i class="bi bi-check2"></i> Jan 14</span>
+                    </div>
+                </div>
+
+                <div class="pg-mile done">
+                    <div class="pg-mile-dot"><i class="bi bi-check-lg"></i></div>
+                    <div class="pg-mile-body">
+                        <h5>First session completed</h5>
+                        <p>Attended your first skill-swap session.</p>
+                        <span class="stamp"><i class="bi bi-check2"></i> Jan 22</span>
+                    </div>
+                </div>
+
+                <div class="pg-mile done">
+                    <div class="pg-mile-dot"><i class="bi bi-check-lg"></i></div>
+                    <div class="pg-mile-body">
+                        <h5>1,000 XP milestone</h5>
+                        <p>Reached Level 4 with 1,000 XP earned.</p>
+                        <span class="stamp"><i class="bi bi-check2"></i> Feb 28</span>
+                    </div>
+                </div>
+
+                <div class="pg-mile now">
+                    <div class="pg-mile-dot">4</div>
+                    <div class="pg-mile-body">
+                        <h5>Level 7 · Rising Mentor</h5>
+                        <p>520 XP away from Level 8 and the Mentor badge.</p>
+                        <span class="stamp">In progress · 76%</span>
+                    </div>
+                </div>
+
+                <div class="pg-mile">
+                    <div class="pg-mile-dot">5</div>
+                    <div class="pg-mile-body">
+                        <h5>Frontend track completion</h5>
+                        <p>Finish all 42 modules and unlock your certificate.</p>
+                        <span class="stamp">68% complete</span>
+                    </div>
+                </div>
+
+                <div class="pg-mile">
+                    <div class="pg-mile-dot"><i class="bi bi-lock-fill"></i></div>
+                    <div class="pg-mile-body">
+                        <h5>Capstone project</h5>
+                        <p>Ship a production app and get it reviewed by a mentor.</p>
+                        <span class="stamp">Locked</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- Achievements ---------- -->
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-trophy-fill"></i> Achievements</h3>
+                <a href="#" class="link">View all <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="pg-ach-grid">
+                <div class="pg-ach">
+                    <div class="medal"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <h5>Momentum</h5>
+                    <p>10-day streak</p>
+                </div>
+                <div class="pg-ach blue">
+                    <div class="medal"><i class="bi bi-handshake"></i></div>
+                    <h5>First Exchange</h5>
+                    <p>Completed a swap</p>
+                </div>
+                <div class="pg-ach violet">
+                    <div class="medal"><i class="bi bi-star-fill"></i></div>
+                    <h5>Top Mentor</h5>
+                    <p>5★ rating x3</p>
+                </div>
+                <div class="pg-ach amber">
+                    <div class="medal"><i class="bi bi-moon-stars-fill"></i></div>
+                    <h5>Night Owl</h5>
+                    <p>10 late sessions</p>
+                </div>
+
+                <div class="pg-ach locked">
+                    <div class="medal"><i class="bi bi-lock-fill"></i></div>
+                    <h5>Polyglot</h5>
+                    <p>Learn 5 skills</p>
+                    <div class="progress-mini"><span data-value="60"></span></div>
+                </div>
+                <div class="pg-ach locked">
+                    <div class="medal"><i class="bi bi-lock-fill"></i></div>
+                    <h5>Marathon</h5>
+                    <p>100 learning hours</p>
+                    <div class="progress-mini"><span data-value="48"></span></div>
+                </div>
+                <div class="pg-ach locked">
+                    <div class="medal"><i class="bi bi-lock-fill"></i></div>
+                    <h5>Perfectionist</h5>
+                    <p>All 5★ ratings x10</p>
+                    <div class="progress-mini"><span data-value="30"></span></div>
+                </div>
+                <div class="pg-ach locked">
+                    <div class="medal"><i class="bi bi-lock-fill"></i></div>
+                    <h5>Streak Master</h5>
+                    <p>30-day streak</p>
+                    <div class="progress-mini"><span data-value="40"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- Insight ---------- -->
+        <div class="pg-insight fade-up">
+            <i class="bi bi-lightbulb-fill"></i>
+            <span>
+                <strong>Weekly insight.</strong> You're most productive on <strong>Thursdays at 19:00</strong> — sessions booked
+                at that time have the highest completion rate. Consider scheduling your harder topics then.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           PERIOD TABS (visual feedback)
+           ====================================================== */
+        var periodButtons = document.querySelectorAll('.pg-period button');
+        periodButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                periodButtons.forEach(function (b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                if (window.__toast) {
+                    window.__toast('Showing: ' + this.textContent.trim(), '');
+                }
+                /* Reset animated charts so they replay */
+                animateBars();
+                animateRing();
+                drawLine();
+            });
+        });
+
+        /* ======================================================
+           XP RING
+           ====================================================== */
+        var xpRing = document.getElementById('pgXpRing');
+
+        function animateRing() {
+            if (!xpRing) return;
+            var circumference = 2 * Math.PI * 65; /* r = 65 */
+            var percent = 68; /* track completion */
+            xpRing.style.strokeDasharray = circumference;
+            xpRing.style.strokeDashoffset = circumference;
+
+            setTimeout(function () {
+                xpRing.style.strokeDashoffset = circumference - (circumference * percent / 100);
+            }, 300);
+        }
+
+        /* ======================================================
+           LEARNING HOURS BARS
+           ====================================================== */
+        function animateBars() {
+            document.querySelectorAll('.pg-bar').forEach(function (bar, i) {
+                var h = bar.dataset.h || '0';
+                bar.style.height = '0';
+                setTimeout(function () {
+                    bar.style.height = h + '%';
+                }, 220 + i * 60);
+            });
+        }
+
+        /* ======================================================
+           XP LINE CHART DRAW-IN
+           ====================================================== */
+        function drawLine() {
+            var line = document.getElementById('pgLine');
+            if (!line) return;
+            line.classList.remove('drawn');
+            /* Force reflow so transition restarts */
+            void line.offsetWidth;
+            setTimeout(function () {
+                line.classList.add('drawn');
+            }, 220);
+        }
+
+        /* ======================================================
+           HEATMAP GENERATION
+           ====================================================== */
+        function buildHeatmap() {
+            var heat = document.getElementById('pgHeat');
+            if (!heat) return;
+
+            /* 12 columns × 7 rows = 84 cells — simulate 12 weeks */
+            var seed = [
+                1,2,0,3,2,0,4,
+                2,3,1,4,3,1,2,
+                3,4,2,1,4,3,2,
+                4,3,1,2,4,2,0,
+                2,4,3,2,1,3,4,
+                3,2,4,3,2,4,2,
+                1,3,2,4,3,1,3,
+                4,2,1,3,4,2,4,
+                2,3,4,1,2,3,2,
+                3,1,2,4,3,2,1,
+                4,2,3,2,4,1,3,
+                3,4,2,3,2,4,3
+            ];
+
+            var cells = '';
+            for (var i = 0; i < seed.length; i++) {
+                var v = seed[i];
+                var cls = v === 0 ? '' : ' l' + v;
+                cells += '<div class="pg-heat-cell' + cls + '" data-level="' + v + '"></div>';
+            }
+            heat.innerHTML = cells;
+
+            /* Tooltip on click */
+            heat.querySelectorAll('.pg-heat-cell').forEach(function (cell) {
+                cell.addEventListener('click', function () {
+                    var lvl = this.dataset.level;
+                    var labels = ['No activity', 'Light day', 'Active day', 'Productive day', 'Peak day'];
+                    if (window.__toast) {
+                        window.__toast(labels[parseInt(lvl, 10)] || 'Activity', '');
+                    }
+                });
+            });
+        }
+
+        /* ======================================================
+           COUNT-UP NUMBERS (page-local)
+           ====================================================== */
+        function animateCounters() {
+            document.querySelectorAll('.pg-kpi .v [data-count], .pg-kpi [data-count]').forEach(function (el) {
+                if (el.dataset.counted) return;
+                var target = parseInt(el.dataset.count, 10) || 0;
+                var duration = 1200;
+                var start = performance.now();
+                el.dataset.counted = '1';
+
+                function step(now) {
+                    var p = Math.min((now - start) / duration, 1);
+                    var eased = 1 - Math.pow(1 - p, 3);
+                    el.textContent = Math.round(target * eased);
+                    if (p < 1) requestAnimationFrame(step);
+                }
+                requestAnimationFrame(step);
+            });
+        }
+
+        /* ======================================================
+           MINI PROGRESS BARS (achievements)
+           ====================================================== */
+        function animateMiniBars() {
+            document.querySelectorAll('.pg-ach .progress-mini > span[data-value]').forEach(function (el) {
+                var val = el.dataset.value + '%';
+                el.style.width = '0';
+                setTimeout(function () {
+                    el.style.width = val;
+                }, 220);
+            });
+        }
+
+        /* ======================================================
+           SKILL PROGRESS BARS
+           ====================================================== */
+        function animateSkillBars() {
+            document.querySelectorAll('.pg-chart-card .bar > span[data-value]').forEach(function (el) {
+                var val = el.dataset.value + '%';
+                el.style.width = '0';
+                setTimeout(function () {
+                    el.style.width = val;
+                }, 220);
+            });
+        }
+
+        /* ======================================================
+           INIT ON LOAD
+           ====================================================== */
+        window.addEventListener('load', function () {
+            buildHeatmap();
+            animateBars();
+            animateRing();
+            drawLine();
+            animateCounters();
+            animateMiniBars();
+            animateSkillBars();
+        });
+
+        /* Also run when section enters viewport (redundancy for lazy loading) */
+        var progressSection = document.querySelector('.pg-hero');
+        if (progressSection && 'IntersectionObserver' in window) {
+            var obs = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) {
+                        animateRing();
+                        obs.disconnect();
+                    }
+                });
+            }, { threshold: 0.2 });
+            obs.observe(progressSection);
+        }
+
+    })();
+</script>
+
+{% endblock content %}

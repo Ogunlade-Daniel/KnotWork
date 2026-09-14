@@ -1,12 +1,191 @@
 {% extends "Knot_Base/base.html" %}
-
 {% load static %}
-{% load humanize %}
-
-{% block title %}Pricing{% endblock title %}
-
+{% block title %}Membership{% endblock title %}
 {% block content %}
+<style>
+    .membership-hero {
+        padding: 145px 0 80px;
+        background: linear-gradient(145deg, var(--primary-dark), var(--primary) 58%, var(--primary-light));
+        color: var(--white);
+        text-align: center
+    }
 
+    .membership-hero .section-label {
+        color: var(--secondary-light);
+        background: rgba(190, 242, 100, .12)
+    }
 
-    
+    .membership-hero h1 {
+        max-width: 780px;
+        margin: 20px auto 14px;
+        font: 700 clamp(2.8rem, 6vw, 5rem)/1.03 'Playfair Display', serif
+    }
+
+    .membership-hero h1 span {
+        color: var(--secondary);
+        font-style: italic
+    }
+
+    .membership-hero p {
+        max-width: 590px;
+        margin: auto;
+        color: rgba(255, 255, 255, .68);
+        font-size: 1.08rem;
+        line-height: 1.8
+    }
+
+    .membership-plans {
+        padding: 92px 0 105px;
+        background: var(--cream)
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 46px
+    }
+
+    .plan-card {
+        position: relative;
+        display: flex;
+        min-height: 440px;
+        flex-direction: column;
+        padding: 32px 28px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, .06);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm)
+    }
+
+    .plan-card.popular {
+        border: 2px solid var(--secondary);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-10px)
+    }
+
+    .plan-badge {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: .65rem;
+        font-weight: 800;
+        text-transform: uppercase
+    }
+
+    .plan-card h3 {
+        color: var(--primary-dark);
+        font-size: 1.2rem
+    }
+
+    .plan-description {
+        min-height: 46px;
+        color: var(--gray-600);
+        font-size: .84rem;
+        line-height: 1.6
+    }
+
+    .plan-price {
+        margin: 22px 0 8px;
+        color: var(--primary-dark);
+        font: 700 3rem 'Playfair Display', serif
+    }
+
+    .plan-price span {
+        font: 400 .9rem 'DM Sans', sans-serif;
+        color: var(--gray-600)
+    }
+
+    .plan-features {
+        display: grid;
+        gap: 11px;
+        margin: 20px 0 26px;
+        padding: 0;
+        list-style: none;
+        color: var(--gray-600);
+        font-size: .86rem
+    }
+
+    .plan-features i {
+        margin-right: 8px;
+        color: var(--secondary)
+    }
+
+    .plan-card .btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: auto
+    }
+
+    .membership-note {
+        padding: 75px 0;
+        background: var(--white);
+        text-align: center
+    }
+
+    .membership-note h2 {
+        max-width: 650px;
+        margin: 0 auto 14px;
+        color: var(--primary-dark);
+        font: 700 clamp(2rem, 4vw, 3rem)/1.1 'Playfair Display', serif
+    }
+
+    .membership-note p {
+        max-width: 560px;
+        margin: 0 auto 24px;
+        color: var(--gray-600);
+        line-height: 1.7
+    }
+
+    @media(max-width:850px) {
+        .plans-grid {
+            grid-template-columns: 1fr
+        }
+
+        .plan-card.popular {
+            transform: none
+        }
+
+        .membership-hero {
+            padding: 125px 0 68px
+        }
+    }
+</style>
+<section class="membership-hero">
+    <div class="container"><span class="section-label"><i class="bi bi-tags"></i> Membership</span>
+        <h1>Choose the room that helps you <span>grow</span>.</h1>
+        <p>Start with the core exchange for free. Upgrade when you want deeper tools, more space, and more ways to
+            connect.</p>
+    </div>
+</section>
+<section class="membership-plans">
+    <div class="container">
+        <div class="text-center"><span class="section-label"><i class="bi bi-stars"></i> Simple plans</span>
+            <h2 class="section-title">Pay for <span>momentum</span>, not access.</h2>
+            <p class="section-sub mx-auto">Every plan starts with the same mutual learning network.</p>
+            <div class="section-divider"><span></span><span></span><span></span></div>
+        </div>
+        <div class="plans-grid">{% for plan in plans %}<article
+                class="plan-card{% if plan.popular %} popular{% endif %}">{% if plan.popular %}<span
+                    class="plan-badge">Most popular</span>{% endif %}<h3>{{ plan.name }}</h3>
+                <p class="plan-description">{{ plan.description }}</p>
+                <div class="plan-price">{{ plan.price }}<span>/ month</span></div>
+                <ul class="plan-features">{% for feature in plan.features %}<li><i
+                            class="bi bi-check-circle-fill"></i>{{ feature }}</li>{% endfor %}</ul><a
+                    class="btn {% if plan.popular %}btn-secondary{% else %}btn-ghost{% endif %}"
+                    href="{% url 'get_started' %}">Get started</a>
+            </article>{% endfor %}</div>
+    </div>
+</section>
+<section class="membership-note">
+    <div class="container">
+        <h2>Learning should never feel locked away.</h2>
+        <p>Join free, find your rhythm, and choose a plan only when it genuinely helps you do more.</p><a
+            class="btn btn-primary" href="{% url 'get_started' %}"><i class="bi bi-person-plus"></i> Start for free</a>
+    </div>
+</section>
 {% endblock content %}

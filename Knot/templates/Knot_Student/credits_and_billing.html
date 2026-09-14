@@ -1,0 +1,2011 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Credits & Billing{% endblock %}
+
+{% block breadcrumb %}Credits & Billing{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       CREDITS & BILLING — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .cb-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .cb-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .cb-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .cb-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 620px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Wallet hero ---------- */
+    .cb-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 34px 38px;
+        color: var(--white);
+        box-shadow: var(--shadow-md);
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 40px;
+        align-items: center;
+    }
+    .cb-hero::before {
+        content: '';
+        position: absolute;
+        top: -55%;
+        right: -8%;
+        width: 58%;
+        height: 210%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.13), transparent 68%);
+        pointer-events: none;
+    }
+    .cb-hero::after {
+        content: '◈';
+        position: absolute;
+        bottom: -90px;
+        left: 38%;
+        font-family: 'Playfair Display', serif;
+        font-size: 17rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.025);
+        pointer-events: none;
+    }
+    .cb-hero-text { position: relative; z-index: 2; }
+    .cb-hero-text .label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--secondary-light);
+        margin-bottom: 12px;
+    }
+    .cb-hero-text .label i { color: var(--secondary); font-size: 0.8rem; }
+    .cb-hero-text .balance {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+    .cb-hero-text .balance strong {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.6rem, 4.5vw, 3.4rem);
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+        letter-spacing: -0.02em;
+    }
+    .cb-hero-text .balance span {
+        font-size: 1rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    .cb-hero-text p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.62);
+        line-height: 1.65;
+        margin-bottom: 22px;
+        max-width: 460px;
+    }
+    .cb-hero-text p strong { color: var(--white); font-weight: 600; }
+
+    .cb-hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* Mini stats inside hero */
+    .cb-hero-stats {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .cb-hstat {
+        padding: 16px 18px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .cb-hstat .ic {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        font-size: 0.82rem;
+        background: rgba(190, 242, 100, 0.16);
+        color: var(--secondary);
+        margin-bottom: 10px;
+    }
+    .cb-hstat .ic.sky { background: rgba(56, 189, 248, 0.18); color: var(--accent); }
+    .cb-hstat .ic.amber { background: rgba(245, 158, 11, 0.2); color: #FCD34D; }
+    .cb-hstat .ic.violet { background: rgba(139, 92, 246, 0.2); color: #C4B5FD; }
+    .cb-hstat .v {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+    }
+    .cb-hstat .v em {
+        font-style: normal;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        margin-left: 3px;
+    }
+    .cb-hstat .l {
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.55);
+        margin-top: 3px;
+        font-weight: 500;
+    }
+
+    /* ---------- KPI strip ---------- */
+    .cb-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .cb-kpi {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .cb-kpi::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .cb-kpi:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .cb-kpi:hover::before { opacity: 1; }
+
+    .cb-kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .cb-kpi .ic {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .cb-kpi .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .cb-kpi .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .cb-kpi .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+
+    .cb-kpi-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.66rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .cb-kpi-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .cb-kpi-trend.neutral { background: var(--gray-100); color: var(--gray-600); }
+    .cb-kpi-trend i { font-size: 0.6rem; }
+
+    .cb-kpi .v {
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+    .cb-kpi .v em {
+        font-style: normal;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .cb-kpi .l { font-size: 0.78rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Layout ---------- */
+    .cb-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+        align-items: start;
+    }
+    .cb-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+    .cb-side { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+    /* ---------- Main card ---------- */
+    .cb-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    /* Tabs */
+    .cb-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 16px 22px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .cb-tabs::-webkit-scrollbar { display: none; }
+
+    .cb-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .cb-tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .cb-tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .cb-tab.active { color: var(--primary-dark); }
+    .cb-tab.active::after { transform: scaleX(1); }
+    .cb-tab > i { font-size: 0.92rem; color: var(--gray-300); transition: var(--transition); }
+    .cb-tab.active > i { color: var(--secondary-deep); }
+    .cb-tab .count {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 50px;
+        line-height: 1.6;
+        transition: var(--transition);
+    }
+    .cb-tab.active .count {
+        background: rgba(190, 242, 100, 0.3);
+        color: #4D7C0F;
+    }
+
+    /* Panels */
+    .cb-panel { display: none; padding: 24px 24px 26px; }
+    .cb-panel.active { display: block; animation: cbFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    @keyframes cbFade {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       TAB 1: WALLET
+       ============================================================ */
+
+    /* Credit packages */
+    .cb-packs-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .cb-packs-head h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .cb-packs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .cb-packs-head .link {
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .cb-packs-head .link:hover { color: var(--primary-dark); gap: 9px; }
+
+    .cb-packs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 26px;
+    }
+    .cb-pack {
+        position: relative;
+        padding: 20px 18px 18px;
+        border-radius: var(--radius);
+        background: var(--white);
+        border: 1.5px solid var(--gray-200);
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+        font-family: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .cb-pack:hover {
+        border-color: var(--secondary);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(190, 242, 100, 0.16);
+    }
+    .cb-pack.featured {
+        border-color: var(--secondary);
+        background: linear-gradient(180deg, rgba(190, 242, 100, 0.06) 0%, var(--white) 60%);
+        box-shadow: 0 8px 24px rgba(190, 242, 100, 0.16);
+    }
+    .cb-pack.featured::before {
+        content: 'Best value';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 3px 11px;
+        border-radius: 50px;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(190, 242, 100, 0.4);
+    }
+    .cb-pack .amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--primary-dark);
+        letter-spacing: -0.02em;
+    }
+    .cb-pack .amount em {
+        font-style: normal;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        display: block;
+        margin-top: 4px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .cb-pack .price {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--gray-200);
+        width: 100%;
+    }
+    .cb-pack .price .now {
+        display: block;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .cb-pack .price .save {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+        letter-spacing: 0.04em;
+    }
+
+    /* Wallet info row */
+    .cb-wallet-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        padding: 20px;
+        border-radius: var(--radius);
+        background: var(--cream);
+        border: 1px solid var(--gray-100);
+        margin-bottom: 26px;
+    }
+    .cb-wallet-cell {
+        text-align: center;
+        position: relative;
+    }
+    .cb-wallet-cell:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 10%;
+        right: -7px;
+        height: 80%;
+        width: 1px;
+        background: var(--gray-200);
+    }
+    .cb-wallet-cell .l {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-bottom: 6px;
+    }
+    .cb-wallet-cell .v {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+    }
+    .cb-wallet-cell .v em {
+        font-style: normal;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+
+    /* Earn credits section */
+    .cb-earn {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 18px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.14), rgba(56, 189, 248, 0.1));
+        border: 1px solid rgba(190, 242, 100, 0.3);
+    }
+    .cb-earn .ic {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+        background: var(--white);
+        color: #4D7C0F;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(190, 242, 100, 0.24);
+    }
+    .cb-earn .body { flex: 1; min-width: 0; }
+    .cb-earn .body h5 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+        line-height: 1.3;
+    }
+    .cb-earn .body p {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .cb-earn .body p strong { color: var(--primary-dark); font-weight: 700; }
+    .cb-earn .btn { flex-shrink: 0; }
+
+    /* ============================================================
+       TAB 2: TRANSACTIONS
+       ============================================================ */
+
+    .cb-tx-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+    .cb-tx-search {
+        position: relative;
+        flex: 1 1 220px;
+        max-width: 300px;
+    }
+    .cb-tx-search i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-300);
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+    .cb-tx-search input {
+        width: 100%;
+        padding: 10px 16px 10px 38px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        color: var(--gray-800);
+        outline: none;
+        transition: var(--transition);
+    }
+    .cb-tx-search input::placeholder { color: var(--gray-300); }
+    .cb-tx-search input:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    .cb-tx-filters {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+    .cb-tx-filter {
+        padding: 8px 13px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .cb-tx-filter:hover { border-color: var(--secondary); color: var(--primary-dark); }
+    .cb-tx-filter.active {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: var(--secondary);
+    }
+
+    .cb-tx-sort {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .cb-tx-sort select {
+        padding: 8px 13px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        cursor: pointer;
+        outline: none;
+        transition: var(--transition);
+    }
+    .cb-tx-sort select:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    /* Transaction list */
+    .cb-tx-list {
+        display: flex;
+        flex-direction: column;
+    }
+    .cb-tx {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .cb-tx:first-child { padding-top: 0; }
+    .cb-tx:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .cb-tx .ic {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .cb-tx .ic.spend { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .cb-tx .ic.earn { background: rgba(34, 197, 94, 0.12); color: #15803D; }
+    .cb-tx .ic.topup { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .cb-tx .ic.refund { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .cb-tx .ic.pending { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+    .cb-tx-body { flex: 1; min-width: 0; }
+    .cb-tx-body h5 {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .cb-tx-body h5 .chip {
+        padding: 2px 8px;
+        border-radius: 50px;
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .cb-tx-body h5 .chip.done { background: rgba(190, 242, 100, 0.24); color: #4D7C0F; }
+    .cb-tx-body h5 .chip.pending { background: rgba(245, 158, 11, 0.16); color: #B45309; }
+    .cb-tx-body h5 .chip.failed { background: rgba(239, 68, 68, 0.14); color: #B91C1C; }
+
+    .cb-tx-body p {
+        font-size: 0.73rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+    .cb-tx-body p strong { color: var(--gray-800); font-weight: 600; }
+
+    .cb-tx-amount {
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .cb-tx-amount .cr {
+        font-size: 0.98rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--primary-dark);
+        letter-spacing: -0.01em;
+    }
+    .cb-tx-amount .cr.plus { color: #15803D; }
+    .cb-tx-amount .cr.minus { color: #DC2626; }
+    .cb-tx-amount .time {
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* Empty state */
+    .cb-empty {
+        padding: 60px 24px 66px;
+        text-align: center;
+    }
+    .cb-empty .ic {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.5rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .cb-empty h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .cb-empty p {
+        max-width: 340px;
+        margin: 0 auto 16px;
+        font-size: 0.84rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+
+    /* ============================================================
+       TAB 3: PAYMENT METHODS
+       ============================================================ */
+
+    .cb-pm-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+    .cb-pm-head h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .cb-pm-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .cb-pm-head p {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+    }
+
+    .cb-pm-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    /* Card */
+    .cb-card-method {
+        position: relative;
+        padding: 20px 22px 18px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+        color: var(--white);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .cb-card-method:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+    }
+    .cb-card-method::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -30%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 66%);
+        pointer-events: none;
+    }
+    .cb-card-method.accent {
+        background: linear-gradient(135deg, #075985, var(--accent));
+    }
+    .cb-card-method.violet {
+        background: linear-gradient(135deg, #4C1D95, #7C3AED);
+    }
+
+    .cb-card-method .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 2;
+    }
+    .cb-card-method .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.72);
+    }
+    .cb-card-method .brand i { font-size: 1.35rem; }
+    .cb-card-method .badge-default {
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.22);
+        border: 1px solid rgba(190, 242, 100, 0.4);
+        color: var(--secondary-light);
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .cb-card-method .number {
+        position: relative;
+        z-index: 2;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        color: var(--white);
+        margin-bottom: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    .cb-card-method .number .dots {
+        color: rgba(255, 255, 255, 0.55);
+        letter-spacing: 0.14em;
+        font-size: 1.2rem;
+    }
+    .cb-card-method .number .last {
+        letter-spacing: 0.1em;
+    }
+
+    .cb-card-method .foot {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .cb-card-method .foot .group { min-width: 0; }
+    .cb-card-method .foot .lbl {
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 3px;
+    }
+    .cb-card-method .foot .val {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--white);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cb-card-method .actions {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .cb-card-method .actions button {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.88);
+        font-family: inherit;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .cb-card-method .actions button:hover {
+        background: rgba(190, 242, 100, 0.18);
+        border-color: rgba(190, 242, 100, 0.4);
+        color: var(--secondary-light);
+    }
+    .cb-card-method .actions button.danger:hover {
+        background: rgba(239, 68, 68, 0.16);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #FCA5A5;
+    }
+
+    /* Add new method */
+    .cb-add-method {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        border-radius: var(--radius);
+        border: 2px dashed var(--gray-200);
+        background: transparent;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: inherit;
+        min-height: 200px;
+        text-align: center;
+    }
+    .cb-add-method:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .cb-add-method-inner .ic {
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.35rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+        transition: var(--transition);
+    }
+    .cb-add-method:hover .ic {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        transform: scale(1.08);
+    }
+    .cb-add-method-inner h5 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .cb-add-method-inner p {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+
+    /* Billing address */
+    .cb-billing {
+        padding: 18px 20px;
+        border-radius: var(--radius);
+        background: var(--cream);
+        border: 1px solid var(--gray-100);
+    }
+    .cb-billing-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    .cb-billing-head h4 {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .cb-billing-head h4 i { color: var(--secondary-deep); font-size: 0.8rem; }
+    .cb-billing-head button {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .cb-billing-head button:hover { color: var(--primary-dark); }
+
+    .cb-billing-body {
+        font-size: 0.82rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+    .cb-billing-body strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Side panels ---------- */
+    .cb-panel-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+    }
+    .cb-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .cb-panel-head h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .cb-panel-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .cb-panel-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .cb-panel-head .link:hover { color: var(--primary-dark); }
+
+    /* Earn opportunities */
+    .cb-opp {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .cb-opp:last-child { border-bottom: none; padding-bottom: 0; }
+    .cb-opp:first-child { padding-top: 0; }
+    .cb-opp .ic {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.85rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .cb-opp .ic.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .cb-opp .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .cb-opp .ic.amber { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .cb-opp .body { flex: 1; min-width: 0; }
+    .cb-opp .body h5 {
+        font-size: 0.79rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        margin-bottom: 2px;
+    }
+    .cb-opp .body p {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        line-height: 1.4;
+    }
+    .cb-opp .reward {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #4D7C0F;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Usage bars */
+    .cb-usage-item {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .cb-usage-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .cb-usage-item:first-child { padding-top: 0; }
+    .cb-usage-item .row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 7px;
+    }
+    .cb-usage-item .row .lbl {
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .cb-usage-item .row .lbl i { color: var(--gray-300); font-size: 0.78rem; }
+    .cb-usage-item .row strong {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .cb-usage-item .bar {
+        height: 6px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        overflow: hidden;
+    }
+    .cb-usage-item .bar > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 50px;
+        background: linear-gradient(90deg, var(--secondary), var(--secondary-deep));
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .cb-usage-item .bar.accent > span { background: linear-gradient(90deg, var(--accent), #0284C7); }
+    .cb-usage-item .bar.violet > span { background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+
+    /* Trust note */
+    .cb-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+    }
+    .cb-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .cb-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* Security badges */
+    .cb-secure {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--cream);
+        border: 1px solid var(--gray-100);
+        flex-wrap: wrap;
+    }
+    .cb-secure span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--gray-600);
+    }
+    .cb-secure span i {
+        font-size: 0.88rem;
+        color: var(--secondary-deep);
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .cb-kpis { grid-template-columns: repeat(2, 1fr); }
+        .cb-layout { grid-template-columns: 1fr; }
+        .cb-hero { grid-template-columns: 1fr; gap: 24px; }
+        .cb-packs { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+        .cb-wallet-row { grid-template-columns: 1fr; gap: 10px; }
+        .cb-wallet-cell:not(:last-child)::after { display: none; }
+        .cb-wallet-cell { text-align: left; padding-left: 4px; }
+        .cb-earn { flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; }
+        .cb-earn .btn { width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+        .cb-kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cb-kpi { padding: 16px; }
+        .cb-kpi .ic { width: 36px; height: 36px; font-size: 0.9rem; }
+        .cb-kpi .v { font-size: 1.3rem; }
+        .cb-hero { padding: 26px 22px; }
+        .cb-hero-text .balance strong { font-size: 2.2rem; }
+        .cb-hero-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cb-hstat { padding: 12px 14px; }
+        .cb-packs { grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cb-pack { padding: 16px 12px 14px; }
+        .cb-pack .amount { font-size: 1.5rem; }
+        .cb-pack .price .now { font-size: 0.92rem; }
+        .cb-panel { padding: 20px 18px 22px; }
+        .cb-tx-sort { margin-left: 0; width: 100%; }
+        .cb-tx-sort select { flex: 1; }
+        .cb-tx-search { max-width: none; }
+        .cb-tx { gap: 10px; padding: 14px 0; }
+        .cb-tx .ic { width: 38px; height: 38px; font-size: 0.9rem; }
+        .cb-tx-amount .cr { font-size: 0.9rem; }
+        .cb-head-actions { width: 100%; }
+        .cb-head-actions .btn { flex: 1; }
+        .cb-pm-grid { grid-template-columns: 1fr; }
+        .cb-tab { padding: 10px 12px; font-size: 0.78rem; }
+        .cb-tab .count { display: none; }
+    }
+
+    @media (max-width: 460px) {
+        .cb-packs { grid-template-columns: 1fr; }
+        .cb-hero-stats { grid-template-columns: 1fr; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="cb-head fade-up">
+    <div>
+        <span class="badge-soft"><i class="bi bi-wallet2"></i> 640 credits available</span>
+        <h1>Credits &amp; <span>Billing</span></h1>
+        <p>Manage your credits wallet, review every transaction, and control your payment methods — all in one secure place.</p>
+    </div>
+
+    <div class="cb-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Downloading your invoice history…">
+            <i class="bi bi-file-earmark-arrow-down"></i> Statements
+        </button>
+        <button class="btn btn-secondary" data-toast="Opening top-up flow…">
+            <i class="bi bi-plus-circle"></i> Add credits
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     WALLET HERO
+     ==================================================== -->
+<section class="cb-hero fade-up">
+    <div class="cb-hero-text">
+        <span class="label"><i class="bi bi-wallet2"></i> Available balance</span>
+        <div class="balance">
+            <strong>640</strong>
+            <span>credits</span>
+        </div>
+        <p>
+            You've earned <strong>320 credits</strong> by teaching this term and spent <strong>460</strong> on sessions.
+            Your balance covers roughly <strong>8 more sessions</strong> at your average rate.
+        </p>
+        <div class="cb-hero-actions">
+            <button class="btn btn-secondary" data-toast="Opening credit packages…">
+                <i class="bi bi-plus-lg"></i> Top up credits
+            </button>
+            <button class="btn btn-outline" data-toast="Opening credit history…">
+                <i class="bi bi-clock-history"></i> View history
+            </button>
+        </div>
+    </div>
+
+    <div class="cb-hero-stats">
+        <div class="cb-hstat">
+            <div class="ic"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="v">+320<em>cr</em></div>
+            <div class="l">Earned this month</div>
+        </div>
+        <div class="cb-hstat">
+            <div class="ic sky"><i class="bi bi-cart-dash"></i></div>
+            <div class="v">−460<em>cr</em></div>
+            <div class="l">Spent this month</div>
+        </div>
+        <div class="cb-hstat">
+            <div class="ic amber"><i class="bi bi-hourglass-split"></i></div>
+            <div class="v">80<em>cr</em></div>
+            <div class="l">Pending release</div>
+        </div>
+        <div class="cb-hstat">
+            <div class="ic violet"><i class="bi bi-calendar-check"></i></div>
+            <div class="v">+120<em>cr</em></div>
+            <div class="l">Next payout · 1 Apr</div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     KPI STRIP
+     ==================================================== -->
+<section class="cb-kpis">
+    <div class="cb-kpi fade-up">
+        <div class="cb-kpi-top">
+            <div class="ic"><i class="bi bi-wallet2"></i></div>
+            <span class="cb-kpi-trend"><i class="bi bi-arrow-up"></i> +12%</span>
+        </div>
+        <div class="v">640<em>cr</em></div>
+        <div class="l">Wallet balance</div>
+    </div>
+
+    <div class="cb-kpi fade-up">
+        <div class="cb-kpi-top">
+            <div class="ic accent"><i class="bi bi-arrow-down-circle"></i></div>
+            <span class="cb-kpi-trend"><i class="bi bi-arrow-up"></i> +85</span>
+        </div>
+        <div class="v">1,860<em>cr</em></div>
+        <div class="l">Total earned (all time)</div>
+    </div>
+
+    <div class="cb-kpi fade-up">
+        <div class="cb-kpi-top">
+            <div class="ic violet"><i class="bi bi-arrow-up-circle"></i></div>
+            <span class="cb-kpi-trend neutral">−8%</span>
+        </div>
+        <div class="v">1,220<em>cr</em></div>
+        <div class="l">Total spent (all time)</div>
+    </div>
+
+    <div class="cb-kpi fade-up">
+        <div class="cb-kpi-top">
+            <div class="ic amber"><i class="bi bi-shield-check"></i></div>
+            <span class="cb-kpi-trend"><i class="bi bi-check2"></i> Protected</span>
+        </div>
+        <div class="v">$0</div>
+        <div class="l">Amount due · billing current</div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="cb-layout">
+
+    <!-- ============================================
+         MAIN CARD WITH TABS
+         ============================================ -->
+    <div class="cb-main">
+        <div class="cb-card fade-up">
+
+            <!-- Tabs -->
+            <div class="cb-tabs" role="tablist" aria-label="Billing sections">
+                <button class="cb-tab active" data-tab="wallet" role="tab" aria-selected="true">
+                    <i class="bi bi-wallet2"></i> Wallet <span class="count">640</span>
+                </button>
+                <button class="cb-tab" data-tab="transactions" role="tab" aria-selected="false">
+                    <i class="bi bi-arrow-left-right"></i> Transactions <span class="count">6</span>
+                </button>
+                <button class="cb-tab" data-tab="methods" role="tab" aria-selected="false">
+                    <i class="bi bi-credit-card-2-front"></i> Payment methods <span class="count">3</span>
+                </button>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: WALLET
+                 ============================================================ -->
+            <div class="cb-panel active" id="cbPanelWallet" role="tabpanel">
+
+                <!-- Wallet breakdown -->
+                <div class="cb-wallet-row">
+                    <div class="cb-wallet-cell">
+                        <div class="l">Available</div>
+                        <div class="v">640<em>cr</em></div>
+                    </div>
+                    <div class="cb-wallet-cell">
+                        <div class="l">Pending release</div>
+                        <div class="v">80<em>cr</em></div>
+                    </div>
+                    <div class="cb-wallet-cell">
+                        <div class="l">Total balance</div>
+                        <div class="v">720<em>cr</em></div>
+                    </div>
+                </div>
+
+                <!-- Earn credits -->
+                <div class="cb-earn" style="margin-bottom:22px;">
+                    <div class="ic"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div class="body">
+                        <h5>Earn credits for every session you teach</h5>
+                        <p>You earn <strong>40 credits</strong> per completed exchange session as a mentor — that's <strong>3 more sessions</strong> until your next free one.</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" data-toast="Opening the mentor dashboard…">
+                        <i class="bi bi-person-badge"></i> Teach now
+                    </button>
+                </div>
+
+                <!-- Credit packages -->
+                <div class="cb-packs-head">
+                    <h3><i class="bi bi-bag-plus"></i> Top up your wallet</h3>
+                    <button class="link" data-toast="Opening custom amount…">
+                        Custom amount <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="cb-packs">
+                    <button class="cb-pack" data-pack="100" data-toast="Selected: 100 credits · $10">
+                        <div class="amount">100<em>credits</em></div>
+                        <div class="price">
+                            <span class="now">$10.00</span>
+                            <span class="save" style="background:var(--gray-100);color:var(--gray-600);">Standard</span>
+                        </div>
+                    </button>
+
+                    <button class="cb-pack" data-pack="250" data-toast="Selected: 250 credits · $22">
+                        <div class="amount">250<em>credits</em></div>
+                        <div class="price">
+                            <span class="now">$22.00</span>
+                            <span class="save">Save 12%</span>
+                        </div>
+                    </button>
+
+                    <button class="cb-pack featured" data-pack="600" data-toast="Selected: 600 credits · $48">
+                        <div class="amount">600<em>credits</em></div>
+                        <div class="price">
+                            <span class="now">$48.00</span>
+                            <span class="save">Save 20%</span>
+                        </div>
+                    </button>
+
+                    <button class="cb-pack" data-pack="1500" data-toast="Selected: 1,500 credits · $110">
+                        <div class="amount">1.5k<em>credits</em></div>
+                        <div class="price">
+                            <span class="now">$110.00</span>
+                            <span class="save">Save 27%</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Spend breakdown -->
+                <div class="cb-packs-head" style="margin-top:8px;">
+                    <h3><i class="bi bi-pie-chart"></i> Where your credits go</h3>
+                    <button class="link" data-toast="Opening usage report…">
+                        Full report <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="cb-usage-item">
+                    <div class="row">
+                        <span class="lbl"><i class="bi bi-camera-video"></i> Sessions booked</span>
+                        <strong>720 cr · 60%</strong>
+                    </div>
+                    <div class="bar"><span data-value="60"></span></div>
+                </div>
+
+                <div class="cb-usage-item">
+                    <div class="row">
+                        <span class="lbl"><i class="bi bi-book-open"></i> Courses &amp; materials</span>
+                        <strong>360 cr · 30%</strong>
+                    </div>
+                    <div class="bar accent"><span data-value="30"></span></div>
+                </div>
+
+                <div class="cb-usage-item">
+                    <div class="row">
+                        <span class="lbl"><i class="bi bi-person-badge"></i> Mentorship</span>
+                        <strong>120 cr · 10%</strong>
+                    </div>
+                    <div class="bar violet"><span data-value="10"></span></div>
+                </div>
+
+            </div>
+
+            <!-- ============================================================
+                 PANEL: TRANSACTIONS
+                 ============================================================ -->
+            <div class="cb-panel" id="cbPanelTransactions" role="tabpanel">
+
+                <div class="cb-tx-toolbar">
+                    <div class="cb-tx-search">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="cbTxSearch" placeholder="Search transactions…" aria-label="Search transactions">
+                    </div>
+
+                    <div class="cb-tx-filters">
+                        <button class="cb-tx-filter active" data-filter="all">All</button>
+                        <button class="cb-tx-filter" data-filter="earn">Earned</button>
+                        <button class="cb-tx-filter" data-filter="spend">Spent</button>
+                        <button class="cb-tx-filter" data-filter="topup">Top-ups</button>
+                    </div>
+
+                    <div class="cb-tx-sort">
+                        <select id="cbTxSort">
+                            <option>Most recent</option>
+                            <option>Oldest first</option>
+                            <option>Highest amount</option>
+                            <option>Lowest amount</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="cb-tx-list" id="cbTxList">
+
+                    <!-- ---- Tx 1: Top-up ---- -->
+                    <div class="cb-tx" data-type="topup" data-title="Credit top-up · 600 credits">
+                        <div class="ic topup"><i class="bi bi-plus-circle-fill"></i></div>
+                        <div class="cb-tx-body">
+                            <h5>Credit top-up · 600 credits <span class="chip done">Completed</span></h5>
+                            <p>Via <strong>Visa •••• 4242</strong> · Order #KW-80241</p>
+                        </div>
+                        <div class="cb-tx-amount">
+                            <div class="cr plus">+600 cr</div>
+                            <div class="time">$48.00 · Today, 14:32</div>
+                        </div>
+                    </div>
+
+                    <!-- ---- Tx 2: Earned ---- -->
+                    <div class="cb-tx" data-type="earn" data-title="React Hooks session with Sara Kim">
+                        <div class="ic earn"><i class="bi bi-arrow-down-circle-fill"></i></div>
+                        <div class="cb-tx-body">
+                            <h5>Taught · React Hooks session <span class="chip done">Released</span></h5>
+                            <p>Session with <strong>Sara Kim</strong> · 45 min exchange</p>
+                        </div>
+                        <div class="cb-tx-amount">
+                            <div class="cr plus">+40 cr</div>
+                            <div class="time">2 hours ago</div>
+                        </div>
+                    </div>
+
+                    <!-- ---- Tx 3: Spent ---- -->
+                    <div class="cb-tx" data-type="spend" data-title="Design critique with Fatima Bello">
+                        <div class="ic spend"><i class="bi bi-arrow-up-circle-fill"></i></div>
+                        <div class="cb-tx-body">
+                            <h5>Session booked · Design critique <span class="chip done">Completed</span></h5>
+                            <p>With <strong>Fatima Bello</strong> · 60 min group session</p>
+                        </div>
+                        <div class="cb-tx-amount">
+                            <div class="cr minus">−80 cr</div>
+                            <div class="time">Yesterday, 10:00</div>
+                        </div>
+                    </div>
+
+                    <!-- ---- Tx 4: Pending ---- -->
+                    <div class="cb-tx" data-type="earn" data-title="API Design Workshop">
+                        <div class="ic pending"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="cb-tx-body">
+                            <h5>Taught · API Design Workshop <span class="chip pending">Pending</span></h5>
+                            <p>With <strong>Chidi Nwosu</strong> · releases in 5 days</p>
+                        </div>
+                        <div class="cb-tx-amount">
+                            <div class="cr plus" style="color:#B45309;">+80 cr</div>
+                            <div class="time">2 days ago</div>
+                        </div>
+                    </div>
+
+                    <!-- ---- Tx 5: Refund ---- -->
+                    <div class="cb-tx" data-type="topup" data-title="Refund · cancelled session">
+                        <div class="ic refund"><i class="bi bi-arrow-counterclockwise"></i></div>
+                        <div class="cb-tx-body">
+                            <h5>Refund · cancelled session <span class="chip done">Refunded</span></h5>
+                            <p>TypeScript Fundamentals with <strong>Chidi Nwosu</strong></p>
+                        </div>
+                        <div class="cb-tx-amount">
+                            <div class="cr plus">+90 cr</div>
+                            <div class="time">3 days ago</div>
+                        </div>
+                    </div>
+
+                    <!-- ---- Tx 6: Spent ---- -->
+                    <div class="cb-tx" data-type="spend" data-title="UI/UX Design Systems course">
+                        <div class="ic spend"><i class="bi bi-arrow-up-circle-fill"></i></div>
+                        <div class="cb-tx-body">
+                            <h5>Course purchase · UI/UX Design Systems <span class="chip done">Completed</span></h5>
+                            <p>Full 16-module course · lifetime access</p>
+                        </div>
+                        <div class="cb-tx-amount">
+                            <div class="cr minus">−220 cr</div>
+                            <div class="time">5 days ago</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="cb-empty" id="cbTxEmpty" style="display:none;">
+                    <div class="ic"><i class="bi bi-search"></i></div>
+                    <h4>No transactions match</h4>
+                    <p>Try a different search term or clear the filter to see all your credit movements.</p>
+                </div>
+
+            </div>
+
+            <!-- ============================================================
+                 PANEL: PAYMENT METHODS
+                 ============================================================ -->
+            <div class="cb-panel" id="cbPanelMethods" role="tabpanel">
+
+                <div class="cb-pm-head">
+                    <h3><i class="bi bi-credit-card-2-front-fill"></i> Your payment methods</h3>
+                    <p>3 saved · 1 default · All secured by Stripe</p>
+                </div>
+
+                <div class="cb-pm-grid">
+
+                    <!-- Card 1 — default -->
+                    <div class="cb-card-method">
+                        <div class="head">
+                            <span class="brand">
+                                <i class="bi bi-credit-card-2-front-fill"></i> Visa
+                            </span>
+                            <span class="badge-default">Default</span>
+                        </div>
+                        <div class="number">
+                            <span class="dots">•••• •••• ••••</span>
+                            <span class="last">4242</span>
+                        </div>
+                        <div class="foot">
+                            <div class="group">
+                                <div class="lbl">Cardholder</div>
+                                <div class="val">Amara Okoye</div>
+                            </div>
+                            <div class="group">
+                                <div class="lbl">Expires</div>
+                                <div class="val">09 / 28</div>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button data-toast="Editing Visa •••• 4242…">Edit</button>
+                            <button data-toast="Setting as default…">Default</button>
+                            <button class="danger" data-toast="Remove payment method?">Remove</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="cb-card-method accent">
+                        <div class="head">
+                            <span class="brand">
+                                <i class="bi bi-credit-card-2-front-fill"></i> Mastercard
+                            </span>
+                        </div>
+                        <div class="number">
+                            <span class="dots">•••• •••• ••••</span>
+                            <span class="last">8813</span>
+                        </div>
+                        <div class="foot">
+                            <div class="group">
+                                <div class="lbl">Cardholder</div>
+                                <div class="val">Amara Okoye</div>
+                            </div>
+                            <div class="group">
+                                <div class="lbl">Expires</div>
+                                <div class="val">03 / 27</div>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button data-toast="Editing Mastercard •••• 8813…">Edit</button>
+                            <button data-toast="Setting as default…">Set default</button>
+                            <button class="danger" data-toast="Remove payment method?">Remove</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 — PayPal -->
+                    <div class="cb-card-method violet">
+                        <div class="head">
+                            <span class="brand">
+                                <i class="bi bi-paypal"></i> PayPal
+                            </span>
+                        </div>
+                        <div class="number" style="letter-spacing:0.02em;font-size:1rem;">
+                            amara.okoye@knotwork.io
+                        </div>
+                        <div class="foot">
+                            <div class="group">
+                                <div class="lbl">Connected</div>
+                                <div class="val">14 Jan 2026</div>
+                            </div>
+                            <div class="group">
+                                <div class="lbl">Used for</div>
+                                <div class="val">3 top-ups</div>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button data-toast="Reconnecting PayPal…">Reconnect</button>
+                            <button class="danger" data-toast="Disconnecting PayPal?">Disconnect</button>
+                        </div>
+                    </div>
+
+                    <!-- Add new -->
+                    <button class="cb-add-method" data-toast="Opening add payment method flow…">
+                        <div class="cb-add-method-inner">
+                            <div class="ic"><i class="bi bi-plus-lg"></i></div>
+                            <h5>Add payment method</h5>
+                            <p>Credit card, debit card, PayPal, or bank transfer</p>
+                        </div>
+                    </button>
+
+                </div>
+
+                <!-- Billing address -->
+                <div class="cb-billing">
+                    <div class="cb-billing-head">
+                        <h4><i class="bi bi-geo-alt-fill"></i> Billing address</h4>
+                        <button data-toast="Editing billing address…">Edit</button>
+                    </div>
+                    <div class="cb-billing-body">
+                        <strong>Amara Okoye</strong><br>
+                        12 Rumens Road, Ikoyi<br>
+                        Lagos 101233, Nigeria<br>
+                        VAT: NG-3849102
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ============================================
+         SIDE PANELS
+         ============================================ -->
+    <div class="cb-side">
+
+        <!-- Earn opportunities -->
+        <div class="cb-panel-card fade-up">
+            <div class="cb-panel-head">
+                <h4><i class="bi bi-gift-fill"></i> Earn credits</h4>
+                <button class="link" data-toast="Opening all earning options…">See all</button>
+            </div>
+
+            <div class="cb-opp">
+                <div class="ic"><i class="bi bi-person-video3"></i></div>
+                <div class="body">
+                    <h5>Teach a session</h5>
+                    <p>Earn 40 credits per completed exchange.</p>
+                </div>
+                <span class="reward">+40</span>
+            </div>
+
+            <div class="cb-opp">
+                <div class="ic sky"><i class="bi bi-star-fill"></i></div>
+                <div class="body">
+                    <h5>Leave a 5★ review</h5>
+                    <p>Earn credits for honest, helpful feedback.</p>
+                </div>
+                <span class="reward">+10</span>
+            </div>
+
+            <div class="cb-opp">
+                <div class="ic violet"><i class="bi bi-people-fill"></i></div>
+                <div class="body">
+                    <h5>Refer a friend</h5>
+                    <p>When they complete their first session.</p>
+                </div>
+                <span class="reward">+150</span>
+            </div>
+
+            <div class="cb-opp">
+                <div class="ic amber"><i class="bi bi-fire"></i></div>
+                <div class="body">
+                    <h5>7-day streak</h5>
+                    <p>Stay consistent — every week on the app.</p>
+                </div>
+                <span class="reward">+25</span>
+            </div>
+        </div>
+
+        <!-- This month's usage -->
+        <div class="cb-panel-card fade-up">
+            <div class="cb-panel-head">
+                <h4><i class="bi bi-bar-chart-line"></i> This month</h4>
+                <button class="link" data-toast="Opening full usage report…">Report</button>
+            </div>
+
+            <div class="cb-usage-item">
+                <div class="row">
+                    <span class="lbl"><i class="bi bi-camera-video"></i> Sessions</span>
+                    <strong>9 · 320 cr</strong>
+                </div>
+                <div class="bar"><span data-value="76"></span></div>
+            </div>
+
+            <div class="cb-usage-item">
+                <div class="row">
+                    <span class="lbl"><i class="bi bi-book-open"></i> Courses</span>
+                    <strong>2 · 220 cr</strong>
+                </div>
+                <div class="bar accent"><span data-value="52"></span></div>
+            </div>
+
+            <div class="cb-usage-item">
+                <div class="row">
+                    <span class="lbl"><i class="bi bi-person-badge"></i> Mentorship</span>
+                    <strong>1 · 60 cr</strong>
+                </div>
+                <div class="bar violet"><span data-value="14"></span></div>
+            </div>
+        </div>
+
+        <!-- Security badges -->
+        <div class="cb-panel-card fade-up" style="padding:16px;">
+            <div class="cb-secure">
+                <span><i class="bi bi-shield-lock-fill"></i> PCI DSS</span>
+                <span><i class="bi bi-lock-fill"></i> 256-bit SSL</span>
+                <span><i class="bi bi-patch-check-fill"></i> Stripe</span>
+            </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="cb-trust fade-up">
+            <i class="bi bi-shield-check"></i>
+            <span>
+                <strong>Your payments are protected.</strong> All transactions are processed by Stripe.
+                We never store full card numbers — only the last four digits. Refunds are automatic for cancelled sessions.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           TABS
+           ====================================================== */
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('.cb-tab'));
+        var panels = Array.prototype.slice.call(document.querySelectorAll('.cb-panel'));
+
+        function activateTab(name) {
+            tabs.forEach(function (t) {
+                var on = t.dataset.tab === name;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            panels.forEach(function (p) {
+                var key = 'cbPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+                p.classList.toggle('active', p.id === key);
+            });
+            animateBars();
+        }
+
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activateTab(this.dataset.tab); });
+        });
+
+        /* ======================================================
+           TRANSACTION FILTERS
+           ====================================================== */
+        var txFilters = Array.prototype.slice.call(document.querySelectorAll('.cb-tx-filter'));
+        var txList = document.getElementById('cbTxList');
+        var txEmpty = document.getElementById('cbTxEmpty');
+        var txSearch = document.getElementById('cbTxSearch');
+        var activeFilter = 'all';
+
+        function applyTxFilters() {
+            if (!txList) return;
+            var q = txSearch ? txSearch.value.trim().toLowerCase() : '';
+            var rows = txList.querySelectorAll('.cb-tx');
+            var visible = 0;
+
+            rows.forEach(function (row) {
+                var type = row.dataset.type;
+                var title = (row.dataset.title || row.textContent).toLowerCase();
+
+                var matchFilter = activeFilter === 'all' || type === activeFilter;
+                var matchSearch = !q || title.indexOf(q) !== -1;
+
+                var show = matchFilter && matchSearch;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if (txEmpty) txEmpty.style.display = visible === 0 ? 'block' : 'none';
+            if (txList) txList.style.display = visible === 0 ? 'none' : 'flex';
+        }
+
+        txFilters.forEach(function (f) {
+            f.addEventListener('click', function () {
+                txFilters.forEach(function (x) { x.classList.remove('active'); });
+                this.classList.add('active');
+                activeFilter = this.dataset.filter;
+                applyTxFilters();
+            });
+        });
+
+        if (txSearch) {
+            txSearch.addEventListener('input', applyTxFilters);
+        }
+
+        /* ======================================================
+           SORT
+           ====================================================== */
+        var txSort = document.getElementById('cbTxSort');
+        if (txSort) {
+            txSort.addEventListener('change', function () {
+                if (window.__toast) window.__toast('Sorted by: ' + this.value, '');
+            });
+        }
+
+        /* ======================================================
+           CREDIT PACK SELECTION
+           ====================================================== */
+        document.querySelectorAll('.cb-pack').forEach(function (pack) {
+            pack.addEventListener('click', function () {
+                document.querySelectorAll('.cb-pack').forEach(function (p) {
+                    p.style.outline = '';
+                });
+                this.style.outline = '2px solid var(--secondary-deep)';
+                this.style.outlineOffset = '2px';
+
+                var amount = this.dataset.pack;
+                if (window.__toast) {
+                    window.__toast('Selected ' + amount + ' credits · proceeding to checkout', 'success');
+                }
+            });
+        });
+
+        /* ======================================================
+           ANIMATE BARS
+           ====================================================== */
+        function animateBars() {
+            document.querySelectorAll('.cb-usage-item .bar > span[data-value], .cb-wallet-row .bar > span[data-value]').forEach(function (el) {
+                var val = el.dataset.value + '%';
+                el.style.width = '0';
+                setTimeout(function () {
+                    el.style.width = val;
+                }, 220);
+            });
+        }
+
+        /* ======================================================
+           INIT
+           ====================================================== */
+        window.addEventListener('load', function () {
+            animateBars();
+        });
+
+        /* Run when wallet tab first visible */
+        var walletPanel = document.getElementById('cbPanelWallet');
+        if (walletPanel && 'IntersectionObserver' in window) {
+            var obs = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) {
+                        animateBars();
+                        obs.disconnect();
+                    }
+                });
+            }, { threshold: 0.2 });
+            obs.observe(walletPanel);
+        }
+
+    })();
+</script>
+
+{% endblock content %}

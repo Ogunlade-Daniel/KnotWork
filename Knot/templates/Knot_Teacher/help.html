@@ -1,0 +1,3000 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Help Centre & Support{% endblock %}
+{% block page_title %}Help Centre{% endblock %}
+{% block breadcrumb %}Help{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       THE FACULTY HELP CENTRE
+       Support · FAQs · Guides — clarity on demand.
+       Scoped entirely under .help
+       ============================================================ */
+
+    .help{
+        /* palette — inherits from base, with safe fallbacks */
+        --gold:        var(--secondary, #BEF264);
+        --gold-deep:   var(--secondary-deep, #7ED321);
+        --gold-light:  var(--secondary-light, #D9F99D);
+        --gold-soft:   rgba(190, 242, 100, 0.12);
+        --gold-line:   rgba(190, 242, 100, 0.30);
+
+        --ink:         var(--primary-dark, #0B1121);
+        --ink-2:       var(--primary, #1E293B);
+        --ink-3:       var(--primary-light, #334155);
+
+        --paper:       var(--white, #FFFFFF);
+        --paper-2:     var(--cream, #FAFAF7);
+        --line:        var(--gray-200, #E5E7EB);
+        --line-soft:   var(--gray-100, #F1F5F9);
+        --muted:       var(--gray-600, #4B5563);
+        --faint:       var(--gray-300, #D1D5DB);
+
+        --leaf:        var(--secondary, #BEF264);
+        --leaf-deep:   var(--secondary-deep, #65A30D);
+        --sky:         var(--accent, #38BDF8);
+        --violet:      #8B5CF6;
+        --rose:        #F43F5E;
+        --green:       #22C55E;
+        --amber:       #F59E0B;
+
+        --r:           var(--radius, 14px);
+        --r-xl:        var(--radius-xl, 22px);
+        --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        position: relative;
+    }
+
+    /* ---------- shared fade-up entry ---------- */
+    .help .rise{
+        opacity: 0;
+        transform: translateY(14px);
+        animation: hRise .7s var(--ease) forwards;
+    }
+    .help .rise:nth-child(1){ animation-delay: .02s; }
+    .help .rise:nth-child(2){ animation-delay: .08s; }
+    .help .rise:nth-child(3){ animation-delay: .14s; }
+    .help .rise:nth-child(4){ animation-delay: .20s; }
+    .help .rise:nth-child(5){ animation-delay: .26s; }
+    @keyframes hRise{ to { opacity: 1; transform: translateY(0); } }
+
+    /* ============================================================
+       1 · COMMAND STRIP
+       ============================================================ */
+    .cmd-strip{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding: 4px 4px 20px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+    }
+    .cmd-strip::after{
+        content: '';
+        position: absolute;
+        left: 4px; right: 4px; bottom: -1px;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 18%,
+            transparent 42%,
+            transparent 100%);
+        border-radius: 2px;
+    }
+    .cmd-kicker{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        margin-bottom: 10px;
+    }
+    .cmd-kicker i{ color: var(--gold); }
+    .cmd-left h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .cmd-left h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .cmd-sub{
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .cmd-sub .dot{
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--faint);
+    }
+    .cmd-sub strong{ color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .cmd-right{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .cmd-chip{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.02em;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+    }
+    .cmd-chip i{ color: var(--gold); font-size: 0.85rem; }
+    .cmd-chip strong{ color: var(--gold-deep); }
+
+    /* ============================================================
+       2 · SUPPORT CHAMBER (hero with search)
+       ============================================================ */
+    .chamber{
+        position: relative;
+        padding: 48px 46px 44px;
+        border-radius: var(--r-xl);
+        background:
+            radial-gradient(ellipse at 88% 12%, rgba(190, 242, 100, 0.16), transparent 55%),
+            radial-gradient(ellipse at 15% 100%, rgba(190, 242, 100, 0.10), transparent 55%),
+            radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.12), transparent 70%),
+            linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        text-align: center;
+    }
+    .chamber::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 25%,
+            var(--leaf) 55%,
+            var(--sky) 80%,
+            var(--violet) 100%);
+    }
+    .chamber::after{
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+        background-size: 26px 26px;
+        pointer-events: none;
+        mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
+    }
+    .chamber .aurora{
+        position: absolute;
+        inset: -40%;
+        background:
+            radial-gradient(circle at 30% 40%, rgba(190, 242, 100, 0.14), transparent 30%),
+            radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.16), transparent 32%);
+        animation: auroraDrift 18s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(20px);
+    }
+    @keyframes auroraDrift{
+        0%, 100%{ transform: translate(0, 0) scale(1); }
+        50%     { transform: translate(-4%, 3%) scale(1.08); }
+    }
+
+    .chamber-inner{
+        position: relative;
+        z-index: 2;
+        max-width: 780px;
+        margin: 0 auto;
+    }
+    .chamber-eyebrow{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 6px 15px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: var(--gold-light);
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 22px;
+    }
+    .chamber-eyebrow i{ color: var(--gold-light); }
+
+    .chamber h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.9rem, 3.6vw, 2.85rem);
+        font-weight: 700;
+        line-height: 1.06;
+        letter-spacing: -0.022em;
+        color: #fff;
+        margin-bottom: 16px;
+    }
+    .chamber h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-light), var(--leaf));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .chamber > .chamber-inner > p{
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.78;
+        max-width: 600px;
+        margin: 0 auto 32px;
+    }
+    .chamber p strong{ color: #fff; font-weight: 600; }
+
+    /* ---------- big search ---------- */
+    .help-search{
+        position: relative;
+        max-width: 640px;
+        margin: 0 auto 16px;
+    }
+    .help-search > i{
+        position: absolute;
+        left: 22px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--faint);
+        font-size: 1rem;
+        pointer-events: none;
+    }
+    .help-search input{
+        width: 100%;
+        padding: 18px 60px 18px 52px;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        font-family: inherit;
+        font-size: 0.94rem;
+        color: #fff;
+        outline: none;
+        transition: var(--transition, all .25s ease);
+    }
+    .help-search input::placeholder{ color: rgba(255, 255, 255, 0.42); }
+    .help-search input:focus{
+        border-color: var(--gold);
+        background: rgba(255, 255, 255, 0.10);
+        box-shadow: 0 0 0 6px rgba(190, 242, 100, 0.14);
+    }
+    .help-search .search-kbd{
+        position: absolute;
+        right: 20px; top: 50%;
+        transform: translateY(-50%);
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.68);
+        pointer-events: none;
+    }
+
+    .help-suggest{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 14px;
+    }
+    .help-suggest span{ font-weight: 700; letter-spacing: 0.04em; }
+    .help-suggest a{
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.82);
+        font-weight: 600;
+        transition: var(--transition, all .25s ease);
+    }
+    .help-suggest a:hover{
+        background: rgba(190, 242, 100, 0.16);
+        border-color: var(--gold-line);
+        color: var(--gold-light);
+    }
+
+    /* support pins */
+    .chamber-pins{
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 36px;
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    @media (max-width: 620px){ .chamber-pins{ grid-template-columns: 1fr; } }
+    .pin-chip{
+        padding: 16px 16px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: var(--transition, all .25s ease);
+        text-align: center;
+    }
+    .pin-chip:hover{
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-3px);
+        border-color: rgba(190, 242, 100, 0.35);
+    }
+    .pin-chip .k{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 7px;
+    }
+    .pin-chip .v{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 3px;
+    }
+    .pin-chip .v em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .pin-chip .v.gold{ color: var(--gold-light); }
+    .pin-chip .v.leaf{ color: var(--leaf); }
+
+    /* ============================================================
+       3 · CONSTELLATION — KPI ribbon
+       ============================================================ */
+    .constellation{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+    @media (max-width: 1180px){ .constellation{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .constellation{ grid-template-columns: 1fr; } }
+
+    .kpi{
+        position: relative;
+        padding: 22px 20px 18px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        transition: var(--transition, all .25s ease);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .kpi::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        border-radius: 3px 3px 0 0;
+    }
+    .kpi.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .kpi.violet::before{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .kpi.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .kpi:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: rgba(190, 242, 100, 0.24);
+    }
+
+    .kpi-top{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .kpi-icon{
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .kpi.sky .kpi-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .kpi.violet .kpi-icon{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi.leaf .kpi-icon  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+
+    .kpi-spark{ width: 78px; height: 28px; flex-shrink: 0; }
+
+    .kpi-num{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.05rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.028em;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+    .kpi-num em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--muted);
+    }
+    .kpi-label{
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--muted);
+        letter-spacing: 0.01em;
+    }
+    .kpi-trend{
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.22);
+        color: var(--leaf-deep);
+        letter-spacing: 0.02em;
+        align-self: flex-start;
+    }
+    .kpi.sky .kpi-trend   { background: rgba(56, 189, 248, 0.16); color: #0284C7; }
+    .kpi.violet .kpi-trend{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi-trend i{ font-size: 0.6rem; }
+
+    /* ============================================================
+       4 · TABS
+       ============================================================ */
+    .tab-bar{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 50px;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        align-self: flex-start;
+        flex-wrap: wrap;
+        margin-top: 4px;
+        max-width: 100%;
+    }
+    .tab-btn{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 20px;
+        border-radius: 50px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .tab-btn i{ font-size: 0.88rem; }
+    .tab-btn:hover{ color: var(--ink); background: var(--paper-2); }
+    .tab-btn.active{
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+    .tab-btn .count{
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--line-soft);
+        color: var(--muted);
+    }
+    .tab-btn.active .count{ background: rgba(11, 17, 33, 0.14); color: var(--ink); }
+
+    /* tab panels */
+    .tab-panel{ display: none; }
+    .tab-panel.active{ display: block; animation: panelIn .4s var(--ease); }
+    @keyframes panelIn{
+        from{ opacity: 0; transform: translateY(8px); }
+        to  { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       5 · BENTO GRID
+       ============================================================ */
+    .bento{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+    .bento > *{ min-width: 0; }
+    .s-1{ grid-column: span 1; }
+    .s-2{ grid-column: span 2; }
+    .s-3{ grid-column: span 3; }
+    .s-4{ grid-column: span 4; }
+
+    @media (max-width: 1080px){
+        .bento{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 2; }
+    }
+    @media (max-width: 620px){
+        .bento{ grid-template-columns: 1fr; }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 1; }
+    }
+
+    /* ---------- panel base ---------- */
+    .panel{
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        overflow: hidden;
+        transition: var(--transition, all .25s ease);
+        position: relative;
+    }
+    .panel:hover{ box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08)); }
+
+    .panel-head{
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .panel-head h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.005em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .panel-head h3 i{
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .panel-head.sky h3 i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .panel-head.violet h3 i{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .panel-head.leaf h3 i  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .panel-head.rose h3 i  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    .panel-link{
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: var(--transition, all .25s ease);
+        flex-shrink: 0;
+    }
+    .panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+    .panel-body{ padding: 18px 22px 22px; }
+
+    /* ============================================================
+       6 · CATEGORY CARDS
+       ============================================================ */
+    .cat-grid{
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 16px;
+    }
+
+    .cat-card{
+        position: relative;
+        padding: 24px 22px 20px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        transition: var(--transition, all .25s ease);
+        cursor: pointer;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-decoration: none;
+    }
+    .cat-card::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform .5s var(--ease);
+    }
+    .cat-card:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: var(--gold-line);
+    }
+    .cat-card:hover::before{ transform: scaleX(1); }
+
+    .cat-card.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .cat-card.violet::before{ background: linear-gradient(90deg, var(--violet), #6D28D9); }
+    .cat-card.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .cat-card.rose::before  { background: linear-gradient(90deg, #FB7185, #E11D48); }
+    .cat-card.amber::before { background: linear-gradient(90deg, #FCD34D, #F59E0B); }
+
+    .cat-icon{
+        width: 46px; height: 46px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        font-size: 1.15rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .cat-card.sky .cat-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .cat-card.violet .cat-icon{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+    .cat-card.leaf .cat-icon  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .cat-card.rose .cat-icon  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .cat-card.amber .cat-icon { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+    .cat-card h4{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.24;
+        letter-spacing: -0.005em;
+    }
+    .cat-card p{
+        font-size: 0.74rem;
+        color: var(--muted);
+        line-height: 1.58;
+        flex: 1;
+    }
+    .cat-foot{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.66rem;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        padding-top: 10px;
+        border-top: 1px solid var(--line-soft);
+    }
+    .cat-foot i{ color: var(--gold); font-size: 0.72rem; }
+
+    /* ============================================================
+       7 · FAQ ACCORDION
+       ============================================================ */
+    .faq-group{ margin-bottom: 26px; }
+    .faq-group:last-child{ margin-bottom: 0; }
+
+    .faq-group-title{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--line-soft);
+        position: relative;
+    }
+    .faq-group-title::before{
+        content: '';
+        position: absolute;
+        bottom: -2px; left: 0;
+        width: 40px; height: 2px;
+        background: var(--gold);
+        border-radius: 2px;
+    }
+    .faq-group-title i{
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+
+    .faq-item{
+        border-bottom: 1px solid var(--line-soft);
+        transition: var(--transition, all .25s ease);
+    }
+    .faq-item:last-child{ border-bottom: none; }
+
+    .faq-q{
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 4px;
+        background: none;
+        border: none;
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+    }
+    .faq-q:hover h5{ color: var(--gold-deep); }
+    .faq-q h5{
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.45;
+        transition: var(--transition, all .25s ease);
+        flex: 1;
+    }
+    .faq-q .faq-chev{
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--line-soft);
+        color: var(--muted);
+        font-size: 0.7rem;
+        flex-shrink: 0;
+        transition: var(--transition, all .35s var(--ease));
+        margin-top: 2px;
+    }
+    .faq-item.open .faq-chev{
+        background: var(--gold);
+        color: var(--ink);
+        transform: rotate(180deg);
+    }
+
+    .faq-a{
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .45s var(--ease);
+    }
+    .faq-item.open .faq-a{ max-height: 800px; }
+
+    .faq-a-inner{
+        padding: 0 4px 20px;
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.75;
+    }
+    .faq-a-inner p{ margin-bottom: 10px; }
+    .faq-a-inner p:last-child{ margin-bottom: 0; }
+    .faq-a-inner strong{ color: var(--ink); font-weight: 700; }
+    .faq-a-inner code{
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 0.76rem;
+        padding: 2px 7px;
+        border-radius: 6px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        color: var(--ink-2);
+    }
+    .faq-a-inner ol,
+    .faq-a-inner ul{
+        margin: 10px 0 12px 22px;
+        padding: 0;
+    }
+    .faq-a-inner li{
+        margin-bottom: 6px;
+        line-height: 1.7;
+    }
+    .faq-a-inner ol li{ list-style: decimal; }
+    .faq-a-inner ul li{ list-style: disc; }
+    .faq-a-inner a{
+        color: var(--gold-deep);
+        font-weight: 700;
+        border-bottom: 1px solid var(--gold-line);
+    }
+    .faq-a-inner a:hover{ border-bottom-color: var(--gold-deep); }
+
+    .faq-helpful{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--line);
+        flex-wrap: wrap;
+    }
+    .faq-helpful span{
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--faint);
+    }
+    .faq-helpful button{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 13px;
+        border-radius: 50px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.68rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+    }
+    .faq-helpful button:hover{
+        border-color: var(--gold-line);
+        color: var(--gold-deep);
+        background: var(--gold-soft);
+    }
+
+    /* ============================================================
+       8 · POPULAR ARTICLES
+       ============================================================ */
+    .article-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 0;
+        border-bottom: 1px dotted var(--line);
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .article-row:first-child{ padding-top: 0; }
+    .article-row:last-child{ border-bottom: none; padding-bottom: 0; }
+    .article-row:hover .art-title{ color: var(--gold-deep); }
+
+    .art-icon{
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.95rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .art-icon.sky   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .art-icon.violet{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+    .art-icon.leaf  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .art-icon.rose  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    .art-body{ flex: 1; min-width: 0; }
+    .art-title{
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.35;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .art-meta{
+        font-size: 0.66rem;
+        color: var(--muted);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .art-meta i{ font-size: 0.7rem; color: var(--faint); }
+    .art-meta .tag{
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--line-soft);
+        color: var(--muted);
+    }
+    .art-meta .tag.hot{
+        background: rgba(244, 63, 94, 0.12);
+        color: #BE123C;
+    }
+
+    /* ============================================================
+       9 · CONTACT METHODS
+       ============================================================ */
+    .contact-card{
+        position: relative;
+        padding: 26px 24px 22px;
+        border-radius: var(--r);
+        background: var(--paper);
+        border: 1px solid var(--line);
+        transition: var(--transition, all .25s ease);
+        cursor: pointer;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-decoration: none;
+    }
+    .contact-card::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        opacity: 0;
+        transition: var(--transition, all .25s ease);
+    }
+    .contact-card:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: var(--gold-line);
+    }
+    .contact-card:hover::before{ opacity: 1; }
+    .contact-card.primary{
+        background:
+            radial-gradient(ellipse at 88% 12%, rgba(190, 242, 100, 0.16), transparent 55%),
+            linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
+        border-color: transparent;
+        color: #fff;
+    }
+    .contact-card.primary::before{ opacity: 1; }
+    .contact-card.primary h4{ color: #fff; }
+    .contact-card.primary p{ color: rgba(255, 255, 255, 0.68); }
+    .contact-card.primary .cc-action{ color: var(--gold-light); }
+
+    .cc-icon{
+        width: 50px; height: 50px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 1.25rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .contact-card.primary .cc-icon{
+        background: rgba(190, 242, 100, 0.16);
+        color: var(--gold-light);
+    }
+    .contact-card.sky .cc-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .contact-card.violet .cc-icon{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+
+    .contact-card h4{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.06rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.24;
+        letter-spacing: -0.005em;
+    }
+    .contact-card p{
+        font-size: 0.74rem;
+        color: var(--muted);
+        line-height: 1.6;
+        flex: 1;
+    }
+    .cc-action{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: var(--gold-deep);
+        margin-top: 4px;
+        transition: var(--transition, all .25s ease);
+    }
+    .contact-card:hover .cc-action{ gap: 11px; }
+
+    /* ============================================================
+       10 · CONTACT FORM
+       ============================================================ */
+    .field{
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-bottom: 18px;
+    }
+    .field:last-child{ margin-bottom: 0; }
+
+    .field label{
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: space-between;
+    }
+    .field label .req{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: var(--gold-deep);
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--gold-soft);
+    }
+
+    .input,
+    .textarea,
+    .select{
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        font-family: inherit;
+        font-size: 0.86rem;
+        color: var(--ink);
+        outline: none;
+        transition: var(--transition, all .25s ease);
+    }
+    .input::placeholder,
+    .textarea::placeholder{ color: var(--faint); }
+    .input:focus,
+    .textarea:focus,
+    .select:focus{
+        border-color: var(--gold);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .textarea{
+        resize: vertical;
+        min-height: 130px;
+        line-height: 1.6;
+    }
+    .select{
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23CBD5E1'%3e%3cpath d='M8 11L3 6h10z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 14px;
+        padding-right: 42px;
+        cursor: pointer;
+    }
+
+    .field-row{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    @media (max-width: 620px){ .field-row{ grid-template-columns: 1fr; } }
+
+    /* priority selector */
+    .priority-grid{
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 6px;
+    }
+    @media (max-width: 520px){ .priority-grid{ grid-template-columns: 1fr; } }
+
+    .priority-btn{
+        padding: 14px 12px;
+        border-radius: 12px;
+        border: 1.5px solid var(--line);
+        background: var(--paper);
+        font-family: inherit;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .priority-btn:hover{
+        border-color: var(--gold-line);
+        background: var(--gold-soft);
+    }
+    .priority-btn.active{
+        border-color: var(--gold);
+        background: var(--gold-soft);
+        box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.18);
+    }
+    .priority-btn .p-title{
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .priority-btn .p-title i{ font-size: 0.8rem; }
+    .priority-btn.low .p-title i{ color: var(--leaf-deep); }
+    .priority-btn.normal .p-title i{ color: var(--sky); }
+    .priority-btn.urgent .p-title i{ color: #BE123C; }
+    .priority-btn .p-desc{
+        font-size: 0.66rem;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+
+    /* file attach */
+    .attach-zone{
+        border: 1.5px dashed var(--line);
+        border-radius: 12px;
+        padding: 20px 18px;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        background: var(--paper-2);
+    }
+    .attach-zone:hover{
+        border-color: var(--gold);
+        background: var(--gold-soft);
+    }
+    .attach-zone i{
+        font-size: 1.5rem;
+        color: var(--gold-deep);
+        display: block;
+        margin-bottom: 8px;
+    }
+    .attach-zone p{
+        font-size: 0.76rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+    .attach-zone p strong{ color: var(--gold-deep); }
+
+    /* ============================================================
+       11 · STATUS / SYSTEM HEALTH
+       ============================================================ */
+    .status-banner{
+        position: relative;
+        padding: 22px 26px;
+        border-radius: var(--r-xl);
+        background:
+            radial-gradient(ellipse at 88% 12%, rgba(34, 197, 94, 0.14), transparent 55%),
+            linear-gradient(135deg, #052014 0%, var(--ink) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    .status-banner::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #4ADE80, #22C55E, #4ADE80);
+    }
+    .status-banner .sb-icon{
+        width: 54px; height: 54px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.5rem;
+        background: rgba(74, 222, 128, 0.16);
+        border: 2px solid rgba(74, 222, 128, 0.42);
+        color: #4ADE80;
+        flex-shrink: 0;
+        animation: statusPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes statusPulse{
+        0%, 100%{ box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+        50%     { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
+    }
+    .status-banner .sb-body{ flex: 1; min-width: 200px; }
+    .status-banner h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+    .status-banner p{
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.68);
+        line-height: 1.55;
+    }
+    .status-banner .sb-meta{
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 6px;
+    }
+    .status-banner .sb-meta span{ display: inline-flex; align-items: center; gap: 6px; }
+    .status-banner .sb-meta i{ color: #4ADE80; font-size: 0.72rem; }
+
+    /* service rows */
+    .service-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .service-row:first-child{ padding-top: 0; }
+    .service-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+    .service-body{ flex: 1; min-width: 0; }
+    .service-body h5{
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+    }
+    .service-body p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+
+    .uptime-bar{
+        display: flex;
+        gap: 3px;
+        margin-top: 8px;
+    }
+    .uptime-bar span{
+        flex: 1;
+        height: 22px;
+        border-radius: 3px;
+        background: var(--line-soft);
+        transition: var(--transition, all .25s ease);
+    }
+    .uptime-bar span.up{ background: linear-gradient(180deg, var(--leaf), var(--leaf-deep)); }
+    .uptime-bar span.down{ background: #FB7185; }
+    .uptime-bar span.partial{ background: #FCD34D; }
+
+    .status-pill{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 11px;
+        border-radius: 50px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .status-pill i{ font-size: 0.66rem; }
+    .status-pill.ok      { background: rgba(34, 197, 94, 0.12); color: #15803D; }
+    .status-pill.degraded{ background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .status-pill.down    { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    /* ============================================================
+       12 · TRUST / INFO CARDS
+       ============================================================ */
+    .info-card{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 16px;
+        border-radius: 12px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        transition: var(--transition, all .25s ease);
+        margin-bottom: 10px;
+    }
+    .info-card:last-child{ margin-bottom: 0; }
+    .info-card:hover{ border-color: var(--gold-line); background: var(--paper); }
+    .info-card > i{
+        width: 30px; height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .info-card.sky > i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .info-card.violet > i{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+    .info-card.green > i { background: rgba(34, 197, 94, 0.14); color: #15803D; }
+    .info-card.rose > i  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .info-card h6{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 3px;
+    }
+    .info-card p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       13 · EMPTY STATE / NO RESULTS
+       ============================================================ */
+    .empty-state{
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 24px;
+        text-align: center;
+    }
+    .empty-state.show{ display: flex; }
+    .empty-state .es-icon{
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.8rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        margin-bottom: 18px;
+    }
+    .empty-state h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.24rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .empty-state p{
+        font-size: 0.84rem;
+        color: var(--muted);
+        line-height: 1.65;
+        max-width: 420px;
+        margin-bottom: 20px;
+    }
+
+    /* ============================================================
+       14 · SUGGESTED / PINNED
+       ============================================================ */
+    .pinned-card{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 15px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(190, 242, 100, 0.03));
+        border: 1px solid var(--gold-line);
+        transition: var(--transition, all .25s ease);
+        margin-bottom: 10px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .pinned-card:last-child{ margin-bottom: 0; }
+    .pinned-card:hover{
+        transform: translateX(4px);
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.16), rgba(190, 242, 100, 0.05));
+    }
+    .pinned-card > i{
+        width: 30px; height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        background: var(--gold);
+        color: var(--ink);
+    }
+    .pinned-card h6{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.35;
+        margin-bottom: 3px;
+    }
+    .pinned-card p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       FALLBACK BUTTONS
+       ============================================================ */
+    .help .btn-gold{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        border: none;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.30);
+        text-decoration: none;
+    }
+    .help .btn-gold:hover{
+        transform: translateY(-3px);
+        box-shadow: 0 16px 34px rgba(190, 242, 100, 0.40);
+    }
+    .help .btn-outline{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .help .btn-outline:hover{
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    .help .btn-ghost{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 18px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .help .btn-ghost:hover{
+        border-color: var(--gold);
+        color: var(--gold-deep);
+        transform: translateY(-2px);
+    }
+    .help .btn-solid{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .help .btn-solid:hover{
+        background: var(--ink-2);
+        border-color: var(--ink-2);
+        transform: translateY(-2px);
+    }
+
+    /* ============================================================
+       15 · SECTION HEAD
+       ============================================================ */
+    .sect-head{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 4px 4px 0;
+    }
+    .sect-head h2{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.42rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.012em;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .sect-head h2::before{
+        content: '';
+        width: 24px;
+        height: 2px;
+        background: var(--gold);
+        display: inline-block;
+    }
+    .sect-head .meta{
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sect-head .meta i{ color: var(--gold); }
+</style>
+
+
+<div class="help">
+
+    <!-- ====================================================
+         1 · COMMAND STRIP
+         ==================================================== -->
+    <header class="cmd-strip rise">
+        <div class="cmd-left">
+            <span class="cmd-kicker"><i class="bi bi-life-preserver"></i> Faculty Concierge · 24/7 Support</span>
+            <h1>The help centre, <em>at your service.</em></h1>
+            <p class="cmd-sub">
+                <span data-clock>18:12</span>
+                <span class="dot"></span>
+                Avg reply <strong>under 2 hours</strong>
+                <span class="dot"></span>
+                <strong>94%</strong> satisfaction
+                <span class="dot"></span>
+                All systems <strong>operational</strong>
+            </p>
+        </div>
+        <div class="cmd-right">
+            <span class="cmd-chip"><i class="bi bi-shield-check"></i> <span><strong>Verified support</strong></span></span>
+            <button class="btn-ghost" data-toast="Opening change log…">
+                <i class="bi bi-clock-history"></i> Changelog
+            </button>
+            <button class="btn-gold" data-toast="Opening live chat…">
+                <i class="bi bi-chat-dots-fill"></i> Chat with us
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · SUPPORT CHAMBER
+         ==================================================== -->
+    <section class="chamber rise">
+        <div class="aurora"></div>
+
+        <div class="chamber-inner">
+            <span class="chamber-eyebrow"><i class="bi bi-stars"></i> Faculty Concierge</span>
+            <h1>How can we <em>help you today?</em></h1>
+            <p>
+                Search <strong>240+ articles</strong>, browse the guides, or reach a real human.
+                Every question is answered — usually before you've finished reading this sentence.
+            </p>
+
+            <div class="help-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="helpSearch" placeholder="Search for answers… e.g. 'payout' or 'grading'" aria-label="Search help articles">
+                <span class="search-kbd">⌘ K</span>
+            </div>
+
+            <div class="help-suggest">
+                <span>Popular:</span>
+                <a href="#" data-toast="Opening article…">Setting up payouts</a>
+                <a href="#" data-toast="Opening article…">Composing a course</a>
+                <a href="#" data-toast="Opening article…">Gradebook</a>
+                <a href="#" data-toast="Opening article…">Two-factor auth</a>
+            </div>
+
+            <div class="chamber-pins">
+                <div class="pin-chip">
+                    <div class="k">Avg response</div>
+                    <div class="v leaf">1h 48m</div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Satisfaction</div>
+                    <div class="v gold">94<em>%</em></div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Articles</div>
+                    <div class="v">240</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         3 · CONSTELLATION — KPI ribbon
+         ==================================================== -->
+    <section class="constellation">
+        <article class="kpi rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-clock-history"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#BEF264" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7 L78,28 L0,28 Z" fill="url(#hg1)"/>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7" fill="none" stroke="#BEF264" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">1h <span data-count="48">48</span><em>m</em></div>
+            <div class="kpi-label">Average first reply</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-down-short"></i> 14 min faster</span>
+        </article>
+
+        <article class="kpi sky rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-emoji-smile-fill"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6 L78,28 L0,28 Z" fill="url(#hg2)"/>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6" fill="none" stroke="#38BDF8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="94">0</span><em>%</em></div>
+            <div class="kpi-label">CSAT · past 30 days</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +2% vs Feb</span>
+        </article>
+
+        <article class="kpi violet rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-journal-text"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#8B5CF6" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9 L78,28 L0,28 Z" fill="url(#hg3)"/>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9" fill="none" stroke="#8B5CF6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="240">0</span><em>+</em></div>
+            <div class="kpi-label">Help articles</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +12 this month</span>
+        </article>
+
+        <article class="kpi leaf rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-headset"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="hg4" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#65A30D" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#65A30D" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8 L78,28 L0,28 Z" fill="url(#hg4)"/>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8" fill="none" stroke="#65A30D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">24<em>/7</em></div>
+            <div class="kpi-label">Live human support</div>
+            <span class="kpi-trend"><i class="bi bi-check2-circle"></i> Always available</span>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         4 · TABS
+         ==================================================== -->
+    <div class="tab-bar rise" role="tablist" aria-label="Help sections">
+        <button class="tab-btn active" data-tab="faq" role="tab" aria-selected="true">
+            <i class="bi bi-question-circle-fill"></i> FAQs
+        </button>
+        <button class="tab-btn" data-tab="guides" role="tab" aria-selected="false">
+            <i class="bi bi-book-fill"></i> Guides
+            <span class="count">8</span>
+        </button>
+        <button class="tab-btn" data-tab="contact" role="tab" aria-selected="false">
+            <i class="bi bi-chat-dots-fill"></i> Contact
+        </button>
+        <button class="tab-btn" data-tab="status" role="tab" aria-selected="false">
+            <i class="bi bi-activity"></i> Status
+            <span class="count">OK</span>
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         TAB · FAQ
+         ==================================================== -->
+    <div class="tab-panel active" id="tab-faq" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- CATEGORIES (span 4) ---------- -->
+            <div class="s-4 rise">
+                <div class="sect-head">
+                    <h2>Browse by category</h2>
+                    <span class="meta"><i class="bi bi-grid-3x3-gap-fill"></i> 8 topics · 240 articles</span>
+                </div>
+
+                <div class="cat-grid" style="margin-top: 18px;">
+                    <a href="#" class="cat-card" data-toast="Opening Getting started…">
+                        <span class="cat-icon"><i class="bi bi-rocket-takeoff-fill"></i></span>
+                        <h4>Getting started</h4>
+                        <p>Set up your faculty profile, connect your bank, and launch your first course.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 24 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card sky" data-toast="Opening Courses…">
+                        <span class="cat-icon"><i class="bi bi-journal-bookmark-fill"></i></span>
+                        <h4>Courses &amp; content</h4>
+                        <p>Composing modules, publishing, versioning, and everything in between.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 38 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card leaf" data-toast="Opening Students…">
+                        <span class="cat-icon"><i class="bi bi-people-fill"></i></span>
+                        <h4>Students &amp; cohort</h4>
+                        <p>Enrolments, progress tracking, moderation and direct messages.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 32 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card violet" data-toast="Opening Grading…">
+                        <span class="cat-icon"><i class="bi bi-clipboard-data-fill"></i></span>
+                        <h4>Grading &amp; feedback</h4>
+                        <p>Rubrics, batch grading, plagiarism checks and dispute handling.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 18 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card" data-toast="Opening Earnings…">
+                        <span class="cat-icon"><i class="bi bi-cash-coin"></i></span>
+                        <h4>Earnings &amp; payouts</h4>
+                        <p>Fees, payout schedules, tax documents and bank verification.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 26 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card amber" data-toast="Opening Account…">
+                        <span class="cat-icon"><i class="bi bi-shield-lock-fill"></i></span>
+                        <h4>Account &amp; security</h4>
+                        <p>Two-factor authentication, sessions, API keys and recovery.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 22 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card rose" data-toast="Opening Troubleshooting…">
+                        <span class="cat-icon"><i class="bi bi-tools"></i></span>
+                        <h4>Troubleshooting</h4>
+                        <p>Fixes for common issues with the studio, uploads and notifications.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 42 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="cat-card" data-toast="Opening Faculty charter…">
+                        <span class="cat-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
+                        <h4>Policies &amp; charter</h4>
+                        <p>Faculty charter, content guidelines, refund and appeal processes.</p>
+                        <div class="cat-foot">
+                            <span><i class="bi bi-file-text"></i> 16 articles</span>
+                            <span><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ---------- POPULAR / TRENDING (span 1) ---------- -->
+            <article class="panel s-1 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-fire"></i> Trending now</h3>
+                </div>
+                <div class="panel-body">
+
+                    <a href="#" class="article-row" data-toast="Opening article…">
+                        <span class="art-icon rose"><i class="bi bi-arrow-repeat"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Why is my payout delayed?</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 4.2k views
+                                <span class="tag hot">Hot</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening article…">
+                        <span class="art-icon"><i class="bi bi-pencil-square"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">How do I batch-grade submissions?</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 2.8k views
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening article…">
+                        <span class="art-icon sky"><i class="bi bi-camera-video"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Best settings for live studio</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 2.1k views
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening article…">
+                        <span class="art-icon leaf"><i class="bi bi-shield-lock"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Recovering your account with 2FA</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 1.9k views
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening article…">
+                        <span class="art-icon violet"><i class="bi bi-file-earmark-check"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Filing a grading appeal (student side)</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 1.4k views
+                            </div>
+                        </div>
+                    </a>
+
+                </div>
+            </article>
+
+            <!-- ---------- FAQ ACCORDION (span 3) ---------- -->
+            <article class="panel s-3 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-patch-question-fill"></i> Frequently asked questions</h3>
+                    <button class="panel-link" data-toast="Collapsing all…">
+                        Collapse all <i class="bi bi-arrows-collapse"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <!-- ---- GROUP: Getting Started ---- -->
+                    <div class="faq-group">
+                        <div class="faq-group-title">
+                            <i class="bi bi-rocket-takeoff-fill"></i> Getting started
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>How do I set up my faculty profile?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Your profile is what students see when they discover you. To get to 100% complete, add a <strong>profile photo</strong>, a short <strong>bio</strong> under 320 characters, an expertise set of at least three tags, and connect a bank account for payouts.</p>
+                                    <ol>
+                                        <li>Go to <strong>Settings → Profile</strong>.</li>
+                                        <li>Upload a square profile photo (minimum 400×400px).</li>
+                                        <li>Write a short bio — one or two sentences about your craft.</li>
+                                        <li>Add at least three expertise tags so students can find you.</li>
+                                        <li>Under <strong>Account</strong>, verify your email and connect a bank account.</li>
+                                    </ol>
+                                    <p>Profiles above 90% completion get roughly <strong>2.4× more enrolments</strong> than incomplete ones.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>What does my Level actually mean?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Levels reflect your <strong>cumulative XP</strong> across teaching, ratings, completions, community and authoring. There are six tiers:</p>
+                                    <ul>
+                                        <li><strong>Apprentice</strong> — Level I–IV</li>
+                                        <li><strong>Journeyman</strong> — Level V–VII</li>
+                                        <li><strong>Artisan</strong> — Level VIII–X</li>
+                                        <li><strong>Senior</strong> — Level XI</li>
+                                        <li><strong>Master</strong> — Level XII–XIII</li>
+                                        <li><strong>Laureate</strong> — Level XIV+</li>
+                                    </ul>
+                                    <p>Your current tier unlocks perks like reduced platform fees (12% at Master vs. 20% standard), priority studio slots and a verified faculty crest on your public profile.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>How long does verification take?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Most faculty verifications complete within <strong>24–48 hours</strong>. We review your public portfolio, teaching sample, and any linked professional profiles. You'll receive an email the moment your crest goes live.</p>
+                                    <p>If your verification is taking longer than 72 hours, please open a support ticket with the <em>Account</em> category and we'll investigate.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ---- GROUP: Courses ---- -->
+                    <div class="faq-group">
+                        <div class="faq-group-title">
+                            <i class="bi bi-journal-bookmark-fill"></i> Courses &amp; content
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>How do I publish a course?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>A course moves through three states: <strong>Draft → Review → Live</strong>. You can edit a draft freely. Once submitted for review, our team checks the outline, the sample lesson, and the completion criteria.</p>
+                                    <ol>
+                                        <li>Go to <strong>Atelier → Compose course</strong>.</li>
+                                        <li>Add a title, one-paragraph description, and at least six modules.</li>
+                                        <li>Record or upload a two-minute intro video.</li>
+                                        <li>Submit for review — turnaround is typically <strong>under 3 days</strong>.</li>
+                                    </ol>
+                                    <p>You'll be notified at each step, and you can pull back a submitted draft at any time before approval.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>Can I edit a course after it goes live?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Yes. Small edits (typos, video replacements, resource updates) publish instantly. Structural changes — adding or removing modules, changing pricing — create a new <strong>version</strong>. Students enrolled before the change stay on their version and finish with the criteria they agreed to.</p>
+                                    <p>You'll see both versions in the course editor, and can compare them side by side.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>What's the maximum course size?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>There's no limit on the number of modules, but individual video uploads are capped at <strong>2 GB</strong> and <strong>4 hours</strong>. If you need longer lessons, split them into parts — which is better pedagogy anyway.</p>
+                                    <p>For large cohorts, we recommend keeping individual lessons under 20 minutes. Session completion rates drop sharply after that.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ---- GROUP: Students ---- -->
+                    <div class="faq-group">
+                        <div class="faq-group-title">
+                            <i class="bi bi-people-fill"></i> Students &amp; cohort
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>How do I handle a disruptive student?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>You have several tools, escalating in severity:</p>
+                                    <ul>
+                                        <li><strong>Mute</strong> — stop them messaging you or others in a session.</li>
+                                        <li><strong>Remove from session</strong> — kicks them from the current live room.</li>
+                                        <li><strong>Unenroll</strong> — removes them from the course entirely. They receive a full refund; you keep 40% of the fee as compensation for the disruption.</li>
+                                        <li><strong>Report</strong> — flags the account to the Faculty Council for review.</li>
+                                    </ul>
+                                    <p>All actions are logged and reviewed. You will never be penalised for using them in good faith.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>Can a student transfer to another cohort?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Yes, if the destination cohort has capacity and the student is in good standing (no unpaid balances, no active disputes). Transfers preserve their progress and grades. Both you and the destination instructor receive an email notification.</p>
+                                    <p>Students get <strong>one free transfer</strong> per course. Subsequent transfers incur a small administrative fee, which is split between both instructors.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ---- GROUP: Earnings ---- -->
+                    <div class="faq-group">
+                        <div class="faq-group-title">
+                            <i class="bi bi-cash-coin"></i> Earnings &amp; payouts
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>When do I get paid, and how much is the fee?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Payouts run on the <strong>1st of each month</strong>, covering the previous calendar month's cleared earnings. Your platform fee depends on your Level:</p>
+                                    <ul>
+                                        <li><strong>Apprentice / Journeyman</strong> — 20%</li>
+                                        <li><strong>Artisan / Senior</strong> — 15%</li>
+                                        <li><strong>Master</strong> — 12%</li>
+                                        <li><strong>Laureate</strong> — 8%</li>
+                                    </ul>
+                                    <p>Payments settle in 1–3 business days depending on your bank. If a payout fails, the amount is automatically held and retried the next business day.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>What documents do I need for tax reporting?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Your <strong>annual earnings statement</strong> and any applicable <strong>1099-NEC</strong> are generated automatically and stored under <strong>Earnings → Documents</strong>. Both are ready by 31 January each year.</p>
+                                    <p>If your jurisdiction requires additional forms, our finance team will reach out directly. You can also request a custom summary any time from the same panel.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">
+                                <h5>Why is some of my earnings "pending"?</h5>
+                                <span class="faq-chev"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Pending earnings come from recent enrolments or sessions that are still within the <strong>14-day refund window</strong>. They clear automatically once that window passes without a refund request.</p>
+                                    <p>You can see a full breakdown of pending amounts in the Ledger tab of your Earnings page, including the exact date each amount clears.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /faq -->
+
+
+    <!-- ====================================================
+         TAB · GUIDES
+         ==================================================== -->
+    <div class="tab-panel" id="tab-guides" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- FEATURED GUIDE (span 2) ---------- -->
+            <div class="s-2 rise">
+                <div class="panel" style="border-radius: var(--r-xl); overflow: hidden;">
+                    <div style="position:relative; padding: 36px 34px 30px; background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%); color: #fff; overflow: hidden;">
+                        <div style="position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--leaf));"></div>
+                        <div style="position:absolute; inset:-40%; background: radial-gradient(circle at 25% 30%, rgba(190,242,100,0.14), transparent 32%), radial-gradient(circle at 75% 70%, rgba(139,92,246,0.16), transparent 34%); filter: blur(20px); pointer-events:none;"></div>
+
+                        <div style="position:relative; z-index:2;">
+                            <span style="display:inline-flex; align-items:center; gap:9px; padding:5px 13px; border-radius:50px; background:rgba(190,242,100,0.14); border:1px solid rgba(190,242,100,0.42); color:var(--gold-light); font-size:0.58rem; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:18px;">
+                                <i class="bi bi-star-fill"></i> Featured guide
+                            </span>
+                            <h2 style="font-family:'Playfair Display', serif; font-size:clamp(1.5rem, 2.6vw, 2rem); font-weight:700; line-height:1.15; letter-spacing:-0.018em; color:#fff; margin-bottom:12px;">
+                                The complete guide to launching your first course
+                            </h2>
+                            <p style="font-size:0.88rem; color:rgba(255,255,255,0.68); line-height:1.7; max-width:540px; margin-bottom:22px;">
+                                From outline to first student in <strong style="color:#fff;">seven steps</strong>. Includes a
+                                template outline, the recording checklist we use internally, and a sample
+                                review rubric students love.
+                            </p>
+
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button class="btn-gold" data-toast="Opening featured guide…">
+                                    <i class="bi bi-book-fill"></i> Read guide
+                                </button>
+                                <button class="btn-outline" data-toast="Downloading PDF…">
+                                    <i class="bi bi-download"></i> Download PDF
+                                </button>
+                            </div>
+
+                            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:26px; font-size:0.7rem; color:rgba(255,255,255,0.55);">
+                                <span><i class="bi bi-clock" style="color:var(--gold-light);"></i> 12 min read</span>
+                                <span><i class="bi bi-eye" style="color:var(--gold-light);"></i> 18.4k reads</span>
+                                <span><i class="bi bi-star-fill" style="color:var(--gold-light);"></i> 4.9 / 5 (312 ratings)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---------- QUICK GUIDES (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-lightning-charge-fill"></i> Quick-start guides</h3>
+                    <button class="panel-link" data-toast="Opening all guides…">
+                        All guides <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <a href="#" class="article-row" data-toast="Opening guide…">
+                        <span class="art-icon leaf"><i class="bi bi-mic-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Recording a lesson that holds attention</div>
+                            <div class="art-meta">
+                                <i class="bi bi-clock"></i> 6 min read
+                                <span class="tag">Beginner</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening guide…">
+                        <span class="art-icon sky"><i class="bi bi-diagram-3-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Structuring a 12-module curriculum</div>
+                            <div class="art-meta">
+                                <i class="bi bi-clock"></i> 9 min read
+                                <span class="tag">Intermediate</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening guide…">
+                        <span class="art-icon violet"><i class="bi bi-chat-quote-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Writing feedback students actually use</div>
+                            <div class="art-meta">
+                                <i class="bi bi-clock"></i> 7 min read
+                                <span class="tag">Intermediate</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening guide…">
+                        <span class="art-icon rose"><i class="bi bi-graph-up-arrow"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Reading your cohort analytics without panic</div>
+                            <div class="art-meta">
+                                <i class="bi bi-clock"></i> 8 min read
+                                <span class="tag">Advanced</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Opening guide…">
+                        <span class="art-icon"><i class="bi bi-palette2"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Designing course visuals that feel premium</div>
+                            <div class="art-meta">
+                                <i class="bi bi-clock"></i> 10 min read
+                                <span class="tag">Intermediate</span>
+                            </div>
+                        </div>
+                    </a>
+
+                </div>
+            </article>
+
+            <!-- ---------- VIDEO TUTORIALS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-play-btn-fill"></i> Video tutorials</h3>
+                    <button class="panel-link" data-toast="Opening video library…">
+                        Library <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <a href="#" class="article-row" data-toast="Playing video…">
+                        <span class="art-icon sky"><i class="bi bi-play-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Live studio walkthrough (14 min)</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 8.2k views
+                                <span class="tag">Studio</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Playing video…">
+                        <span class="art-icon sky"><i class="bi bi-play-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Batch-grading in under 60 seconds</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 6.4k views
+                                <span class="tag">Grading</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Playing video…">
+                        <span class="art-icon sky"><i class="bi bi-play-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Setting up your payout method (3 min)</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 5.1k views
+                                <span class="tag">Earnings</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Playing video…">
+                        <span class="art-icon sky"><i class="bi bi-play-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Enabling 2FA without locking yourself out</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 4.8k views
+                                <span class="tag">Security</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="article-row" data-toast="Playing video…">
+                        <span class="art-icon sky"><i class="bi bi-play-fill"></i></span>
+                        <div class="art-body">
+                            <div class="art-title">Composing your first course (18 min)</div>
+                            <div class="art-meta">
+                                <i class="bi bi-eye"></i> 12.7k views
+                                <span class="tag">Courses</span>
+                            </div>
+                        </div>
+                    </a>
+
+                </div>
+            </article>
+
+            <!-- ---------- GLOSSARY (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head violet">
+                    <h3><i class="bi bi-book-half"></i> Faculty glossary</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="info-card">
+                        <i class="bi bi-mortarboard-fill"></i>
+                        <div>
+                            <h6>Atelier</h6>
+                            <p>Your personal library of courses and drafts. The place where you compose new work.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card sky">
+                        <i class="bi bi-broadcast-pin"></i>
+                        <div>
+                            <h6>Studio</h6>
+                            <p>The live teaching room. Where sessions happen with real students, real-time.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card leaf">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <div>
+                            <h6>XP</h6>
+                            <p>Experience points earned across five categories. The unit of the Faculty Ladder.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card violet">
+                        <i class="bi bi-patch-check-fill"></i>
+                        <div>
+                            <h6>Credential</h6>
+                            <p>A verifiable, dated award with a unique ID. Can be checked publicly by anyone.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card rose">
+                        <i class="bi bi-hourglass-split"></i>
+                        <div>
+                            <h6>Pending release</h6>
+                            <p>Earnings inside the 14-day refund window. Cleared automatically once it passes.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /guides -->
+
+
+    <!-- ====================================================
+         TAB · CONTACT
+         ==================================================== -->
+    <div class="tab-panel" id="tab-contact" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- CONTACT CARDS (span 4) ---------- -->
+            <div class="s-4 rise">
+                <div class="sect-head">
+                    <h2>Reach a human</h2>
+                    <span class="meta"><i class="bi bi-clock-history"></i> Avg reply 1h 48m · 24/7</span>
+                </div>
+
+                <div class="cat-grid" style="margin-top: 18px;">
+                    <a href="#" class="contact-card primary" data-toast="Opening live chat…">
+                        <span class="cc-icon"><i class="bi bi-chat-dots-fill"></i></span>
+                        <h4>Live chat</h4>
+                        <p>The fastest route. A real human replies within minutes during peak hours, and never longer than two hours.</p>
+                        <span class="cc-action">Start chat <i class="bi bi-arrow-right"></i></span>
+                    </a>
+
+                    <a href="#" class="contact-card sky" data-toast="Opening ticket form…">
+                        <span class="cc-icon"><i class="bi bi-envelope-paper-fill"></i></span>
+                        <h4>Support ticket</h4>
+                        <p>For anything that needs documentation, screenshots, or a written trail. Attach files up to 25 MB.</p>
+                        <span class="cc-action" style="color:#0284C7;">Open ticket <i class="bi bi-arrow-right"></i></span>
+                    </a>
+
+                    <a href="#" class="contact-card violet" data-toast="Opening call scheduler…">
+                        <span class="cc-icon"><i class="bi bi-telephone-fill"></i></span>
+                        <h4>Schedule a call</h4>
+                        <p>For complex issues — payouts, disputes, contract matters. 30-minute slots with the right specialist.</p>
+                        <span class="cc-action" style="color:#7C3AED;">Book a slot <i class="bi bi-arrow-right"></i></span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ---------- CONTACT FORM (span 3) ---------- -->
+            <article class="panel s-3 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-pencil-square"></i> Open a ticket</h3>
+                    <span class="pill-tag on" style="--x:0;"><i class="bi bi-shield-check"></i> Encrypted</span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Your name <span class="req">Required</span></label>
+                            <input type="text" class="input" value="Daniel Okafor" placeholder="Full name">
+                        </div>
+                        <div class="field">
+                            <label>Email <span class="req">Required</span></label>
+                            <input type="email" class="input" value="daniel.okafor@knotwork.io" placeholder="you@example.com">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>What is this about? <span class="req">Required</span></label>
+                        <select class="select">
+                            <option>Account &amp; profile</option>
+                            <option>Courses &amp; content</option>
+                            <option>Students &amp; cohort</option>
+                            <option>Grading &amp; feedback</option>
+                            <option>Earnings &amp; payouts</option>
+                            <option>Security &amp; 2FA</option>
+                            <option>Technical issue</option>
+                            <option>Policy &amp; charter</option>
+                            <option>Something else</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Priority <span class="req">Required</span></label>
+                        <div class="priority-grid" id="priorityGrid">
+                            <button type="button" class="priority-btn low active" data-priority="low">
+                                <span class="p-title"><i class="bi bi-circle-fill"></i> Low</span>
+                                <span class="p-desc">General question, no blocker.</span>
+                            </button>
+                            <button type="button" class="priority-btn normal" data-priority="normal">
+                                <span class="p-title"><i class="bi bi-circle-fill"></i> Normal</span>
+                                <span class="p-desc">Something isn't working as expected.</span>
+                            </button>
+                            <button type="button" class="priority-btn urgent" data-priority="urgent">
+                                <span class="p-title"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
+                                <span class="p-desc">Blocking payouts, students or security.</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Subject <span class="req">Required</span></label>
+                        <input type="text" class="input" placeholder="A one-line summary of the issue">
+                    </div>
+
+                    <div class="field">
+                        <label>Describe the issue <span class="req">Required</span></label>
+                        <textarea class="textarea" placeholder="What were you doing, what did you expect to happen, and what actually happened? Screenshots or links help a lot."></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label>Attachments <span style="font-size:0.55rem; font-weight:800; letter-spacing:0.14em; color: var(--faint);">Optional · max 25 MB</span></label>
+                        <div class="attach-zone" data-toast="Opening file picker…">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                            <p>Drop files here or <strong>click to browse</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="form-foot">
+                        <span class="note"><i class="bi bi-shield-lock"></i> Encrypted in transit · Seen only by support.</span>
+                        <div class="actions">
+                            <button class="btn-ghost" data-toast="Draft saved…"><i class="bi bi-bookmark"></i> Save draft</button>
+                            <button class="btn-gold" data-toast="Ticket submitted — we'll be in touch shortly." data-toast-type="success">
+                                <i class="bi bi-send-fill"></i> Submit ticket
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- SUPPORT SIDEBAR (span 1) ---------- -->
+            <div class="s-1 rise">
+
+                <article class="panel" style="margin-bottom: 20px;">
+                    <div class="panel-head">
+                        <h3><i class="bi bi-info-circle-fill"></i> Response times</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="service-row">
+                            <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> Live chat</span>
+                            <div class="service-body">
+                                <p style="text-align:right; font-size: 0.72rem; font-weight:700; color: var(--ink);">~4 min</p>
+                            </div>
+                        </div>
+
+                        <div class="service-row">
+                            <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> Tickets</span>
+                            <div class="service-body">
+                                <p style="text-align:right; font-size: 0.72rem; font-weight:700; color: var(--ink);">~1h 48m</p>
+                            </div>
+                        </div>
+
+                        <div class="service-row">
+                            <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> Scheduled calls</span>
+                            <div class="service-body">
+                                <p style="text-align:right; font-size: 0.72rem; font-weight:700; color: var(--ink);">Within 24h</p>
+                            </div>
+                        </div>
+
+                        <div class="service-row">
+                            <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> Urgent escalation</span>
+                            <div class="service-body">
+                                <p style="text-align:right; font-size: 0.72rem; font-weight:700; color: #BE123C;">~15 min</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-head leaf">
+                        <h3><i class="bi bi-pin-angle-fill"></i> Before you write</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <a href="#" class="pinned-card" data-toast="Opening article…">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <div>
+                                <h6>Restart the studio</h6>
+                                <p>Fixes 8 of 10 "can't join" issues instantly.</p>
+                            </div>
+                        </a>
+
+                        <a href="#" class="pinned-card" data-toast="Opening article…">
+                            <i class="bi bi-wifi"></i>
+                            <div>
+                                <h6>Check your connection</h6>
+                                <p>Minimum 3 Mbps upload for smooth sessions.</p>
+                            </div>
+                        </a>
+
+                        <a href="#" class="pinned-card" data-toast="Opening article…">
+                            <i class="bi bi-shield-lock"></i>
+                            <div>
+                                <h6>Verify 2FA is on</h6>
+                                <p>Blocks 99% of account-takeover attempts.</p>
+                            </div>
+                        </a>
+
+                        <a href="#" class="pinned-card" data-toast="Opening article…">
+                            <i class="bi bi-bank"></i>
+                            <div>
+                                <h6>Confirm bank details</h6>
+                                <p>A mismatch delays payouts by up to 5 days.</p>
+                            </div>
+                        </a>
+
+                    </div>
+                </article>
+
+            </div>
+
+        </section>
+
+    </div><!-- /contact -->
+
+
+    <!-- ====================================================
+         TAB · STATUS
+         ==================================================== -->
+    <div class="tab-panel" id="tab-status" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- STATUS BANNER (span 4) ---------- -->
+            <div class="s-4 rise">
+                <div class="status-banner">
+                    <span class="sb-icon"><i class="bi bi-check-circle-fill"></i></span>
+                    <div class="sb-body">
+                        <h3>All systems operational</h3>
+                        <p>Every Knotwork service is running normally. No incidents in the past 72 hours.</p>
+                        <div class="sb-meta">
+                            <span><i class="bi bi-clock"></i> Checked 2 minutes ago</span>
+                            <span><i class="bi bi-graph-up-arrow"></i> 99.98% uptime · 90 days</span>
+                            <span><i class="bi bi-shield-check"></i> Auto-refreshes every 60s</span>
+                        </div>
+                    </div>
+                    <button class="btn-outline" style="position: relative; z-index: 2;" data-toast="Subscribing to status updates…">
+                        <i class="bi bi-bell-fill"></i> Subscribe
+                    </button>
+                </div>
+            </div>
+
+            <!-- ---------- SERVICE HEALTH (span 3) ---------- -->
+            <article class="panel s-3 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-activity"></i> Service health · last 30 days</h3>
+                    <button class="panel-link" data-toast="Opening status history…">
+                        Full history <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="service-row">
+                        <div class="service-body">
+                            <h5>Web platform</h5>
+                            <p>Dashboard, courses, cohort, grading</p>
+                            <div class="uptime-bar">
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span>
+                            </div>
+                        </div>
+                        <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> 100%</span>
+                    </div>
+
+                    <div class="service-row">
+                        <div class="service-body">
+                            <h5>Live studio</h5>
+                            <p>Real-time video sessions and chat</p>
+                            <div class="uptime-bar">
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="partial"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span>
+                            </div>
+                        </div>
+                        <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> 99.97%</span>
+                    </div>
+
+                    <div class="service-row">
+                        <div class="service-body">
+                            <h5>Payments &amp; payouts</h5>
+                            <p>Checkout, refunds, bank transfers</p>
+                            <div class="uptime-bar">
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span>
+                            </div>
+                        </div>
+                        <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> 100%</span>
+                    </div>
+
+                    <div class="service-row">
+                        <div class="service-body">
+                            <h5>Notifications &amp; email</h5>
+                            <p>In-app, push and transactional email</p>
+                            <div class="uptime-bar">
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span>
+                            </div>
+                        </div>
+                        <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> 100%</span>
+                    </div>
+
+                    <div class="service-row">
+                        <div class="service-body">
+                            <h5>API &amp; integrations</h5>
+                            <p>Public API, webhooks, third-party hooks</p>
+                            <div class="uptime-bar">
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="partial"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span>
+                            </div>
+                        </div>
+                        <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> 99.94%</span>
+                    </div>
+
+                    <div class="service-row">
+                        <div class="service-body">
+                            <h5>Course authoring</h5>
+                            <p>Composer, media upload, publishing</p>
+                            <div class="uptime-bar">
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span><span class="up"></span><span class="up"></span>
+                                <span class="up"></span><span class="up"></span>
+                            </div>
+                        </div>
+                        <span class="status-pill ok"><i class="bi bi-check-circle-fill"></i> 100%</span>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- INCIDENT LOG (span 1) ---------- -->
+            <article class="panel s-1 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-journal-text"></i> Recent incidents</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="info-card green">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <h6>No active incidents</h6>
+                            <p>The last recorded incident was resolved 22 days ago. Root-cause reports are published within 5 business days.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <i class="bi bi-clock-history"></i>
+                        <div>
+                            <h6>Resolved · 12 Feb 2026</h6>
+                            <p><strong>Studio latency</strong> — brief delay in joining live rooms in the EU region. Resolved in 34 minutes.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <i class="bi bi-clock-history"></i>
+                        <div>
+                            <h6>Resolved · 28 Jan 2026</h6>
+                            <p><strong>Payout notifications</strong> — email confirmations delayed by ~2 hours. No payout failures.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- TRUST (span 4) ---------- -->
+            <article class="panel s-4 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-shield-check"></i> Why you can trust this page</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="info-card">
+                        <i class="bi bi-eye-fill"></i>
+                        <div>
+                            <h6>Status is measured, not asserted</h6>
+                            <p>Uptime figures come from independent probes in three regions, checked every 60 seconds. If a service is degraded, you'll see it here before our team even writes the internal note.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card sky">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                        <div>
+                            <h6>Every incident gets a written post-mortem</h6>
+                            <p>Published within five business days, with a factual timeline, root cause, and the concrete changes we've made so it can't happen again.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card violet">
+                        <i class="bi bi-bell-fill"></i>
+                        <div>
+                            <h6>Subscribe and we'll tell you first</h6>
+                            <p>Status updates are pushed to your email and faculty dashboard the moment we open an incident. No silence during an outage.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /status -->
+
+</div><!-- /.help -->
+
+
+<script>
+    (function () {
+        'use strict';
+
+        var root = document.querySelector('.help');
+        if (!root) return;
+
+        /* -------------------------------------------------
+           Tabs
+           ------------------------------------------------- */
+        var tabButtons = root.querySelectorAll('.tab-btn');
+        var tabPanels  = root.querySelectorAll('.tab-panel');
+
+        function activateTab(id) {
+            tabButtons.forEach(function (btn) {
+                var on = btn.dataset.tab === id;
+                btn.classList.toggle('active', on);
+                btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            tabPanels.forEach(function (panel) {
+                panel.classList.toggle('active', panel.id === 'tab-' + id);
+            });
+        }
+
+        tabButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                activateTab(btn.dataset.tab);
+            });
+        });
+
+        /* -------------------------------------------------
+           FAQ accordion
+           ------------------------------------------------- */
+        root.querySelectorAll('.faq-q').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var item = btn.closest('.faq-item');
+                var wasOpen = item.classList.contains('open');
+                /* close siblings in the same group */
+                var group = item.closest('.faq-group');
+                if (group) {
+                    group.querySelectorAll('.faq-item.open').forEach(function (other) {
+                        if (other !== item) other.classList.remove('open');
+                    });
+                }
+                item.classList.toggle('open', !wasOpen);
+            });
+        });
+
+        /* "Collapse all" panel link */
+        root.querySelectorAll('.panel-link').forEach(function (link) {
+            if (link.textContent.trim().toLowerCase().indexOf('collapse') === 0) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    root.querySelectorAll('.faq-item.open').forEach(function (i) {
+                        i.classList.remove('open');
+                    });
+                });
+            }
+        });
+
+        /* -------------------------------------------------
+           Search filter for FAQ (client-side)
+           ------------------------------------------------- */
+        var search = root.querySelector('#helpSearch');
+        var emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML =
+            '<span class="es-icon"><i class="bi bi-search"></i></span>' +
+            '<h3>No results found</h3>' +
+            '<p>We couldn\'t find anything matching that. Try a different term, browse a category, or open a ticket with the concierge.</p>' +
+            '<button class="btn-solid" data-toast="Opening ticket form…"><i class="bi bi-envelope-paper-fill"></i> Contact support</button>';
+
+        var faqPanel = root.querySelector('#tab-faq');
+        if (faqPanel) {
+            var lastGroup = faqPanel.querySelector('.panel:last-of-type');
+            if (lastGroup) lastGroup.appendChild(emptyState);
+        }
+
+        if (search) {
+            search.addEventListener('input', function () {
+                var q = search.value.trim().toLowerCase();
+                var faqItems = root.querySelectorAll('.faq-item');
+                var visibleCount = 0;
+
+                faqItems.forEach(function (item) {
+                    var text = item.textContent.toLowerCase();
+                    var match = !q || text.indexOf(q) !== -1;
+                    item.style.display = match ? '' : 'none';
+                    if (match) visibleCount++;
+                });
+
+                /* hide empty groups */
+                root.querySelectorAll('.faq-group').forEach(function (group) {
+                    var any = group.querySelector('.faq-item:not([style*="display: none"])');
+                    group.style.display = any ? '' : 'none';
+                });
+
+                if (emptyState) emptyState.classList.toggle('show', visibleCount === 0 && q.length > 0);
+
+                /* switch to FAQ tab if user starts typing */
+                if (q.length > 0) activateTab('faq');
+            });
+
+            /* keyboard shortcut ⌘K / Ctrl+K */
+            document.addEventListener('keydown', function (e) {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    search.focus();
+                    search.select();
+                }
+            });
+        }
+
+        /* -------------------------------------------------
+           Animated counters
+           ------------------------------------------------- */
+        root.querySelectorAll('[data-count]').forEach(function (el) {
+            var target = parseFloat(el.dataset.count) || 0;
+            var duration = 1300;
+            var start = null;
+
+            function step(ts) {
+                if (start === null) start = ts;
+                var progress = Math.min((ts - start) / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+
+        /* -------------------------------------------------
+           Priority selector
+           ------------------------------------------------- */
+        var priorityBtns = root.querySelectorAll('.priority-btn');
+        priorityBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                priorityBtns.forEach(function (b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+            });
+        });
+
+        /* -------------------------------------------------
+           Live clock
+           ------------------------------------------------- */
+        var clock = root.querySelector('[data-clock]');
+        if (clock) {
+            var tick = function () {
+                var d = new Date();
+                clock.textContent =
+                    String(d.getHours()).padStart(2, '0') + ':' +
+                    String(d.getMinutes()).padStart(2, '0');
+            };
+            tick();
+            setInterval(tick, 20000);
+        }
+
+        /* -------------------------------------------------
+           Subtle parallax on the chamber (pointer-aware)
+           ------------------------------------------------- */
+        var chamber = root.querySelector('.chamber');
+        if (chamber && window.matchMedia('(pointer:fine)').matches) {
+            var inner = chamber.querySelector('.chamber-inner');
+            chamber.addEventListener('mousemove', function (e) {
+                var r = chamber.getBoundingClientRect();
+                var px = (e.clientX - r.left) / r.width - 0.5;
+                var py = (e.clientY - r.top) / r.height - 0.5;
+                if (inner) inner.style.transform =
+                    'translate(' + (px * 4) + 'px,' + (py * 4) + 'px)';
+            });
+            chamber.addEventListener('mouseleave', function () {
+                if (inner) inner.style.transform = '';
+            });
+        }
+    })();
+</script>
+
+{% endblock content %}

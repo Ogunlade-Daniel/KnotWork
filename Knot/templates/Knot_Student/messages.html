@@ -1,0 +1,1615 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Messages{% endblock %}
+
+{% block breadcrumb %}Messages{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       MESSAGES — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .msg-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .msg-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .msg-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .msg-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 600px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+    .badge-soft.pulse i { animation: msgPulse 1.8s infinite; }
+    @keyframes msgPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Two-column messaging shell ---------- */
+    .msg-shell {
+        display: grid;
+        grid-template-columns: 336px 1fr;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        height: calc(100vh - 210px);
+        min-height: 620px;
+        position: relative;
+    }
+
+    /* ============================================================
+       LEFT: CONVERSATION LIST
+       ============================================================ */
+    .msg-list-col {
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--gray-100);
+        min-width: 0;
+        background: var(--white);
+    }
+
+    /* Search & tabs */
+    .msg-list-top {
+        padding: 18px 18px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .msg-search {
+        position: relative;
+        margin-bottom: 14px;
+    }
+    .msg-search i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-300);
+        font-size: 0.82rem;
+        pointer-events: none;
+    }
+    .msg-search input {
+        width: 100%;
+        padding: 10px 16px 10px 40px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--cream);
+        font-family: inherit;
+        font-size: 0.84rem;
+        color: var(--gray-800);
+        outline: none;
+        transition: var(--transition);
+    }
+    .msg-search input::placeholder { color: var(--gray-300); }
+    .msg-search input:focus {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    .msg-filters {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 12px;
+    }
+    .msg-filters::-webkit-scrollbar { display: none; }
+
+    .msg-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 13px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        border-radius: 50px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .msg-filter:hover { background: var(--gray-100); color: var(--primary-dark); }
+    .msg-filter.active {
+        background: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .msg-filter .n {
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 1px 7px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .msg-filter.active .n {
+        background: rgba(190, 242, 100, 0.22);
+        color: var(--secondary-light);
+    }
+
+    /* Conversation rows */
+    .msg-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 0;
+    }
+    .msg-scroll::-webkit-scrollbar { width: 5px; }
+    .msg-scroll::-webkit-scrollbar-thumb {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+
+    .conv {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 18px;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        position: relative;
+    }
+    .conv:hover { background: var(--cream); }
+    .conv.active {
+        background: rgba(190, 242, 100, 0.13);
+    }
+    .conv.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 32px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary-deep);
+    }
+
+    .conv-avatar {
+        width: 46px;
+        height: 46px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        position: relative;
+    }
+    .conv-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .conv-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .conv-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
+    .conv-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); }
+    .conv-avatar.v6 { background: linear-gradient(135deg, #FDA4AF, #E11D48); color: #fff; }
+
+    .conv-avatar .dot {
+        position: absolute;
+        bottom: 1px;
+        right: 1px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+    }
+    .conv-avatar .dot.off { background: var(--gray-300); }
+
+    .conv-body {
+        flex: 1;
+        min-width: 0;
+        padding-top: 1px;
+    }
+    .conv-top {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 2px;
+    }
+    .conv-top h4 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .conv-top h4 i {
+        color: var(--accent);
+        font-size: 0.68rem;
+        flex-shrink: 0;
+    }
+    .conv-time {
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: var(--gray-300);
+        flex-shrink: 0;
+    }
+    .conv.unread .conv-time { color: var(--secondary-deep); font-weight: 700; }
+
+    .conv-snippet {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        padding-right: 6px;
+    }
+    .conv.unread .conv-snippet {
+        color: var(--gray-800);
+        font-weight: 500;
+    }
+
+    .conv-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 5px;
+        flex-wrap: wrap;
+    }
+    .conv-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .conv-role.student { background: rgba(190, 242, 100, 0.2); color: #4D7C0F; }
+    .conv-role.teacher { background: rgba(56, 189, 248, 0.14); color: #0369A1; }
+    .conv-role.mentor  { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+
+    .conv-badge {
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 50px;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: 0.62rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        margin-left: auto;
+        flex-shrink: 0;
+        line-height: 1;
+        box-shadow: 0 3px 8px rgba(190, 242, 100, 0.4);
+    }
+
+    /* Empty list state */
+    .msg-list-empty {
+        padding: 60px 24px;
+        text-align: center;
+    }
+    .msg-list-empty .ic {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.35rem;
+        background: var(--gray-100);
+        color: var(--gray-300);
+    }
+    .msg-list-empty h4 {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+    .msg-list-empty p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+    }
+
+    /* ============================================================
+       RIGHT: CHAT PANEL
+       ============================================================ */
+    .msg-chat-col {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: linear-gradient(180deg, var(--cream) 0%, var(--white) 120px);
+        position: relative;
+    }
+
+    /* Chat header */
+    .msg-chat-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--gray-100);
+        flex-shrink: 0;
+        position: relative;
+        z-index: 3;
+    }
+
+    .msg-back {
+        display: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        font-family: inherit;
+        transition: var(--transition);
+    }
+    .msg-back:hover { border-color: var(--secondary); color: var(--primary-dark); }
+
+    .chat-avatar {
+        width: 46px;
+        height: 46px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        position: relative;
+    }
+    .chat-avatar .dot {
+        position: absolute;
+        bottom: 1px;
+        right: 1px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+    }
+
+    .chat-id { flex: 1; min-width: 0; }
+    .chat-id h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        line-height: 1.2;
+    }
+    .chat-id h3 i {
+        color: var(--accent);
+        font-size: 0.75rem;
+    }
+    .chat-id p {
+        font-size: 0.71rem;
+        color: var(--gray-600);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .chat-id p.online { color: #4D7C0F; font-weight: 600; }
+    .chat-id p.online::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        margin-right: 5px;
+        vertical-align: middle;
+        animation: msgPulse 2s infinite;
+    }
+
+    .chat-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .chat-action {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.88rem;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    .chat-action:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Trust banner */
+    .msg-trust-banner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 24px;
+        background: rgba(56, 189, 248, 0.06);
+        border-bottom: 1px solid rgba(56, 189, 248, 0.16);
+        font-size: 0.73rem;
+        color: var(--gray-600);
+        flex-shrink: 0;
+    }
+    .msg-trust-banner i { color: var(--accent); font-size: 0.9rem; flex-shrink: 0; }
+    .msg-trust-banner strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* Messages scroll area */
+    .msg-thread {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 24px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        scroll-behavior: smooth;
+    }
+    .msg-thread::-webkit-scrollbar { width: 6px; }
+    .msg-thread::-webkit-scrollbar-thumb {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+    .msg-thread::-webkit-scrollbar-thumb:hover { background: var(--gray-300); }
+
+    /* Date separator */
+    .msg-date {
+        align-self: center;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        padding: 14px 16px 8px;
+        position: relative;
+    }
+    .msg-date::before,
+    .msg-date::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 40px;
+        height: 1px;
+        background: var(--gray-200);
+    }
+    .msg-date::before { right: 100%; margin-right: 12px; }
+    .msg-date::after { left: 100%; margin-left: 12px; }
+
+    /* Message bubble */
+    .bubble {
+        max-width: 72%;
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        animation: bubbleIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        margin-bottom: 2px;
+    }
+    @keyframes bubbleIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bubble.them { align-self: flex-start; }
+    .bubble.me { align-self: flex-end; flex-direction: row-reverse; }
+
+    .bubble-avatar {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        margin-bottom: 4px;
+    }
+    .bubble.me .bubble-avatar { display: none; }
+
+    .bubble-content { min-width: 0; }
+
+    .bubble-text {
+        padding: 11px 15px;
+        border-radius: 18px;
+        font-size: 0.855rem;
+        line-height: 1.55;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        position: relative;
+    }
+    .bubble.them .bubble-text {
+        background: var(--white);
+        color: var(--gray-800);
+        border: 1px solid var(--gray-100);
+        border-bottom-left-radius: 6px;
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .bubble.me .bubble-text {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+        color: var(--white);
+        border-bottom-right-radius: 6px;
+        box-shadow: 0 4px 14px rgba(11, 17, 33, 0.16);
+    }
+
+    /* Attachment bubble */
+    .bubble-file {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        margin-top: 4px;
+        max-width: 260px;
+    }
+    .bubble.me .bubble-file {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: var(--white);
+    }
+    .bubble-file .ic {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        font-size: 0.9rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+        flex-shrink: 0;
+    }
+    .bubble.me .bubble-file .ic {
+        background: rgba(190, 242, 100, 0.16);
+        color: var(--secondary);
+    }
+    .bubble-file .meta { min-width: 0; }
+    .bubble-file .meta strong {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .bubble.me .bubble-file .meta strong { color: var(--white); }
+    .bubble-file .meta span {
+        font-size: 0.66rem;
+        color: var(--gray-600);
+    }
+    .bubble.me .bubble-file .meta span { color: rgba(255, 255, 255, 0.55); }
+
+    /* Bubble meta */
+    .bubble-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 4px 0;
+        font-size: 0.64rem;
+        color: var(--gray-300);
+        font-weight: 500;
+    }
+    .bubble.me .bubble-meta { justify-content: flex-end; }
+    .bubble-meta .read {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        color: var(--accent);
+        font-weight: 600;
+    }
+    .bubble-meta .read i { font-size: 0.72rem; }
+
+    /* Typing indicator */
+    .typing {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 4px 0;
+        align-self: flex-start;
+        animation: bubbleIn 0.3s ease;
+    }
+    .typing-bubble {
+        display: flex;
+        gap: 4px;
+        padding: 12px 16px;
+        border-radius: 18px;
+        border-bottom-left-radius: 6px;
+        background: var(--white);
+        border: 1px solid var(--gray-100);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .typing-bubble span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gray-300);
+        animation: typingDot 1.4s infinite;
+    }
+    .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingDot {
+        0%, 60%, 100% { transform: translateY(0); background: var(--gray-300); }
+        30% { transform: translateY(-4px); background: var(--secondary-deep); }
+    }
+    .typing-lbl {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        font-style: italic;
+    }
+
+    /* ============================================================
+       COMPOSER
+       ============================================================ */
+    .msg-composer {
+        flex-shrink: 0;
+        padding: 16px 24px 20px;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .composer-attachments {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+    .composer-attachments:empty { display: none; }
+    .attachment-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px 6px 10px;
+        border-radius: 10px;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        font-size: 0.72rem;
+        color: var(--gray-600);
+    }
+    .attachment-chip i { color: var(--accent); font-size: 0.8rem; }
+    .attachment-chip strong { color: var(--primary-dark); font-weight: 600; }
+    .attachment-chip button {
+        border: none;
+        background: transparent;
+        color: var(--gray-300);
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 2px;
+        line-height: 1;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    .attachment-chip button:hover { color: var(--danger); }
+
+    .composer-box {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        padding: 8px 8px 8px 16px;
+        background: var(--white);
+        border: 1.5px solid var(--gray-200);
+        border-radius: 22px;
+        transition: var(--transition);
+    }
+    .composer-box:focus-within {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    .composer-tools {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+        padding-bottom: 2px;
+    }
+    .composer-tool {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--gray-300);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    .composer-tool:hover {
+        background: var(--gray-100);
+        color: var(--primary-dark);
+    }
+    .composer-tool.active {
+        color: var(--secondary-deep);
+        background: rgba(190, 242, 100, 0.14);
+    }
+
+    .composer-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: var(--gray-800);
+        resize: none;
+        max-height: 140px;
+        min-height: 24px;
+        padding: 8px 4px;
+    }
+    .composer-input::placeholder { color: var(--gray-300); }
+
+    .composer-send {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        transition: var(--transition);
+        font-family: inherit;
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.35);
+    }
+    .composer-send:hover:not(:disabled) {
+        background: var(--secondary-light);
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.48);
+    }
+    .composer-send:disabled {
+        background: var(--gray-200);
+        color: var(--gray-300);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .composer-hint {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        padding: 0 6px;
+        font-size: 0.66rem;
+        color: var(--gray-300);
+        font-weight: 500;
+    }
+    .composer-hint kbd {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 5px;
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-bottom-width: 2px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        margin: 0 2px;
+    }
+    .composer-hint .safety {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-left: auto;
+        color: var(--gray-300);
+    }
+    .composer-hint .safety i { color: var(--accent); font-size: 0.75rem; }
+
+    /* ============================================================
+       EMPTY CHAT STATE (no conversation selected)
+       ============================================================ */
+    .msg-empty-chat {
+        flex: 1;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+    }
+    .msg-empty-chat.show { display: flex; }
+    .msg-empty-chat .ic {
+        width: 88px;
+        height: 88px;
+        margin-bottom: 20px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 2rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .msg-empty-chat h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+    .msg-empty-chat p {
+        max-width: 360px;
+        font-size: 0.86rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        margin-bottom: 22px;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .msg-shell { grid-template-columns: 300px 1fr; }
+    }
+
+    @media (max-width: 900px) {
+        .msg-shell {
+            grid-template-columns: 1fr;
+            height: calc(100vh - 190px);
+            min-height: 560px;
+        }
+        .msg-list-col {
+            border-right: none;
+            border-bottom: none;
+        }
+        .msg-chat-col {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            border-radius: var(--radius-xl);
+        }
+        /* When a conversation is open on mobile, show chat and hide list */
+        .msg-shell.chat-open .msg-list-col { display: none; }
+        .msg-shell.chat-open .msg-chat-col { display: flex; }
+        .msg-back { display: grid; }
+        .bubble { max-width: 84%; }
+    }
+
+    @media (max-width: 640px) {
+        .msg-head-actions { width: 100%; }
+        .msg-head-actions .btn { flex: 1; }
+        .msg-thread { padding: 18px 16px 12px; }
+        .msg-composer { padding: 12px 16px 16px; }
+        .msg-chat-head { padding: 12px 16px; }
+        .msg-trust-banner { padding: 10px 16px; }
+        .composer-hint .safety { display: none; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="msg-head fade-up">
+    <div>
+        <span class="badge-soft pulse"><i class="bi bi-chat-dots-fill"></i> 5 unread conversations</span>
+        <h1>Your <span>Messages</span></h1>
+        <p>Chat with students, teachers and mentors you've connected with. Every exchange is private, verified and encrypted.</p>
+    </div>
+
+    <div class="msg-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening your message settings…">
+            <i class="bi bi-sliders"></i> Settings
+        </button>
+        <button class="btn btn-secondary" data-toast="Finding people to message…">
+            <i class="bi bi-person-plus"></i> New message
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MESSAGING SHELL
+     ==================================================== -->
+<section class="msg-shell fade-up" id="msgShell">
+
+    <!-- ====================================================
+         LEFT — CONVERSATION LIST
+         ==================================================== -->
+    <div class="msg-list-col">
+
+        <div class="msg-list-top">
+            <div class="msg-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="msgSearch" placeholder="Search conversations…" aria-label="Search conversations">
+            </div>
+
+            <div class="msg-filters" role="tablist" aria-label="Conversation filters">
+                <button class="msg-filter active" data-filter="all">
+                    All <span class="n">12</span>
+                </button>
+                <button class="msg-filter" data-filter="unread">
+                    Unread <span class="n">5</span>
+                </button>
+                <button class="msg-filter" data-filter="student">Students</button>
+                <button class="msg-filter" data-filter="teacher">Teachers</button>
+                <button class="msg-filter" data-filter="mentor">Mentors</button>
+                <button class="msg-filter" data-filter="archived">
+                    <i class="bi bi-archive"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="msg-scroll" id="msgList">
+
+            <!-- ---- Conversation 1 (active) ---- -->
+            <button class="conv active unread" data-conv="1" data-name="Sara Kim" data-role="student" data-msg="Hey! I'd love to swap — my UI Design for your React. Are you free this week?">
+                <div class="conv-avatar">
+                    SK
+                    <span class="dot"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Sara Kim <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">2m</span>
+                    </div>
+                    <div class="conv-snippet">Hey! I'd love to swap — my UI Design for your React. Are you free this week?</div>
+                    <div class="conv-meta">
+                        <span class="conv-role student">Student</span>
+                        <span class="conv-badge">2</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 2 ---- -->
+            <button class="conv" data-conv="2" data-name="Daniel Okafor" data-role="teacher" data-msg="Great session today! Sending you the deck and the recording link.">
+                <div class="conv-avatar v2">
+                    DO
+                    <span class="dot"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Daniel Okafor <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">1h</span>
+                    </div>
+                    <div class="conv-snippet">Great session today! Sending you the deck and the recording link.</div>
+                    <div class="conv-meta">
+                        <span class="conv-role teacher">Teacher</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 3 ---- -->
+            <button class="conv unread" data-conv="3" data-name="Tolu Fashina" data-role="mentor" data-msg="Let's review your portfolio next Tuesday — send me the three case studies you're proudest of.">
+                <div class="conv-avatar v3">
+                    TF
+                    <span class="dot"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Tolu Fashina <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">3h</span>
+                    </div>
+                    <div class="conv-snippet">Let's review your portfolio next Tuesday — send me the three case studies you're proudest of.</div>
+                    <div class="conv-meta">
+                        <span class="conv-role mentor">Mentor</span>
+                        <span class="conv-badge">1</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 4 ---- -->
+            <button class="conv unread" data-conv="4" data-name="Tunde Kalu" data-role="student" data-msg="Sent you the Figma file with the animation prototypes. Let me know what you think!">
+                <div class="conv-avatar v4">
+                    TK
+                    <span class="dot"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Tunde Kalu <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">5h</span>
+                    </div>
+                    <div class="conv-snippet">Sent you the Figma file with the animation prototypes. Let me know what you think!</div>
+                    <div class="conv-meta">
+                        <span class="conv-role student">Student</span>
+                        <span class="conv-badge">2</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 5 ---- -->
+            <button class="conv" data-conv="5" data-name="Fatima Bello" data-role="teacher" data-msg="Your design critique was spot on. Ready to teach you systems thinking next session.">
+                <div class="conv-avatar v5">
+                    FB
+                    <span class="dot off"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Fatima Bello <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">1d</span>
+                    </div>
+                    <div class="conv-snippet">Your design critique was spot on. Ready to teach you systems thinking next session.</div>
+                    <div class="conv-meta">
+                        <span class="conv-role teacher">Teacher</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 6 ---- -->
+            <button class="conv" data-conv="6" data-name="Maya Rahman" data-role="student" data-msg="Thanks for the React notes! I owe you a SQL deep-dive in return.">
+                <div class="conv-avatar v6">
+                    MR
+                    <span class="dot"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Maya Rahman <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">2d</span>
+                    </div>
+                    <div class="conv-snippet">Thanks for the React notes! I owe you a SQL deep-dive in return.</div>
+                    <div class="conv-meta">
+                        <span class="conv-role student">Student</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 7 ---- -->
+            <button class="conv" data-conv="7" data-name="Jonas Tan" data-role="mentor" data-msg="Apologies for the delay — my calendar is now open for the next two weeks.">
+                <div class="conv-avatar v2">
+                    JT
+                    <span class="dot off"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Jonas Tan <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">3d</span>
+                    </div>
+                    <div class="conv-snippet">Apologies for the delay — my calendar is now open for the next two weeks.</div>
+                    <div class="conv-meta">
+                        <span class="conv-role mentor">Mentor</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- ---- Conversation 8 ---- -->
+            <button class="conv" data-conv="8" data-name="Amara Nwosu" data-role="mentor" data-msg="Loved your dashboard concept. Let's talk through the analytics approach.">
+                <div class="conv-avatar v3">
+                    AN
+                    <span class="dot"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h4>Amara Nwosu <i class="bi bi-patch-check-fill" title="Verified"></i></h4>
+                        <span class="conv-time">4d</span>
+                    </div>
+                    <div class="conv-snippet">Loved your dashboard concept. Let's talk through the analytics approach.</div>
+                    <div class="conv-meta">
+                        <span class="conv-role mentor">Mentor</span>
+                    </div>
+                </div>
+            </button>
+
+            <!-- Empty state -->
+            <div class="msg-list-empty" id="msgListEmpty" style="display:none;">
+                <div class="ic"><i class="bi bi-search"></i></div>
+                <h4>No conversations match</h4>
+                <p>Try a different search term or clear the filter to see all messages.</p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ====================================================
+         RIGHT — CHAT PANEL
+         ==================================================== -->
+    <div class="msg-chat-col" id="msgChatCol">
+
+        <!-- Chat header -->
+        <div class="msg-chat-head">
+            <button class="msg-back" id="msgBack" aria-label="Back to conversations">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+
+            <div class="chat-avatar" id="chatAvatar">
+                SK
+                <span class="dot"></span>
+            </div>
+
+            <div class="chat-id">
+                <h3 id="chatName">Sara Kim <i class="bi bi-patch-check-fill" title="Verified member"></i></h3>
+                <p class="online" id="chatStatus">Online now · Student</p>
+            </div>
+
+            <div class="chat-actions">
+                <button class="chat-action" data-toast="Starting a video call…" title="Video call">
+                    <i class="bi bi-camera-video"></i>
+                </button>
+                <button class="chat-action" data-toast="Opening voice call…" title="Voice call">
+                    <i class="bi bi-telephone"></i>
+                </button>
+                <button class="chat-action" data-toast="Opening conversation options…" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Trust banner -->
+        <div class="msg-trust-banner">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>Messages are <strong>private and encrypted.</strong> Never share personal payment details — Knotwork never asks for them.</span>
+        </div>
+
+        <!-- Thread -->
+        <div class="msg-thread" id="msgThread">
+
+            <div class="msg-date">Today</div>
+
+            <!-- Them -->
+            <div class="bubble them">
+                <div class="bubble-avatar">SK</div>
+                <div class="bubble-content">
+                    <div class="bubble-text">Hey Amara! 👋 Saw your profile — your React work is seriously impressive. I'd love to swap some of my UI Design for it.</div>
+                    <div class="bubble-meta">
+                        <span>10:24</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Me -->
+            <div class="bubble me">
+                <div class="bubble-content">
+                    <div class="bubble-text">Hi Sara! That's a great idea. I've been wanting to get better at design systems — your Figma work looks incredible.</div>
+                    <div class="bubble-meta">
+                        <span>10:26</span>
+                        <span class="read"><i class="bi bi-check2-all"></i> Read</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Them -->
+            <div class="bubble them">
+                <div class="bubble-avatar">SK</div>
+                <div class="bubble-content">
+                    <div class="bubble-text">Perfect! I can start this week. I usually do Tuesday or Thursday evenings — does that work?</div>
+                    <div class="bubble-meta">
+                        <span>10:28</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Me with file -->
+            <div class="bubble me">
+                <div class="bubble-content">
+                    <div class="bubble-text">Tuesday works great. Here's the outline of the React topics I was thinking we could cover first.</div>
+                    <div class="bubble-file">
+                        <div class="ic"><i class="bi bi-file-earmark-pdf"></i></div>
+                        <div class="meta">
+                            <strong>React_Swap_Plan.pdf</strong>
+                            <span>248 KB</span>
+                        </div>
+                    </div>
+                    <div class="bubble-meta">
+                        <span>10:31</span>
+                        <span class="read"><i class="bi bi-check2-all"></i> Read</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Them -->
+            <div class="bubble them">
+                <div class="bubble-avatar">SK</div>
+                <div class="bubble-content">
+                    <div class="bubble-text">This is incredibly well-organised! Let me send you my design curriculum too. One sec… 📎</div>
+                    <div class="bubble-meta">
+                        <span>10:33</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Them - most recent -->
+            <div class="bubble them">
+                <div class="bubble-avatar">SK</div>
+                <div class="bubble-content">
+                    <div class="bubble-text">Hey! I'd love to swap — my UI Design for your React. Are you free this week?</div>
+                    <div class="bubble-meta">
+                        <span>10:35</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing indicator -->
+            <div class="typing" id="typingIndicator">
+                <div class="bubble-avatar" style="width:32px;height:32px;font-size:0.68rem;">SK</div>
+                <div>
+                    <div class="typing-bubble">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="typing-lbl">Sara is typing…</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Composer -->
+        <div class="msg-composer">
+            <div class="composer-attachments" id="composerAttachments"></div>
+
+            <div class="composer-box">
+                <div class="composer-tools">
+                    <button class="composer-tool" id="attachBtn" data-toast="Opening file picker…" title="Attach file">
+                        <i class="bi bi-paperclip"></i>
+                    </button>
+                    <button class="composer-tool" id="emojiBtn" data-toast="Opening emoji picker…" title="Emoji">
+                        <i class="bi bi-emoji-smile"></i>
+                    </button>
+                    <button class="composer-tool" id="scheduleBtn" data-toast="Opening session scheduler…" title="Schedule a session">
+                        <i class="bi bi-calendar-plus"></i>
+                    </button>
+                </div>
+
+                <textarea class="composer-input" id="composerInput" placeholder="Write a message…" rows="1" aria-label="Message"></textarea>
+
+                <button class="composer-send" id="composerSend" disabled aria-label="Send message">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+
+            <div class="composer-hint">
+                <span><kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line</span>
+                <span class="safety"><i class="bi bi-shield-check"></i> End-to-end encrypted</span>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           CONVERSATION SWITCHING
+           ====================================================== */
+        var shell = document.getElementById('msgShell');
+        var convs = Array.prototype.slice.call(document.querySelectorAll('.conv'));
+        var chatName = document.getElementById('chatName');
+        var chatStatus = document.getElementById('chatStatus');
+        var chatAvatar = document.getElementById('chatAvatar');
+        var thread = document.getElementById('msgThread');
+
+        var roleLabels = {
+            student: 'Student',
+            teacher: 'Teacher',
+            mentor: 'Mentor'
+        };
+
+        function openConversation(conv) {
+            /* Update active row */
+            convs.forEach(function (c) { c.classList.remove('active'); });
+            conv.classList.add('active');
+            conv.classList.remove('unread');
+
+            /* Remove the unread badge */
+            var badge = conv.querySelector('.conv-badge');
+            if (badge) badge.remove();
+
+            /* Update chat header */
+            var name = conv.dataset.name || 'Conversation';
+            var role = conv.dataset.role || 'student';
+            var initials = name.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+
+            if (chatName) chatName.innerHTML = name + ' <i class="bi bi-patch-check-fill" title="Verified member"></i>';
+            if (chatStatus) chatStatus.textContent = 'Online now · ' + (roleLabels[role] || 'Member');
+            if (chatAvatar) {
+                chatAvatar.className = 'chat-avatar' + (conv.querySelector('.conv-avatar').className.indexOf('v') !== -1 ? ' ' + conv.querySelector('.conv-avatar').className.split(' ').filter(function(c){return c.indexOf('v')===0 && c!=='v';})[0] : '');
+                chatAvatar.firstChild.nodeValue = initials;
+            }
+
+            /* On mobile, show the chat panel */
+            if (shell) shell.classList.add('chat-open');
+
+            /* Scroll thread to bottom */
+            if (thread) {
+                requestAnimationFrame(function () {
+                    thread.scrollTop = thread.scrollHeight;
+                });
+            }
+        }
+
+        convs.forEach(function (conv) {
+            conv.addEventListener('click', function () {
+                openConversation(this);
+            });
+        });
+
+        /* Back button (mobile) */
+        var backBtn = document.getElementById('msgBack');
+        if (backBtn && shell) {
+            backBtn.addEventListener('click', function () {
+                shell.classList.remove('chat-open');
+            });
+        }
+
+        /* ======================================================
+           SEARCH + FILTERS
+           ====================================================== */
+        var searchInput = document.getElementById('msgSearch');
+        var filters = Array.prototype.slice.call(document.querySelectorAll('.msg-filter'));
+        var emptyList = document.getElementById('msgListEmpty');
+        var activeFilter = 'all';
+
+        function applyFilters() {
+            var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            var visible = 0;
+
+            convs.forEach(function (conv) {
+                var name = (conv.dataset.name || '').toLowerCase();
+                var msg = (conv.dataset.msg || '').toLowerCase();
+                var role = conv.dataset.role || '';
+
+                var matchesSearch = !q || name.indexOf(q) !== -1 || msg.indexOf(q) !== -1;
+                var matchesFilter = true;
+
+                if (activeFilter === 'unread') {
+                    matchesFilter = conv.classList.contains('unread');
+                } else if (activeFilter !== 'all' && activeFilter !== 'archived') {
+                    matchesFilter = role === activeFilter;
+                }
+
+                var show = matchesSearch && matchesFilter;
+                conv.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if (emptyList) emptyList.style.display = visible === 0 ? 'block' : 'none';
+        }
+
+        if (searchInput) searchInput.addEventListener('input', applyFilters);
+
+        filters.forEach(function (f) {
+            f.addEventListener('click', function () {
+                filters.forEach(function (x) { x.classList.remove('active'); });
+                this.classList.add('active');
+                activeFilter = this.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        /* ======================================================
+           COMPOSER
+           ====================================================== */
+        var composerInput = document.getElementById('composerInput');
+        var composerSend = document.getElementById('composerSend');
+        var composerAttachments = document.getElementById('composerAttachments');
+
+        function autoGrow() {
+            if (!composerInput) return;
+            composerInput.style.height = 'auto';
+            composerInput.style.height = Math.min(composerInput.scrollHeight, 140) + 'px';
+        }
+
+        function toggleSendState() {
+            if (!composerSend || !composerInput) return;
+            composerSend.disabled = composerInput.value.trim().length === 0;
+        }
+
+        if (composerInput) {
+            composerInput.addEventListener('input', function () {
+                autoGrow();
+                toggleSendState();
+            });
+
+            composerInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        function formatTime() {
+            var d = new Date();
+            var h = String(d.getHours()).padStart(2, '0');
+            var m = String(d.getMinutes()).padStart(2, '0');
+            return h + ':' + m;
+        }
+
+        function escapeHTML(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function sendMessage() {
+            if (!composerInput || !thread) return;
+            var text = composerInput.value.trim();
+            if (!text) return;
+
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble me';
+            bubble.innerHTML =
+                '<div class="bubble-content">' +
+                    '<div class="bubble-text">' + escapeHTML(text) + '</div>' +
+                    '<div class="bubble-meta">' +
+                        '<span>' + formatTime() + '</span>' +
+                        '<span class="read"><i class="bi bi-check2"></i> Sent</span>' +
+                    '</div>' +
+                '</div>';
+
+            /* Insert before the typing indicator if present */
+            var typing = document.getElementById('typingIndicator');
+            if (typing) thread.insertBefore(bubble, typing);
+            else thread.appendChild(bubble);
+
+            composerInput.value = '';
+            autoGrow();
+            toggleSendState();
+
+            thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+
+            /* Simulate a reply */
+            setTimeout(function () {
+                if (typing) typing.style.display = 'flex';
+                thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+            }, 700);
+
+            setTimeout(function () {
+                if (typing) typing.style.display = 'none';
+                var reply = document.createElement('div');
+                reply.className = 'bubble them';
+                reply.innerHTML =
+                    '<div class="bubble-avatar">' + (chatAvatar ? chatAvatar.firstChild.nodeValue.trim() : 'SK') + '</div>' +
+                    '<div class="bubble-content">' +
+                        '<div class="bubble-text">Got it — thanks! I\'ll get back to you shortly. 👍</div>' +
+                        '<div class="bubble-meta"><span>' + formatTime() + '</span></div>' +
+                    '</div>';
+                thread.appendChild(reply);
+                thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+            }, 2200);
+        }
+
+        if (composerSend) {
+            composerSend.addEventListener('click', sendMessage);
+        }
+
+        /* Composer tool demo actions */
+        var attachBtn = document.getElementById('attachBtn');
+        if (attachBtn) {
+            attachBtn.addEventListener('click', function () {
+                if (!composerAttachments) return;
+                var chip = document.createElement('div');
+                chip.className = 'attachment-chip';
+                chip.innerHTML =
+                    '<i class="bi bi-file-earmark-text"></i> ' +
+                    '<strong>Notes.pdf</strong> · 182 KB ' +
+                    '<button type="button" aria-label="Remove attachment">✕</button>';
+                chip.querySelector('button').addEventListener('click', function () {
+                    chip.remove();
+                });
+                composerAttachments.appendChild(chip);
+                if (window.__toast) window.__toast('File attached', 'success');
+            });
+        }
+
+        /* ======================================================
+           ESCAPE closes mobile chat view
+           ====================================================== */
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && shell && shell.classList.contains('chat-open')) {
+                shell.classList.remove('chat-open');
+            }
+        });
+
+        /* ======================================================
+           TYPING INDICATOR — hide after a short delay on load
+           ====================================================== */
+        var typing = document.getElementById('typingIndicator');
+        if (typing) {
+            setTimeout(function () {
+                typing.style.display = 'none';
+            }, 6000);
+        }
+
+        /* Scroll thread to bottom on load */
+        if (thread) {
+            requestAnimationFrame(function () {
+                thread.scrollTop = thread.scrollHeight;
+            });
+        }
+
+    })();
+</script>
+
+{% endblock content %}

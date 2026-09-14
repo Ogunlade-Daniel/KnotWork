@@ -1,0 +1,2148 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}The Cohort{% endblock %}
+{% block page_title %}Cohort{% endblock %}
+{% block breadcrumb %}Cohort{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   THE COHORT — long-term mentorship roster
+   Emphasis: tenure, presence, journey, conversation
+   ============================================================ */
+
+.cohort{
+    --gold:        var(--secondary, #BEF264);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.32);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+    --violet:      #8B5CF6;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --rose:        #F43F5E;
+    --rose-soft:   rgba(244, 63, 94, 0.10);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ---------- entrance ---------- */
+.cohort .c-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: cRise .7s var(--ease) forwards;
+}
+.cohort .c-rise:nth-child(1){ animation-delay: .02s; }
+.cohort .c-rise:nth-child(2){ animation-delay: .08s; }
+.cohort .c-rise:nth-child(3){ animation-delay: .14s; }
+.cohort .c-rise:nth-child(4){ animation-delay: .20s; }
+.cohort .c-rise:nth-child(5){ animation-delay: .26s; }
+@keyframes cRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.c-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.c-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.c-mast-left .cm-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+}
+.c-mast-left .cm-kicker i{ color: var(--gold); font-size: 0.72rem; }
+.c-mast-left .cm-kicker .new-pill{
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+    margin-left: 4px;
+}
+
+.c-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.c-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.c-mast-left .cm-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.c-mast-left .cm-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.c-mast-left .cm-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.c-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---------- buttons ---------- */
+.cohort .btn-gold{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+}
+.cohort .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+.cohort .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.cohort .btn-ghost:hover{
+    border-color: var(--gold); color: var(--gold-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   2 · COHORT PULSE — 5 stat tiles
+   ============================================================ */
+.pulse-strip{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 1180px){ .pulse-strip{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .pulse-strip{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.pulse-tile{
+    position: relative;
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pulse-tile::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 3px 3px 0 0;
+}
+.pulse-tile.sky::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.pulse-tile.violet::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+.pulse-tile.rose::before{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+.pulse-tile.gold::before{ background: linear-gradient(90deg, var(--gold), var(--gold-deep)); }
+
+.pulse-tile:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--gold-line);
+}
+
+.pt-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.pt-icon{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.pulse-tile.sky .pt-icon{ background: var(--sky-soft); color: #0284C7; }
+.pulse-tile.violet .pt-icon{ background: var(--violet-soft); color: var(--violet); }
+.pulse-tile.rose .pt-icon{ background: var(--rose-soft); color: var(--rose); }
+
+.pt-micro{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.pt-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.pt-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+.pt-label{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   3 · SPOTLIGHT — featured student
+   ============================================================ */
+.spotlight{
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 30px;
+    padding: 32px 34px;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(ellipse at 92% 15%, rgba(190, 242, 100, 0.16), transparent 55%),
+        radial-gradient(ellipse at 8% 100%, rgba(56, 189, 248, 0.12), transparent 55%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+}
+@media (max-width: 900px){
+    .spotlight{ grid-template-columns: 1fr; gap: 22px; padding: 26px 24px; }
+}
+.spotlight::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 30%,
+        var(--sky) 65%,
+        var(--violet) 100%);
+}
+.spotlight::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 26px 26px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 25% 40%, #000 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 25% 40%, #000 20%, transparent 70%);
+}
+
+.sp-left{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.sp-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 13px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.16);
+    border: 1px solid rgba(190, 242, 100, 0.42);
+    color: var(--gold-light);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    align-self: flex-start;
+}
+.sp-kicker i{ color: var(--gold-light); font-size: 0.7rem; }
+
+.sp-profile{
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.sp-avatar{
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 12px 32px rgba(190, 242, 100, 0.34);
+}
+.sp-avatar::after{
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(11, 17, 33, 0.14);
+}
+.sp-avatar .presence{
+    position: absolute;
+    bottom: 2px; right: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 3px solid var(--ink-2);
+    box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.2);
+    animation: presPulse 2.4s ease-in-out infinite;
+}
+@keyframes presPulse{
+    0%, 100%{ box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.2); }
+    50%     { box-shadow: 0 0 0 6px rgba(190, 242, 100, 0.05); }
+}
+
+.sp-name{ min-width: 0; }
+.sp-name h2{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.018em;
+    color: #fff;
+    margin-bottom: 5px;
+}
+.sp-name p{
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.sp-name p .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+}
+.sp-name p strong{ color: var(--gold-light); font-weight: 700; }
+
+.sp-note{
+    position: relative;
+    padding: 14px 18px 14px 46px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.82);
+    font-style: italic;
+}
+.sp-note::before{
+    content: '"';
+    position: absolute;
+    left: 16px;
+    top: 4px;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    opacity: 0.6;
+}
+.sp-note strong{ color: #fff; font-weight: 600; font-style: normal; }
+
+.sp-actions{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+.sp-actions .btn-gold{ font-size: 0.78rem; }
+.sp-actions .btn-outline{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.20);
+    color: #fff; font-family: inherit;
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.sp-actions .btn-outline:hover{
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-2px);
+}
+
+/* right side journey */
+.sp-right{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-left: 30px;
+    border-left: 1px solid rgba(255,255,255,0.10);
+}
+@media (max-width: 900px){
+    .sp-right{
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.10);
+        padding-top: 22px;
+    }
+}
+
+.sp-journey-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+.sp-journey-head .k{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+}
+.sp-journey-head .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    font-variant-numeric: tabular-nums;
+}
+
+.sp-metrics{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.sp-metric{
+    padding: 12px 12px 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    text-align: left;
+}
+.sp-metric .k{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+}
+.sp-metric .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+.sp-metric .v.gold{ color: var(--gold-light); }
+
+.sp-milestones{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 4px;
+}
+.sp-milestone{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: var(--transition, all .25s ease);
+}
+.sp-milestone:hover{ background: rgba(255,255,255,0.07); }
+.sp-milestone .ms-dot{
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 5px;
+    box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.18);
+}
+.sp-milestone.sky .ms-dot{ background: var(--sky); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18); }
+.sp-milestone.violet .ms-dot{ background: #A78BFA; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18); }
+
+.sp-milestone .ms-body{ flex: 1; min-width: 0; }
+.sp-milestone .ms-body h6{
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.35;
+    margin-bottom: 2px;
+}
+.sp-milestone .ms-body h6 strong{ color: #fff; font-weight: 700; }
+.sp-milestone .ms-body span{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+}
+
+/* ============================================================
+   4 · TOOLBAR
+   ============================================================ */
+.c-toolbar{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+}
+.ct-search{
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+}
+.ct-search i{
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-size: 0.82rem;
+    pointer-events: none;
+}
+.ct-search input{
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .25s ease);
+}
+.ct-search input::placeholder{ color: var(--faint); }
+.ct-search input:focus{
+    border-color: var(--gold);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--gold-soft);
+}
+
+.ct-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.ct-chip i{ font-size: 0.78rem; color: var(--faint); transition: var(--transition, all .25s ease); }
+.ct-chip:hover{
+    border-color: var(--gold-line);
+    color: var(--ink);
+    background: var(--paper);
+}
+.ct-chip:hover i{ color: var(--gold-deep); }
+.ct-chip.active{
+    background: var(--gold-soft);
+    border-color: var(--gold-line);
+    color: var(--gold-deep);
+}
+.ct-chip.active i{ color: var(--gold-deep); }
+.ct-chip .cnt{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 50px;
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 0.58rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    margin-left: 2px;
+}
+.ct-chip.active .cnt{
+    background: var(--gold);
+    color: var(--ink);
+}
+
+.ct-divider{
+    width: 1px; height: 22px;
+    background: var(--line);
+    margin: 0 2px;
+}
+
+.ct-sort{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+}
+.ct-sort:hover{ border-color: var(--gold-line); color: var(--gold-deep); }
+.ct-sort i{ font-size: 0.78rem; }
+
+/* ============================================================
+   5 · STUDENT ROSTER GRID
+   ============================================================ */
+.roster{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+    gap: 18px;
+}
+
+.student{
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .3s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+.student::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .5s var(--ease);
+    z-index: 3;
+}
+.student:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+    border-color: var(--gold-line);
+}
+.student:hover::before{ transform: scaleX(1); }
+
+/* mood accents */
+.student.thriving::before{ background: linear-gradient(90deg, var(--gold), var(--gold-deep)); }
+.student.steady::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.student.needs::before{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+.student.new::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+
+/* top bar / presence */
+.st-head{
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 20px 14px;
+}
+.st-avatar{
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: 0 8px 20px rgba(190, 242, 100, 0.28);
+}
+.student.steady .st-avatar{
+    background: linear-gradient(135deg, var(--sky), #0284C7);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(56, 189, 248, 0.28);
+}
+.student.needs .st-avatar{
+    background: linear-gradient(135deg, #FB7185, var(--rose));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.26);
+}
+.student.new .st-avatar{
+    background: linear-gradient(135deg, #A78BFA, var(--violet));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.28);
+}
+.st-avatar::after{
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(11, 17, 33, 0.10);
+}
+.st-avatar .presence{
+    position: absolute;
+    bottom: 1px; right: 1px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2.5px solid var(--paper);
+}
+.st-avatar .presence.away{ background: var(--faint); }
+.st-avatar .presence.offline{ background: var(--line); }
+
+.st-info{ flex: 1; min-width: 0; }
+.st-info h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.st-info h4 .crown{
+    color: var(--gold-deep);
+    font-size: 0.72rem;
+    flex-shrink: 0;
+}
+.st-info p{
+    font-size: 0.68rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.st-info p i{ font-size: 0.68rem; color: var(--faint); flex-shrink: 0; }
+
+.st-tenure{
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: var(--gold-soft);
+    border: 1px solid var(--gold-line);
+    color: var(--gold-deep);
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+.student.steady .st-tenure{
+    background: var(--sky-soft);
+    border-color: rgba(56, 189, 248, 0.32);
+    color: #0284C7;
+}
+.student.needs .st-tenure{
+    background: var(--rose-soft);
+    border-color: rgba(244, 63, 94, 0.32);
+    color: var(--rose);
+}
+.student.new .st-tenure{
+    background: var(--violet-soft);
+    border-color: rgba(139, 92, 246, 0.32);
+    color: var(--violet);
+}
+
+/* course block */
+.st-course{
+    padding: 0 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.st-course-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+.st-course-head .k{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.st-course-head .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 62%;
+    font-variant-numeric: tabular-nums;
+}
+.st-pbar{
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+.st-pbar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+    transition: width 1.2s var(--ease);
+}
+.student.steady .st-pbar > span{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.student.needs .st-pbar > span{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+.student.new .st-pbar > span{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+
+/* stats row */
+.st-stats{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+}
+.st-stat{
+    padding: 12px 10px 11px;
+    text-align: center;
+    border-right: 1px solid var(--line-soft);
+}
+.st-stat:last-child{ border-right: none; }
+.st-stat .k{
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 5px;
+}
+.st-stat .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.94rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.st-stat .v.gold{ color: var(--gold-deep); }
+.st-stat .v.sky{ color: #0284C7; }
+
+/* foot */
+.st-foot{
+    padding: 12px 18px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.st-mood{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.st-mood i{ font-size: 0.7rem; }
+.student.steady .st-mood{ background: var(--sky-soft); color: #0284C7; }
+.student.needs .st-mood{ background: var(--rose-soft); color: var(--rose); }
+.student.new .st-mood{ background: var(--violet-soft); color: var(--violet); }
+
+.st-actions{
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: var(--transition, all .3s ease);
+}
+.student:hover .st-actions{
+    opacity: 1;
+    transform: translateY(0);
+}
+.st-actions button{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.st-actions button:hover{
+    border-color: var(--gold);
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+}
+.st-actions button.msg:hover{
+    border-color: var(--sky);
+    color: #0284C7;
+    background: var(--sky-soft);
+}
+
+@media (hover: none){
+    .st-actions{ opacity: 1; transform: none; }
+}
+
+/* note flag */
+.st-note-flag{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--violet-soft);
+    color: var(--violet);
+    font-size: 0.65rem;
+    z-index: 4;
+    border: 1px solid rgba(139, 92, 246, 0.28);
+}
+.st-note-flag + .st-tenure{ margin-right: 26px; }
+
+/* ============================================================
+   6 · BOTTOM SPLIT — conversations + mentorship
+   ============================================================ */
+.c-split{
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+@media (max-width: 1080px){ .c-split{ grid-template-columns: 1fr; } }
+
+.stack{
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+/* panel base */
+.panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+    transition: var(--transition, all .25s ease);
+}
+.panel:hover{ box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10)); }
+
+.panel-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.panel-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.panel-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.panel-head.sky h3 i{ background: var(--sky-soft); color: #0284C7; }
+.panel-head.violet h3 i{ background: var(--violet-soft); color: var(--violet); }
+.panel-head.rose h3 i{ background: var(--rose-soft); color: var(--rose); }
+
+.panel-link{
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+.panel-body{ padding: 12px 22px 20px; }
+
+/* conversation row */
+.conv{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 4px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+}
+.conv:first-child{ padding-top: 8px; }
+.conv:last-child{ border-bottom: none; padding-bottom: 4px; }
+.conv:hover{ transform: translateX(4px); }
+
+.conv-av{
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+}
+.conv-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.conv-av.v3{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; }
+.conv-av.v4{ background: linear-gradient(135deg, #FB7185, var(--rose)); color: #fff; }
+.conv-av .presence{
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--paper);
+}
+.conv-av .presence.away{ background: var(--faint); }
+
+.conv-body{ flex: 1; min-width: 0; }
+.conv-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.conv-head h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.conv-head .when{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    flex-shrink: 0;
+}
+.conv-head .when.unread{ color: var(--gold-deep); }
+.conv-msg{
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.conv-msg strong{ color: var(--ink-3); font-weight: 600; }
+
+.conv-badge{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 50px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 0.58rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    align-self: center;
+    margin-left: 4px;
+}
+
+/* ============================================================
+   7 · MENTORSHIP MILESTONES
+   ============================================================ */
+.milestone-list{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+}
+.milestone{
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    position: relative;
+}
+.milestone:first-child{ padding-top: 8px; }
+.milestone:last-child{ padding-bottom: 4px; }
+.milestone::before{
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 34px;
+    bottom: -4px;
+    width: 1.5px;
+    background: var(--line-soft);
+}
+.milestone:last-child::before{ display: none; }
+
+.ms-marker{
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-size: 0.68rem;
+    background: var(--paper);
+    border: 2px solid var(--gold);
+    color: var(--gold-deep);
+    z-index: 2;
+    position: relative;
+}
+.ms-marker.sky{ border-color: var(--sky); color: #0284C7; }
+.ms-marker.violet{ border-color: #A78BFA; color: var(--violet); }
+.ms-marker.rose{ border-color: #FB7185; color: var(--rose); }
+
+.ms-body{ flex: 1; min-width: 0; padding-top: 2px; }
+.ms-body h5{
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    line-height: 1.45;
+}
+.ms-body h5 strong{ color: var(--ink); font-weight: 700; }
+.ms-body h5 .name{ color: var(--gold-deep); font-weight: 700; }
+.ms-body .when{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.ms-body .when i{ font-size: 0.62rem; }
+
+/* ============================================================
+   8 · EMPTY STATE
+   ============================================================ */
+.empty-state{
+    padding: 60px 32px;
+    text-align: center;
+    background: var(--paper);
+    border: 1.5px dashed var(--line);
+    border-radius: var(--r-xl);
+    grid-column: 1 / -1;
+}
+.empty-state .es-ic{
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    margin: 0 auto 18px;
+    font-size: 1.5rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+}
+.empty-state h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+.empty-state p{
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto 20px;
+}
+
+/* ============================================================
+   9 · FOOT BAR
+   ============================================================ */
+.c-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 4px 4px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.c-foot strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.c-foot .foot-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .c-mast-left h1{ font-size: 1.5rem; }
+    .c-toolbar{ padding: 12px 14px; gap: 8px; }
+    .ct-search{ min-width: 100%; }
+    .roster{ grid-template-columns: 1fr; }
+    .st-actions{ opacity: 1; transform: none; }
+    .sp-profile{ flex-direction: column; align-items: flex-start; gap: 14px; }
+    .sp-metrics{ grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .sp-metric{ padding: 10px 8px; }
+    .sp-metric .v{ font-size: 0.9rem; }
+}
+</style>
+
+
+<div class="cohort">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="c-mast c-rise">
+        <div class="c-mast-left">
+            <span class="cm-kicker">
+                <i class="bi bi-people-fill"></i> Faculty Cohort
+                <span class="new-pill">NEW</span>
+            </span>
+            <h1>Your <em>cohort of scholars.</em></h1>
+            <p class="cm-sub">
+                <strong>148</strong> students
+                <span class="sep"></span>
+                Avg tenure <strong>14 months</strong>
+                <span class="sep"></span>
+                Joined <strong>Sept 2024</strong>
+            </p>
+        </div>
+        <div class="c-mast-right">
+            <button class="btn-ghost" data-toast="Opening import students…">
+                <i class="bi bi-person-plus"></i> Invite
+            </button>
+            <button class="btn-ghost" data-toast="Opening segments…">
+                <i class="bi bi-diagram-3"></i> Segments
+            </button>
+            <button class="btn-gold" data-toast="Opening cohort broadcast…">
+                <i class="bi bi-megaphone"></i> Broadcast
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · PULSE STRIP
+         ==================================================== -->
+    <section class="pulse-strip">
+        <article class="pulse-tile c-rise">
+            <div class="pt-top">
+                <span class="pt-icon"><i class="bi bi-people-fill"></i></span>
+                <span class="pt-micro">Cohort</span>
+            </div>
+            <div class="pt-val" data-count="148">0</div>
+            <div class="pt-label">Total students</div>
+        </article>
+
+        <article class="pulse-tile sky c-rise">
+            <div class="pt-top">
+                <span class="pt-icon"><i class="bi bi-activity"></i></span>
+                <span class="pt-micro">This week</span>
+            </div>
+            <div class="pt-val" data-count="92">0</div>
+            <div class="pt-label">Active learners</div>
+        </article>
+
+        <article class="pulse-tile violet c-rise">
+            <div class="pt-top">
+                <span class="pt-icon"><i class="bi bi-stars"></i></span>
+                <span class="pt-micro">Fresh</span>
+            </div>
+            <div class="pt-val" data-count="12">0</div>
+            <div class="pt-label">New this month</div>
+        </article>
+
+        <article class="pulse-tile rose c-rise">
+            <div class="pt-top">
+                <span class="pt-icon"><i class="bi bi-exclamation-circle"></i></span>
+                <span class="pt-micro">Attention</span>
+            </div>
+            <div class="pt-val" data-count="5">0</div>
+            <div class="pt-label">Need a nudge</div>
+        </article>
+
+        <article class="pulse-tile gold c-rise">
+            <div class="pt-top">
+                <span class="pt-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                <span class="pt-micro">Soon</span>
+            </div>
+            <div class="pt-val" data-count="8">0</div>
+            <div class="pt-label">Graduating</div>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         3 · SPOTLIGHT
+         ==================================================== -->
+    <section class="spotlight c-rise">
+        <div class="sp-left">
+            <span class="sp-kicker"><i class="bi bi-star-fill"></i> Student of the Month · March</span>
+
+            <div class="sp-profile">
+                <div class="sp-avatar">
+                    SK
+                    <span class="presence" aria-label="Online"></span>
+                </div>
+                <div class="sp-name">
+                    <h2>Sara Kim</h2>
+                    <p>
+                        <strong>18 months</strong> with you
+                        <span class="sep"></span>
+                        Lagos, Nigeria
+                        <span class="sep"></span>
+                        Cohort since Sep 2024
+                    </p>
+                </div>
+            </div>
+
+            <div class="sp-note">
+                Remarkable <strong>clarity and consistency</strong>. Sara has completed every module ahead of schedule
+                and now mentors two other students in the cohort. A natural teacher — consider her for the
+                advanced mentor track.
+            </div>
+
+            <div class="sp-actions">
+                <button class="btn-gold" data-toast="Opening conversation with Sara…">
+                    <i class="bi bi-chat-dots-fill"></i> Message Sara
+                </button>
+                <button class="btn-outline" data-toast="Opening Sara's full journey…">
+                    <i class="bi bi-journal-text"></i> Full journey
+                </button>
+            </div>
+        </div>
+
+        <div class="sp-right">
+            <div class="sp-journey-head">
+                <span class="k">Journey with you</span>
+                <span class="v">68% complete</span>
+            </div>
+
+            <div class="sp-metrics">
+                <div class="sp-metric">
+                    <div class="k">Rating</div>
+                    <div class="v gold">4.9<em style="font-style:normal;font-size:0.6rem;">★</em></div>
+                </div>
+                <div class="sp-metric">
+                    <div class="k">Streak</div>
+                    <div class="v">28<em style="font-style:normal;font-size:0.6rem;">d</em></div>
+                </div>
+                <div class="sp-metric">
+                    <div class="k">Modules</div>
+                    <div class="v">42</div>
+                </div>
+            </div>
+
+            <div class="sp-milestones">
+                <div class="sp-milestone">
+                    <span class="ms-dot"></span>
+                    <div class="ms-body">
+                        <h6>Finished <strong>Advanced React Patterns</strong> with distinction</h6>
+                        <span>2 days ago</span>
+                    </div>
+                </div>
+                <div class="sp-milestone sky">
+                    <span class="ms-dot"></span>
+                    <div class="ms-body">
+                        <h6>Became a <strong>peer mentor</strong> for two students</h6>
+                        <span>2 weeks ago</span>
+                    </div>
+                </div>
+                <div class="sp-milestone violet">
+                    <span class="ms-dot"></span>
+                    <div class="ms-body">
+                        <h6>18-month <strong>anniversary</strong> with your cohort</h6>
+                        <span>1 month ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         4 · TOOLBAR
+         ==================================================== -->
+    <div class="c-toolbar c-rise">
+        <div class="ct-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search by name, city or course…" aria-label="Search students">
+        </div>
+
+        <button class="ct-chip active" data-segment="all">
+            <i class="bi bi-grid-fill"></i> All <span class="cnt">148</span>
+        </button>
+        <button class="ct-chip" data-segment="thriving">
+            <i class="bi bi-emoji-smile"></i> Thriving <span class="cnt">86</span>
+        </button>
+        <button class="ct-chip" data-segment="steady">
+            <i class="bi bi-emoji-neutral"></i> Steady <span class="cnt">44</span>
+        </button>
+        <button class="ct-chip" data-segment="new">
+            <i class="bi bi-stars"></i> New <span class="cnt">12</span>
+        </button>
+        <button class="ct-chip" data-segment="needs">
+            <i class="bi bi-exclamation-circle"></i> Needs attention <span class="cnt">5</span>
+        </button>
+
+        <div class="ct-divider" aria-hidden="true"></div>
+
+        <button class="ct-sort" data-toast="Opening sort options…">
+            <i class="bi bi-sort-down"></i> Longest tenure
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         5 · ROSTER
+         ==================================================== -->
+    <section class="c-rise">
+        <div class="roster" id="roster">
+
+            <!-- THRIVING · Sara Kim -->
+            <article class="student thriving" data-mood="thriving" data-toast="Opening Sara Kim's journey…">
+                <span class="st-note-flag" title="You have a personal note" aria-label="Has note">
+                    <i class="bi bi-bookmark-fill"></i>
+                </span>
+                <div class="st-head">
+                    <div class="st-avatar">
+                        SK
+                        <span class="presence"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Sara Kim <i class="bi bi-crown-fill crown"></i></h4>
+                        <p><i class="bi bi-geo-alt"></i> Lagos · Since Sep 2024</p>
+                    </div>
+                    <span class="st-tenure">18m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">Advanced React Patterns</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="68"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v gold">4.9★</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">28d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">2h</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-emoji-smile"></i> Thriving</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- THRIVING · Tunde Kalu -->
+            <article class="student thriving" data-mood="thriving" data-toast="Opening Tunde Kalu's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        TK
+                        <span class="presence"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Tunde Kalu</h4>
+                        <p><i class="bi bi-geo-alt"></i> Abuja · Since Nov 2024</p>
+                    </div>
+                    <span class="st-tenure">16m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">UI/UX Design Systems</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="88"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v gold">4.8★</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">14d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">5h</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-emoji-smile"></i> Thriving</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- NEEDS · Maya Rahman -->
+            <article class="student needs" data-mood="needs" data-toast="Opening Maya Rahman's journey…">
+                <span class="st-note-flag" title="You have a personal note" aria-label="Has note">
+                    <i class="bi bi-bookmark-fill"></i>
+                </span>
+                <div class="st-head">
+                    <div class="st-avatar">
+                        MR
+                        <span class="presence away"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Maya Rahman</h4>
+                        <p><i class="bi bi-geo-alt"></i> Nairobi · Since Jan 2025</p>
+                    </div>
+                    <span class="st-tenure">14m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">Backend Fundamentals</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="34"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v sky">4.7★</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">—</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">9d</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-exclamation-circle"></i> Needs a nudge</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- NEW · Jonas Tan -->
+            <article class="student new" data-mood="new" data-toast="Opening Jonas Tan's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        JT
+                        <span class="presence"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Jonas Tan</h4>
+                        <p><i class="bi bi-geo-alt"></i> Singapore · Joined 3 weeks ago</p>
+                    </div>
+                    <span class="st-tenure">3w</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">Advanced React Patterns</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="18"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v">—</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">6d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">30m</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-stars"></i> New</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- THRIVING · Amara Obi -->
+            <article class="student thriving" data-mood="thriving" data-toast="Opening Amara Obi's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        AO
+                        <span class="presence"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Amara Obi</h4>
+                        <p><i class="bi bi-geo-alt"></i> Accra · Since Aug 2024</p>
+                    </div>
+                    <span class="st-tenure">19m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">TypeScript for React</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="82"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v gold">5.0★</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">41d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">1h</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-emoji-smile"></i> Thriving</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- STEADY · Kwame Asante -->
+            <article class="student steady" data-mood="steady" data-toast="Opening Kwame Asante's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        KA
+                        <span class="presence away"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Kwame Asante</h4>
+                        <p><i class="bi bi-geo-alt"></i> Kumasi · Since Feb 2025</p>
+                    </div>
+                    <span class="st-tenure">13m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">Backend Fundamentals</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="52"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v sky">4.6★</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">5d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">2d</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-emoji-neutral"></i> Steady</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- STEADY · Fatima Diallo -->
+            <article class="student steady" data-mood="steady" data-toast="Opening Fatima Diallo's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        FD
+                        <span class="presence"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Fatima Diallo</h4>
+                        <p><i class="bi bi-geo-alt"></i> Dakar · Since Apr 2025</p>
+                    </div>
+                    <span class="st-tenure">11m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">UI/UX Design Systems</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="47"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v sky">4.7★</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">9d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">4h</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-emoji-neutral"></i> Steady</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- NEW · Lena Petrov -->
+            <article class="student new" data-mood="new" data-toast="Opening Lena Petrov's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        LP
+                        <span class="presence"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Lena Petrov</h4>
+                        <p><i class="bi bi-geo-alt"></i> Berlin · Joined 1 week ago</p>
+                    </div>
+                    <span class="st-tenure">1w</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">React Fundamentals</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="9"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v">—</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">3d</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">15m</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-stars"></i> New</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- NEEDS · Yuki Tanaka -->
+            <article class="student needs" data-mood="needs" data-toast="Opening Yuki Tanaka's journey…">
+                <div class="st-head">
+                    <div class="st-avatar">
+                        YT
+                        <span class="presence offline"></span>
+                    </div>
+                    <div class="st-info">
+                        <h4>Yuki Tanaka</h4>
+                        <p><i class="bi bi-geo-alt"></i> Tokyo · Since Jun 2025</p>
+                    </div>
+                    <span class="st-tenure">9m</span>
+                </div>
+
+                <div class="st-course">
+                    <div class="st-course-head">
+                        <span class="k">Currently in</span>
+                        <span class="v">TypeScript for React</span>
+                    </div>
+                    <div class="st-pbar"><span data-value="28"></span></div>
+                </div>
+
+                <div class="st-stats">
+                    <div class="st-stat"><div class="k">Rating</div><div class="v">—</div></div>
+                    <div class="st-stat"><div class="k">Streak</div><div class="v">—</div></div>
+                    <div class="st-stat"><div class="k">Last seen</div><div class="v">14d</div></div>
+                </div>
+
+                <div class="st-foot">
+                    <span class="st-mood"><i class="bi bi-exclamation-circle"></i> Needs a nudge</span>
+                    <div class="st-actions">
+                        <button class="msg" aria-label="Message" data-toast="Opening chat…"><i class="bi bi-chat-dots"></i></button>
+                        <button aria-label="Open journey" data-toast="Opening journey…"><i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Empty state placeholder for filters -->
+            <div class="empty-state" id="rosterEmpty" style="display:none;">
+                <div class="es-ic"><i class="bi bi-search"></i></div>
+                <h3>No students match that</h3>
+                <p>Try a different search term, or clear the filter chips above to see your full cohort.</p>
+                <button class="btn-ghost" data-toast="Clearing filters…">
+                    <i class="bi bi-x-circle"></i> Clear filters
+                </button>
+            </div>
+
+        </div>
+
+        <div class="c-foot">
+            <span>Showing <strong>9</strong> of <strong>148</strong> students · sorted by tenure</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Loading more students…">
+                    <i class="bi bi-arrow-down-circle"></i> Load more
+                </button>
+                <button class="btn-ghost" data-toast="Opening roster export…">
+                    <i class="bi bi-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         6 · BOTTOM SPLIT — conversations + milestones
+         ==================================================== -->
+    <section class="c-split">
+
+        <!-- LEFT — conversations -->
+        <div class="stack">
+            <article class="panel c-rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-chat-left-text-fill"></i> Recent conversations</h3>
+                    <button class="panel-link" data-toast="Opening all messages…">
+                        Inbox <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="conv" data-toast="Opening chat with Sara…">
+                        <span class="conv-av">SK<span class="presence"></span></span>
+                        <div class="conv-body">
+                            <div class="conv-head">
+                                <h5>Sara Kim</h5>
+                                <span class="when unread">20 min ago</span>
+                            </div>
+                            <p class="conv-msg">Thanks for the feedback on the hooks assignment — I reworked the effect cleanup and it finally clicks. Could we <strong>schedule a 1:1</strong> to talk about the mentor track?</p>
+                        </div>
+                        <span class="conv-badge">2</span>
+                    </div>
+
+                    <div class="conv" data-toast="Opening chat with Tunde…">
+                        <span class="conv-av v2">TK<span class="presence"></span></span>
+                        <div class="conv-body">
+                            <div class="conv-head">
+                                <h5>Tunde Kalu</h5>
+                                <span class="when unread">1 hour ago</span>
+                            </div>
+                            <p class="conv-msg">Finished the design system case study — sent it your way. Any thoughts before I publish?</p>
+                        </div>
+                        <span class="conv-badge">1</span>
+                    </div>
+
+                    <div class="conv" data-toast="Opening chat with Amara…">
+                        <span class="conv-av v3">AO<span class="presence"></span></span>
+                        <div class="conv-body">
+                            <div class="conv-head">
+                                <h5>Amara Obi</h5>
+                                <span class="when">3 hours ago</span>
+                            </div>
+                            <p class="conv-msg">Just wanted to say — the TypeScript generics module was the clearest I've seen. Thank you.</p>
+                        </div>
+                    </div>
+
+                    <div class="conv" data-toast="Opening chat with Maya…">
+                        <span class="conv-av v4">MR<span class="presence away"></span></span>
+                        <div class="conv-body">
+                            <div class="conv-head">
+                                <h5>Maya Rahman</h5>
+                                <span class="when">Yesterday</span>
+                            </div>
+                            <p class="conv-msg">Sorry for the silence — work got heavy. I'll pick back up this weekend. Any tips for staying consistent?</p>
+                        </div>
+                    </div>
+
+                    <div class="conv" data-toast="Opening chat with Jonas…">
+                        <span class="conv-av">JT<span class="presence"></span></span>
+                        <div class="conv-body">
+                            <div class="conv-head">
+                                <h5>Jonas Tan</h5>
+                                <span class="when">2 days ago</span>
+                            </div>
+                            <p class="conv-msg">New to the cohort — loving the pace so far. Anything I should focus on first?</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+        </div>
+
+        <!-- RIGHT — milestones -->
+        <div class="stack">
+            <article class="panel c-rise">
+                <div class="panel-head violet">
+                    <h3><i class="bi bi-award-fill"></i> Mentorship milestones</h3>
+                    <button class="panel-link" data-toast="Opening full timeline…">
+                        Timeline <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="milestone-list">
+
+                        <div class="milestone">
+                            <span class="ms-marker"><i class="bi bi-trophy-fill"></i></span>
+                            <div class="ms-body">
+                                <h5><span class="name">Sara Kim</span> completed <strong>Advanced React Patterns</strong> with distinction</h5>
+                                <div class="when"><i class="bi bi-clock"></i> 2 days ago</div>
+                            </div>
+                        </div>
+
+                        <div class="milestone">
+                            <span class="ms-marker sky"><i class="bi bi-person-plus-fill"></i></span>
+                            <div class="ms-body">
+                                <h5><strong>3 new students</strong> joined the cohort this week</h5>
+                                <div class="when"><i class="bi bi-clock"></i> 4 days ago</div>
+                            </div>
+                        </div>
+
+                        <div class="milestone">
+                            <span class="ms-marker violet"><i class="bi bi-star-fill"></i></span>
+                            <div class="ms-body">
+                                <h5>Your cohort reached an average rating of <strong>4.85★</strong></h5>
+                                <div class="when"><i class="bi bi-clock"></i> 1 week ago</div>
+                            </div>
+                        </div>
+
+                        <div class="milestone">
+                            <span class="ms-marker"><i class="bi bi-mortarboard-fill"></i></span>
+                            <div class="ms-body">
+                                <h5><span class="name">Amara Obi</span> passed the <strong>TypeScript assessment</strong></h5>
+                                <div class="when"><i class="bi bi-clock"></i> 10 days ago</div>
+                            </div>
+                        </div>
+
+                        <div class="milestone">
+                            <span class="ms-marker rose"><i class="bi bi-heart-fill"></i></span>
+                            <div class="ms-body">
+                                <h5>You've mentored <strong>148 students</strong> across 14 months</h5>
+                                <div class="when"><i class="bi bi-clock"></i> Ongoing</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </article>
+
+            <!-- quick action card -->
+            <div class="panel c-rise" style="padding:0;overflow:hidden;">
+                <div class="panel-head" style="border-bottom:none;padding-bottom:8px;">
+                    <h3><i class="bi bi-lightning-charge-fill"></i> Quick actions</h3>
+                </div>
+                <div class="panel-body" style="padding-top:4px;display:flex;flex-direction:column;gap:8px;">
+                    <button class="btn-ghost" style="justify-content:flex-start;width:100%;" data-toast="Opening broadcast composer…">
+                        <i class="bi bi-megaphone"></i> Send cohort broadcast
+                    </button>
+                    <button class="btn-ghost" style="justify-content:flex-start;width:100%;" data-toast="Opening scheduler…">
+                        <i class="bi bi-calendar-plus"></i> Schedule group session
+                    </button>
+                    <button class="btn-ghost" style="justify-content:flex-start;width:100%;" data-toast="Opening note tool…">
+                        <i class="bi bi-journal-plus"></i> Add a private note
+                    </button>
+                    <button class="btn-ghost" style="justify-content:flex-start;width:100%;" data-toast="Opening roster export…">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Export cohort roster
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+</div><!-- /.cohort -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.cohort');
+    if (!root) return;
+
+    /* ---------- animated counters ---------- */
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ---------- progress bars (animate on mount) ---------- */
+    requestAnimationFrame(function () {
+        root.querySelectorAll('.st-pbar > span[data-value]').forEach(function (el) {
+            var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+            setTimeout(function () { el.style.width = v + '%'; }, 120);
+        });
+    });
+
+    /* ---------- segment filter chips ---------- */
+    var chips = root.querySelectorAll('.ct-chip');
+    var cards = root.querySelectorAll('.student');
+    var empty = document.getElementById('rosterEmpty');
+    var search = root.querySelector('.ct-search input');
+    var activeSegment = 'all';
+
+    function applyFilters() {
+        var q = (search && search.value || '').toLowerCase().trim();
+        var visible = 0;
+
+        cards.forEach(function (card) {
+            var mood = card.dataset.mood || '';
+            var text = card.textContent.toLowerCase();
+
+            var matchSegment = (activeSegment === 'all') || (mood === activeSegment);
+            var matchSearch = !q || text.indexOf(q) !== -1;
+            var show = matchSegment && matchSearch;
+
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (empty) empty.style.display = visible === 0 ? '' : 'none';
+    }
+
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chips.forEach(function (c) { c.classList.remove('active'); });
+            chip.classList.add('active');
+            activeSegment = chip.dataset.segment || 'all';
+            applyFilters();
+        });
+    });
+
+    if (search) {
+        search.addEventListener('input', applyFilters);
+    }
+
+    /* ---------- keyboard: ESC clears search ---------- */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && search && document.activeElement === search) {
+            search.value = '';
+            applyFilters();
+        }
+    });
+
+})();
+</script>
+
+{% endblock content %}

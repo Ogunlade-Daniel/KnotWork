@@ -1,0 +1,2313 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Grading Queue{% endblock %}
+{% block page_title %}Grading{% endblock %}
+{% block breadcrumb %}Grading{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   THE GRADING QUEUE — a considered workspace for judgment
+   Layout: queue rail (left) · submission viewer · assessment panel
+   ============================================================ */
+
+.grading{
+    --gold:        var(--secondary, #BEF264);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.32);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+    --violet:      #8B5CF6;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --rose:        #F43F5E;
+    --rose-soft:   rgba(244, 63, 94, 0.10);
+    --amber:       #F59E0B;
+    --amber-soft:  rgba(245, 158, 11, 0.12);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ---------- entrance ---------- */
+.grading .g-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: gRise .7s var(--ease) forwards;
+}
+.grading .g-rise:nth-child(1){ animation-delay: .02s; }
+.grading .g-rise:nth-child(2){ animation-delay: .08s; }
+.grading .g-rise:nth-child(3){ animation-delay: .14s; }
+.grading .g-rise:nth-child(4){ animation-delay: .20s; }
+@keyframes gRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.g-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.g-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.g-mast-left .gm-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+}
+.g-mast-left .gm-kicker i{ color: var(--gold); font-size: 0.72rem; }
+.g-mast-left .gm-kicker .queue-badge{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 50px;
+    background: var(--rose);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    margin-left: 4px;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+}
+
+.g-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.g-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.g-mast-left .gm-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.g-mast-left .gm-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.g-mast-left .gm-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.g-mast-left .gm-sub .warn{ color: #B91C1C; }
+
+.g-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---------- buttons ---------- */
+.grading .btn-gold{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+}
+.grading .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+.grading .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.grading .btn-ghost:hover{
+    border-color: var(--gold); color: var(--gold-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+.grading .btn-danger{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--rose); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.grading .btn-danger:hover{
+    border-color: var(--rose);
+    background: var(--rose-soft);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   2 · TRIAGE STRIP
+   ============================================================ */
+.triage{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 1180px){ .triage{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .triage{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tri-tile{
+    position: relative;
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tri-tile::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 3px 3px 0 0;
+}
+.tri-tile.rose::before{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+.tri-tile.amber::before{ background: linear-gradient(90deg, #FCD34D, var(--amber)); }
+.tri-tile.sky::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.tri-tile.violet::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+
+.tri-tile:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--gold-line);
+}
+
+.tt-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tt-icon{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.tri-tile.rose .tt-icon{ background: var(--rose-soft); color: var(--rose); }
+.tri-tile.amber .tt-icon{ background: var(--amber-soft); color: #B45309; }
+.tri-tile.sky .tt-icon{ background: var(--sky-soft); color: #0284C7; }
+.tri-tile.violet .tt-icon{ background: var(--violet-soft); color: var(--violet); }
+
+.tt-micro{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.tt-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.tt-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+.tt-val.rose{ color: var(--rose); }
+.tt-label{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   3 · MAIN SPLIT
+   ============================================================ */
+.g-main{
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+@media (max-width: 1080px){
+    .g-main{ grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   4 · QUEUE RAIL (left)
+   ============================================================ */
+.queue-rail{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+}
+@media (max-width: 1080px){
+    .queue-rail{
+        position: relative;
+        top: 0;
+        max-height: none;
+    }
+}
+
+.qr-head{
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.qr-head-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.qr-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.qr-head h3 i{
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.qr-count{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.qr-search{
+    position: relative;
+}
+.qr-search i{
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-size: 0.76rem;
+    pointer-events: none;
+}
+.qr-search input{
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .25s ease);
+}
+.qr-search input::placeholder{ color: var(--faint); }
+.qr-search input:focus{
+    border-color: var(--gold);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--gold-soft);
+}
+
+.qr-filters{
+    display: flex;
+    gap: 5px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line-soft);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.qr-filters::-webkit-scrollbar{ display: none; }
+
+.qr-chip{
+    flex-shrink: 0;
+    padding: 6px 11px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.qr-chip:hover{
+    border-color: var(--gold-line);
+    color: var(--ink);
+    background: var(--paper);
+}
+.qr-chip.active{
+    background: var(--gold-soft);
+    border-color: var(--gold-line);
+    color: var(--gold-deep);
+}
+.qr-chip .n{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 50px;
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 0.54rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.qr-chip.active .n{
+    background: var(--gold);
+    color: var(--ink);
+}
+
+.qr-list{
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scrollbar-width: thin;
+}
+.qr-list::-webkit-scrollbar{ width: 4px; }
+.qr-list::-webkit-scrollbar-thumb{
+    background: rgba(190, 242, 100, 0.35);
+    border-radius: 10px;
+}
+
+/* --- submission card in queue --- */
+.sub{
+    position: relative;
+    padding: 12px 12px 12px 14px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+}
+.sub:hover{
+    background: var(--paper-2);
+    border-color: var(--line-soft);
+}
+.sub.active{
+    background: linear-gradient(90deg, var(--gold-soft) 0%, transparent 100%);
+    border-color: var(--gold-line);
+}
+.sub.active::before{
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    border-radius: 0 3px 3px 0;
+    background: var(--gold);
+    box-shadow: 0 0 12px rgba(190, 242, 100, 0.5);
+}
+
+.sub-av{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+}
+.sub-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.sub-av.v3{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; }
+.sub-av.v4{ background: linear-gradient(135deg, #FB7185, var(--rose)); color: #fff; }
+.sub-av .urg{
+    position: absolute;
+    top: -3px; right: -3px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--rose);
+    border: 2px solid var(--paper);
+    animation: urgPulse 2s ease-in-out infinite;
+}
+@keyframes urgPulse{
+    0%, 100%{ box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6); }
+    50%     { box-shadow: 0 0 0 5px rgba(244, 63, 94, 0); }
+}
+
+.sub-body{ flex: 1; min-width: 0; }
+.sub-body h5{
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sub-body p{
+    font-size: 0.66rem;
+    color: var(--muted);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sub-meta{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+.sub-tag{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+}
+.sub-tag.urgent{ background: var(--rose-soft); color: var(--rose); }
+.sub-tag.today{ background: var(--amber-soft); color: #B45309; }
+.sub-tag.week{ background: var(--sky-soft); color: #0284C7; }
+.sub-tag.draft{ background: var(--violet-soft); color: var(--violet); }
+
+.sub-time{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--faint);
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.qr-foot{
+    padding: 12px 20px;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.qr-foot strong{ color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   5 · WORKSPACE (right)
+   ============================================================ */
+.workspace{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* ---------- workspace header ---------- */
+.ws-head{
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+}
+.ws-who{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+.ws-av{
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: 0 8px 20px rgba(190, 242, 100, 0.30);
+}
+.ws-av::after{
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(11, 17, 33, 0.12);
+}
+.ws-info{
+    min-width: 0;
+    flex: 1;
+}
+.ws-info h2{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ws-info p{
+    font-size: 0.7rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+.ws-info p .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.ws-info p strong{ color: var(--ink-3); font-weight: 700; }
+
+.ws-nav{
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.ws-nav-btn{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    display: grid; place-items: center;
+    font-size: 0.82rem;
+    transition: var(--transition, all .2s ease);
+}
+.ws-nav-btn:hover:not(:disabled){
+    border-color: var(--gold);
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+}
+.ws-nav-btn:disabled{
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.ws-nav-pos{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    padding: 0 6px;
+}
+
+.ws-save{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.ws-save.saved{ background: var(--gold-soft); color: var(--gold-deep); }
+.ws-save .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse{
+    0%, 100%{ opacity: 1; }
+    50%     { opacity: 0.35; }
+}
+
+/* ---------- workspace body ---------- */
+.ws-body{
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    min-height: 0;
+}
+@media (max-width: 1180px){
+    .ws-body{ grid-template-columns: 1fr; }
+}
+
+/* ---------- submission viewer ---------- */
+.sub-view{
+    padding: 22px;
+    border-right: 1px solid var(--line-soft);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+@media (max-width: 1180px){
+    .sub-view{ border-right: none; border-bottom: 1px solid var(--line-soft); }
+}
+
+.sv-tabs{
+    display: flex;
+    gap: 3px;
+    padding: 4px;
+    background: var(--paper-2);
+    border-radius: 12px;
+    align-self: flex-start;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.sv-tabs::-webkit-scrollbar{ display: none; }
+.sv-tab{
+    padding: 7px 14px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: 0.02em;
+}
+.sv-tab i{ font-size: 0.78rem; }
+.sv-tab:hover{ color: var(--ink); }
+.sv-tab.active{
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 2px 6px rgba(11, 17, 33, 0.06);
+}
+.sv-tab .badge{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 50px;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    font-size: 0.54rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+/* submission meta strip */
+.sv-meta{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+}
+.sv-metric{ text-align: left; }
+.sv-metric .k{
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 5px;
+}
+.sv-metric .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+.sv-metric .v em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+
+/* document preview */
+.doc{
+    padding: 26px 28px;
+    border-radius: 12px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: var(--ink-3);
+    max-height: 560px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.doc::-webkit-scrollbar{ width: 6px; }
+.doc::-webkit-scrollbar-thumb{
+    background: rgba(190, 242, 100, 0.35);
+    border-radius: 10px;
+}
+.doc h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    margin-bottom: 8px;
+    line-height: 1.25;
+}
+.doc .doc-sub{
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.doc p{
+    margin-bottom: 14px;
+    font-size: 0.86rem;
+    line-height: 1.75;
+    color: var(--ink-3);
+}
+.doc p strong{ color: var(--ink); font-weight: 700; }
+.doc p code{
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 0.82rem;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--paper-2);
+    color: var(--violet);
+    border: 1px solid var(--line-soft);
+}
+.doc .doc-mark{
+    position: relative;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(190, 242, 100, 0.24);
+    color: var(--ink);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.doc .doc-mark:hover{
+    background: rgba(190, 242, 100, 0.4);
+}
+.doc .doc-mark::after{
+    content: '★';
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    font-size: 0.6rem;
+    color: var(--gold-deep);
+}
+.doc .doc-comment{
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--violet);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--muted);
+    font-style: italic;
+}
+.doc .doc-comment strong{
+    color: var(--ink);
+    font-style: normal;
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 800;
+}
+
+/* attachments */
+.attachments{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.attach{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    transition: var(--transition, all .2s ease);
+    cursor: pointer;
+}
+.attach:hover{
+    background: var(--paper);
+    border-color: var(--gold-line);
+}
+.attach-ic{
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    background: var(--sky-soft);
+    color: #0284C7;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+}
+.attach-ic.gold{ background: var(--gold-soft); color: var(--gold-deep); }
+.attach-ic.violet{ background: var(--violet-soft); color: var(--violet); }
+
+.attach-info{ flex: 1; min-width: 0; }
+.attach-info h6{
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.attach-info p{
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 500;
+}
+.attach-action{
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--gold-deep);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   6 · ASSESSMENT PANEL
+   ============================================================ */
+.assess{
+    padding: 22px;
+    min-width: 0;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.assess-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.assess-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.assess-head h3 i{
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 0.7rem;
+    background: var(--violet-soft);
+    color: var(--violet);
+    flex-shrink: 0;
+}
+.assess-hint{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+/* total score block */
+.total-block{
+    position: relative;
+    padding: 20px 22px 18px;
+    border-radius: 14px;
+    background:
+        radial-gradient(ellipse at 92% 15%, rgba(190, 242, 100, 0.18), transparent 55%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(11, 17, 33, 0.18);
+}
+.total-block::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+.total-block::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 20px 20px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 60% 30%, #000 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at 60% 30%, #000 20%, transparent 80%);
+}
+
+.tb-row{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.tb-left .k{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+}
+.tb-left .score{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    letter-spacing: -0.028em;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.tb-left .score em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.55);
+}
+.tb-left .pts{
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 6px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.tb-grade{
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    box-shadow: 0 12px 28px rgba(190, 242, 100, 0.34);
+    position: relative;
+    flex-shrink: 0;
+}
+.tb-grade::after{
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border-radius: 13px;
+    border: 1.5px solid rgba(11, 17, 33, 0.14);
+}
+.tb-grade .letter{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+/* rubric */
+.rubric-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.rubric-head h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.rubric-head h4 i{ color: var(--violet); font-size: 0.82rem; }
+.rubric-head .weight{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.rubric{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.rub-item{
+    padding: 14px 14px 12px;
+    border-radius: 12px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    transition: var(--transition, all .2s ease);
+}
+.rub-item:hover{
+    border-color: var(--gold-line);
+    box-shadow: 0 4px 12px rgba(11, 17, 33, 0.04);
+}
+.rub-item.scored{
+    background: linear-gradient(135deg, var(--paper) 0%, rgba(190, 242, 100, 0.03) 100%);
+    border-color: rgba(190, 242, 100, 0.4);
+}
+
+.rub-top{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.rub-top h5{
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.rub-top h5 .w{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+.rub-top .pts{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+.rub-top .pts em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.6rem;
+    color: var(--faint);
+    font-weight: 700;
+}
+.rub-desc{
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+/* score input — 4 levels */
+.score-input{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+.score-btn{
+    position: relative;
+    padding: 9px 6px 8px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-family: inherit;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-align: center;
+    overflow: hidden;
+}
+.score-btn .num{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.score-btn .lvl{
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.score-btn:hover{
+    border-color: var(--gold-line);
+    background: var(--gold-soft);
+}
+.score-btn.selected{
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    border-color: transparent;
+    color: var(--ink);
+    box-shadow: 0 4px 12px rgba(190, 242, 100, 0.32);
+}
+.score-btn.selected .num{ color: var(--ink); }
+.score-btn.selected .lvl{ color: rgba(11, 17, 33, 0.7); }
+
+/* quick comment input under each criterion */
+.rub-note{
+    margin-top: 10px;
+    position: relative;
+}
+.rub-note input{
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--line-soft);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.72rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .2s ease);
+}
+.rub-note input::placeholder{ color: var(--faint); }
+.rub-note input:focus{
+    border-color: var(--gold);
+    background: var(--paper);
+    box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+/* feedback */
+.feedback{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.fb-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.fb-head h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.fb-head h4 i{ color: var(--sky); font-size: 0.82rem; }
+
+.fb-templates{
+    position: relative;
+}
+.fb-templates select{
+    padding: 6px 26px 6px 12px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    outline: none;
+    transition: var(--transition, all .2s ease);
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23CBD5E1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px;
+}
+.fb-templates select:hover{ border-color: var(--gold-line); color: var(--ink); }
+.fb-templates select:focus{ border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+
+.fb-chips{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.fb-chip{
+    padding: 5px 10px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.fb-chip i{ font-size: 0.62rem; }
+.fb-chip:hover{
+    border-color: var(--gold-line);
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+}
+.fb-chip.positive:hover{
+    border-color: var(--sky);
+    color: #0284C7;
+    background: var(--sky-soft);
+}
+.fb-chip.constructive:hover{
+    border-color: var(--violet);
+    color: var(--violet);
+    background: var(--violet-soft);
+}
+
+.fb-textarea{
+    position: relative;
+}
+.fb-textarea textarea{
+    width: 100%;
+    min-height: 140px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--ink-3);
+    outline: none;
+    resize: vertical;
+    transition: var(--transition, all .2s ease);
+}
+.fb-textarea textarea::placeholder{ color: var(--faint); }
+.fb-textarea textarea:focus{
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px var(--gold-soft);
+}
+.fb-footer{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: -2px;
+}
+.fb-tools{
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.fb-tool{
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--line-soft);
+    background: var(--paper);
+    color: var(--muted);
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.fb-tool:hover{
+    border-color: var(--gold);
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+}
+.fb-count{
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- workspace footer (action bar) ---------- */
+.ws-foot{
+    padding: 16px 22px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    box-shadow: 0 -8px 20px rgba(11, 17, 33, 0.04);
+}
+.ws-foot-left,
+.ws-foot-right{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.ws-kbd{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.64rem;
+    color: var(--faint);
+    font-weight: 700;
+}
+.ws-kbd kbd{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    min-width: 20px;
+    border-radius: 5px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    font-family: 'Inter', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--muted);
+    line-height: 1;
+}
+.ws-kbd .lbl{ letter-spacing: 0.04em; }
+
+/* submit grade button — prominent */
+.btn-submit{
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.34);
+}
+.btn-submit:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.48);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1180px){
+    .sv-meta{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px){
+    .grading .btn-ghost span,
+    .grading .btn-danger span{ display: none; }
+}
+@media (max-width: 640px){
+    .g-mast-left h1{ font-size: 1.5rem; }
+    .tb-left .score{ font-size: 1.9rem; }
+    .tb-grade{ width: 56px; height: 56px; }
+    .tb-grade .letter{ font-size: 1.2rem; }
+    .ws-head{ padding: 14px 18px; }
+    .ws-nav{ order: 3; margin-left: auto; }
+    .sub-view, .assess{ padding: 18px; }
+    .doc{ padding: 20px 18px; font-size: 0.82rem; }
+    .ws-foot{ padding: 14px 18px; }
+    .ws-kbd{ display: none; }
+    .score-btn .lvl{ display: none; }
+    .score-btn .num{ font-size: 1.1rem; }
+    .feedback .fb-head{ flex-wrap: wrap; }
+}
+</style>
+
+
+<div class="grading">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="g-mast g-rise">
+        <div class="g-mast-left">
+            <span class="gm-kicker">
+                <i class="bi bi-pencil-square"></i> Grading queue
+                <span class="queue-badge">3</span>
+            </span>
+            <h1>Judge with care, <em>Professor.</em></h1>
+            <p class="gm-sub">
+                <strong>3</strong> awaiting your mark
+                <span class="sep"></span>
+                <span class="warn">1 overdue</span>
+                <span class="sep"></span>
+                Avg turnaround <strong>1.2 days</strong>
+                <span class="sep"></span>
+                <strong>7</strong> graded today
+            </p>
+        </div>
+        <div class="g-mast-right">
+            <button class="btn-ghost" data-toast="Opening grading settings…">
+                <i class="bi bi-sliders"></i> Settings
+            </button>
+            <button class="btn-ghost" data-toast="Opening batch grade…">
+                <i class="bi bi-list-check"></i> Batch grade
+            </button>
+            <button class="btn-gold" data-toast="Opening next submission…">
+                <i class="bi bi-play-fill"></i> Continue grading
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · TRIAGE STRIP
+         ==================================================== -->
+    <section class="triage">
+        <article class="tri-tile rose g-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-hourglass-split"></i></span>
+                <span class="tt-micro">Awaiting</span>
+            </div>
+            <div class="tt-val rose" data-count="3">0</div>
+            <div class="tt-label">Pending review</div>
+        </article>
+
+        <article class="tri-tile amber g-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-pencil"></i></span>
+                <span class="tt-micro">In progress</span>
+            </div>
+            <div class="tt-val" data-count="1">0</div>
+            <div class="tt-label">Drafts saved</div>
+        </article>
+
+        <article class="tri-tile sky g-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-check2-circle"></i></span>
+                <span class="tt-micro">Today</span>
+            </div>
+            <div class="tt-val" data-count="7">0</div>
+            <div class="tt-label">Graded</div>
+        </article>
+
+        <article class="tri-tile violet g-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-stopwatch"></i></span>
+                <span class="tt-micro">Average</span>
+            </div>
+            <div class="tt-val">1.2<em>d</em></div>
+            <div class="tt-label">Turnaround time</div>
+        </article>
+
+        <article class="tri-tile g-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-chat-square-text"></i></span>
+                <span class="tt-micro">Disputed</span>
+            </div>
+            <div class="tt-val" data-count="0">0</div>
+            <div class="tt-label">Open disputes</div>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         3 · MAIN SPLIT
+         ==================================================== -->
+    <section class="g-main">
+
+        <!-- ============================================
+             QUEUE RAIL
+             ============================================ -->
+        <aside class="queue-rail g-rise">
+            <div class="qr-head">
+                <div class="qr-head-top">
+                    <h3><i class="bi bi-inbox-fill"></i> Pending</h3>
+                    <span class="qr-count">3 active</span>
+                </div>
+                <div class="qr-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search by student or course…" aria-label="Search submissions">
+                </div>
+            </div>
+
+            <div class="qr-filters">
+                <button class="qr-chip active">All <span class="n">3</span></button>
+                <button class="qr-chip">Overdue <span class="n">1</span></button>
+                <button class="qr-chip">Today <span class="n">2</span></button>
+                <button class="qr-chip">This week <span class="n">8</span></button>
+                <button class="qr-chip">Flagged <span class="n">0</span></button>
+            </div>
+
+            <div class="qr-list">
+
+                <div class="sub active" data-sub="1">
+                    <span class="sub-av v2">TK<span class="urg" aria-label="Overdue"></span></span>
+                    <div class="sub-body">
+                        <h5>Tunde Kalu</h5>
+                        <p>Portfolio Review · Advanced React Patterns</p>
+                        <div class="sub-meta">
+                            <span class="sub-tag urgent">Overdue 2d</span>
+                        </div>
+                    </div>
+                    <span class="sub-time">Mar 2</span>
+                </div>
+
+                <div class="sub" data-sub="2">
+                    <span class="sub-av">SK</span>
+                    <div class="sub-body">
+                        <h5>Sara Kim</h5>
+                        <p>Hooks Assignment · Advanced React Patterns</p>
+                        <div class="sub-meta">
+                            <span class="sub-tag today">Today</span>
+                        </div>
+                    </div>
+                    <span class="sub-time">18:42</span>
+                </div>
+
+                <div class="sub" data-sub="3">
+                    <span class="sub-av v3">MR</span>
+                    <div class="sub-body">
+                        <h5>Maya Rahman</h5>
+                        <p>Design System Case Study · UI/UX Design Systems</p>
+                        <div class="sub-meta">
+                            <span class="sub-tag today">Today</span>
+                        </div>
+                    </div>
+                    <span class="sub-time">17:12</span>
+                </div>
+
+                <div class="sub" data-sub="4">
+                    <span class="sub-av v4">JT</span>
+                    <div class="sub-body">
+                        <h5>Jonas Tan</h5>
+                        <p>API Design Reflection · Backend Fundamentals</p>
+                        <div class="sub-meta">
+                            <span class="sub-tag week">This week</span>
+                        </div>
+                    </div>
+                    <span class="sub-time">Mar 1</span>
+                </div>
+
+                <div class="sub" data-sub="5">
+                    <span class="sub-av">AO</span>
+                    <div class="sub-body">
+                        <h5>Amara Obi</h5>
+                        <p>TypeScript Generics Exercise · TypeScript for React</p>
+                        <div class="sub-meta">
+                            <span class="sub-tag draft">In review</span>
+                        </div>
+                    </div>
+                    <span class="sub-time">Mar 1</span>
+                </div>
+
+            </div>
+
+            <div class="qr-foot">
+                <span><strong>3</strong> pending · <strong>1</strong> overdue</span>
+                <button class="qr-chip" data-toast="Loading older submissions…">
+                    <i class="bi bi-clock-history"></i> History
+                </button>
+            </div>
+        </aside>
+
+
+        <!-- ============================================
+             WORKSPACE
+             ============================================ -->
+        <section class="workspace g-rise">
+
+            <!-- workspace header -->
+            <header class="ws-head">
+                <div class="ws-who">
+                    <span class="ws-av v2" id="ws-avatar" style="background: linear-gradient(135deg, var(--sky), #0284C7); color:#fff;">TK</span>
+                    <div class="ws-info">
+                        <h2 id="ws-name">Tunde Kalu</h2>
+                        <p>
+                            <span id="ws-course">Advanced React Patterns</span>
+                            <span class="sep"></span>
+                            <span id="ws-assignment">Portfolio Review</span>
+                            <span class="sep"></span>
+                            Submitted <strong id="ws-when">2 days ago</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ws-nav">
+                    <button class="ws-nav-btn" id="ws-prev" aria-label="Previous submission">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span class="ws-nav-pos" id="ws-pos">1 / 3</span>
+                    <button class="ws-nav-btn" id="ws-next" aria-label="Next submission">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+
+                <span class="ws-save saved" id="ws-save">
+                    <span class="dot"></span> All changes saved
+                </span>
+            </header>
+
+            <!-- workspace body -->
+            <div class="ws-body">
+
+                <!-- LEFT · submission viewer -->
+                <div class="sub-view">
+
+                    <div class="sv-tabs" role="tablist">
+                        <button class="sv-tab active"><i class="bi bi-file-text"></i> Document</button>
+                        <button class="sv-tab"><i class="bi bi-paperclip"></i> Files <span class="badge">3</span></button>
+                        <button class="sv-tab"><i class="bi bi-chat-left-text"></i> Comments <span class="badge">2</span></button>
+                        <button class="sv-tab"><i class="bi bi-clock-history"></i> History</button>
+                    </div>
+
+                    <div class="sv-meta">
+                        <div class="sv-metric">
+                            <div class="k">Words</div>
+                            <div class="v">2,847</div>
+                        </div>
+                        <div class="sv-metric">
+                            <div class="k">Read time</div>
+                            <div class="v">9<em>min</em></div>
+                        </div>
+                        <div class="sv-metric">
+                            <div class="k">Attachments</div>
+                            <div class="v">3</div>
+                        </div>
+                        <div class="sv-metric">
+                            <div class="k">Revision</div>
+                            <div class="v">v2</div>
+                        </div>
+                    </div>
+
+                    <article class="doc">
+                        <h3>Portfolio Review — Reflections on Architecture</h3>
+                        <p class="doc-sub">Submitted by Tunde Kalu · Advanced React Patterns · Assignment 04</p>
+
+                        <p>
+                            <strong>Introduction.</strong> Over the last three modules I've been rebuilding a mid-sized
+                            React application around the composition patterns covered in class. This reflection is not
+                            about code that works — <span class="doc-mark">it's about the decisions that made it easy to
+                            keep working</span>. Specifically, I want to document where I chose
+                            <code>compound components</code> over prop drilling, where I introduced context, and where
+                            the abstraction cost more than it saved.
+                        </p>
+
+                        <p>
+                            <strong>What changed.</strong> The original app had a single
+                            <code>CardGrid</code> component receiving a dozen boolean props.
+                            After the composition lesson I split it into <code>Grid</code>,
+                            <code>Grid.Item</code>, and <code>Grid.Empty</code>. Behaviour stayed identical, but the
+                            mental model became legible: each piece now has one reason to exist.
+                            <span class="doc-mark">This was the single biggest readability win</span> and I would
+                            recommend it to anyone facing the same shape of problem.
+                        </p>
+
+                        <p>
+                            <strong>Where it went wrong.</strong> I over-applied the pattern in the settings page.
+                            Four pieces of state, all local, all used once — and I still wrapped them in context. The
+                            result was a file with three layers of indirection that a colleague described as
+                            "clever for cleverness' sake." I've since reverted it, and the reversion
+                            taught me more about composition than the original refactor did.
+                        </p>
+
+                        <p>
+                            <strong>Next steps.</strong> I want to move the design tokens into a single
+                            <code>tokens.ts</code> file and see if the same composition discipline applies at the
+                            styling layer. My instinct says yes, but I'd rather build it than assume it.
+                        </p>
+
+                        <p>
+                            <strong>Closing thought.</strong> The course has been less about learning new APIs and more
+                            about <span class="doc-mark">learning to notice when I'm making a decision</span>. That has
+                            been more valuable than any single technique.
+                        </p>
+
+                        <div class="doc-comment">
+                            <strong>Note to self · 2 days ago</strong>
+                            This section on the settings page is unusually honest — a rare thing in a portfolio review.
+                            Consider whether the reflection itself deserves credit in the rubric.
+                        </div>
+                    </article>
+
+                    <div class="attachments">
+                        <div class="attach" data-toast="Opening grid-refactor.tsx…">
+                            <span class="attach-ic"><i class="bi bi-filetype-tsx"></i></span>
+                            <div class="attach-info">
+                                <h6>grid-refactor.tsx</h6>
+                                <p>14.2 KB · TypeScript · Updated 2 days ago</p>
+                            </div>
+                            <span class="attach-action">Open</span>
+                        </div>
+
+                        <div class="attach" data-toast="Opening tokens-draft.ts…">
+                            <span class="attach-ic gold"><i class="bi bi-filetype-tsx"></i></span>
+                            <div class="attach-info">
+                                <h6>tokens-draft.ts</h6>
+                                <p>3.1 KB · TypeScript · Updated 2 days ago</p>
+                            </div>
+                            <span class="attach-action">Open</span>
+                        </div>
+
+                        <div class="attach" data-toast="Opening design-notes.pdf…">
+                            <span class="attach-ic violet"><i class="bi bi-file-earmark-pdf"></i></span>
+                            <div class="attach-info">
+                                <h6>design-notes.pdf</h6>
+                                <p>842 KB · PDF · Updated 2 days ago</p>
+                            </div>
+                            <span class="attach-action">Open</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT · assessment panel -->
+                <div class="assess">
+
+                    <div class="assess-head">
+                        <h3><i class="bi bi-clipboard-check"></i> Assessment</h3>
+                        <span class="assess-hint">Rubric · 4 criteria</span>
+                    </div>
+
+                    <!-- live total -->
+                    <div class="total-block">
+                        <div class="tb-row">
+                            <div class="tb-left">
+                                <div class="k">Weighted total</div>
+                                <div class="score">
+                                    <span id="total-pct">0</span><em>%</em>
+                                </div>
+                                <div class="pts"><span id="total-pts">0</span> of 100 pts</div>
+                            </div>
+                            <div class="tb-grade">
+                                <span class="letter" id="total-letter">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- rubric -->
+                    <div>
+                        <div class="rubric-head">
+                            <h4><i class="bi bi-list-check"></i> Rubric</h4>
+                            <span class="weight">Weights sum to 100%</span>
+                        </div>
+
+                        <div class="rubric">
+
+                            <!-- criterion 1 -->
+                            <div class="rub-item" data-crit="1">
+                                <div class="rub-top">
+                                    <h5>Structure &amp; Architecture <span class="w">30%</span></h5>
+                                    <span class="pts"><span class="c-pts">0</span><em>/4</em></span>
+                                </div>
+                                <p class="rub-desc">Composition, state management, and where abstractions earn their cost.</p>
+                                <div class="score-input" data-score-group="1" data-weight="30">
+                                    <button class="score-btn" data-level="1"><span class="num">1</span><span class="lvl">Emerging</span></button>
+                                    <button class="score-btn" data-level="2"><span class="num">2</span><span class="lvl">Developing</span></button>
+                                    <button class="score-btn" data-level="3"><span class="num">3</span><span class="lvl">Proficient</span></button>
+                                    <button class="score-btn" data-level="4"><span class="num">4</span><span class="lvl">Exemplary</span></button>
+                                </div>
+                                <div class="rub-note">
+                                    <input type="text" placeholder="Optional note (visible to student)…">
+                                </div>
+                            </div>
+
+                            <!-- criterion 2 -->
+                            <div class="rub-item" data-crit="2">
+                                <div class="rub-top">
+                                    <h5>Clarity of Reflection <span class="w">30%</span></h5>
+                                    <span class="pts"><span class="c-pts">0</span><em>/4</em></span>
+                                </div>
+                                <p class="rub-desc">Depth of insight — do they notice their own decisions, including mistakes?</p>
+                                <div class="score-input" data-score-group="2" data-weight="30">
+                                    <button class="score-btn" data-level="1"><span class="num">1</span><span class="lvl">Emerging</span></button>
+                                    <button class="score-btn" data-level="2"><span class="num">2</span><span class="lvl">Developing</span></button>
+                                    <button class="score-btn" data-level="3"><span class="num">3</span><span class="lvl">Proficient</span></button>
+                                    <button class="score-btn" data-level="4"><span class="num">4</span><span class="lvl">Exemplary</span></button>
+                                </div>
+                                <div class="rub-note">
+                                    <input type="text" placeholder="Optional note (visible to student)…">
+                                </div>
+                            </div>
+
+                            <!-- criterion 3 -->
+                            <div class="rub-item" data-crit="3">
+                                <div class="rub-top">
+                                    <h5>Craft &amp; Execution <span class="w">25%</span></h5>
+                                    <span class="pts"><span class="c-pts">0</span><em>/4</em></span>
+                                </div>
+                                <p class="rub-desc">Quality of the code, naming, and legibility for a future reader.</p>
+                                <div class="score-input" data-score-group="3" data-weight="25">
+                                    <button class="score-btn" data-level="1"><span class="num">1</span><span class="lvl">Emerging</span></button>
+                                    <button class="score-btn" data-level="2"><span class="num">2</span><span class="lvl">Developing</span></button>
+                                    <button class="score-btn" data-level="3"><span class="num">3</span><span class="lvl">Proficient</span></button>
+                                    <button class="score-btn" data-level="4"><span class="num">4</span><span class="lvl">Exemplary</span></button>
+                                </div>
+                                <div class="rub-note">
+                                    <input type="text" placeholder="Optional note (visible to student)…">
+                                </div>
+                            </div>
+
+                            <!-- criterion 4 -->
+                            <div class="rub-item" data-crit="4">
+                                <div class="rub-top">
+                                    <h5>Originality <span class="w">15%</span></h5>
+                                    <span class="pts"><span class="c-pts">0</span><em>/4</em></span>
+                                </div>
+                                <p class="rub-desc">Personal voice and evidence of ideas tried beyond the assignment brief.</p>
+                                <div class="score-input" data-score-group="4" data-weight="15">
+                                    <button class="score-btn" data-level="1"><span class="num">1</span><span class="lvl">Emerging</span></button>
+                                    <button class="score-btn" data-level="2"><span class="num">2</span><span class="lvl">Developing</span></button>
+                                    <button class="score-btn" data-level="3"><span class="num">3</span><span class="lvl">Proficient</span></button>
+                                    <button class="score-btn" data-level="4"><span class="num">4</span><span class="lvl">Exemplary</span></button>
+                                </div>
+                                <div class="rub-note">
+                                    <input type="text" placeholder="Optional note (visible to student)…">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- feedback -->
+                    <div class="feedback">
+                        <div class="fb-head">
+                            <h4><i class="bi bi-chat-square-quote"></i> Written feedback</h4>
+                            <div class="fb-templates">
+                                <select aria-label="Feedback templates">
+                                    <option>Insert template…</option>
+                                    <option>Encouraging — strong work</option>
+                                    <option>Constructive — needs revision</option>
+                                    <option>Return — incomplete submission</option>
+                                    <option>Praise with a growth edge</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="fb-chips">
+                            <button class="fb-chip positive" data-chip="The architectural choices here are consistently well-reasoned — a pleasure to read. "><i class="bi bi-star-fill"></i> Well-reasoned</button>
+                            <button class="fb-chip constructive" data-chip="Consider where the abstraction adds cost without clarity — the settings page is a good example to revisit. "><i class="bi bi-lightbulb"></i> Watch abstraction</button>
+                            <button class="fb-chip positive" data-chip="Your honesty about the settings-page mistake shows real maturity — keep that instinct. "><i class="bi bi-heart-fill"></i> Honest reflection</button>
+                            <button class="fb-chip" data-chip="Try the same discipline at the styling layer — extract tokens and see what changes. "><i class="bi bi-arrow-right-circle"></i> Next step</button>
+                        </div>
+
+                        <div class="fb-textarea">
+                            <textarea placeholder="Write your feedback — the student will read this alongside the rubric scores…">Tunde — this is the strongest portfolio reflection you've submitted this term.
+
+What stood out most was the section on the settings page: you noticed where the pattern cost more than it saved, reverted it, and wrote about the reversion honestly. That's the kind of noticing I hoped the course would build. Most students would have kept the abstraction to look sophisticated; you did the harder thing and said it wasn't worth it.
+
+Structure is excellent — the compound component split reads cleanly and each piece has a clear reason to exist. Craft is where I'd push next: naming in <code>Grid.Item</code> is consistent, but a couple of helpers in <code>tokens-draft.ts</code> could carry more meaning.
+
+For the next assignment I'd love to see you apply the same discipline to the styling layer. Try extracting tokens into a proper module and see whether the same "does this earn its cost?" question applies.
+
+Well done.</textarea>
+                        </div>
+
+                        <div class="fb-footer">
+                            <div class="fb-tools">
+                                <button class="fb-tool" aria-label="Bold" data-toast="Bold"><i class="bi bi-type-bold"></i></button>
+                                <button class="fb-tool" aria-label="Italic" data-toast="Italic"><i class="bi bi-type-italic"></i></button>
+                                <button class="fb-tool" aria-label="Code" data-toast="Inline code"><i class="bi bi-code"></i></button>
+                                <button class="fb-tool" aria-label="List" data-toast="Bulleted list"><i class="bi bi-list-ul"></i></button>
+                                <button class="fb-tool" aria-label="Attach" data-toast="Attach a file"><i class="bi bi-paperclip"></i></button>
+                                <button class="fb-tool" aria-label="Voice note" data-toast="Record voice note"><i class="bi bi-mic"></i></button>
+                            </div>
+                            <span class="fb-count"><span id="fb-chars">0</span> characters · ~<span id="fb-read">0</span> min read</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- workspace footer -->
+            <footer class="ws-foot">
+                <div class="ws-foot-left">
+                    <button class="btn-danger" data-toast="Returning for revision…">
+                        <i class="bi bi-arrow-counterclockwise"></i> <span>Return for revision</span>
+                    </button>
+                    <button class="btn-ghost" data-toast="Opening private note…">
+                        <i class="bi bi-journal-text"></i> <span>Private note</span>
+                    </button>
+                </div>
+
+                <div class="ws-foot-right">
+                    <span class="ws-kbd">
+                        <kbd>J</kbd><kbd>K</kbd> <span class="lbl">navigate</span>
+                        <kbd>1</kbd><kbd>4</kbd> <span class="lbl">score</span>
+                        <kbd>⌘</kbd><kbd>↵</kbd> <span class="lbl">submit</span>
+                    </span>
+                    <button class="btn-ghost" data-toast="Saving draft…">
+                        <i class="bi bi-save"></i> <span>Save draft</span>
+                    </button>
+                    <button class="btn-submit" data-toast="Grade submitted · notifying student" data-toast-type="success">
+                        <i class="bi bi-check2-circle"></i> Submit grade
+                    </button>
+                </div>
+            </footer>
+
+        </section>
+
+    </section>
+
+</div><!-- /.grading -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.grading');
+    if (!root) return;
+
+    /* ---------- animated counters ---------- */
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ================================================================
+       RUBRIC SCORING
+       Each criterion has a weight. Score 1–4 per criterion.
+       Weighted total % = Σ(level × weight) / (4 × Σ(weight)) × 100
+       ================================================================ */
+    var groups = root.querySelectorAll('.score-input');
+    var totalPct = document.getElementById('total-pct');
+    var totalPts = document.getElementById('total-pts');
+    var totalLetter = document.getElementById('total-letter');
+    var rbSave = document.getElementById('ws-save');
+
+    function computeTotal() {
+        var weightedSum = 0;
+        var totalWeight = 0;
+        var scoredCount = 0;
+
+        groups.forEach(function (group) {
+            var weight = parseFloat(group.dataset.weight) || 0;
+            var selected = group.querySelector('.score-btn.selected');
+            var level = selected ? parseFloat(selected.dataset.level) : 0;
+
+            weightedSum += level * weight;
+            totalWeight += weight;
+            if (level > 0) scoredCount++;
+
+            // update per-criterion display
+            var item = group.closest('.rub-item');
+            if (item) {
+                var ptsEl = item.querySelector('.c-pts');
+                if (ptsEl) ptsEl.textContent = level;
+                item.classList.toggle('scored', level > 0);
+            }
+        });
+
+        if (totalWeight === 0) return;
+
+        var pct = (weightedSum / (4 * totalWeight)) * 100;
+        pct = Math.round(pct * 10) / 10;
+
+        // update total block
+        if (totalPct) totalPct.textContent = scoredCount === 0 ? '0' : pct.toFixed(1);
+        if (totalPts) totalPts.textContent = Math.round(pct);
+
+        // letter grade
+        var letter = '—';
+        if (scoredCount > 0) {
+            if (pct >= 90) letter = 'A';
+            else if (pct >= 85) letter = 'A−';
+            else if (pct >= 80) letter = 'B+';
+            else if (pct >= 75) letter = 'B';
+            else if (pct >= 70) letter = 'B−';
+            else if (pct >= 65) letter = 'C+';
+            else if (pct >= 60) letter = 'C';
+            else if (pct >= 50) letter = 'D';
+            else letter = 'F';
+        }
+        if (totalLetter) totalLetter.textContent = letter;
+
+        // flash the save indicator
+        if (rbSave) {
+            rbSave.innerHTML = '<span class="dot"></span> Saving…';
+            rbSave.classList.remove('saved');
+            setTimeout(function () {
+                rbSave.innerHTML = '<span class="dot"></span> All changes saved';
+                rbSave.classList.add('saved');
+            }, 900);
+        }
+    }
+
+    groups.forEach(function (group) {
+        var buttons = group.querySelectorAll('.score-btn');
+        buttons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                // toggle: clicking the already-selected level clears the score
+                if (btn.classList.contains('selected')) {
+                    btn.classList.remove('selected');
+                } else {
+                    buttons.forEach(function (b) { b.classList.remove('selected'); });
+                    btn.classList.add('selected');
+                }
+                computeTotal();
+            });
+        });
+    });
+
+    /* ================================================================
+       QUEUE — click a submission to make it active
+       ================================================================ */
+    var subs = root.querySelectorAll('.sub');
+    var wsName = document.getElementById('ws-name');
+    var wsPos = document.getElementById('ws-pos');
+
+    subs.forEach(function (sub, idx) {
+        sub.addEventListener('click', function () {
+            subs.forEach(function (s) { s.classList.remove('active'); });
+            sub.classList.add('active');
+            if (wsName) wsName.textContent = sub.querySelector('h5').textContent;
+            if (wsPos) wsPos.textContent = (idx + 1) + ' / ' + subs.length;
+        });
+    });
+
+    /* ---------- prev / next ---------- */
+    var prevBtn = document.getElementById('ws-prev');
+    var nextBtn = document.getElementById('ws-next');
+
+    function moveActive(delta) {
+        var arr = Array.prototype.slice.call(subs);
+        var current = arr.findIndex(function (s) { return s.classList.contains('active'); });
+        if (current === -1) return;
+        var next = current + delta;
+        if (next < 0 || next >= arr.length) return;
+        arr[next].click();
+    }
+    if (prevBtn) prevBtn.addEventListener('click', function () { moveActive(-1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { moveActive(1); });
+
+    /* ---------- keyboard: J/K to navigate ---------- */
+    document.addEventListener('keydown', function (e) {
+        // ignore when typing in inputs
+        var tag = (e.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        if (e.key === 'j' || e.key === 'J') moveActive(1);
+        else if (e.key === 'k' || e.key === 'K') moveActive(-1);
+    });
+
+    /* ================================================================
+       FEEDBACK — character count, quick chips, templates
+       ================================================================ */
+    var fbTextarea = root.querySelector('.fb-textarea textarea');
+    var fbChars = document.getElementById('fb-chars');
+    var fbRead = document.getElementById('fb-read');
+
+    function updateCount() {
+        if (!fbTextarea) return;
+        var text = fbTextarea.value || '';
+        var chars = text.length;
+        var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        var minutes = Math.max(1, Math.round(words / 220));
+        if (fbChars) fbChars.textContent = chars.toLocaleString();
+        if (fbRead) fbRead.textContent = minutes;
+    }
+    if (fbTextarea) {
+        fbTextarea.addEventListener('input', updateCount);
+        updateCount();
+    }
+
+    /* ---------- quick comment chips ---------- */
+    root.querySelectorAll('.fb-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            if (!fbTextarea) return;
+            var addition = chip.dataset.chip || '';
+            var current = fbTextarea.value || '';
+            fbTextarea.value = (current + (current && !current.endsWith('\n') ? '\n\n' : '') + addition).trim();
+            fbTextarea.focus();
+            updateCount();
+        });
+    });
+
+    /* ---------- templates dropdown ---------- */
+    var fbTemplate = root.querySelector('.fb-templates select');
+    if (fbTemplate) {
+        fbTemplate.addEventListener('change', function () {
+            if (!fbTextarea || !fbTemplate.value || fbTemplate.value.indexOf('Insert') === 0) return;
+            var templates = {
+                'Encouraging — strong work': 'This is excellent work. Your reasoning is clear, the execution is careful, and your reflection shows real self-awareness. Keep this standard.',
+                'Constructive — needs revision': 'There is a solid foundation here, but a few decisions need revisiting. See the rubric notes for specifics — happy to talk through any of them in office hours.',
+                'Return — incomplete submission': 'I can\'t grade this fairly as submitted — a required component is missing. Please complete it and resubmit when ready.',
+                'Praise with a growth edge': 'Strong submission. The next edge I\'d like you to explore is the "why" behind one or two of your key decisions — that\'s where the real learning sits.'
+            };
+            var text = templates[fbTemplate.value];
+            if (text) {
+                fbTextarea.value = text;
+                updateCount();
+            }
+            fbTemplate.selectedIndex = 0;
+        });
+    }
+
+})();
+</script>
+
+{% endblock content %}

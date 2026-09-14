@@ -1,0 +1,2700 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Earnings & Ledger{% endblock %}
+{% block page_title %}Earnings{% endblock %}
+{% block breadcrumb %}Earnings{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       THE EARNINGS VAULT
+       Balances · Ledger · Payouts — money in, money out.
+       Scoped entirely under .earnings
+       ============================================================ */
+
+    .earnings{
+        /* palette — inherits from base, with safe fallbacks */
+        --gold:        var(--secondary, #BEF264);
+        --gold-deep:   var(--secondary-deep, #7ED321);
+        --gold-light:  var(--secondary-light, #D9F99D);
+        --gold-soft:   rgba(190, 242, 100, 0.12);
+        --gold-line:   rgba(190, 242, 100, 0.30);
+
+        --ink:         var(--primary-dark, #0B1121);
+        --ink-2:       var(--primary, #1E293B);
+        --ink-3:       var(--primary-light, #334155);
+
+        --paper:       var(--white, #FFFFFF);
+        --paper-2:     var(--cream, #FAFAF7);
+        --line:        var(--gray-200, #E5E7EB);
+        --line-soft:   var(--gray-100, #F1F5F9);
+        --muted:       var(--gray-600, #4B5563);
+        --faint:       var(--gray-300, #D1D5DB);
+
+        --leaf:        var(--secondary, #BEF264);
+        --leaf-deep:   var(--secondary-deep, #65A30D);
+        --sky:         var(--accent, #38BDF8);
+        --violet:      #8B5CF6;
+        --rose:        #F43F5E;
+        --green:       #22C55E;
+        --amber:       #F59E0B;
+
+        --r:           var(--radius, 14px);
+        --r-xl:        var(--radius-xl, 22px);
+        --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        position: relative;
+    }
+
+    /* ---------- shared fade-up entry ---------- */
+    .earnings .rise{
+        opacity: 0;
+        transform: translateY(14px);
+        animation: eRise .7s var(--ease) forwards;
+    }
+    .earnings .rise:nth-child(1){ animation-delay: .02s; }
+    .earnings .rise:nth-child(2){ animation-delay: .08s; }
+    .earnings .rise:nth-child(3){ animation-delay: .14s; }
+    .earnings .rise:nth-child(4){ animation-delay: .20s; }
+    .earnings .rise:nth-child(5){ animation-delay: .26s; }
+    @keyframes eRise{ to { opacity: 1; transform: translateY(0); } }
+
+    /* ---------- shared bar ---------- */
+    .earnings .bar{
+        height: 6px;
+        border-radius: 6px;
+        background: var(--line-soft);
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+    .earnings .bar > span{
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 6px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        transition: width 1.2s var(--ease);
+    }
+    .earnings .bar.leaf > span  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .earnings .bar.sky > span   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .earnings .bar.violet > span{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .earnings .bar.rose > span  { background: linear-gradient(90deg, #FB7185, #E11D48); }
+    .earnings .bar.amber > span { background: linear-gradient(90deg, #FCD34D, #F59E0B); }
+
+    /* ============================================================
+       1 · COMMAND STRIP
+       ============================================================ */
+    .cmd-strip{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding: 4px 4px 20px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+    }
+    .cmd-strip::after{
+        content: '';
+        position: absolute;
+        left: 4px; right: 4px; bottom: -1px;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 18%,
+            transparent 42%,
+            transparent 100%);
+        border-radius: 2px;
+    }
+    .cmd-kicker{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        margin-bottom: 10px;
+    }
+    .cmd-kicker i{ color: var(--gold); }
+    .cmd-left h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .cmd-left h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .cmd-sub{
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .cmd-sub .dot{
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--faint);
+    }
+    .cmd-sub strong{ color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .cmd-right{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .cmd-chip{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.02em;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+    }
+    .cmd-chip i{ color: var(--gold); font-size: 0.85rem; }
+    .cmd-chip strong{ color: var(--gold-deep); }
+
+    /* ============================================================
+       2 · VAULT CHAMBER (hero)
+       ============================================================ */
+    .vault{
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 36px;
+        padding: 44px 46px;
+        border-radius: var(--r-xl);
+        background:
+            radial-gradient(ellipse at 88% 12%, rgba(190, 242, 100, 0.16), transparent 55%),
+            radial-gradient(ellipse at 15% 100%, rgba(190, 242, 100, 0.10), transparent 55%),
+            radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.12), transparent 70%),
+            linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+    }
+    @media (max-width: 1180px){
+        .vault{ grid-template-columns: 1fr; gap: 26px; padding: 32px 28px; }
+    }
+    .vault::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg,
+            var(--gold) 0%,
+            var(--gold-light) 25%,
+            var(--leaf) 55%,
+            var(--sky) 80%,
+            var(--violet) 100%);
+    }
+    .vault::after{
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+        background-size: 26px 26px;
+        pointer-events: none;
+        mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at 30% 30%, #000 20%, transparent 75%);
+    }
+    .vault .aurora{
+        position: absolute;
+        inset: -40%;
+        background:
+            radial-gradient(circle at 30% 40%, rgba(190, 242, 100, 0.14), transparent 30%),
+            radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.16), transparent 32%);
+        animation: auroraDrift 18s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(20px);
+    }
+    @keyframes auroraDrift{
+        0%, 100%{ transform: translate(0, 0) scale(1); }
+        50%     { transform: translate(-4%, 3%) scale(1.08); }
+    }
+
+    .vault-text{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+    }
+    .vault-eyebrow{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 6px 15px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: var(--gold-light);
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        align-self: flex-start;
+        margin-bottom: 22px;
+    }
+    .vault-text h1{
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.9rem, 3.6vw, 2.85rem);
+        font-weight: 700;
+        line-height: 1.06;
+        letter-spacing: -0.022em;
+        color: #fff;
+        margin-bottom: 16px;
+        max-width: 620px;
+    }
+    .vault-text h1 em{
+        font-style: italic;
+        background: linear-gradient(120deg, var(--gold-light), var(--leaf));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .vault-text > p{
+        color: rgba(255, 255, 255, 0.66);
+        font-size: 0.96rem;
+        line-height: 1.78;
+        max-width: 560px;
+        margin-bottom: 26px;
+    }
+    .vault-text > p strong{ color: #fff; font-weight: 600; }
+    .vault-text > p em{
+        color: var(--gold-light);
+        font-style: normal;
+        font-weight: 700;
+    }
+
+    .vault-actions{
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: auto;
+    }
+
+    .vault-pins{
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 26px;
+        max-width: 560px;
+    }
+    .pin-chip{
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: var(--transition, all .25s ease);
+    }
+    .pin-chip:hover{
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-3px);
+        border-color: rgba(190, 242, 100, 0.35);
+    }
+    .pin-chip .k{
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 6px;
+    }
+    .pin-chip .v{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+    .pin-chip .v em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .pin-chip .v.gold{ color: var(--gold-light); }
+    .pin-chip .v.leaf{ color: var(--leaf); }
+
+    /* ---------- balance display ---------- */
+    .vault-balance{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+    }
+    .balance-disc{
+        position: relative;
+        width: 244px;
+        height: 244px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at 50% 40%, rgba(190, 242, 100, 0.12), transparent 60%),
+            linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        box-shadow: 0 22px 52px rgba(0, 0, 0, 0.32), inset 0 0 60px rgba(190, 242, 100, 0.08);
+        animation: discFloat 6s ease-in-out infinite;
+    }
+    @keyframes discFloat{
+        0%, 100%{ transform: translateY(0); }
+        50%     { transform: translateY(-8px); }
+    }
+    .balance-disc::before{
+        content: '';
+        position: absolute;
+        inset: -22px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(190, 242, 100, 0.20), transparent 62%);
+        animation: discGlow 4s ease-in-out infinite;
+        z-index: -1;
+    }
+    @keyframes discGlow{
+        0%, 100%{ transform: scale(1); opacity: 0.75; }
+        50%     { transform: scale(1.09); opacity: 1; }
+    }
+    .balance-disc::after{
+        content: '';
+        position: absolute;
+        inset: 10px;
+        border-radius: 50%;
+        border: 1px dashed rgba(190, 242, 100, 0.22);
+        animation: spinCW 40s linear infinite;
+    }
+    @keyframes spinCW { to { transform: rotate(360deg); } }
+
+    .balance-disc .inner{
+        text-align: center;
+        padding: 0 20px;
+    }
+    .balance-disc .cur{
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+        margin-bottom: 8px;
+    }
+    .balance-disc .amt{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.75rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 4px 24px rgba(190, 242, 100, 0.32);
+    }
+    .balance-disc .amt em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.55);
+    }
+    .balance-disc .sub{
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--leaf);
+        margin-top: 9px;
+    }
+
+    .balance-caption{
+        text-align: center;
+        font-size: 0.7rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.55);
+        max-width: 260px;
+    }
+    .balance-caption strong{ color: var(--gold-light); font-weight: 700; }
+
+    /* ============================================================
+       3 · CONSTELLATION — KPI ribbon
+       ============================================================ */
+    .constellation{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+    @media (max-width: 1180px){ .constellation{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .constellation{ grid-template-columns: 1fr; } }
+
+    .kpi{
+        position: relative;
+        padding: 22px 20px 18px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        transition: var(--transition, all .25s ease);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .kpi::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        border-radius: 3px 3px 0 0;
+    }
+    .kpi.sky::before   { background: linear-gradient(90deg, var(--sky), #0284C7); }
+    .kpi.violet::before{ background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .kpi.leaf::before  { background: linear-gradient(90deg, var(--leaf), var(--leaf-deep)); }
+    .kpi.amber::before { background: linear-gradient(90deg, #FCD34D, #F59E0B); }
+    .kpi:hover{
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: rgba(190, 242, 100, 0.24);
+    }
+
+    .kpi-top{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .kpi-icon{
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .kpi.sky .kpi-icon   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .kpi.violet .kpi-icon{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi.leaf .kpi-icon  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .kpi.amber .kpi-icon { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+    .kpi-spark{ width: 78px; height: 28px; flex-shrink: 0; }
+
+    .kpi-num{
+        font-family: 'Playfair Display', serif;
+        font-size: 2.05rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.028em;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+    .kpi-num em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--muted);
+    }
+    .kpi-label{
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--muted);
+        letter-spacing: 0.01em;
+    }
+    .kpi-trend{
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.22);
+        color: var(--leaf-deep);
+        letter-spacing: 0.02em;
+        align-self: flex-start;
+    }
+    .kpi.sky .kpi-trend   { background: rgba(56, 189, 248, 0.16); color: #0284C7; }
+    .kpi.violet .kpi-trend{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .kpi.amber .kpi-trend { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .kpi-trend i{ font-size: 0.6rem; }
+    .kpi-trend.down{ background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    /* ============================================================
+       4 · TAB SWITCHER
+       ============================================================ */
+    .tab-bar{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 50px;
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        align-self: flex-start;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+    .tab-btn{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 22px;
+        border-radius: 50px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .tab-btn i{ font-size: 0.9rem; }
+    .tab-btn:hover{ color: var(--ink); background: var(--paper-2); }
+    .tab-btn.active{
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+    .tab-btn .count{
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--line-soft);
+        color: var(--muted);
+    }
+    .tab-btn.active .count{ background: rgba(11, 17, 33, 0.14); color: var(--ink); }
+
+    /* tab panels */
+    .tab-panel{ display: none; }
+    .tab-panel.active{ display: block; animation: panelIn .4s var(--ease); }
+    @keyframes panelIn{
+        from{ opacity: 0; transform: translateY(8px); }
+        to  { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       5 · BENTO GRID
+       ============================================================ */
+    .bento{
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+    .bento > *{ min-width: 0; }
+    .s-1{ grid-column: span 1; }
+    .s-2{ grid-column: span 2; }
+    .s-3{ grid-column: span 3; }
+    .s-4{ grid-column: span 4; }
+
+    @media (max-width: 1080px){
+        .bento{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 2; }
+    }
+    @media (max-width: 620px){
+        .bento{ grid-template-columns: 1fr; }
+        .s-1, .s-2, .s-3, .s-4{ grid-column: span 1; }
+    }
+
+    /* ---------- panel base ---------- */
+    .panel{
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.04));
+        overflow: hidden;
+        transition: var(--transition, all .25s ease);
+        position: relative;
+    }
+    .panel:hover{ box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08)); }
+
+    .panel-head{
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .panel-head h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.005em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .panel-head h3 i{
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+        flex-shrink: 0;
+    }
+    .panel-head.sky h3 i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .panel-head.violet h3 i{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .panel-head.leaf h3 i  { background: rgba(190, 242, 100, 0.22); color: var(--leaf-deep); }
+    .panel-head.amber h3 i { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+    .panel-link{
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: var(--transition, all .25s ease);
+        flex-shrink: 0;
+    }
+    .panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+    .panel-body{ padding: 18px 22px 22px; }
+
+    /* ============================================================
+       5a · EARNINGS CHART (simple CSS bar chart)
+       ============================================================ */
+    .chart-wrap{
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        height: 200px;
+        padding: 12px 0 0;
+    }
+    .chart-col{
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        height: 100%;
+        position: relative;
+        cursor: pointer;
+    }
+    .chart-bar{
+        width: 100%;
+        max-width: 40px;
+        border-radius: 8px 8px 4px 4px;
+        background: linear-gradient(180deg, var(--gold-light), var(--gold));
+        transition: var(--transition, all .35s ease);
+        position: relative;
+        min-height: 4px;
+    }
+    .chart-col:hover .chart-bar{
+        background: linear-gradient(180deg, #FFFFFF, var(--gold-light));
+        box-shadow: 0 8px 22px rgba(190, 242, 100, 0.42);
+        transform: translateY(-4px);
+    }
+    .chart-col.current .chart-bar{
+        background: linear-gradient(180deg, var(--leaf), var(--leaf-deep));
+        box-shadow: 0 8px 22px rgba(190, 242, 100, 0.42);
+    }
+    .chart-col .chart-val{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink);
+        opacity: 0;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .chart-col:hover .chart-val{ opacity: 1; }
+    .chart-col .chart-lbl{
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--faint);
+        position: absolute;
+        bottom: -22px;
+    }
+    .chart-wrap{ margin-bottom: 26px; }
+
+    /* ============================================================
+       5b · SOURCE BREAKDOWN
+       ============================================================ */
+    .source-row{
+        padding: 13px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .source-row:first-child{ padding-top: 0; }
+    .source-row:last-child{ border-bottom: none; padding-bottom: 0; }
+    .source-row .sr-top{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 7px;
+    }
+    .source-row .sr-top span{
+        font-size: 0.79rem;
+        font-weight: 600;
+        color: var(--ink-2);
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .source-row .sr-top span i{ color: var(--faint); font-size: 0.82rem; }
+    .source-row .sr-top strong{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .source-row .sr-top strong.gold{ color: var(--gold-deep); }
+    .source-row .sr-top strong.leaf{ color: var(--leaf-deep); }
+
+    /* ============================================================
+       5c · LEDGER TABLE
+       ============================================================ */
+    .ledger-filters{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 16px 22px 14px;
+        border-bottom: 1px solid var(--line-soft);
+    }
+    .ledger-chip{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        white-space: nowrap;
+    }
+    .ledger-chip i{ font-size: 0.72rem; }
+    .ledger-chip:hover{ border-color: var(--gold-line); color: var(--ink); }
+    .ledger-chip.active{
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+    }
+
+    .ledger-search{
+        position: relative;
+        margin-left: auto;
+        min-width: 200px;
+        flex: 1;
+        max-width: 260px;
+    }
+    .ledger-search i{
+        position: absolute;
+        left: 14px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--faint);
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+    .ledger-search input{
+        width: 100%;
+        padding: 8px 14px 8px 36px;
+        border-radius: 50px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        font-family: inherit;
+        font-size: 0.78rem;
+        color: var(--ink);
+        outline: none;
+        transition: var(--transition, all .25s ease);
+    }
+    .ledger-search input:focus{
+        border-color: var(--gold);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+
+    .ledger-table{
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .ledger-table thead th{
+        text-align: left;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--faint);
+        padding: 12px 22px;
+        border-bottom: 1px solid var(--line);
+        background: var(--paper-2);
+        white-space: nowrap;
+    }
+    .ledger-table thead th.right{ text-align: right; }
+    .ledger-table tbody td{
+        padding: 14px 22px;
+        font-size: 0.79rem;
+        color: var(--ink-2);
+        border-bottom: 1px solid var(--line-soft);
+        vertical-align: middle;
+    }
+    .ledger-table tbody tr{
+        transition: var(--transition, all .2s ease);
+        cursor: pointer;
+    }
+    .ledger-table tbody tr:hover{ background: var(--paper-2); }
+    .ledger-table tbody tr:last-child td{ border-bottom: none; }
+
+    .tx-date{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .tx-date small{
+        display: block;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: var(--faint);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .tx-desc{ display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .tx-icon{
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.85rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .tx-icon.sky   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .tx-icon.violet{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .tx-icon.rose  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .tx-icon.green { background: rgba(34, 197, 94, 0.14); color: #15803D; }
+    .tx-icon.amber { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+
+    .tx-body{ min-width: 0; }
+    .tx-body .tx-title{
+        font-size: 0.79rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .tx-body .tx-sub{
+        font-size: 0.66rem;
+        color: var(--muted);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tx-amount{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+    }
+    .tx-amount.positive{ color: var(--leaf-deep); }
+    .tx-amount.negative{ color: #BE123C; }
+    .tx-amount small{
+        display: block;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: var(--faint);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .tx-balance{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .status-pill{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 11px;
+        border-radius: 50px;
+        white-space: nowrap;
+    }
+    .status-pill i{ font-size: 0.66rem; }
+    .status-pill.done   { background: rgba(34, 197, 94, 0.12); color: #15803D; }
+    .status-pill.pending{ background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .status-pill.failed { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .status-pill.info   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+
+    /* mobile ledger */
+    @media (max-width: 880px){
+        .ledger-table thead{ display: none; }
+        .ledger-table tbody tr{
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px 14px;
+            padding: 14px 22px;
+        }
+        .ledger-table tbody td{
+            padding: 0;
+            border: none;
+        }
+        .ledger-table tbody td:nth-child(1){ grid-column: 1; }
+        .ledger-table tbody td:nth-child(2){ grid-column: 1; }
+        .ledger-table tbody td:nth-child(3){ grid-column: 2; grid-row: 1 / span 2; text-align: right; }
+        .ledger-table tbody td:nth-child(4){ display: none; }
+        .ledger-table tbody td:nth-child(5){ grid-column: 2; grid-row: 3; text-align: right; }
+        .ledger-table tbody td:nth-child(6){ grid-column: 1; grid-row: 3; }
+    }
+
+    /* ============================================================
+       5d · PAYOUT METHOD CARDS
+       ============================================================ */
+    .method-card{
+        position: relative;
+        padding: 22px 22px 20px;
+        border-radius: var(--r);
+        background: var(--paper);
+        border: 1px solid var(--line);
+        transition: var(--transition, all .25s ease);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        overflow: hidden;
+    }
+    .method-card::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        opacity: 0;
+        transition: var(--transition, all .25s ease);
+    }
+    .method-card:hover{
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        border-color: var(--gold-line);
+    }
+    .method-card:hover::before,
+    .method-card.primary::before{ opacity: 1; }
+
+    .method-card .bank-logo{
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--ink);
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        position: relative;
+    }
+    .method-card .bank-logo.sky{
+        background: linear-gradient(135deg, var(--sky), #0284C7);
+        color: #fff;
+    }
+    .method-card .bank-logo.violet{
+        background: linear-gradient(135deg, #A78BFA, #7C3AED);
+        color: #fff;
+    }
+    .method-card .bank-logo::after{
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 11px;
+        border: 1.5px solid rgba(11, 17, 33, 0.12);
+    }
+    .method-card .bank-logo.sky::after,
+    .method-card .bank-logo.violet::after{
+        border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    .method-body{ flex: 1; min-width: 0; }
+    .method-body h5{
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.25;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+    }
+    .method-body p{
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+    }
+    .method-body .badge-primary{
+        font-size: 0.52rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: var(--ink);
+        color: var(--gold-light);
+    }
+    .method-check{
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--leaf);
+        color: var(--ink);
+        font-size: 0.78rem;
+        flex-shrink: 0;
+    }
+    .method-check.off{
+        background: var(--line-soft);
+        color: var(--faint);
+    }
+
+    /* ============================================================
+       5e · PAYOUT TIMELINE
+       ============================================================ */
+    .payout-next{
+        position: relative;
+        padding: 24px 24px 22px;
+        border-radius: var(--r-xl);
+        background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.08));
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+    .payout-next::before{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+    }
+    .payout-next::after{
+        content: '';
+        position: absolute;
+        inset: 12px;
+        border: 1px solid var(--gold-line);
+        border-radius: calc(var(--r-xl) - 10px);
+        pointer-events: none;
+    }
+    .payout-next .pn-top{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .payout-next .pn-badge{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: var(--gold-light);
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+    .payout-next .pn-badge .blip{
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--leaf);
+        animation: pnBlip 1.6s ease-in-out infinite;
+    }
+    @keyframes pnBlip{
+        0%, 100%{ box-shadow: 0 0 0 0 rgba(190, 242, 100, 0.9); }
+        50%     { box-shadow: 0 0 0 6px rgba(190, 242, 100, 0); }
+    }
+    .payout-next .pn-status{
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #4ADE80;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .payout-next .pn-status .led{
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: #4ADE80;
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+    }
+
+    .payout-next .pn-amount{
+        position: relative;
+        z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.35rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+    }
+    .payout-next .pn-amount em{
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.55);
+    }
+
+    .payout-next .pn-meta{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.68);
+    }
+    .payout-next .pn-meta span{
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .payout-next .pn-meta span i{ color: var(--gold-light); font-size: 0.78rem; }
+    .payout-next .pn-meta strong{ color: #fff; font-weight: 700; }
+
+    .payout-next .pn-actions{
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+    }
+
+    /* payout history rows */
+    .payout-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .payout-row:first-child{ padding-top: 0; }
+    .payout-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+    .payout-row .pr-avatar{
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.9rem;
+        background: rgba(34, 197, 94, 0.14);
+        color: #15803D;
+    }
+    .payout-row .pr-avatar.pending{ background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .payout-row .pr-avatar.failed { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+
+    .payout-row .pr-body{ flex: 1; min-width: 0; }
+    .payout-row .pr-body h5{
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+    }
+    .payout-row .pr-body p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+
+    .payout-row .pr-amount{
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .payout-row .pr-amount strong{
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+    .payout-row .pr-amount span{
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* ============================================================
+       5f · DOCUMENTS / TRUST LIST
+       ============================================================ */
+    .doc-row{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 0;
+        border-bottom: 1px dotted var(--line);
+    }
+    .doc-row:first-child{ padding-top: 0; }
+    .doc-row:last-child{ border-bottom: none; padding-bottom: 0; }
+
+    .doc-icon{
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .doc-icon.sky   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .doc-icon.violet{ background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .doc-icon.rose  { background: rgba(244, 63, 94, 0.12); color: #BE123C; }
+    .doc-icon.green { background: rgba(34, 197, 94, 0.14); color: #15803D; }
+
+    .doc-body{ flex: 1; min-width: 0; }
+    .doc-body h5{
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+    }
+    .doc-body p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+
+    .doc-dl{
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: var(--transition, all .25s ease);
+        flex-shrink: 0;
+    }
+    .doc-dl:hover{
+        border-color: var(--gold);
+        color: var(--gold-deep);
+        transform: translateY(-2px);
+    }
+
+    /* trust card */
+    .trust-card{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 16px;
+        border-radius: 12px;
+        background: var(--paper-2);
+        border: 1px solid var(--line-soft);
+        transition: var(--transition, all .25s ease);
+        margin-bottom: 10px;
+    }
+    .trust-card:last-child{ margin-bottom: 0; }
+    .trust-card:hover{ border-color: var(--gold-line); background: var(--paper); }
+    .trust-card > i{
+        width: 30px; height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        background: var(--gold-soft);
+        color: var(--gold-deep);
+    }
+    .trust-card.sky > i   { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .trust-card.violet > i{ background: rgba(139, 92, 246, 0.14); color: #7C3AED; }
+    .trust-card.green > i { background: rgba(34, 197, 94, 0.14); color: #15803D; }
+    .trust-card h6{
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.3;
+        margin-bottom: 3px;
+    }
+    .trust-card p{
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       6 · SECTION HEAD
+       ============================================================ */
+    .sect-head{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 4px 4px 0;
+    }
+    .sect-head h2{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.42rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.012em;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .sect-head h2::before{
+        content: '';
+        width: 24px;
+        height: 2px;
+        background: var(--gold);
+        display: inline-block;
+    }
+    .sect-head .meta{
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sect-head .meta i{ color: var(--gold); }
+
+    /* ============================================================
+       FALLBACK BUTTONS
+       ============================================================ */
+    .earnings .btn-gold{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        border: none;
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.30);
+        text-decoration: none;
+    }
+    .earnings .btn-gold:hover{
+        transform: translateY(-3px);
+        box-shadow: 0 16px 34px rgba(190, 242, 100, 0.40);
+    }
+    .earnings .btn-outline{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .earnings .btn-outline:hover{
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    .earnings .btn-ghost{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 18px;
+        border-radius: 50px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .earnings .btn-ghost:hover{
+        border-color: var(--gold);
+        color: var(--gold-deep);
+        transform: translateY(-2px);
+    }
+    .earnings .btn-outline-solid{
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 22px;
+        border-radius: 50px;
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: var(--transition, all .25s ease);
+        text-decoration: none;
+    }
+    .earnings .btn-outline-solid:hover{
+        background: var(--ink-2);
+        border-color: var(--ink-2);
+        transform: translateY(-2px);
+    }
+</style>
+
+
+<div class="earnings">
+
+    <!-- ====================================================
+         1 · COMMAND STRIP
+         ==================================================== -->
+    <header class="cmd-strip rise">
+        <div class="cmd-left">
+            <span class="cmd-kicker"><i class="bi bi-safe2-fill"></i> Faculty Vault · Level XII</span>
+            <h1>Earnings, <em>clear and accounted.</em></h1>
+            <p class="cmd-sub">
+                <span data-clock>18:12</span>
+                <span class="dot"></span>
+                <strong>$1,840.00</strong> available
+                <span class="dot"></span>
+                <strong>$12,560</strong> lifetime
+                <span class="dot"></span>
+                Next payout <strong>1 Apr</strong>
+            </p>
+        </div>
+        <div class="cmd-right">
+            <span class="cmd-chip"><i class="bi bi-shield-check"></i> <span><strong>PCI-DSS</strong> secured</span></span>
+            <button class="btn-ghost" data-toast="Opening statement download…">
+                <i class="bi bi-download"></i> Statement
+            </button>
+            <button class="btn-gold" data-toast="Opening payout request…">
+                <i class="bi bi-cash-stack"></i> Request payout
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · VAULT CHAMBER
+         ==================================================== -->
+    <section class="vault rise">
+        <div class="aurora"></div>
+
+        <div class="vault-text">
+            <span class="vault-eyebrow"><i class="bi bi-patch-check-fill"></i> Verified Faculty Ledger</span>
+            <h1>Every dollar, <em>accounted for.</em></h1>
+            <p>
+                <strong>$1,840.00</strong> is cleared and ready to withdraw. <strong>$420.00</strong> is
+                pending release from the March cohort, and <strong>$12,560</strong> has moved through your
+                vault since you joined. Every line is dated, sourced, and auditable.
+            </p>
+
+            <div class="vault-actions">
+                <button class="btn-gold" data-toast="Opening payout request…">
+                    <i class="bi bi-cash-stack"></i> Request payout
+                </button>
+                <button class="btn-outline" data-toast="Opening full statement…">
+                    <i class="bi bi-file-earmark-text"></i> Full statement
+                </button>
+            </div>
+
+            <div class="vault-pins">
+                <div class="pin-chip">
+                    <div class="k">This month</div>
+                    <div class="v gold">$1.84<em>k</em></div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Lifetime</div>
+                    <div class="v">$12.56<em>k</em></div>
+                </div>
+                <div class="pin-chip">
+                    <div class="k">Avg / month</div>
+                    <div class="v leaf">$698</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="vault-balance">
+            <div class="balance-disc">
+                <div class="inner">
+                    <div class="cur">Available balance</div>
+                    <div class="amt">$1,840<em>.00</em></div>
+                    <div class="sub">Cleared · Ready</div>
+                </div>
+            </div>
+
+            <p class="balance-caption">
+                <strong>Auto-payout</strong> on the 1st of each month<br>
+                · Next cycle <strong>1 Apr 2026</strong>
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         3 · CONSTELLATION — KPI ribbon
+         ==================================================== -->
+    <section class="constellation">
+        <article class="kpi rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-wallet2"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="eg1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#BEF264" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7 L78,28 L0,28 Z" fill="url(#eg1)"/>
+                    <path d="M0,22 L10,18 L20,20 L30,13 L40,15 L50,9 L60,11 L70,5 L78,7" fill="none" stroke="#BEF264" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">$1,<span data-count="840">0</span></div>
+            <div class="kpi-label">Available balance</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> Cleared &amp; ready</span>
+        </article>
+
+        <article class="kpi sky rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="eg2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6 L78,28 L0,28 Z" fill="url(#eg2)"/>
+                    <path d="M0,20 L10,20 L20,16 L30,18 L40,12 L50,14 L60,8 L70,10 L78,6" fill="none" stroke="#38BDF8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">$<span data-count="12560">0</span></div>
+            <div class="kpi-label">Lifetime earnings</div>
+            <span class="kpi-trend"><i class="bi bi-arrow-up-short"></i> +$1,840 this month</span>
+        </article>
+
+        <article class="kpi amber rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="eg3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#F59E0B" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9 L78,28 L0,28 Z" fill="url(#eg3)"/>
+                    <path d="M0,24 L10,20 L20,22 L30,16 L40,18 L50,11 L60,13 L70,7 L78,9" fill="none" stroke="#F59E0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num">$<span data-count="420">0</span></div>
+            <div class="kpi-label">Pending release</div>
+            <span class="kpi-trend"><i class="bi bi-clock"></i> Releases 1 Apr</span>
+        </article>
+
+        <article class="kpi leaf rise">
+            <div class="kpi-top">
+                <span class="kpi-icon"><i class="bi bi-percent"></i></span>
+                <svg class="kpi-spark" viewBox="0 0 78 28" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="eg4" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#65A30D" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#65A30D" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8 L78,28 L0,28 Z" fill="url(#eg4)"/>
+                    <path d="M0,23 L10,19 L20,21 L30,15 L40,17 L50,10 L60,12 L70,6 L78,8" fill="none" stroke="#65A30D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="kpi-num"><span data-count="12">0</span><em>%</em></div>
+            <div class="kpi-label">Your platform fee</div>
+            <span class="kpi-trend down"><i class="bi bi-arrow-down-short"></i> −8% vs standard</span>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         4 · TABS
+         ==================================================== -->
+    <div class="tab-bar rise" role="tablist" aria-label="Earnings sections">
+        <button class="tab-btn active" data-tab="overview" role="tab" aria-selected="true">
+            <i class="bi bi-grid-1x2-fill"></i> Overview
+        </button>
+        <button class="tab-btn" data-tab="ledger" role="tab" aria-selected="false">
+            <i class="bi bi-receipt-cutoff"></i> Ledger
+            <span class="count">248</span>
+        </button>
+        <button class="tab-btn" data-tab="payouts" role="tab" aria-selected="false">
+            <i class="bi bi-cash-stack"></i> Payouts
+            <span class="count">18</span>
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         TAB · OVERVIEW
+         ==================================================== -->
+    <div class="tab-panel active" id="tab-overview" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- EARNINGS CHART (span 3) ---------- -->
+            <article class="panel s-3 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-bar-chart-fill"></i> Monthly earnings · last 12 months</h3>
+                    <button class="panel-link" data-toast="Opening detailed report…">
+                        Detailed report <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <!-- Django: replace heights with {{ month.pct }}% -->
+                    <div class="chart-wrap">
+                        <div class="chart-col" title="Apr 2025 · $420">
+                            <span class="chart-val">$420</span>
+                            <div class="chart-bar" style="height: 28%;"></div>
+                            <span class="chart-lbl">Apr</span>
+                        </div>
+                        <div class="chart-col" title="May 2025 · $540">
+                            <span class="chart-val">$540</span>
+                            <div class="chart-bar" style="height: 36%;"></div>
+                            <span class="chart-lbl">May</span>
+                        </div>
+                        <div class="chart-col" title="Jun 2025 · $610">
+                            <span class="chart-val">$610</span>
+                            <div class="chart-bar" style="height: 41%;"></div>
+                            <span class="chart-lbl">Jun</span>
+                        </div>
+                        <div class="chart-col" title="Jul 2025 · $480">
+                            <span class="chart-val">$480</span>
+                            <div class="chart-bar" style="height: 32%;"></div>
+                            <span class="chart-lbl">Jul</span>
+                        </div>
+                        <div class="chart-col" title="Aug 2025 · $720">
+                            <span class="chart-val">$720</span>
+                            <div class="chart-bar" style="height: 48%;"></div>
+                            <span class="chart-lbl">Aug</span>
+                        </div>
+                        <div class="chart-col" title="Sep 2025 · $860">
+                            <span class="chart-val">$860</span>
+                            <div class="chart-bar" style="height: 57%;"></div>
+                            <span class="chart-lbl">Sep</span>
+                        </div>
+                        <div class="chart-col" title="Oct 2025 · $940">
+                            <span class="chart-val">$940</span>
+                            <div class="chart-bar" style="height: 63%;"></div>
+                            <span class="chart-lbl">Oct</span>
+                        </div>
+                        <div class="chart-col" title="Nov 2025 · $1,020">
+                            <span class="chart-val">$1,020</span>
+                            <div class="chart-bar" style="height: 68%;"></div>
+                            <span class="chart-lbl">Nov</span>
+                        </div>
+                        <div class="chart-col" title="Dec 2025 · $780">
+                            <span class="chart-val">$780</span>
+                            <div class="chart-bar" style="height: 52%;"></div>
+                            <span class="chart-lbl">Dec</span>
+                        </div>
+                        <div class="chart-col" title="Jan 2026 · $1,240">
+                            <span class="chart-val">$1,240</span>
+                            <div class="chart-bar" style="height: 82%;"></div>
+                            <span class="chart-lbl">Jan</span>
+                        </div>
+                        <div class="chart-col" title="Feb 2026 · $1,420">
+                            <span class="chart-val">$1,420</span>
+                            <div class="chart-bar" style="height: 94%;"></div>
+                            <span class="chart-lbl">Feb</span>
+                        </div>
+                        <div class="chart-col current" title="Mar 2026 · $1,840">
+                            <span class="chart-val">$1,840</span>
+                            <div class="chart-bar" style="height: 100%;"></div>
+                            <span class="chart-lbl">Mar</span>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- SOURCE BREAKDOWN (span 1) ---------- -->
+            <article class="panel s-1 rise">
+                <div class="panel-head leaf">
+                    <h3><i class="bi bi-diagram-3-fill"></i> Where it came from</h3>
+                    <button class="panel-link" data-toast="Opening source report…">
+                        Report <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-camera-video-fill"></i> Live sessions</span>
+                            <strong class="gold">$980</strong>
+                        </div>
+                        <div class="bar"><span data-value="53"></span></div>
+                    </div>
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-journal-bookmark-fill"></i> Course sales</span>
+                            <strong>$560</strong>
+                        </div>
+                        <div class="bar sky"><span data-value="30"></span></div>
+                    </div>
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-person-video3"></i> 1:1 mentorship</span>
+                            <strong>$220</strong>
+                        </div>
+                        <div class="bar violet"><span data-value="12"></span></div>
+                    </div>
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-star-fill"></i> Bonus &amp; rewards</span>
+                            <strong class="leaf">$80</strong>
+                        </div>
+                        <div class="bar leaf"><span data-value="5"></span></div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- RECENT TRANSACTIONS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-clock-history"></i> Recent activity</h3>
+                    <button class="panel-link" data-toast="Opening full ledger…" data-goto-tab="ledger">
+                        Full ledger <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-arrow-down-left"></i></span>
+                        <div class="pr-body">
+                            <h5>Course sale · Advanced React Patterns</h5>
+                            <p>Sara Kim · 2 hours ago</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong style="color: var(--leaf-deep);">+$84.00</strong>
+                            <span>Cleared</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-arrow-down-left"></i></span>
+                        <div class="pr-body">
+                            <h5>Live session · React Hooks Deep Dive</h5>
+                            <p>Cohort of 12 · 5 hours ago</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong style="color: var(--leaf-deep);">+$120.00</strong>
+                            <span>Cleared</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar pending"><i class="bi bi-hourglass-split"></i></span>
+                        <div class="pr-body">
+                            <h5>Course sale · TypeScript for React</h5>
+                            <p>Jonas Tan · Yesterday</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong style="color: #B45309;">+$76.00</strong>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-arrow-up-right"></i></span>
+                        <div class="pr-body">
+                            <h5>Payout · March cycle</h5>
+                            <p>Bank •••• 8813 · 1 Mar 2026</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong style="color: #BE123C;">−$1,420.00</strong>
+                            <span>Paid</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-arrow-down-left"></i></span>
+                        <div class="pr-body">
+                            <h5>1:1 mentorship · Maya Rahman</h5>
+                            <p>60 min · 2 days ago</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong style="color: var(--leaf-deep);">+$140.00</strong>
+                            <span>Cleared</span>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- MONEY OUT (span 1) ---------- -->
+            <article class="panel s-1 rise">
+                <div class="panel-head rose">
+                    <h3><i class="bi bi-arrow-up-right"></i> Money out · March</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-bank"></i> Payout to bank</span>
+                            <strong style="color: #BE123C;">$1,420</strong>
+                        </div>
+                        <div class="bar rose"><span data-value="82"></span></div>
+                    </div>
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-percent"></i> Platform fee (12%)</span>
+                            <strong style="color: #BE123C;">$190</strong>
+                        </div>
+                        <div class="bar rose"><span data-value="11"></span></div>
+                    </div>
+
+                    <div class="source-row">
+                        <div class="sr-top">
+                            <span><i class="bi bi-receipt"></i> Processing</span>
+                            <strong style="color: #BE123C;">$28</strong>
+                        </div>
+                        <div class="bar rose"><span data-value="2"></span></div>
+                    </div>
+
+                    <div class="source-row" style="border-top: 1px solid var(--line); margin-top: 6px; padding-top: 14px;">
+                        <div class="sr-top">
+                            <span><i class="bi bi-calculator"></i> <strong style="color: var(--ink);">Net this month</strong></span>
+                            <strong class="leaf">$1,840</strong>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- TRUST (span 3) ---------- -->
+            <article class="panel s-3 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-shield-check"></i> How your money is handled</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="trust-card">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <div>
+                            <h6>Bank-grade security</h6>
+                            <p>Payments are processed by a PCI-DSS Level 1 provider. Card details never touch our servers, and payouts are signed at the banking layer.</p>
+                        </div>
+                    </div>
+
+                    <div class="trust-card sky">
+                        <i class="bi bi-receipt-cutoff"></i>
+                        <div>
+                            <h6>Every cent is itemized</h6>
+                            <p>Each transaction shows its date, source, gross amount, fee and net result. Nothing is bundled or hidden inside an opaque "total".</p>
+                        </div>
+                    </div>
+
+                    <div class="trust-card violet">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <div>
+                            <h6>Disputes answered in writing</h6>
+                            <p>If a line looks wrong, you can flag it within 90 days. Every dispute gets a written response from the finance team, whether it's upheld or not.</p>
+                        </div>
+                    </div>
+
+                    <div class="trust-card green">
+                        <i class="bi bi-file-earmark-check"></i>
+                        <div>
+                            <h6>Tax-ready documents</h6>
+                            <p>Annual summaries and 1099s are generated automatically and stored in your Documents panel — ready to download whenever you need them.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /overview -->
+
+
+    <!-- ====================================================
+         TAB · LEDGER
+         ==================================================== -->
+    <div class="tab-panel" id="tab-ledger" role="tabpanel">
+
+        <article class="panel rise">
+            <div class="panel-head">
+                <h3><i class="bi bi-receipt-cutoff"></i> Full transaction ledger</h3>
+                <button class="panel-link" data-toast="Exporting CSV…">
+                    Export CSV <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+
+            <div class="ledger-filters">
+                <button class="ledger-chip active" data-filter="all">
+                    <i class="bi bi-grid-3x3-gap-fill"></i> All
+                </button>
+                <button class="ledger-chip" data-filter="in">
+                    <i class="bi bi-arrow-down-left"></i> Money in
+                </button>
+                <button class="ledger-chip" data-filter="out">
+                    <i class="bi bi-arrow-up-right"></i> Money out
+                </button>
+                <button class="ledger-chip" data-filter="pending">
+                    <i class="bi bi-hourglass-split"></i> Pending
+                </button>
+                <button class="ledger-chip" data-filter="fees">
+                    <i class="bi bi-percent"></i> Fees
+                </button>
+
+                <div class="ledger-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search transactions…" aria-label="Search transactions">
+                </div>
+            </div>
+
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th class="right">Amount</th>
+                        <th class="right">Balance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- Django: {% for tx in transactions %} … {% endfor %} -->
+
+                    <tr data-kind="in">
+                        <td class="tx-date">14 Mar 2026<small>10:42</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon sky"><i class="bi bi-journal-bookmark-fill"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Course sale · Advanced React Patterns</div>
+                                    <div class="tx-sub">Sara Kim · Order #KN-20481</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount positive">+$84.00<small>Gross $95.45</small></td>
+                        <td class="tx-balance">$1,840.00</td>
+                        <td><span class="status-pill done"><i class="bi bi-check-circle-fill"></i> Cleared</span></td>
+                    </tr>
+
+                    <tr data-kind="in">
+                        <td class="tx-date">14 Mar 2026<small>08:15</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon sky"><i class="bi bi-camera-video-fill"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Live session · React Hooks Deep Dive</div>
+                                    <div class="tx-sub">Cohort of 12 · Session 8 of 12</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount positive">+$120.00<small>Gross $136.36</small></td>
+                        <td class="tx-balance">$1,756.00</td>
+                        <td><span class="status-pill done"><i class="bi bi-check-circle-fill"></i> Cleared</span></td>
+                    </tr>
+
+                    <tr data-kind="pending">
+                        <td class="tx-date">13 Mar 2026<small>21:08</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon amber"><i class="bi bi-hourglass-split"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Course sale · TypeScript for React</div>
+                                    <div class="tx-sub">Jonas Tan · Pending release</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount positive">+$76.00<small>Releases 1 Apr</small></td>
+                        <td class="tx-balance">$1,636.00</td>
+                        <td><span class="status-pill pending"><i class="bi bi-clock-fill"></i> Pending</span></td>
+                    </tr>
+
+                    <tr data-kind="fees">
+                        <td class="tx-date">12 Mar 2026<small>23:59</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon rose"><i class="bi bi-percent"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Platform fee · March cycle</div>
+                                    <div class="tx-sub">12% of $1,583 gross · Level XII rate</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount negative">−$190.00<small>Auto-deducted</small></td>
+                        <td class="tx-balance">$1,636.00</td>
+                        <td><span class="status-pill info"><i class="bi bi-info-circle-fill"></i> Applied</span></td>
+                    </tr>
+
+                    <tr data-kind="in">
+                        <td class="tx-date">12 Mar 2026<small>16:30</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon violet"><i class="bi bi-person-video3"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">1:1 mentorship · Maya Rahman</div>
+                                    <div class="tx-sub">60 minutes · Portfolio review</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount positive">+$140.00<small>Gross $159.09</small></td>
+                        <td class="tx-balance">$1,826.00</td>
+                        <td><span class="status-pill done"><i class="bi bi-check-circle-fill"></i> Cleared</span></td>
+                    </tr>
+
+                    <tr data-kind="out">
+                        <td class="tx-date">01 Mar 2026<small>09:00</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon rose"><i class="bi bi-bank"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Payout · February cycle</div>
+                                    <div class="tx-sub">Bank •••• 8813 · Ref KN-PAY-90412</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount negative">−$1,420.00<small>Transfer</small></td>
+                        <td class="tx-balance">$0.00</td>
+                        <td><span class="status-pill done"><i class="bi bi-check-circle-fill"></i> Paid</span></td>
+                    </tr>
+
+                    <tr data-kind="in">
+                        <td class="tx-date">27 Feb 2026<small>14:22</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon green"><i class="bi bi-star-fill"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Bonus · Top 3% faculty award</div>
+                                    <div class="tx-sub">Season 2026 · Q1 recognition</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount positive">+$80.00<small>Bonus</small></td>
+                        <td class="tx-balance">$1,420.00</td>
+                        <td><span class="status-pill done"><i class="bi bi-check-circle-fill"></i> Cleared</span></td>
+                    </tr>
+
+                    <tr data-kind="in">
+                        <td class="tx-date">26 Feb 2026<small>11:05</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon sky"><i class="bi bi-journal-bookmark-fill"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Course sale · UI/UX Design Systems</div>
+                                    <div class="tx-sub">Tunde Kalu · Order #KN-20388</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount positive">+$112.00<small>Gross $127.27</small></td>
+                        <td class="tx-balance">$1,340.00</td>
+                        <td><span class="status-pill done"><i class="bi bi-check-circle-fill"></i> Cleared</span></td>
+                    </tr>
+
+                    <tr data-kind="fees">
+                        <td class="tx-date">25 Feb 2026<small>23:59</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon rose"><i class="bi bi-receipt"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Processing fee · Bank transfer</div>
+                                    <div class="tx-sub">CHF wire · Ref FEE-38120</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount negative">−$28.00<small>Processing</small></td>
+                        <td class="tx-balance">$1,228.00</td>
+                        <td><span class="status-pill info"><i class="bi bi-info-circle-fill"></i> Applied</span></td>
+                    </tr>
+
+                    <tr data-kind="failed">
+                        <td class="tx-date">22 Feb 2026<small>19:41</small></td>
+                        <td>
+                            <div class="tx-desc">
+                                <span class="tx-icon rose"><i class="bi bi-x-circle-fill"></i></span>
+                                <div class="tx-body">
+                                    <div class="tx-title">Course sale · Backend Fundamentals</div>
+                                    <div class="tx-sub">Payment declined · Order #KN-20301</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tx-amount negative">$0.00<small>Reversed</small></td>
+                        <td class="tx-balance">$1,256.00</td>
+                        <td><span class="status-pill failed"><i class="bi bi-x-circle-fill"></i> Failed</span></td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </article>
+
+    </div><!-- /ledger -->
+
+
+    <!-- ====================================================
+         TAB · PAYOUTS
+         ==================================================== -->
+    <div class="tab-panel" id="tab-payouts" role="tabpanel">
+
+        <section class="bento">
+
+            <!-- ---------- NEXT PAYOUT (span 2) ---------- -->
+            <div class="s-2 rise">
+                <div class="payout-next">
+                    <div class="pn-top">
+                        <span class="pn-badge"><span class="blip"></span> Next payout · 1 Apr 2026</span>
+                        <span class="pn-status"><span class="led"></span> Scheduled</span>
+                    </div>
+
+                    <div class="pn-amount">$1,840<em>.00</em></div>
+
+                    <div class="pn-meta">
+                        <span><i class="bi bi-bank"></i> Bank •••• 8813</span>
+                        <span><i class="bi bi-clock"></i> In <strong>18 days</strong></span>
+                        <span><i class="bi bi-percent"></i> Fee already deducted</span>
+                    </div>
+
+                    <div class="pn-actions">
+                        <button class="btn-gold" data-toast="Requesting early payout…">
+                            <i class="bi bi-lightning-charge-fill"></i> Payout now
+                        </button>
+                        <button class="btn-outline" data-toast="Opening payout settings…">
+                            <i class="bi bi-gear"></i> Payout settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---------- PAYOUT METHODS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-credit-card-2-front-fill"></i> Payout methods</h3>
+                    <button class="panel-link" data-toast="Adding payout method…">
+                        Add method <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="method-card primary" style="margin-bottom: 12px;">
+                        <span class="bank-logo">GT</span>
+                        <div class="method-body">
+                            <h5>Guaranty Trust Bank <span class="badge-primary">Primary</span></h5>
+                            <p>•••• 8813 · NGN · Lagos, Nigeria</p>
+                        </div>
+                        <span class="method-check"><i class="bi bi-check-lg"></i></span>
+                    </div>
+
+                    <div class="method-card" style="margin-bottom: 12px;">
+                        <span class="bank-logo sky">WC</span>
+                        <div class="method-body">
+                            <h5>Wise Business</h5>
+                            <p>•••• 4402 · USD · International</p>
+                        </div>
+                        <span class="method-check off"><i class="bi bi-circle"></i></span>
+                    </div>
+
+                    <div class="method-card">
+                        <span class="bank-logo violet">PP</span>
+                        <div class="method-body">
+                            <h5>PayPal</h5>
+                            <p>daniel.okafor@knotwork.io</p>
+                        </div>
+                        <span class="method-check off"><i class="bi bi-circle"></i></span>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- PAYOUT HISTORY (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head">
+                    <h3><i class="bi bi-clock-history"></i> Payout history</h3>
+                    <button class="panel-link" data-toast="Exporting payout history…">
+                        Export <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-check-circle-fill"></i></span>
+                        <div class="pr-body">
+                            <h5>Payout · February cycle</h5>
+                            <p>1 Mar 2026 · Bank •••• 8813 · Ref KN-PAY-90412</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong>$1,420.00</strong>
+                            <span>Paid</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-check-circle-fill"></i></span>
+                        <div class="pr-body">
+                            <h5>Payout · January cycle</h5>
+                            <p>1 Feb 2026 · Bank •••• 8813 · Ref KN-PAY-89201</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong>$1,240.00</strong>
+                            <span>Paid</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-check-circle-fill"></i></span>
+                        <div class="pr-body">
+                            <h5>Payout · December cycle</h5>
+                            <p>1 Jan 2026 · Bank •••• 8813 · Ref KN-PAY-88041</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong>$780.00</strong>
+                            <span>Paid</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar"><i class="bi bi-check-circle-fill"></i></span>
+                        <div class="pr-body">
+                            <h5>Payout · November cycle</h5>
+                            <p>1 Dec 2025 · Bank •••• 8813 · Ref KN-PAY-86910</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong>$1,020.00</strong>
+                            <span>Paid</span>
+                        </div>
+                    </div>
+
+                    <div class="payout-row">
+                        <span class="pr-avatar failed"><i class="bi bi-x-circle-fill"></i></span>
+                        <div class="pr-body">
+                            <h5>Payout · October cycle</h5>
+                            <p>1 Nov 2025 · Bank declined · Retried on 3 Nov</p>
+                        </div>
+                        <div class="pr-amount">
+                            <strong>$940.00</strong>
+                            <span>Retried</span>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- DOCUMENTS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head leaf">
+                    <h3><i class="bi bi-file-earmark-text"></i> Tax &amp; documents</h3>
+                    <button class="panel-link" data-toast="Opening documents archive…">
+                        Archive <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="doc-row">
+                        <span class="doc-icon"><i class="bi bi-file-earmark-pdf-fill"></i></span>
+                        <div class="doc-body">
+                            <h5>2025 Annual Earnings Statement</h5>
+                            <p>PDF · 248 transactions · 1.2 MB</p>
+                        </div>
+                        <button class="doc-dl" data-toast="Downloading statement…"><i class="bi bi-download"></i></button>
+                    </div>
+
+                    <div class="doc-row">
+                        <span class="doc-icon green"><i class="bi bi-file-earmark-check-fill"></i></span>
+                        <div class="doc-body">
+                            <h5>2025 1099-NEC</h5>
+                            <p>PDF · Issued Jan 2026 · Ready for filing</p>
+                        </div>
+                        <button class="doc-dl" data-toast="Downloading 1099-NEC…"><i class="bi bi-download"></i></button>
+                    </div>
+
+                    <div class="doc-row">
+                        <span class="doc-icon sky"><i class="bi bi-file-earmark-spreadsheet-fill"></i></span>
+                        <div class="doc-body">
+                            <h5>Q1 2026 Ledger Export</h5>
+                            <p>CSV · 62 transactions · 480 KB</p>
+                        </div>
+                        <button class="doc-dl" data-toast="Downloading ledger…"><i class="bi bi-download"></i></button>
+                    </div>
+
+                    <div class="doc-row">
+                        <span class="doc-icon violet"><i class="bi bi-file-earmark-text-fill"></i></span>
+                        <div class="doc-body">
+                            <h5>Faculty Agreement · 2026</h5>
+                            <p>PDF · Signed 12 Feb 2026 · Effective to 31 Dec 2026</p>
+                        </div>
+                        <button class="doc-dl" data-toast="Downloading agreement…"><i class="bi bi-download"></i></button>
+                    </div>
+
+                </div>
+            </article>
+
+            <!-- ---------- PAYOUT SETTINGS (span 2) ---------- -->
+            <article class="panel s-2 rise">
+                <div class="panel-head sky">
+                    <h3><i class="bi bi-sliders"></i> Payout preferences</h3>
+                </div>
+                <div class="panel-body">
+
+                    <div class="ledger-row">
+                        <span class="k"><i class="bi bi-calendar-check"></i> Schedule</span>
+                        <span class="leader"></span>
+                        <span class="v">Monthly · 1st</span>
+                    </div>
+
+                    <div class="ledger-row">
+                        <span class="k"><i class="bi bi-cash-stack"></i> Minimum threshold</span>
+                        <span class="leader"></span>
+                        <span class="v">$100.00</span>
+                    </div>
+
+                    <div class="ledger-row">
+                        <span class="k"><i class="bi bi-currency-exchange"></i> Currency</span>
+                        <span class="leader"></span>
+                        <span class="v">USD</span>
+                    </div>
+
+                    <div class="ledger-row">
+                        <span class="k"><i class="bi bi-shield-check"></i> 2FA on payouts</span>
+                        <span class="leader"></span>
+                        <span class="v leaf">Enabled</span>
+                    </div>
+
+                    <div class="ledger-row">
+                        <span class="k"><i class="bi bi-bell"></i> Email notifications</span>
+                        <span class="leader"></span>
+                        <span class="v leaf">On</span>
+                    </div>
+
+                    <button class="btn-outline-solid" style="width: 100%; justify-content: center; margin-top: 16px;" data-toast="Opening payout preferences…">
+                        <i class="bi bi-gear"></i> Edit preferences
+                    </button>
+
+                </div>
+            </article>
+
+        </section>
+
+    </div><!-- /payouts -->
+
+</div><!-- /.earnings -->
+
+
+<script>
+    (function () {
+        'use strict';
+
+        var root = document.querySelector('.earnings');
+        if (!root) return;
+
+        /* -------------------------------------------------
+           Tabs
+           ------------------------------------------------- */
+        var tabButtons = root.querySelectorAll('.tab-btn');
+        var tabPanels  = root.querySelectorAll('.tab-panel');
+
+        function activateTab(id) {
+            tabButtons.forEach(function (btn) {
+                var on = btn.dataset.tab === id;
+                btn.classList.toggle('active', on);
+                btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            tabPanels.forEach(function (panel) {
+                panel.classList.toggle('active', panel.id === 'tab-' + id);
+            });
+
+            /* animate bars inside the freshly shown panel */
+            requestAnimationFrame(function () {
+                var active = root.querySelector('.tab-panel.active');
+                if (!active) return;
+                active.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                    el.style.width = '0';
+                    requestAnimationFrame(function () {
+                        setTimeout(function () {
+                            el.style.width = Math.min(parseFloat(el.dataset.value) || 0, 100) + '%';
+                        }, 60);
+                    });
+                });
+            });
+        }
+
+        tabButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                activateTab(btn.dataset.tab);
+            });
+        });
+
+        /* links that jump between tabs */
+        root.querySelectorAll('[data-goto-tab]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                activateTab(el.dataset.gotoTab);
+            });
+        });
+
+        /* -------------------------------------------------
+           Animated counters
+           ------------------------------------------------- */
+        root.querySelectorAll('[data-count]').forEach(function (el) {
+            var target = parseFloat(el.dataset.count) || 0;
+            var duration = 1300;
+            var start = null;
+
+            function step(ts) {
+                if (start === null) start = ts;
+                var progress = Math.min((ts - start) / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+
+        /* -------------------------------------------------
+           Progress bars — initial animation
+           ------------------------------------------------- */
+        requestAnimationFrame(function () {
+            var active = root.querySelector('.tab-panel.active');
+            if (!active) return;
+            active.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+                el.style.width = v + '%';
+            });
+        });
+
+        /* -------------------------------------------------
+           Chart bar hover — raise the bar
+           ------------------------------------------------- */
+        root.querySelectorAll('.chart-col').forEach(function (col) {
+            col.addEventListener('mouseenter', function () {
+                var bar = col.querySelector('.chart-bar');
+                if (bar) bar.style.transform = 'translateY(-4px)';
+            });
+            col.addEventListener('mouseleave', function () {
+                var bar = col.querySelector('.chart-bar');
+                if (bar) bar.style.transform = '';
+            });
+        });
+
+        /* -------------------------------------------------
+           Ledger filtering
+           ------------------------------------------------- */
+        var ledgerChips = root.querySelectorAll('.ledger-chip');
+        var ledgerRows  = root.querySelectorAll('.ledger-table tbody tr');
+
+        ledgerChips.forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                var filter = chip.dataset.filter;
+
+                ledgerChips.forEach(function (c) {
+                    c.classList.toggle('active', c === chip);
+                });
+
+                ledgerRows.forEach(function (row) {
+                    var kind = row.dataset.kind || '';
+                    var show = filter === 'all'
+                        || (filter === 'in'      && kind === 'in')
+                        || (filter === 'out'     && kind === 'out')
+                        || (filter === 'pending' && kind === 'pending')
+                        || (filter === 'fees'    && kind === 'fees');
+                    row.style.display = show ? '' : 'none';
+                });
+            });
+        });
+
+        /* -------------------------------------------------
+           Live clock
+           ------------------------------------------------- */
+        var clock = root.querySelector('[data-clock]');
+        if (clock) {
+            var tick = function () {
+                var d = new Date();
+                clock.textContent =
+                    String(d.getHours()).padStart(2, '0') + ':' +
+                    String(d.getMinutes()).padStart(2, '0');
+            };
+            tick();
+            setInterval(tick, 20000);
+        }
+
+        /* -------------------------------------------------
+           Ledger search (simple client-side match)
+           ------------------------------------------------- */
+        var search = root.querySelector('.ledger-search input');
+        if (search) {
+            search.addEventListener('input', function () {
+                var q = search.value.trim().toLowerCase();
+                ledgerRows.forEach(function (row) {
+                    var text = row.textContent.toLowerCase();
+                    var hidden = q && text.indexOf(q) === -1;
+                    if (hidden) {
+                        row.style.display = 'none';
+                    } else {
+                        /* respect current chip filter */
+                        var active = root.querySelector('.ledger-chip.active');
+                        var f = active ? active.dataset.filter : 'all';
+                        var kind = row.dataset.kind || '';
+                        var ok = f === 'all'
+                            || (f === 'in'      && kind === 'in')
+                            || (f === 'out'     && kind === 'out')
+                            || (f === 'pending' && kind === 'pending')
+                            || (f === 'fees'    && kind === 'fees');
+                        row.style.display = ok ? '' : 'none';
+                    }
+                });
+            });
+        }
+
+        /* -------------------------------------------------
+           Ledger row tap → toast detail
+           ------------------------------------------------- */
+        ledgerRows.forEach(function (row) {
+            row.addEventListener('click', function () {
+                var titleEl = row.querySelector('.tx-title');
+                if (titleEl && typeof window.__toast === 'function') {
+                    window.__toast(titleEl.textContent.trim(), null);
+                }
+            });
+        });
+
+        /* -------------------------------------------------
+           Subtle parallax on the balance disc
+           ------------------------------------------------- */
+        var disc = root.querySelector('.balance-disc');
+        if (disc && window.matchMedia('(pointer:fine)').matches) {
+            var wrap = disc.closest('.vault') || disc;
+            wrap.addEventListener('mousemove', function (e) {
+                var r = wrap.getBoundingClientRect();
+                var px = (e.clientX - r.left) / r.width - 0.5;
+                var py = (e.clientY - r.top) / r.height - 0.5;
+                disc.style.transform =
+                    'translate(' + (px * 8) + 'px,' + (py * 8) + 'px)';
+            });
+            wrap.addEventListener('mouseleave', function () {
+                disc.style.transform = '';
+            });
+        }
+    })();
+</script>
+
+{% endblock content %}

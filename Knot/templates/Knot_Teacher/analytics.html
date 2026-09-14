@@ -1,0 +1,2040 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+{% block breadcrumb %}Analytics{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ANALYTICS — the observatory
+   Teal-forward. Data-dense. Trustworthy.
+   ============================================================ */
+
+.analytics{
+    --teal:        #14B8A6;
+    --teal-light:  #5EEAD4;
+    --teal-deep:   #0D9488;
+    --teal-soft:   rgba(20, 184, 166, 0.12);
+    --teal-line:   rgba(20, 184, 166, 0.34);
+
+    --gold:        #C89B3F;
+    --gold-light:  #E5C177;
+    --gold-deep:   #A67C2E;
+    --gold-soft:   rgba(200, 155, 63, 0.12);
+    --gold-line:   rgba(200, 155, 63, 0.32);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-light:   #7DD3FC;
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+
+    --violet:      #8B5CF6;
+    --violet-light:#A78BFA;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+
+    --emerald:     #10B981;
+    --emerald-light:#6EE7B7;
+    --emerald-soft:rgba(16, 185, 129, 0.12);
+
+    --rose:        #F43F5E;
+    --rose-light:  #FB7185;
+    --rose-soft:   rgba(244, 63, 94, 0.10);
+
+    --amber:       #F59E0B;
+    --amber-light: #FCD34D;
+    --amber-soft:  rgba(245, 158, 11, 0.12);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.analytics .an-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: anRise .7s var(--ease) forwards;
+}
+.analytics .an-rise:nth-child(1){ animation-delay: .02s; }
+.analytics .an-rise:nth-child(2){ animation-delay: .08s; }
+.analytics .an-rise:nth-child(3){ animation-delay: .14s; }
+.analytics .an-rise:nth-child(4){ animation-delay: .20s; }
+.analytics .an-rise:nth-child(5){ animation-delay: .26s; }
+@keyframes anRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.an-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.an-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--teal) 0%,
+        var(--teal-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.an-mast-left .an-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal-deep);
+    margin-bottom: 10px;
+}
+.an-mast-left .an-kicker i{ color: var(--teal); font-size: 0.72rem; }
+.an-mast-left .an-kicker .live-dot{
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--emerald);
+    margin-left: 4px;
+    animation: anPulse 2s ease-in-out infinite;
+}
+@keyframes anPulse{
+    0%, 100%{ box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    50%     { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+}
+
+.an-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.an-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--teal-deep), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.an-mast-left .an-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.an-mast-left .an-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.an-mast-left .an-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.an-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* period selector */
+.period-tabs{
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+}
+.period-tab{
+    padding: 7px 14px;
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.period-tab:hover{ color: var(--ink); background: var(--paper-2); }
+.period-tab.active{
+    background: linear-gradient(135deg, var(--ink), var(--ink-3));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(11, 17, 33, 0.16);
+}
+
+/* ---------- buttons ---------- */
+.analytics .btn-teal{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--teal-light), var(--teal));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(20, 184, 166, 0.32);
+}
+.analytics .btn-teal:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(20, 184, 166, 0.46);
+}
+.analytics .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.analytics .btn-ghost:hover{
+    border-color: var(--teal); color: var(--teal-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   2 · TRIAGE STRIP — 5 metric tiles with sparklines
+   ============================================================ */
+.triage{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 1180px){ .triage{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .triage{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tri-tile{
+    position: relative;
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tri-tile::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--teal), var(--teal-light));
+    border-radius: 3px 3px 0 0;
+}
+.tri-tile.gold::before{ background: linear-gradient(90deg, var(--gold-light), var(--gold)); }
+.tri-tile.sky::before{ background: linear-gradient(90deg, var(--sky-light), var(--sky)); }
+.tri-tile.violet::before{ background: linear-gradient(90deg, var(--violet-light), var(--violet)); }
+.tri-tile.emerald::before{ background: linear-gradient(90deg, var(--emerald-light), var(--emerald)); }
+
+.tri-tile:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--teal-line);
+}
+
+.tt-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tt-icon{
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    font-size: 0.8rem;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    flex-shrink: 0;
+}
+.tri-tile.gold .tt-icon{ background: var(--gold-soft); color: var(--gold-deep); }
+.tri-tile.sky .tt-icon{ background: var(--sky-soft); color: #0284C7; }
+.tri-tile.violet .tt-icon{ background: var(--violet-soft); color: var(--violet); }
+.tri-tile.emerald .tt-icon{ background: var(--emerald-soft); color: var(--emerald); }
+
+.tt-micro{
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.tt-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.tt-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+.tt-label{
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+.tt-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 2px;
+}
+.tt-change{
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    padding: 3px 8px;
+    border-radius: 50px;
+}
+.tt-change.up{ background: var(--emerald-soft); color: var(--emerald); }
+.tt-change.down{ background: var(--rose-soft); color: var(--rose); }
+.tt-change i{ font-size: 0.56rem; }
+.tt-spark{
+    width: 60px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   3 · BIG CHART PANELS
+   ============================================================ */
+.chart-panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+    transition: var(--transition, all .25s ease);
+}
+.chart-panel:hover{ box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10)); }
+
+.panel-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.panel-head-left{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.panel-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.panel-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    flex-shrink: 0;
+}
+.panel-head.gold h3 i{ background: var(--gold-soft); color: var(--gold-deep); }
+.panel-head.violet h3 i{ background: var(--violet-soft); color: var(--violet); }
+.panel-head.emerald h3 i{ background: var(--emerald-soft); color: var(--emerald); }
+.panel-head.sky h3 i{ background: var(--sky-soft); color: #0284C7; }
+
+.panel-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 50px;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+}
+.panel-badge i{ font-size: 0.62rem; }
+
+.panel-head-actions{
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.mini-tab{
+    padding: 5px 11px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.mini-tab:hover{ color: var(--ink); border-color: var(--teal-line); }
+.mini-tab.active{
+    background: var(--teal-soft);
+    border-color: var(--teal-line);
+    color: var(--teal-deep);
+}
+
+.panel-link{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.panel-link:hover{ color: var(--teal-deep); gap: 9px; }
+
+.panel-body{ padding: 20px 22px 22px; }
+
+/* ============================================================
+   4 · MAIN GRID — Revenue chart + Growth chart
+   ============================================================ */
+.main-grid{
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+@media (max-width: 1180px){
+    .main-grid{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Revenue area chart ---------- */
+.revenue-total{
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.revenue-total .big{
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.028em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.revenue-total .big em{
+    font-style: normal;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+.revenue-total .delta{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    background: var(--emerald-soft);
+    color: var(--emerald);
+}
+.revenue-total .delta i{ font-size: 0.62rem; }
+.revenue-total .caption{
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 500;
+    margin-left: auto;
+}
+
+.chart-frame{
+    position: relative;
+    width: 100%;
+    height: 240px;
+    margin-top: 8px;
+}
+.chart-frame svg{
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.chart-gridline{
+    stroke: var(--line-soft);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+}
+.chart-axis-label{
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    fill: var(--faint);
+    letter-spacing: 0.06em;
+}
+.chart-axis-label.month{
+    text-transform: uppercase;
+}
+
+.area-path{
+    fill: url(#revenueGradient);
+}
+.line-path{
+    fill: none;
+    stroke: var(--teal);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 4px 8px rgba(20, 184, 166, 0.24));
+}
+.point-dot{
+    fill: var(--paper);
+    stroke: var(--teal);
+    stroke-width: 2;
+    transition: r 0.2s ease;
+}
+.point-dot.highlight{
+    fill: var(--teal);
+    stroke: var(--paper);
+    stroke-width: 3;
+}
+.point-hit{
+    fill: transparent;
+    cursor: pointer;
+}
+
+.chart-tooltip{
+    position: absolute;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.24);
+    white-space: nowrap;
+    z-index: 5;
+    transform: translate(-50%, -100%);
+}
+.chart-tooltip.show{ opacity: 1; }
+.chart-tooltip .tt-k{
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal-light);
+    margin-bottom: 2px;
+    display: block;
+}
+.chart-tooltip .tt-v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Growth bars ---------- */
+.growth-bars{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+    height: 200px;
+    padding: 12px 4px 0;
+    margin-top: 8px;
+    position: relative;
+}
+.growth-bars::before{
+    content: '';
+    position: absolute;
+    left: 4px; right: 4px;
+    bottom: 28px;
+    height: 1px;
+    background: var(--line-soft);
+}
+.gb-col{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    position: relative;
+    cursor: pointer;
+}
+.gb-track{
+    position: relative;
+    width: 100%;
+    max-width: 28px;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+}
+.gb-bar{
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--teal), var(--teal-deep));
+    transition: height 1s var(--ease), background 0.2s ease;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.22);
+}
+.gb-bar::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.24), transparent 50%);
+    pointer-events: none;
+}
+.gb-col:hover .gb-bar{
+    background: linear-gradient(180deg, var(--teal-light), var(--teal));
+}
+.gb-col.peak .gb-bar{
+    background: linear-gradient(180deg, var(--gold-light), var(--gold));
+    box-shadow: 0 4px 10px rgba(200, 155, 63, 0.28);
+}
+.gb-col.peak:hover .gb-bar{
+    background: linear-gradient(180deg, var(--gold-light), var(--gold-deep));
+}
+.gb-col .gb-val{
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+.gb-col:hover .gb-val,
+.gb-col.peak .gb-val{
+    opacity: 1;
+}
+.gb-label{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    line-height: 1;
+}
+.gb-col.peak .gb-label{ color: var(--gold-deep); }
+
+/* ============================================================
+   5 · SECONDARY GRID — Courses + Insights
+   ============================================================ */
+.secondary-grid{
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+@media (max-width: 1180px){
+    .secondary-grid{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Course performance table ---------- */
+.course-table{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.ct-row{
+    display: grid;
+    grid-template-columns: 44px minmax(0, 2fr) minmax(0, 1fr) 100px 70px 70px;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 6px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .2s ease);
+    cursor: pointer;
+}
+.ct-row:last-child{ border-bottom: none; }
+.ct-row:hover{
+    background: var(--paper-2);
+    border-radius: 10px;
+    padding-left: 12px;
+}
+.ct-head{
+    display: grid;
+    grid-template-columns: 44px minmax(0, 2fr) minmax(0, 1fr) 100px 70px 70px;
+    gap: 14px;
+    align-items: center;
+    padding: 4px 6px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.ct-head > div:nth-child(n+3){ text-align: right; }
+
+.ct-av{
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--teal-light), var(--teal));
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.24);
+}
+.ct-av.gold{ background: linear-gradient(135deg, var(--gold-light), var(--gold)); box-shadow: 0 4px 10px rgba(200, 155, 63, 0.24); }
+.ct-av.sky{ background: linear-gradient(135deg, var(--sky-light), var(--sky)); color: #fff; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.24); }
+.ct-av.violet{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.24); }
+.ct-av.emerald{ background: linear-gradient(135deg, var(--emerald-light), var(--emerald)); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.24); }
+
+.ct-name h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ct-name p{
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ct-progress{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.ct-progress .bar{
+    flex: 1;
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    overflow: hidden;
+    min-width: 0;
+}
+.ct-progress .bar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--teal), var(--teal-deep));
+    transition: width 1.1s var(--ease);
+}
+.ct-row.gold .ct-progress .bar > span{ background: linear-gradient(90deg, var(--gold-light), var(--gold)); }
+.ct-row.sky .ct-progress .bar > span{ background: linear-gradient(90deg, var(--sky-light), var(--sky)); }
+.ct-row.violet .ct-progress .bar > span{ background: linear-gradient(90deg, var(--violet-light), var(--violet)); }
+.ct-row.emerald .ct-progress .bar > span{ background: linear-gradient(90deg, var(--emerald-light), var(--emerald)); }
+
+.ct-progress .pct{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    min-width: 32px;
+    text-align: right;
+}
+
+.ct-stat{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+.ct-stat.gold{ color: var(--gold-deep); }
+.ct-stat.emerald{ color: var(--emerald); }
+.ct-stat i{
+    font-size: 0.7rem;
+    color: var(--gold);
+    margin-right: 2px;
+}
+
+@media (max-width: 780px){
+    .ct-head{ display: none; }
+    .ct-row{
+        grid-template-columns: 44px 1fr;
+        gap: 12px;
+        padding: 14px 4px;
+    }
+    .ct-row > div:nth-child(n+3){
+        display: none;
+    }
+    .ct-row > .ct-progress{
+        grid-column: 1 / -1;
+        display: flex;
+        margin-top: 4px;
+    }
+}
+
+/* ---------- Insights rail ---------- */
+.insights{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.insight{
+    position: relative;
+    padding: 14px 16px 14px 48px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+}
+.insight:hover{
+    background: var(--paper);
+    border-color: var(--teal-line);
+    transform: translateX(3px);
+}
+.insight .ic{
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+}
+.insight.warn .ic{ background: var(--amber-soft); color: #B45309; }
+.insight.bad .ic{ background: var(--rose-soft); color: var(--rose); }
+.insight.good .ic{ background: var(--emerald-soft); color: var(--emerald); }
+.insight.gold .ic{ background: var(--gold-soft); color: var(--gold-deep); }
+
+.insight .body h5{
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.35;
+    margin-bottom: 4px;
+}
+.insight .body h5 strong{ color: var(--ink); font-weight: 700; }
+.insight .body p{
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.55;
+    font-weight: 500;
+}
+.insight .body .meta{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.insight .body .meta i{ font-size: 0.6rem; }
+
+/* ============================================================
+   6 · HEATMAP
+   ============================================================ */
+.heatmap{
+    display: grid;
+    grid-template-columns: 60px repeat(6, 1fr);
+    gap: 6px;
+}
+.hm-corner{ }
+.hm-head{
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.hm-side{
+    padding: 14px 12px 14px 0;
+    text-align: right;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    border-right: 1px solid var(--line-soft);
+    font-variant-numeric: tabular-nums;
+}
+.hm-cell{
+    position: relative;
+    min-height: 56px;
+    border-radius: 10px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    overflow: hidden;
+}
+.hm-cell:hover{
+    transform: scale(1.04);
+    border-color: var(--teal-line);
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.18);
+    z-index: 2;
+}
+.hm-cell.l-0{ background: var(--paper-2); color: var(--faint); }
+.hm-cell.l-1{ background: rgba(20, 184, 166, 0.08); color: var(--teal-deep); border-color: rgba(20, 184, 166, 0.16); }
+.hm-cell.l-2{ background: rgba(20, 184, 166, 0.18); color: var(--teal-deep); border-color: rgba(20, 184, 166, 0.26); }
+.hm-cell.l-3{ background: rgba(20, 184, 166, 0.34); color: #fff; border-color: rgba(20, 184, 166, 0.42); }
+.hm-cell.l-4{ background: rgba(20, 184, 166, 0.62); color: #fff; border-color: transparent; }
+.hm-cell.l-5{ background: linear-gradient(135deg, var(--teal), var(--teal-deep)); color: #fff; border-color: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+
+.hm-legend{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 14px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.hm-legend .swatch{
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--line-soft);
+}
+.hm-legend .swatch.l-0{ background: var(--paper-2); }
+.hm-legend .swatch.l-1{ background: rgba(20, 184, 166, 0.08); }
+.hm-legend .swatch.l-2{ background: rgba(20, 184, 166, 0.18); }
+.hm-legend .swatch.l-3{ background: rgba(20, 184, 166, 0.34); }
+.hm-legend .swatch.l-4{ background: rgba(20, 184, 166, 0.62); }
+.hm-legend .swatch.l-5{ background: linear-gradient(135deg, var(--teal), var(--teal-deep)); }
+
+@media (max-width: 780px){
+    .heatmap{ grid-template-columns: 40px repeat(6, 1fr); gap: 4px; }
+    .hm-side{ font-size: 0.62rem; padding: 10px 6px 10px 0; }
+    .hm-cell{ min-height: 40px; font-size: 0.68rem; border-radius: 8px; }
+    .hm-head{ font-size: 0.5rem; padding: 4px 2px; }
+}
+
+/* ============================================================
+   7 · COMPARISON / PEER BENCHMARK
+   ============================================================ */
+.bench-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.bench-row{
+    display: grid;
+    grid-template-columns: 110px 1fr 60px;
+    gap: 14px;
+    align-items: center;
+}
+.bench-row .bl{
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bench-row .bl i{
+    font-size: 0.66rem;
+    color: var(--faint);
+    flex-shrink: 0;
+}
+.bench-track{
+    position: relative;
+    height: 20px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    overflow: hidden;
+}
+.bench-fill{
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--teal-light), var(--teal));
+    transition: width 1.2s var(--ease);
+}
+.bench-fill.gold{ background: linear-gradient(90deg, var(--gold-light), var(--gold)); }
+.bench-fill.sky{ background: linear-gradient(90deg, var(--sky-light), var(--sky)); }
+.bench-fill.violet{ background: linear-gradient(90deg, var(--violet-light), var(--violet)); }
+.bench-fill.emerald{ background: linear-gradient(90deg, var(--emerald-light), var(--emerald)); }
+.bench-fill.rose{ background: linear-gradient(90deg, var(--rose-light), var(--rose)); }
+
+.bench-median{
+    position: absolute;
+    top: -3px; bottom: -3px;
+    width: 2px;
+    background: var(--ink-3);
+    opacity: 0.5;
+    border-radius: 1px;
+}
+.bench-median::after{
+    content: '';
+    position: absolute;
+    top: -3px; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-3);
+}
+
+.bench-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+.bench-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--muted);
+    display: block;
+    margin-top: 1px;
+}
+
+.bench-legend{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    flex-wrap: wrap;
+}
+.bench-legend span{ display: inline-flex; align-items: center; gap: 6px; }
+.bench-legend .dot{
+    width: 8px; height: 8px;
+    border-radius: 50%;
+}
+.bench-legend .dot.you{ background: var(--teal); }
+.bench-legend .dot.median{ background: var(--ink-3); opacity: 0.5; }
+
+/* ============================================================
+   8 · FOOTER BAR
+   ============================================================ */
+.an-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 4px 4px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.an-foot strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.an-foot .foot-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================================
+   9 · RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .an-mast-left h1{ font-size: 1.5rem; }
+    .period-tabs{ width: 100%; overflow-x: auto; }
+    .revenue-total .big{ font-size: 1.8rem; }
+    .chart-frame{ height: 180px; }
+    .growth-bars{ height: 150px; }
+    .bench-row{ grid-template-columns: 80px 1fr 50px; gap: 8px; }
+    .bench-row .bl{ font-size: 0.64rem; }
+    .panel-head{ padding: 14px 16px 12px; }
+    .panel-body{ padding: 16px 16px 18px; }
+}
+</style>
+
+
+<div class="analytics">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="an-mast an-rise">
+        <div class="an-mast-left">
+            <span class="an-kicker">
+                <i class="bi bi-graph-up-arrow"></i> Faculty Analytics
+                <span class="live-dot" aria-label="Live"></span>
+            </span>
+            <h1>What the numbers <em>whisper.</em></h1>
+            <p class="an-sub">
+                <strong>12</strong> months of data
+                <span class="sep"></span>
+                <strong>148</strong> students tracked
+                <span class="sep"></span>
+                <strong>$12,560</strong> lifetime
+                <span class="sep"></span>
+                Last synced <strong>2m ago</strong>
+            </p>
+        </div>
+        <div class="an-mast-right">
+            <div class="period-tabs" role="tablist" aria-label="Time period">
+                <button class="period-tab" data-period="7d">7d</button>
+                <button class="period-tab" data-period="30d">30d</button>
+                <button class="period-tab" data-period="90d">90d</button>
+                <button class="period-tab active" data-period="1y">1y</button>
+                <button class="period-tab" data-period="all">All</button>
+            </div>
+            <button class="btn-ghost" data-toast="Exporting analytics…">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · TRIAGE — 5 metric tiles
+         ==================================================== -->
+    <section class="triage">
+
+        <article class="tri-tile an-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-cash-stack"></i></span>
+                <span class="tt-micro">Revenue</span>
+            </div>
+            <div class="tt-val">$1,840</div>
+            <div class="tt-label">This month</div>
+            <div class="tt-foot">
+                <span class="tt-change up"><i class="bi bi-arrow-up-short"></i> 24%</span>
+                <svg class="tt-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                    <path d="M0,20 L8,17 L16,19 L24,12 L32,14 L40,8 L48,10 L56,4 L60,6"
+                          fill="none" stroke="#14B8A6" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </article>
+
+        <article class="tri-tile emerald an-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-people-fill"></i></span>
+                <span class="tt-micro">Students</span>
+            </div>
+            <div class="tt-val" data-count="148">0</div>
+            <div class="tt-label">Active cohort</div>
+            <div class="tt-foot">
+                <span class="tt-change up"><i class="bi bi-arrow-up-short"></i> +12</span>
+                <svg class="tt-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                    <path d="M0,22 L8,20 L16,18 L24,15 L32,13 L40,10 L48,7 L56,4 L60,2"
+                          fill="none" stroke="#10B981" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </article>
+
+        <article class="tri-tile gold an-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-star-fill"></i></span>
+                <span class="tt-micro">Rating</span>
+            </div>
+            <div class="tt-val">4.87<em>★</em></div>
+            <div class="tt-label">Across 128 reviews</div>
+            <div class="tt-foot">
+                <span class="tt-change up"><i class="bi bi-arrow-up-short"></i> +0.04</span>
+                <svg class="tt-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                    <path d="M0,14 L8,13 L16,12 L24,11 L32,10 L40,9 L48,8 L56,7 L60,6"
+                          fill="none" stroke="#C89B3F" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </article>
+
+        <article class="tri-tile sky an-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-check2-circle"></i></span>
+                <span class="tt-micro">Completion</span>
+            </div>
+            <div class="tt-val">96<em>%</em></div>
+            <div class="tt-label">Across all courses</div>
+            <div class="tt-foot">
+                <span class="tt-change up"><i class="bi bi-arrow-up-short"></i> +1.2</span>
+                <svg class="tt-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                    <path d="M0,10 L8,9 L16,10 L24,8 L32,7 L40,8 L48,6 L56,5 L60,4"
+                          fill="none" stroke="#38BDF8" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </article>
+
+        <article class="tri-tile violet an-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                <span class="tt-micro">Engagement</span>
+            </div>
+            <div class="tt-val">84<em>%</em></div>
+            <div class="tt-label">Weekly active</div>
+            <div class="tt-foot">
+                <span class="tt-change up"><i class="bi bi-arrow-up-short"></i> +3.4</span>
+                <svg class="tt-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                    <path d="M0,15 L8,14 L16,16 L24,12 L32,13 L40,9 L48,10 L56,7 L60,5"
+                          fill="none" stroke="#8B5CF6" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- ====================================================
+         3 · MAIN GRID — Revenue + Growth
+         ==================================================== -->
+    <section class="main-grid">
+
+        <!-- Revenue trend -->
+        <article class="chart-panel an-rise">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <h3><i class="bi bi-graph-up-arrow"></i> Revenue trend</h3>
+                    <span class="panel-badge"><i class="bi bi-calendar3"></i> Last 12 months</span>
+                </div>
+                <div class="panel-head-actions">
+                    <button class="mini-tab active">Gross</button>
+                    <button class="mini-tab">Net</button>
+                    <button class="mini-tab">Per course</button>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <div class="revenue-total">
+                    <span class="big">$12,560<em>.00</em></span>
+                    <span class="delta"><i class="bi bi-arrow-up-short"></i> +18.4% YoY</span>
+                    <span class="caption">Peak month: <strong>March</strong> · $1,840</span>
+                </div>
+
+                <div class="chart-frame">
+                    <svg viewBox="0 0 640 220" preserveAspectRatio="none" id="revenueChart">
+                        <defs>
+                            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%"   stop-color="#14B8A6" stop-opacity="0.32"/>
+                                <stop offset="60%"  stop-color="#14B8A6" stop-opacity="0.06"/>
+                                <stop offset="100%" stop-color="#14B8A6" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- gridlines -->
+                        <line class="chart-gridline" x1="0" y1="30"  x2="640" y2="30"/>
+                        <line class="chart-gridline" x1="0" y1="70"  x2="640" y2="70"/>
+                        <line class="chart-gridline" x1="0" y1="110" x2="640" y2="110"/>
+                        <line class="chart-gridline" x1="0" y1="150" x2="640" y2="150"/>
+                        <line class="chart-gridline" x1="0" y1="190" x2="640" y2="190"/>
+
+                        <!-- area path -->
+                        <path class="area-path"
+                              d="M0,170 L58,160 L116,148 L174,152 L232,120 L290,110 L348,90 L406,96 L464,60 L522,50 L580,38 L640,42 L640,190 L0,190 Z"/>
+
+                        <!-- line -->
+                        <path class="line-path"
+                              d="M0,170 L58,160 L116,148 L174,152 L232,120 L290,110 L348,90 L406,96 L464,60 L522,50 L580,38 L640,42"/>
+
+                        <!-- month axis labels -->
+                        <text class="chart-axis-label month" x="8"   y="212">Apr</text>
+                        <text class="chart-axis-label month" x="66"  y="212">May</text>
+                        <text class="chart-axis-label month" x="124" y="212">Jun</text>
+                        <text class="chart-axis-label month" x="182" y="212">Jul</text>
+                        <text class="chart-axis-label month" x="240" y="212">Aug</text>
+                        <text class="chart-axis-label month" x="298" y="212">Sep</text>
+                        <text class="chart-axis-label month" x="356" y="212">Oct</text>
+                        <text class="chart-axis-label month" x="414" y="212">Nov</text>
+                        <text class="chart-axis-label month" x="472" y="212">Dec</text>
+                        <text class="chart-axis-label month" x="530" y="212">Jan</text>
+                        <text class="chart-axis-label month" x="588" y="212">Feb</text>
+                        <text class="chart-axis-label month" x="622" y="212">Mar</text>
+
+                        <!-- y axis values (light) -->
+                        <text class="chart-axis-label" x="0" y="24">$2k</text>
+                        <text class="chart-axis-label" x="0" y="104">$1k</text>
+                        <text class="chart-axis-label" x="0" y="184">$0</text>
+
+                        <!-- data points -->
+                        <circle class="point-dot" cx="0"   cy="170" r="4"/>
+                        <circle class="point-dot" cx="58"  cy="160" r="4"/>
+                        <circle class="point-dot" cx="116" cy="148" r="4"/>
+                        <circle class="point-dot" cx="174" cy="152" r="4"/>
+                        <circle class="point-dot" cx="232" cy="120" r="4"/>
+                        <circle class="point-dot" cx="290" cy="110" r="4"/>
+                        <circle class="point-dot" cx="348" cy="90"  r="4"/>
+                        <circle class="point-dot" cx="406" cy="96"  r="4"/>
+                        <circle class="point-dot" cx="464" cy="60"  r="4"/>
+                        <circle class="point-dot" cx="522" cy="50"  r="4"/>
+                        <circle class="point-dot highlight" cx="580" cy="38" r="5"/>
+                        <circle class="point-dot" cx="640" cy="42"  r="4"/>
+
+                        <!-- invisible hover hit areas -->
+                        <g data-month="Apr" data-val="$980">
+                            <rect class="point-hit" x="-20" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="May" data-val="$1,140">
+                            <rect class="point-hit" x="40" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Jun" data-val="$1,320">
+                            <rect class="point-hit" x="98" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Jul" data-val="$1,280">
+                            <rect class="point-hit" x="156" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Aug" data-val="$1,560">
+                            <rect class="point-hit" x="214" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Sep" data-val="$1,680">
+                            <rect class="point-hit" x="272" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Oct" data-val="$1,920">
+                            <rect class="point-hit" x="330" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Nov" data-val="$1,850">
+                            <rect class="point-hit" x="388" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Dec" data-val="$2,240">
+                            <rect class="point-hit" x="446" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Jan" data-val="$2,380">
+                            <rect class="point-hit" x="504" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Feb" data-val="$2,560">
+                            <rect class="point-hit" x="562" y="0" width="60" height="200"/>
+                        </g>
+                        <g data-month="Mar" data-val="$1,840">
+                            <rect class="point-hit" x="620" y="0" width="20" height="200"/>
+                        </g>
+                    </svg>
+
+                    <div class="chart-tooltip" id="revenueTooltip">
+                        <span class="tt-k">Month</span>
+                        <div class="tt-v">—</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Student growth -->
+        <article class="chart-panel an-rise">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <h3><i class="bi bi-people-fill"></i> Student growth</h3>
+                </div>
+                <button class="panel-link" data-toast="Opening full growth report…">
+                    Detail <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="revenue-total">
+                    <span class="big">148<em>students</em></span>
+                    <span class="delta"><i class="bi bi-arrow-up-short"></i> +12 this mo</span>
+                </div>
+                <div class="growth-bars">
+                    <div class="gb-col" data-month="Apr" data-val="62">
+                        <div class="gb-track"><div class="gb-val">62</div><div class="gb-bar" style="height: 40%"></div></div>
+                        <div class="gb-label">Apr</div>
+                    </div>
+                    <div class="gb-col" data-month="May" data-val="71">
+                        <div class="gb-track"><div class="gb-val">71</div><div class="gb-bar" style="height: 48%"></div></div>
+                        <div class="gb-label">May</div>
+                    </div>
+                    <div class="gb-col" data-month="Jun" data-val="78">
+                        <div class="gb-track"><div class="gb-val">78</div><div class="gb-bar" style="height: 54%"></div></div>
+                        <div class="gb-label">Jun</div>
+                    </div>
+                    <div class="gb-col" data-month="Jul" data-val="82">
+                        <div class="gb-track"><div class="gb-val">82</div><div class="gb-bar" style="height: 56%"></div></div>
+                        <div class="gb-label">Jul</div>
+                    </div>
+                    <div class="gb-col" data-month="Aug" data-val="94">
+                        <div class="gb-track"><div class="gb-val">94</div><div class="gb-bar" style="height: 64%"></div></div>
+                        <div class="gb-label">Aug</div>
+                    </div>
+                    <div class="gb-col" data-month="Sep" data-val="106">
+                        <div class="gb-track"><div class="gb-val">106</div><div class="gb-bar" style="height: 72%"></div></div>
+                        <div class="gb-label">Sep</div>
+                    </div>
+                    <div class="gb-col" data-month="Oct" data-val="118">
+                        <div class="gb-track"><div class="gb-val">118</div><div class="gb-bar" style="height: 80%"></div></div>
+                        <div class="gb-label">Oct</div>
+                    </div>
+                    <div class="gb-col" data-month="Nov" data-val="122">
+                        <div class="gb-track"><div class="gb-val">122</div><div class="gb-bar" style="height: 84%"></div></div>
+                        <div class="gb-label">Nov</div>
+                    </div>
+                    <div class="gb-col" data-month="Dec" data-val="134">
+                        <div class="gb-track"><div class="gb-val">134</div><div class="gb-bar" style="height: 91%"></div></div>
+                        <div class="gb-label">Dec</div>
+                    </div>
+                    <div class="gb-col peak" data-month="Jan" data-val="148">
+                        <div class="gb-track"><div class="gb-val">148</div><div class="gb-bar" style="height: 100%"></div></div>
+                        <div class="gb-label">Jan</div>
+                    </div>
+                    <div class="gb-col" data-month="Feb" data-val="146">
+                        <div class="gb-track"><div class="gb-val">146</div><div class="gb-bar" style="height: 99%"></div></div>
+                        <div class="gb-label">Feb</div>
+                    </div>
+                    <div class="gb-col" data-month="Mar" data-val="148">
+                        <div class="gb-track"><div class="gb-val">148</div><div class="gb-bar" style="height: 100%"></div></div>
+                        <div class="gb-label">Mar</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- ====================================================
+         4 · SECONDARY GRID — Courses + Insights
+         ==================================================== -->
+    <section class="secondary-grid">
+
+        <!-- Course performance table -->
+        <article class="chart-panel an-rise">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <h3><i class="bi bi-bar-chart-steps"></i> Course performance</h3>
+                    <span class="panel-badge"><i class="bi bi-journal-bookmark-fill"></i> 6 courses</span>
+                </div>
+                <button class="panel-link" data-toast="Opening full course report…">
+                    Full report <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="course-table">
+
+                    <div class="ct-head">
+                        <div></div>
+                        <div>Course</div>
+                        <div>Completion</div>
+                        <div>Students</div>
+                        <div>Rating</div>
+                        <div>Revenue</div>
+                    </div>
+
+                    <div class="ct-row gold" data-toast="Opening Advanced React Patterns…">
+                        <span class="ct-av gold">I</span>
+                        <div class="ct-name">
+                            <h5>Advanced React Patterns</h5>
+                            <p>12 modules · 42 students enrolled</p>
+                        </div>
+                        <div class="ct-progress">
+                            <div class="bar"><span data-value="68"></span></div>
+                            <span class="pct">68%</span>
+                        </div>
+                        <div class="ct-stat">42</div>
+                        <div class="ct-stat"><i class="bi bi-star-fill"></i>4.9</div>
+                        <div class="ct-stat gold">$5.4k</div>
+                    </div>
+
+                    <div class="ct-row sky" data-toast="Opening UI/UX Design Systems…">
+                        <span class="ct-av sky">II</span>
+                        <div class="ct-name">
+                            <h5>UI/UX Design Systems</h5>
+                            <p>16 modules · 36 students enrolled</p>
+                        </div>
+                        <div class="ct-progress">
+                            <div class="bar"><span data-value="54"></span></div>
+                            <span class="pct">54%</span>
+                        </div>
+                        <div class="ct-stat">36</div>
+                        <div class="ct-stat"><i class="bi bi-star-fill"></i>4.8</div>
+                        <div class="ct-stat">$3.6k</div>
+                    </div>
+
+                    <div class="ct-row violet" data-toast="Opening Backend Fundamentals…">
+                        <span class="ct-av violet">III</span>
+                        <div class="ct-name">
+                            <h5>Backend Fundamentals</h5>
+                            <p>14 modules · 28 students enrolled</p>
+                        </div>
+                        <div class="ct-progress">
+                            <div class="bar"><span data-value="47"></span></div>
+                            <span class="pct">47%</span>
+                        </div>
+                        <div class="ct-stat">28</div>
+                        <div class="ct-stat"><i class="bi bi-star-fill"></i>4.7</div>
+                        <div class="ct-stat">$2.1k</div>
+                    </div>
+
+                    <div class="ct-row emerald" data-toast="Opening TypeScript for React…">
+                        <span class="ct-av emerald">IV</span>
+                        <div class="ct-name">
+                            <h5>TypeScript for React</h5>
+                            <p>10 modules · 22 students enrolled</p>
+                        </div>
+                        <div class="ct-progress">
+                            <div class="bar"><span data-value="61"></span></div>
+                            <span class="pct">61%</span>
+                        </div>
+                        <div class="ct-stat">22</div>
+                        <div class="ct-stat"><i class="bi bi-star-fill"></i>4.9</div>
+                        <div class="ct-stat emerald">$1.2k</div>
+                    </div>
+
+                    <div class="ct-row" data-toast="Opening Motion Design Basics…">
+                        <span class="ct-av">V</span>
+                        <div class="ct-name">
+                            <h5>Motion Design Basics</h5>
+                            <p>8 modules · Draft</p>
+                        </div>
+                        <div class="ct-progress">
+                            <div class="bar"><span data-value="20"></span></div>
+                            <span class="pct">20%</span>
+                        </div>
+                        <div class="ct-stat">—</div>
+                        <div class="ct-stat">—</div>
+                        <div class="ct-stat">$0</div>
+                    </div>
+
+                    <div class="ct-row" data-toast="Opening Testing React Apps…">
+                        <span class="ct-av">VI</span>
+                        <div class="ct-name">
+                            <h5>Testing React Apps</h5>
+                            <p>12 modules · Draft</p>
+                        </div>
+                        <div class="ct-progress">
+                            <div class="bar"><span data-value="8"></span></div>
+                            <span class="pct">8%</span>
+                        </div>
+                        <div class="ct-stat">—</div>
+                        <div class="ct-stat">—</div>
+                        <div class="ct-stat">$0</div>
+                    </div>
+
+                </div>
+            </div>
+        </article>
+
+        <!-- Insights rail -->
+        <article class="chart-panel an-rise">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <h3><i class="bi bi-lightbulb-fill"></i> Insights</h3>
+                    <span class="panel-badge"><i class="bi bi-magic"></i> Auto-detected</span>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="insights">
+
+                    <div class="insight good" data-toast="Opening Advanced React revenue detail…">
+                        <span class="ic"><i class="bi bi-arrow-up-right"></i></span>
+                        <div class="body">
+                            <h5>Advanced React <strong>outperformed every other course</strong></h5>
+                            <p>Revenue from this course is <strong>2.4× the cohort average</strong>. The rating also climbed 0.1 points this quarter.</p>
+                            <div class="meta"><i class="bi bi-graph-up-arrow"></i> Strong signal</div>
+                        </div>
+                    </div>
+
+                    <div class="insight warn" data-toast="Opening Backend Fundamentals detail…">
+                        <span class="ic"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                        <div class="body">
+                            <h5>Backend Fundamentals <strong>completion dropped 6%</strong></h5>
+                            <p>The decline is concentrated in <strong>module 6</strong> — 8 students stalled after the authentication lesson.</p>
+                            <div class="meta"><i class="bi bi-flag-fill"></i> Needs attention</div>
+                        </div>
+                    </div>
+
+                    <div class="insight" data-toast="Opening TypeScript detail…">
+                        <span class="ic"><i class="bi bi-arrow-repeat"></i></span>
+                        <div class="body">
+                            <h5>TypeScript for React <strong>has your most returning students</strong></h5>
+                            <p>42% of enrolled students have taken a previous course with you — <strong>twice the platform average</strong>.</p>
+                            <div class="meta"><i class="bi bi-people-fill"></i> Retention signal</div>
+                        </div>
+                    </div>
+
+                    <div class="insight gold" data-toast="Opening peak hours detail…">
+                        <span class="ic"><i class="bi bi-clock-history"></i></span>
+                        <div class="body">
+                            <h5>Your students <strong>engage most on Sunday evenings</strong></h5>
+                            <p>Highest activity across the cohort happens between <strong>7pm and 9pm</strong> on Sundays — consider scheduling more office hours then.</p>
+                            <div class="meta"><i class="bi bi-lightning-charge-fill"></i> Scheduling hint</div>
+                        </div>
+                    </div>
+
+                    <div class="insight bad" data-toast="Opening timezone detail…">
+                        <span class="ic"><i class="bi bi-globe"></i></span>
+                        <div class="body">
+                            <h5>Three students <strong>withdrew due to timezone</strong></h5>
+                            <p>Consistent signal from reviews. An <strong>Asia-friendly cohort</strong> would likely recover 12+ enrolments next term.</p>
+                            <div class="meta"><i class="bi bi-exclamation-circle-fill"></i> Opportunity</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- ====================================================
+         5 · HEATMAP — Engagement by day/hour
+         ==================================================== -->
+    <section class="chart-panel an-rise">
+        <div class="panel-head">
+            <div class="panel-head-left">
+                <h3><i class="bi bi-grid-3x3-gap-fill"></i> When your students show up</h3>
+                <span class="panel-badge"><i class="bi bi-clock"></i> Last 90 days</span>
+            </div>
+            <button class="panel-link" data-toast="Opening full engagement report…">
+                Full report <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="heatmap">
+                <div class="hm-corner"></div>
+                <div class="hm-head">6am</div>
+                <div class="hm-head">9am</div>
+                <div class="hm-head">12pm</div>
+                <div class="hm-head">3pm</div>
+                <div class="hm-head">6pm</div>
+                <div class="hm-head">9pm</div>
+
+                <div class="hm-side">Mon</div>
+                <div class="hm-cell l-1">8</div>
+                <div class="hm-cell l-2">22</div>
+                <div class="hm-cell l-2">26</div>
+                <div class="hm-cell l-3">38</div>
+                <div class="hm-cell l-4">62</div>
+                <div class="hm-cell l-3">44</div>
+
+                <div class="hm-side">Tue</div>
+                <div class="hm-cell l-1">6</div>
+                <div class="hm-cell l-2">20</div>
+                <div class="hm-cell l-2">28</div>
+                <div class="hm-cell l-3">36</div>
+                <div class="hm-cell l-4">68</div>
+                <div class="hm-cell l-3">46</div>
+
+                <div class="hm-side">Wed</div>
+                <div class="hm-cell l-1">9</div>
+                <div class="hm-cell l-2">24</div>
+                <div class="hm-cell l-2">26</div>
+                <div class="hm-cell l-3">40</div>
+                <div class="hm-cell l-4">72</div>
+                <div class="hm-cell l-4">52</div>
+
+                <div class="hm-side">Thu</div>
+                <div class="hm-cell l-1">7</div>
+                <div class="hm-cell l-2">22</div>
+                <div class="hm-cell l-2">24</div>
+                <div class="hm-cell l-3">34</div>
+                <div class="hm-cell l-4">66</div>
+                <div class="hm-cell l-3">48</div>
+
+                <div class="hm-side">Fri</div>
+                <div class="hm-cell l-1">8</div>
+                <div class="hm-cell l-2">18</div>
+                <div class="hm-cell l-2">22</div>
+                <div class="hm-cell l-2">30</div>
+                <div class="hm-cell l-3">44</div>
+                <div class="hm-cell l-2">32</div>
+
+                <div class="hm-side">Sat</div>
+                <div class="hm-cell l-0">3</div>
+                <div class="hm-cell l-1">12</div>
+                <div class="hm-cell l-1">18</div>
+                <div class="hm-cell l-2">26</div>
+                <div class="hm-cell l-3">38</div>
+                <div class="hm-cell l-3">42</div>
+
+                <div class="hm-side">Sun</div>
+                <div class="hm-cell l-1">11</div>
+                <div class="hm-cell l-2">20</div>
+                <div class="hm-cell l-3">34</div>
+                <div class="hm-cell l-3">46</div>
+                <div class="hm-cell l-5">88</div>
+                <div class="hm-cell l-4">74</div>
+            </div>
+
+            <div class="hm-legend">
+                <span>Less</span>
+                <span class="swatch l-0"></span>
+                <span class="swatch l-1"></span>
+                <span class="swatch l-2"></span>
+                <span class="swatch l-3"></span>
+                <span class="swatch l-4"></span>
+                <span class="swatch l-5"></span>
+                <span>More</span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         6 · PEER BENCHMARK
+         ==================================================== -->
+    <section class="chart-panel an-rise">
+        <div class="panel-head">
+            <div class="panel-head-left">
+                <h3><i class="bi bi-award-fill"></i> Compared to peers</h3>
+                <span class="panel-badge"><i class="bi bi-people-fill"></i> 94 instructors</span>
+            </div>
+            <button class="panel-link" data-toast="Opening full benchmark…">
+                Full benchmark <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="bench-list">
+
+                <div class="bench-row">
+                    <span class="bl"><i class="bi bi-star-fill"></i> Avg rating</span>
+                    <div class="bench-track">
+                        <span class="bench-fill gold" style="width: 97%"></span>
+                        <span class="bench-median" style="left: 84%"></span>
+                    </div>
+                    <span class="bench-val">4.87<em>top 3%</em></span>
+                </div>
+
+                <div class="bench-row">
+                    <span class="bl"><i class="bi bi-check2-circle"></i> Completion</span>
+                    <div class="bench-track">
+                        <span class="bench-fill emerald" style="width: 96%"></span>
+                        <span class="bench-median" style="left: 78%"></span>
+                    </div>
+                    <span class="bench-val">96%<em>top 5%</em></span>
+                </div>
+
+                <div class="bench-row">
+                    <span class="bl"><i class="bi bi-people-fill"></i> Retention</span>
+                    <div class="bench-track">
+                        <span class="bench-fill sky" style="width: 88%"></span>
+                        <span class="bench-median" style="left: 62%"></span>
+                    </div>
+                    <span class="bench-val">88%<em>top 8%</em></span>
+                </div>
+
+                <div class="bench-row">
+                    <span class="bl"><i class="bi bi-lightning-charge-fill"></i> Engagement</span>
+                    <div class="bench-track">
+                        <span class="bench-fill violet" style="width: 84%"></span>
+                        <span class="bench-median" style="left: 68%"></span>
+                    </div>
+                    <span class="bench-val">84%<em>top 12%</em></span>
+                </div>
+
+                <div class="bench-row">
+                    <span class="bl"><i class="bi bi-reply-fill"></i> Response time</span>
+                    <div class="bench-track">
+                        <span class="bench-fill" style="width: 78%"></span>
+                        <span class="bench-median" style="left: 58%"></span>
+                    </div>
+                    <span class="bench-val">1.4d<em>top 15%</em></span>
+                </div>
+
+                <div class="bench-row">
+                    <span class="bl"><i class="bi bi-cash-coin"></i> Revenue/mo</span>
+                    <div class="bench-track">
+                        <span class="bench-fill gold" style="width: 82%"></span>
+                        <span class="bench-median" style="left: 52%"></span>
+                    </div>
+                    <span class="bench-val">$1.84k<em>top 10%</em></span>
+                </div>
+
+            </div>
+
+            <div class="bench-legend">
+                <span><span class="dot you"></span> You</span>
+                <span><span class="dot median"></span> Faculty median</span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================
+         7 · FOOT
+         ==================================================== -->
+    <div class="an-foot">
+        <span>Showing <strong>12</strong> months of data · last full sync <strong>2 minutes ago</strong></span>
+        <div class="foot-actions">
+            <button class="btn-ghost" data-toast="Opening data sources…">
+                <i class="bi bi-database"></i> Sources
+            </button>
+            <button class="btn-ghost" data-toast="Opening export options…">
+                <i class="bi bi-file-earmark-arrow-down"></i> Export CSV
+            </button>
+        </div>
+    </div>
+
+</div><!-- /.analytics -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.analytics');
+    if (!root) return;
+
+    /* ---------- animated counters ---------- */
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ---------- progress bars ---------- */
+    requestAnimationFrame(function () {
+        root.querySelectorAll('.ct-progress .bar > span[data-value]').forEach(function (el) {
+            var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+            setTimeout(function () { el.style.width = v + '%'; }, 150);
+        });
+    });
+
+    /* ---------- period tabs (visual) ---------- */
+    root.querySelectorAll('.period-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            root.querySelectorAll('.period-tab').forEach(function (t) {
+                t.classList.remove('active');
+            });
+            tab.classList.add('active');
+            if (window.__toast) {
+                window.__toast('Analytics period: ' + tab.textContent.trim(), 'success');
+            }
+        });
+    });
+
+    /* ---------- mini tabs (visual) ---------- */
+    root.querySelectorAll('.mini-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            var siblings = tab.parentElement.querySelectorAll('.mini-tab');
+            siblings.forEach(function (t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+        });
+    });
+
+    /* ---------- revenue chart tooltip ---------- */
+    var chartSvg = document.getElementById('revenueChart');
+    var tooltip = document.getElementById('revenueTooltip');
+
+    if (chartSvg && tooltip) {
+        var points = chartSvg.querySelectorAll('[data-month]');
+
+        points.forEach(function (g) {
+            var rect = g.querySelector('.point-hit');
+            if (!rect) return;
+
+            var hit = function (e) {
+                var month = g.dataset.month;
+                var val = g.dataset.val;
+
+                // Compute tooltip position relative to the chart frame
+                var svgRect = chartSvg.getBoundingClientRect();
+                var hitRect = rect.getBoundingClientRect();
+
+                // Approximate: place the tooltip above the center of the hit area
+                var cx = hitRect.left + hitRect.width / 2 - svgRect.left;
+                var cy = hitRect.top - svgRect.top + 20;
+
+                tooltip.style.left = cx + 'px';
+                tooltip.style.top = cy + 'px';
+                tooltip.querySelector('.tt-k').textContent = month + ' · 2026';
+                tooltip.querySelector('.tt-v').textContent = val;
+                tooltip.classList.add('show');
+
+                // Highlight the corresponding dot
+                chartSvg.querySelectorAll('.point-dot').forEach(function (d) {
+                    d.classList.remove('highlight');
+                });
+                // Find the dot nearest to the center of the rect
+                var rectCx = hitRect.left + hitRect.width / 2;
+                var best = null;
+                var bestDist = Infinity;
+                chartSvg.querySelectorAll('.point-dot').forEach(function (d) {
+                    var dr = d.getBoundingClientRect();
+                    var dcx = dr.left + dr.width / 2;
+                    var dist = Math.abs(dcx - rectCx);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = d;
+                    }
+                });
+                if (best) best.classList.add('highlight');
+            };
+
+            var leave = function () {
+                tooltip.classList.remove('show');
+                chartSvg.querySelectorAll('.point-dot').forEach(function (d) {
+                    d.classList.remove('highlight');
+                });
+            };
+
+            rect.addEventListener('mouseenter', hit);
+            rect.addEventListener('mousemove', hit);
+            rect.addEventListener('mouseleave', leave);
+        });
+    }
+
+    /* ---------- growth bars tooltip on hover ---------- */
+    root.querySelectorAll('.gb-col').forEach(function (col) {
+        col.addEventListener('mouseenter', function () {
+            // .gb-val visibility handled by CSS
+        });
+    });
+
+    /* ---------- heatmap cells ---------- */
+    root.querySelectorAll('.hm-cell').forEach(function (cell) {
+        cell.addEventListener('click', function () {
+            var count = cell.textContent.trim();
+            var day = cell.previousElementSibling
+                ? cell.previousElementSibling.textContent.trim()
+                : '';
+            // find the actual weekday (walk back to find the hm-side)
+            var parent = cell.parentElement;
+            var children = Array.prototype.slice.call(parent.children);
+            var idx = children.indexOf(cell);
+            var rowStart = 0;
+            for (var i = idx; i >= 0; i--) {
+                if (children[i].classList.contains('hm-side')) {
+                    rowStart = i;
+                    break;
+                }
+            }
+            var dayLabel = children[rowStart] ? children[rowStart].textContent.trim() : '';
+            var colIdx = idx - rowStart - 1;
+            var hours = ['6am', '9am', '12pm', '3pm', '6pm', '9pm'];
+            var hourLabel = hours[colIdx] || '';
+            if (window.__toast) {
+                window.__toast(dayLabel + ' · ' + hourLabel + ' · ' + count + ' sessions', 'success');
+            }
+        });
+    });
+
+})();
+</script>
+
+{% endblock content %}

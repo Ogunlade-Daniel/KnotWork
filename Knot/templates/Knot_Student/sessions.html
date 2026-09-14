@@ -1,0 +1,1779 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Sessions{% endblock %}
+
+{% block breadcrumb %}Sessions{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       SESSIONS — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .ss-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .ss-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .ss-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .ss-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 600px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+    .badge-soft.pulse i { animation: ssPulse 1.8s infinite; }
+    @keyframes ssPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Overview strip ---------- */
+    .ss-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ss-stat {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ss-stat::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ss-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .ss-stat:hover::after { opacity: 1; }
+    .ss-stat .ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .ss-stat .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ss-stat .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ss-stat .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ss-stat .v {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ss-stat .v em {
+        font-style: normal;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .ss-stat .l { font-size: 0.76rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Feature banner (next session) ---------- */
+    .ss-next {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 28px 32px;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+    .ss-next::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -8%;
+        width: 55%;
+        height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.12), transparent 68%);
+        pointer-events: none;
+    }
+    .ss-next::after {
+        content: '⏱';
+        position: absolute;
+        bottom: -70px;
+        left: 36%;
+        font-size: 15rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.025);
+        pointer-events: none;
+    }
+
+    .ss-next-time {
+        position: relative;
+        z-index: 2;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 16px 22px;
+        border-radius: 16px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        min-width: 130px;
+        text-align: center;
+    }
+    .ss-next-time .d {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--secondary-light);
+    }
+    .ss-next-time .h {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.85rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--white);
+    }
+    .ss-next-time .m {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .ss-next-body {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 220px;
+    }
+    .ss-next-body .live-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 4px 12px;
+        border-radius: 50px;
+        background: rgba(239, 68, 68, 0.9);
+        color: var(--white);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+    .ss-next-body .live-tag .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--white);
+        animation: ssPulse 1.4s infinite;
+    }
+    .ss-next-body h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.35rem, 2.2vw, 1.65rem);
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 8px;
+    }
+    .ss-next-body p {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.68);
+        line-height: 1.65;
+    }
+    .ss-next-body p strong { color: var(--white); font-weight: 600; }
+    .ss-next-body .who {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 12px;
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.72);
+    }
+    .ss-next-body .who .avatar.xs {
+        width: 26px;
+        height: 26px;
+        font-size: 0.6rem;
+    }
+    .ss-next-actions {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+        min-width: 180px;
+    }
+    .ss-next-actions .btn { width: 100%; padding: 11px 20px; font-size: 0.84rem; }
+
+    .ss-join {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.42);
+    }
+    .ss-join:hover {
+        background: var(--secondary-light);
+        transform: translateY(-3px);
+        box-shadow: 0 16px 40px rgba(190, 242, 100, 0.55);
+        color: var(--primary-dark);
+    }
+
+    /* ---------- Layout ---------- */
+    .ss-layout {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    .ss-col {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        min-width: 0;
+    }
+
+    /* ---------- Tabs card ---------- */
+    .ss-tabs-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .ss-tabs-head {
+        padding: 22px 26px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .ss-tabs-head h3 {
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .ss-tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .ss-tabs-head .link {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .ss-tabs-head .link:hover { color: var(--primary-dark); gap: 9px; }
+
+    .ss-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 14px 22px 0;
+        margin-top: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .ss-tabs::-webkit-scrollbar { display: none; }
+
+    .ss-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .ss-tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .ss-tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .ss-tab.active { color: var(--primary-dark); }
+    .ss-tab.active::after { transform: scaleX(1); }
+    .ss-tab > i { font-size: 0.92rem; color: var(--gray-300); transition: var(--transition); }
+    .ss-tab.active > i { color: var(--secondary-deep); }
+    .ss-tab .count {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 50px;
+        line-height: 1.6;
+        transition: var(--transition);
+    }
+    .ss-tab.active .count {
+        background: rgba(190, 242, 100, 0.3);
+        color: #4D7C0F;
+    }
+
+    /* Toolbar */
+    .ss-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--gray-100);
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.85), rgba(248, 250, 252, 0));
+    }
+    .ss-toolbar .count {
+        font-size: 0.82rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    .ss-toolbar .count strong { color: var(--primary-dark); font-weight: 700; }
+
+    .ss-toolbar .spacer { flex: 1; }
+
+    .ss-sort {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .ss-sort label { font-size: 0.72rem; font-weight: 600; color: var(--gray-600); }
+    .ss-sort select {
+        padding: 9px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        cursor: pointer;
+        outline: none;
+        transition: var(--transition);
+    }
+    .ss-sort select:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    /* Panels */
+    .ss-panel { display: none; }
+    .ss-panel.active { display: block; animation: ssFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    @keyframes ssFade {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- Session row (list) ---------- */
+    .ss-list {
+        display: flex;
+        flex-direction: column;
+        padding: 6px 0;
+    }
+
+    .ss-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 18px;
+        padding: 20px 26px;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+        position: relative;
+    }
+    .ss-row:last-child { border-bottom: none; }
+    .ss-row:hover { background: rgba(190, 242, 100, 0.04); }
+
+    /* Date block */
+    .ss-date {
+        flex-shrink: 0;
+        width: 66px;
+        text-align: center;
+        padding: 10px 0;
+        border-radius: 12px;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        transition: var(--transition);
+    }
+    .ss-date .dow {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+    }
+    .ss-date .day {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        margin-top: 1px;
+    }
+    .ss-date .mon {
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray-600);
+    }
+    .ss-row.live .ss-date {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+    .ss-row.live .ss-date .dow { color: var(--secondary); }
+    .ss-row.live .ss-date .day { color: var(--white); }
+    .ss-row.live .ss-date .mon { color: rgba(255, 255, 255, 0.55); }
+
+    .ss-row.cancelled .ss-date {
+        background: var(--gray-100);
+        border-style: dashed;
+    }
+    .ss-row.cancelled .ss-date .day { color: var(--gray-300); }
+
+    /* Body */
+    .ss-body {
+        flex: 1;
+        min-width: 0;
+    }
+    .ss-body .top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 5px;
+    }
+    .ss-body h4 {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+    }
+    .ss-body h4.small { font-size: 0.92rem; }
+    .ss-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        line-height: 1.5;
+    }
+    .ss-flag.live {
+        background: rgba(239, 68, 68, 0.9);
+        color: var(--white);
+    }
+    .ss-flag.live .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--white);
+        animation: ssPulse 1.4s infinite;
+    }
+    .ss-flag.soon {
+        background: rgba(190, 242, 100, 0.35);
+        color: #4D7C0F;
+    }
+    .ss-flag.confirmed {
+        background: rgba(56, 189, 248, 0.16);
+        color: #0284C7;
+    }
+    .ss-flag.pending {
+        background: rgba(245, 158, 11, 0.16);
+        color: #B45309;
+    }
+    .ss-flag.completed {
+        background: rgba(34, 197, 94, 0.16);
+        color: #15803D;
+    }
+    .ss-flag.cancelled {
+        background: rgba(239, 68, 68, 0.12);
+        color: #B91C1C;
+    }
+
+    .ss-body .who {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-bottom: 10px;
+    }
+    .ss-body .who .avatar.xs { width: 24px; height: 24px; font-size: 0.56rem; }
+    .ss-body .who strong { color: var(--gray-800); font-weight: 600; }
+    .ss-body .who .verified { color: var(--accent); font-size: 0.68rem; }
+
+    .ss-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    .ss-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .ss-meta i { color: var(--gray-300); font-size: 0.78rem; }
+
+    .ss-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        background: var(--cream);
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        border-left: 3px solid var(--gray-200);
+    }
+    .ss-note i { color: var(--gray-300); font-size: 0.8rem; margin-top: 2px; flex-shrink: 0; }
+    .ss-note.cancel { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
+    .ss-note.cancel i { color: var(--danger); }
+    .ss-note.done { border-left-color: var(--green); background: rgba(34, 197, 94, 0.05); }
+    .ss-note.done i { color: var(--green); }
+
+    /* Actions */
+    .ss-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+        min-width: 148px;
+        align-items: stretch;
+    }
+    .ss-actions.horizontal {
+        flex-direction: row;
+        min-width: 0;
+    }
+    .ss-act {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 16px;
+        border-radius: 50px;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .ss-act.primary {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.35);
+    }
+    .ss-act.primary:hover {
+        background: var(--secondary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.5);
+    }
+    .ss-act.outline {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+    }
+    .ss-act.outline:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.1);
+        transform: translateY(-2px);
+    }
+    .ss-act.ghost {
+        background: transparent;
+        color: var(--gray-600);
+        border: none;
+        padding: 6px 12px;
+        font-size: 0.74rem;
+        font-weight: 600;
+    }
+    .ss-act.ghost:hover {
+        color: var(--primary-dark);
+        background: var(--gray-100);
+    }
+    .ss-act.danger {
+        background: transparent;
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+    .ss-act.danger:hover {
+        background: rgba(239, 68, 68, 0.06);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: var(--danger);
+        transform: translateY(-2px);
+    }
+
+    /* Empty state */
+    .ss-empty {
+        padding: 60px 24px 66px;
+        text-align: center;
+    }
+    .ss-empty .ic {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.55rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .ss-empty h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+    .ss-empty p {
+        max-width: 380px;
+        margin: 0 auto 18px;
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+    .ss-empty .btn-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------- Side panels ---------- */
+    .ss-panel-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+    }
+    .ss-panel-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .ss-panel-card-head h4 {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .ss-panel-card-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .ss-panel-card-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .ss-panel-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Mini calendar */
+    .ss-calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        text-align: center;
+    }
+    .ss-calendar .dow {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        padding: 6px 0;
+    }
+    .ss-cal-day {
+        aspect-ratio: 1;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        position: relative;
+        transition: var(--transition);
+        display: grid;
+        place-items: center;
+    }
+    .ss-cal-day:hover { background: var(--gray-100); color: var(--primary-dark); }
+    .ss-cal-day.today {
+        background: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .ss-cal-day.has-session::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--secondary-deep);
+    }
+    .ss-cal-day.today.has-session::after { background: var(--secondary); }
+    .ss-cal-day.other { color: var(--gray-300); }
+
+    /* Progress tracker */
+    .ss-prog-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .ss-prog-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .ss-prog-item:first-child { padding-top: 0; }
+    .ss-prog-item .lbl {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    .ss-prog-item .lbl i { color: var(--gray-300); font-size: 0.85rem; }
+    .ss-prog-item strong {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    /* Tips */
+    .ss-tip {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .ss-tip:last-child { border-bottom: none; padding-bottom: 0; }
+    .ss-tip:first-child { padding-top: 0; }
+    .ss-tip .ic {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .ss-tip .ic.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ss-tip .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ss-tip .ic.amber { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ss-tip-body { flex: 1; min-width: 0; }
+    .ss-tip-body h5 {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+    .ss-tip-body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+
+    /* Trust note */
+    .ss-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+    }
+    .ss-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .ss-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .ss-overview { grid-template-columns: repeat(2, 1fr); }
+        .ss-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+        .ss-next { padding: 24px 22px; flex-direction: column; align-items: stretch; }
+        .ss-next-time { align-self: flex-start; }
+        .ss-next-actions { width: 100%; flex-direction: row; }
+        .ss-next-actions .btn { flex: 1; }
+        .ss-row { flex-wrap: wrap; }
+        .ss-actions { flex-direction: row; width: 100%; margin-top: 4px; min-width: 0; }
+        .ss-actions .ss-act { flex: 1; }
+    }
+
+    @media (max-width: 640px) {
+        .ss-overview { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .ss-stat { padding: 14px; gap: 11px; }
+        .ss-stat .ic { width: 38px; height: 38px; font-size: 0.92rem; }
+        .ss-stat .v { font-size: 1.22rem; }
+        .ss-row { padding: 16px 18px; gap: 14px; }
+        .ss-date { width: 58px; padding: 8px 0; }
+        .ss-date .day { font-size: 1.3rem; }
+        .ss-toolbar { padding: 14px 18px; }
+        .ss-sort { flex: 1; }
+        .ss-sort select { flex: 1; }
+        .ss-head-actions { width: 100%; }
+        .ss-head-actions .btn { flex: 1; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="ss-head fade-up">
+    <div>
+        <span class="badge-soft pulse"><i class="bi bi-broadcast"></i> 1 session starting soon</span>
+        <h1>Your <span>Sessions</span></h1>
+        <p>Every booked class, completed swap and cancelled session in one place. Join on time, reschedule easily, and never miss a lesson.</p>
+    </div>
+
+    <div class="ss-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening your availability settings…">
+            <i class="bi bi-calendar-week"></i> Availability
+        </button>
+        <button class="btn btn-secondary" data-toast="Opening the session scheduler…">
+            <i class="bi bi-plus-lg"></i> Book a session
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     OVERVIEW
+     ==================================================== -->
+<section class="ss-overview">
+    <div class="ss-stat fade-up">
+        <div class="ic accent"><i class="bi bi-calendar-event"></i></div>
+        <div>
+            <div class="v" data-count="6">0</div>
+            <div class="l">Upcoming sessions</div>
+        </div>
+    </div>
+
+    <div class="ss-stat fade-up">
+        <div class="ic"><i class="bi bi-check2-circle"></i></div>
+        <div>
+            <div class="v" data-count="32">0</div>
+            <div class="l">Completed this term</div>
+        </div>
+    </div>
+
+    <div class="ss-stat fade-up">
+        <div class="ic violet"><i class="bi bi-clock-history"></i></div>
+        <div>
+            <div class="v"><span data-count="48">0</span><em>h</em></div>
+            <div class="l">Total session time</div>
+        </div>
+    </div>
+
+    <div class="ss-stat fade-up">
+        <div class="ic amber"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+            <div class="v" data-count="96">0</div>
+            <div class="l">Attendance rate %</div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     NEXT SESSION BANNER
+     ==================================================== -->
+<section class="ss-next fade-up">
+    <div class="ss-next-time">
+        <span class="d">Today</span>
+        <span class="h">18:30</span>
+        <span class="m">in 42 minutes</span>
+    </div>
+
+    <div class="ss-next-body">
+        <span class="live-tag"><span class="dot"></span> Starting soon</span>
+        <h2>React Hooks Deep Dive</h2>
+        <p>Session 8 of 12 · Advanced React Patterns track · <strong>45 minutes</strong></p>
+        <div class="who">
+            <span class="avatar xs">DO</span>
+            with <strong>Daniel Okafor</strong>
+            <i class="bi bi-patch-check-fill" style="color:var(--accent);font-size:0.72rem;" title="Verified"></i>
+        </div>
+    </div>
+
+    <div class="ss-next-actions">
+        <button class="btn ss-join" data-toast="Joining React Hooks Deep Dive…">
+            <i class="bi bi-camera-video-fill"></i> Join now
+        </button>
+        <button class="btn btn-outline" data-toast="Opening session details…">
+            <i class="bi bi-info-circle"></i> Details
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="ss-layout">
+
+    <!-- ============================================
+         LEFT — SESSIONS LIST
+         ============================================ -->
+    <div class="ss-col">
+
+        <div class="ss-tabs-card fade-up">
+
+            <div class="ss-tabs-head">
+                <h3><i class="bi bi-calendar-check-fill"></i> All sessions</h3>
+                <button class="link" data-toast="Exporting your session history…">
+                    Export <i class="bi bi-download"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="ss-tabs" role="tablist" aria-label="Session categories">
+                <button class="ss-tab active" data-tab="upcoming" role="tab" aria-selected="true">
+                    <i class="bi bi-calendar-event"></i> Upcoming <span class="count">6</span>
+                </button>
+                <button class="ss-tab" data-tab="past" role="tab" aria-selected="false">
+                    <i class="bi bi-check2-circle"></i> Past <span class="count">32</span>
+                </button>
+                <button class="ss-tab" data-tab="cancelled" role="tab" aria-selected="false">
+                    <i class="bi bi-slash-circle"></i> Cancelled <span class="count">3</span>
+                </button>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="ss-toolbar">
+                <p class="count" id="ssCount"><strong>6</strong> upcoming sessions</p>
+                <span class="spacer"></span>
+                <div class="ss-sort">
+                    <label for="ssSort">Sort</label>
+                    <select id="ssSort">
+                        <option>Soonest first</option>
+                        <option>Latest first</option>
+                        <option>Longest duration</option>
+                        <option>By mentor</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: UPCOMING
+                 Backend: {% for session in upcoming_sessions %} … {% endfor %}
+                 ============================================================ -->
+            <div class="ss-panel active" id="ssPanelUpcoming" role="tabpanel">
+
+                <div class="ss-list">
+
+                    <!-- ---- Session 1 (live) ---- -->
+                    <article class="ss-row live">
+                        <div class="ss-date">
+                            <div class="dow">Today</div>
+                            <div class="day">26</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>React Hooks Deep Dive</h4>
+                                <span class="ss-flag live"><span class="dot"></span> Live soon</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs">DO</span>
+                                with <strong>Daniel Okafor</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 18:30 – 19:15 · 45 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-journal-text"></i> Session 8 of 12</span>
+                            </div>
+                            <div class="ss-note">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Bring your questions on <strong>useReducer</strong> and custom hooks — we'll build two examples live.</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act primary" data-toast="Joining React Hooks Deep Dive…">
+                                <i class="bi bi-camera-video-fill"></i> Join
+                            </button>
+                            <button class="ss-act outline" data-toast="Opening reschedule options…">
+                                <i class="bi bi-calendar-x"></i> Reschedule
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Session 2 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Wed</div>
+                            <div class="day">27</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Design Critique Circle</h4>
+                                <span class="ss-flag soon">Tomorrow</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, var(--accent), var(--secondary));">FB</span>
+                                with <strong>Fatima Bello</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 10:00 – 11:00 · 60 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-people"></i> Group of 4</span>
+                            </div>
+                            <div class="ss-note">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Submit your latest work <strong>24 hours before</strong> so the group can prepare feedback.</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session details…">
+                                <i class="bi bi-info-circle"></i> Details
+                            </button>
+                            <button class="ss-act danger" data-toast="Cancelling Design Critique Circle…">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Session 3 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Thu</div>
+                            <div class="day">28</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>API Design Workshop</h4>
+                                <span class="ss-flag confirmed">Confirmed</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #A78BFA, #7C3AED); color:#fff;">CN</span>
+                                with <strong>Chidi Nwosu</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 15:15 – 16:45 · 90 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-journal-text"></i> Session 3 of 14</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session details…">
+                                <i class="bi bi-info-circle"></i> Details
+                            </button>
+                            <button class="ss-act danger" data-toast="Cancelling API Design Workshop…">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Session 4 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Sat</div>
+                            <div class="day">30</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Portfolio Review with Tolu</h4>
+                                <span class="ss-flag pending">Awaiting confirm</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #6EE7B7, #22C55E); color:var(--primary-dark);">TF</span>
+                                with <strong>Tolu Fashina</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 11:00 – 12:00 · 60 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-person-badge"></i> Mentorship</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Sending reminder to Tolu…">
+                                <i class="bi bi-bell"></i> Remind
+                            </button>
+                            <button class="ss-act danger" data-toast="Cancelling Portfolio Review…">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Session 5 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Tue</div>
+                            <div class="day">01</div>
+                            <div class="mon">Apr</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Figma to React Swap</h4>
+                                <span class="ss-flag confirmed">Confirmed</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #FCD34D, #F59E0B);">TK</span>
+                                with <strong>Tunde Kalu</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 19:00 – 20:00 · 60 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-arrow-left-right"></i> Skill exchange</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session details…">
+                                <i class="bi bi-info-circle"></i> Details
+                            </button>
+                            <button class="ss-act danger" data-toast="Cancelling Figma to React Swap…">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Session 6 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Fri</div>
+                            <div class="day">04</div>
+                            <div class="mon">Apr</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Data Storytelling Review</h4>
+                                <span class="ss-flag confirmed">Confirmed</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #FDA4AF, #E11D48); color:#fff;">MR</span>
+                                with <strong>Maya Rahman</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 14:00 – 15:00 · 60 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-arrow-left-right"></i> Skill exchange</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session details…">
+                                <i class="bi bi-info-circle"></i> Details
+                            </button>
+                            <button class="ss-act danger" data-toast="Cancelling Data Storytelling Review…">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: PAST
+                 ============================================================ -->
+            <div class="ss-panel" id="ssPanelPast" role="tabpanel">
+                <div class="ss-list">
+
+                    <!-- ---- Completed 1 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Mon</div>
+                            <div class="day">24</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Advanced React Patterns · Session 7</h4>
+                                <span class="ss-flag completed"><i class="bi bi-check2"></i> Completed</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs">DO</span>
+                                with <strong>Daniel Okafor</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 45 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-star-fill" style="color:#F59E0B;"></i> You rated 5.0</span>
+                            </div>
+                            <div class="ss-note done">
+                                <i class="bi bi-check2-circle"></i>
+                                <span>Covered <strong>custom hooks</strong> and <strong>useReducer</strong> patterns. Recording available for 30 days.</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session recording…">
+                                <i class="bi bi-play-circle"></i> Watch
+                            </button>
+                            <button class="ss-act ghost" data-toast="Booking a follow-up with Daniel…">
+                                <i class="bi bi-arrow-repeat"></i> Rebook
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Completed 2 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Sat</div>
+                            <div class="day">22</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Design Critique · Week 6</h4>
+                                <span class="ss-flag completed"><i class="bi bi-check2"></i> Completed</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, var(--accent), var(--secondary));">FB</span>
+                                with <strong>Fatima Bello</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 60 min</span>
+                                <span><i class="bi bi-people"></i> Group of 5</span>
+                                <span><i class="bi bi-star-fill" style="color:#F59E0B;"></i> You rated 4.8</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session notes…">
+                                <i class="bi bi-journal-text"></i> Notes
+                            </button>
+                            <button class="ss-act ghost" data-toast="Booking a follow-up with Fatima…">
+                                <i class="bi bi-arrow-repeat"></i> Rebook
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Completed 3 ---- -->
+                    <article class="ss-row">
+                        <div class="ss-date">
+                            <div class="dow">Thu</div>
+                            <div class="day">20</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>API Design · Session 2</h4>
+                                <span class="ss-flag completed"><i class="bi bi-check2"></i> Completed</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #A78BFA, #7C3AED); color:#fff;">CN</span>
+                                with <strong>Chidi Nwosu</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 90 min</span>
+                                <span><i class="bi bi-camera-video"></i> Video call</span>
+                                <span><i class="bi bi-star-fill" style="color:#F59E0B;"></i> You rated 4.9</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening session notes…">
+                                <i class="bi bi-journal-text"></i> Notes
+                            </button>
+                            <button class="ss-act ghost" data-toast="Booking a follow-up with Chidi…">
+                                <i class="bi bi-arrow-repeat"></i> Rebook
+                            </button>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: CANCELLED
+                 ============================================================ -->
+            <div class="ss-panel" id="ssPanelCancelled" role="tabpanel">
+                <div class="ss-list">
+
+                    <!-- ---- Cancelled 1 ---- -->
+                    <article class="ss-row cancelled">
+                        <div class="ss-date">
+                            <div class="dow">Fri</div>
+                            <div class="day">21</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>TypeScript Fundamentals</h4>
+                                <span class="ss-flag cancelled"><i class="bi bi-x-lg"></i> Cancelled</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #A78BFA, #7C3AED); color:#fff;">CN</span>
+                                with <strong>Chidi Nwosu</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 60 min</span>
+                                <span><i class="bi bi-x-circle"></i> Cancelled 3 days before</span>
+                            </div>
+                            <div class="ss-note cancel">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Cancelled by <strong>you</strong> — no penalty. Full credits returned to your balance.</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Rebooking TypeScript Fundamentals…">
+                                <i class="bi bi-arrow-repeat"></i> Rebook
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Cancelled 2 ---- -->
+                    <article class="ss-row cancelled">
+                        <div class="ss-date">
+                            <div class="dow">Tue</div>
+                            <div class="day">18</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Portfolio Review</h4>
+                                <span class="ss-flag cancelled"><i class="bi bi-x-lg"></i> Cancelled</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #6EE7B7, #22C55E); color:var(--primary-dark);">TF</span>
+                                with <strong>Tolu Fashina</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 60 min</span>
+                                <span><i class="bi bi-x-circle"></i> Cancelled 2 days before</span>
+                            </div>
+                            <div class="ss-note cancel">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Cancelled by <strong>Tolu</strong> due to a scheduling conflict. Auto-rebook suggested for next week.</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Rebooking Portfolio Review…">
+                                <i class="bi bi-arrow-repeat"></i> Rebook
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Cancelled 3 ---- -->
+                    <article class="ss-row cancelled">
+                        <div class="ss-date">
+                            <div class="dow">Wed</div>
+                            <div class="day">12</div>
+                            <div class="mon">Mar</div>
+                        </div>
+                        <div class="ss-body">
+                            <div class="top">
+                                <h4>Motion Design Basics · Session 1</h4>
+                                <span class="ss-flag cancelled"><i class="bi bi-x-lg"></i> No-show</span>
+                            </div>
+                            <div class="who">
+                                <span class="avatar xs" style="background: linear-gradient(135deg, #FCD34D, #F59E0B);">TK</span>
+                                with <strong>Tunde Kalu</strong>
+                                <i class="bi bi-patch-check-fill verified" title="Verified"></i>
+                            </div>
+                            <div class="ss-meta">
+                                <span><i class="bi bi-clock"></i> 45 min</span>
+                                <span><i class="bi bi-exclamation-circle"></i> Marked as no-show</span>
+                            </div>
+                            <div class="ss-note cancel">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Session was not joined by either party. If this was a mistake, you can <strong>request a review</strong>.</span>
+                            </div>
+                        </div>
+                        <div class="ss-actions">
+                            <button class="ss-act outline" data-toast="Opening a review request…">
+                                <i class="bi bi-flag"></i> Review
+                            </button>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ============================================
+         RIGHT — CALENDAR, PROGRESS, TIPS
+         ============================================ -->
+    <div class="ss-col">
+
+        <!-- Mini calendar -->
+        <div class="ss-panel-card fade-up">
+            <div class="ss-panel-card-head">
+                <h4><i class="bi bi-calendar3"></i> March 2026</h4>
+                <button class="link" data-toast="Opening full calendar…">Open</button>
+            </div>
+
+            <div class="ss-calendar" aria-label="Mini calendar">
+                <span class="dow">M</span>
+                <span class="dow">T</span>
+                <span class="dow">W</span>
+                <span class="dow">T</span>
+                <span class="dow">F</span>
+                <span class="dow">S</span>
+                <span class="dow">S</span>
+
+                <button class="ss-cal-day other">23</button>
+                <button class="ss-cal-day other">24</button>
+                <button class="ss-cal-day other">25</button>
+                <button class="ss-cal-day today has-session">26</button>
+                <button class="ss-cal-day has-session">27</button>
+                <button class="ss-cal-day has-session">28</button>
+                <button class="ss-cal-day">29</button>
+
+                <button class="ss-cal-day has-session">30</button>
+                <button class="ss-cal-day">31</button>
+                <button class="ss-cal-day">1</button>
+                <button class="ss-cal-day">2</button>
+                <button class="ss-cal-day">3</button>
+                <button class="ss-cal-day has-session">4</button>
+                <button class="ss-cal-day">5</button>
+
+                <button class="ss-cal-day">6</button>
+                <button class="ss-cal-day">7</button>
+                <button class="ss-cal-day">8</button>
+                <button class="ss-cal-day">9</button>
+                <button class="ss-cal-day">10</button>
+                <button class="ss-cal-day">11</button>
+                <button class="ss-cal-day">12</button>
+            </div>
+
+            <p style="font-size:0.7rem;color:var(--gray-600);margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100);display:flex;align-items:center;gap:8px;">
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--secondary-deep);"></span>
+                Days with sessions booked
+            </p>
+        </div>
+
+        <!-- Term progress -->
+        <div class="ss-panel-card fade-up">
+            <div class="ss-panel-card-head">
+                <h4><i class="bi bi-graph-up-arrow"></i> This term</h4>
+                <button class="link" data-toast="Opening full progress report…">Report</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div class="ss-prog-item">
+                    <span class="lbl"><i class="bi bi-check2-circle"></i> Sessions attended</span>
+                    <strong>32 / 34</strong>
+                </div>
+                <div class="ss-prog-item">
+                    <span class="lbl"><i class="bi bi-clock-history"></i> Total hours</span>
+                    <strong>48h 20m</strong>
+                </div>
+                <div class="ss-prog-item">
+                    <span class="lbl"><i class="bi bi-star"></i> Average mentor rating</span>
+                    <strong>4.9 ★</strong>
+                </div>
+                <div class="ss-prog-item">
+                    <span class="lbl"><i class="bi bi-arrow-repeat"></i> Sessions rescheduled</span>
+                    <strong>2</strong>
+                </div>
+                <div class="ss-prog-item">
+                    <span class="lbl"><i class="bi bi-slash-circle"></i> Cancellations</span>
+                    <strong>3</strong>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-100);">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:0.76rem;font-weight:600;color:var(--gray-600);">Term completion</span>
+                    <strong style="font-size:0.8rem;color:var(--primary-dark);font-weight:700;">94%</strong>
+                </div>
+                <div class="bar"><span data-value="94"></span></div>
+            </div>
+        </div>
+
+        <!-- Session tips -->
+        <div class="ss-panel-card fade-up">
+            <div class="ss-panel-card-head">
+                <h4><i class="bi bi-lightbulb"></i> Session tips</h4>
+            </div>
+
+            <div class="ss-tip">
+                <div class="ic"><i class="bi bi-bell-fill"></i></div>
+                <div class="ss-tip-body">
+                    <h5>Join 2 minutes early</h5>
+                    <p>Test your camera and mic so the session starts on time — mentors value punctuality.</p>
+                </div>
+            </div>
+
+            <div class="ss-tip">
+                <div class="ic sky"><i class="bi bi-pencil"></i></div>
+                <div class="ss-tip-body">
+                    <h5>Come with questions</h5>
+                    <p>Prepare two or three questions ahead of time — you'll get far more out of the session.</p>
+                </div>
+            </div>
+
+            <div class="ss-tip">
+                <div class="ic violet"><i class="bi bi-calendar-x"></i></div>
+                <div class="ss-tip-body">
+                    <h5>Reschedule > 24h ahead</h5>
+                    <p>Cancelling more than 24 hours in advance is always free and protects your credits.</p>
+                </div>
+            </div>
+
+            <div class="ss-tip">
+                <div class="ic amber"><i class="bi bi-star-fill"></i></div>
+                <div class="ss-tip-body">
+                    <h5>Leave a review</h5>
+                    <p>Reviews help other learners pick the right mentor — and boost your own reputation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="ss-trust fade-up">
+            <i class="bi bi-shield-check"></i>
+            <span>
+                <strong>Every session is protected.</strong> If a mentor doesn't show up, you get full credits back automatically.
+                Never share payment details outside Knotwork.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           TABS (Upcoming / Past / Cancelled)
+           ====================================================== */
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('.ss-tab'));
+        var panels = Array.prototype.slice.call(document.querySelectorAll('.ss-panel'));
+        var countLabel = document.getElementById('ssCount');
+
+        var labelText = {
+            upcoming: '6',
+            past: '32',
+            cancelled: '3'
+        };
+        var labelWord = {
+            upcoming: 'upcoming sessions',
+            past: 'past sessions',
+            cancelled: 'cancelled sessions'
+        };
+
+        function activateTab(name) {
+            tabs.forEach(function (t) {
+                var on = t.dataset.tab === name;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            panels.forEach(function (p) {
+                var key = 'ssPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+                p.classList.toggle('active', p.id === key);
+            });
+            if (countLabel) {
+                countLabel.innerHTML = '<strong>' + (labelText[name] || '0') + '</strong> ' + (labelWord[name] || 'sessions');
+            }
+        }
+
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activateTab(this.dataset.tab); });
+        });
+
+        /* ======================================================
+           SORT (visual feedback only — backend would re-order)
+           ====================================================== */
+        var sortSelect = document.getElementById('ssSort');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                if (window.__toast) {
+                    window.__toast('Sorted by: ' + this.value, '');
+                }
+            });
+        }
+
+        /* ======================================================
+           CANCEL SESSION CONFIRMATION
+           ====================================================== */
+        document.querySelectorAll('.ss-act.danger').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var row = this.closest('.ss-row');
+                if (!row) return;
+                var titleEl = row.querySelector('h4');
+                var title = titleEl ? titleEl.textContent.trim() : 'this session';
+
+                /* Soft confirm via toast — wire to a real modal in production */
+                if (window.__toast) {
+                    window.__toast('Confirm cancellation for "' + title + '"?', '');
+                }
+
+                /* Visually mark row as pending cancellation */
+                row.style.opacity = '0.55';
+                this.innerHTML = '<i class="bi bi-hourglass"></i> Cancelling…';
+                this.disabled = true;
+
+                /* Simulate backend call */
+                setTimeout(function () {
+                    row.style.opacity = '';
+                    btn.innerHTML = '<i class="bi bi-x-lg"></i> Cancel';
+                    btn.disabled = false;
+                    if (window.__toast) {
+                        window.__toast(title + ' cancelled — credits refunded', 'success');
+                    }
+                }, 1800);
+            });
+        });
+
+        /* ======================================================
+           REBOOK / JOIN / DETAILS — quick visual feedback
+           ====================================================== */
+        document.querySelectorAll('.ss-act.primary').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var row = this.closest('.ss-row');
+                if (!row) return;
+                var titleEl = row.querySelector('h4');
+                var title = titleEl ? titleEl.textContent.trim() : 'this session';
+                if (window.__toast) {
+                    window.__toast('Joining "' + title + '"…', 'success');
+                }
+            });
+        });
+
+        document.querySelectorAll('.ss-act.outline').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var row = this.closest('.ss-row');
+                if (!row) return;
+                var titleEl = row.querySelector('h4');
+                var title = titleEl ? titleEl.textContent.trim() : 'this session';
+                if (window.__toast) {
+                    window.__toast('Opening details for "' + title + '"…', '');
+                }
+            });
+        });
+
+        /* ======================================================
+           MINI CALENDAR — clicking a day shows quick summary
+           ====================================================== */
+        document.querySelectorAll('.ss-cal-day').forEach(function (day) {
+            day.addEventListener('click', function () {
+                var hasSession = this.classList.contains('has-session');
+                var num = this.textContent.trim();
+                if (window.__toast) {
+                    if (hasSession) {
+                        window.__toast('You have 1 session on ' + num + ' March', 'success');
+                    } else {
+                        window.__toast('No sessions on ' + num + ' March', '');
+                    }
+                }
+            });
+        });
+
+    })();
+</script>
+
+{% endblock content %}

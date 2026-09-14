@@ -1,0 +1,1634 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Requests{% endblock %}
+
+{% block breadcrumb %}Requests{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       REQUESTS — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .rq-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .rq-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .rq-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .rq-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 620px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+    .badge-soft.pulse i { animation: rqPulse 1.8s infinite; }
+    @keyframes rqPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- KPI strip ---------- */
+    .rq-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .rq-kpi {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .rq-kpi::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .rq-kpi:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .rq-kpi:hover::after { opacity: 1; }
+    .rq-kpi .ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .rq-kpi .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .rq-kpi .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .rq-kpi .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .rq-kpi .v {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .rq-kpi .v em {
+        font-style: normal;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .rq-kpi .l { font-size: 0.76rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Layout ---------- */
+    .rq-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+        align-items: start;
+    }
+    .rq-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    .rq-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+    /* ---------- Main card shell ---------- */
+    .rq-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    /* Tabs */
+    .rq-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 16px 22px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .rq-tabs::-webkit-scrollbar { display: none; }
+
+    .rq-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .rq-tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .rq-tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .rq-tab.active { color: var(--primary-dark); }
+    .rq-tab.active::after { transform: scaleX(1); }
+    .rq-tab > i { font-size: 0.92rem; color: var(--gray-300); transition: var(--transition); }
+    .rq-tab.active > i { color: var(--secondary-deep); }
+    .rq-tab .count {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 50px;
+        line-height: 1.6;
+        transition: var(--transition);
+    }
+    .rq-tab.active .count {
+        background: rgba(190, 242, 100, 0.3);
+        color: #4D7C0F;
+    }
+    .rq-tab .count.alert {
+        background: rgba(239, 68, 68, 0.14);
+        color: #DC2626;
+    }
+
+    /* Bulk actions bar */
+    .rq-bulk {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 22px;
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.85), rgba(248, 250, 252, 0));
+        border-bottom: 1px solid var(--gray-100);
+        flex-wrap: wrap;
+    }
+
+    /* Custom checkbox */
+    .rq-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        transition: var(--transition);
+    }
+    .rq-check:hover { color: var(--primary-dark); }
+    .rq-check input { position: absolute; opacity: 0; pointer-events: none; }
+    .rq-check .box {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1.5px solid var(--gray-300);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        transition: var(--transition);
+        background: var(--white);
+    }
+    .rq-check .box i {
+        font-size: 0.62rem;
+        color: var(--primary-dark);
+        opacity: 0;
+        transform: scale(0.5);
+        transition: var(--transition);
+    }
+    .rq-check input:checked + .box {
+        background: var(--secondary);
+        border-color: var(--secondary);
+    }
+    .rq-check input:checked + .box i { opacity: 1; transform: scale(1); }
+    .rq-check input:focus-visible + .box {
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.28);
+    }
+    .rq-check input:indeterminate + .box {
+        background: var(--secondary);
+        border-color: var(--secondary);
+    }
+    .rq-check input:indeterminate + .box::after {
+        content: '';
+        width: 10px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--primary-dark);
+        display: block;
+    }
+
+    .rq-bulk .spacer { flex: 1; }
+
+    .rq-bulk-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .rq-bulk-btn:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .rq-bulk-btn.primary {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .rq-bulk-btn.primary:hover {
+        background: var(--secondary-light);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.46);
+    }
+    .rq-bulk-btn.danger:hover {
+        border-color: rgba(239, 68, 68, 0.4);
+        color: var(--danger);
+        background: rgba(239, 68, 68, 0.05);
+    }
+    .rq-bulk-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Panels */
+    .rq-panel { display: none; }
+    .rq-panel.active { display: block; animation: rqFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    @keyframes rqFade {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- Request row ---------- */
+    .rq-list { display: flex; flex-direction: column; }
+
+    .rq-row {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px 22px;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .rq-row:last-child { border-bottom: none; }
+    .rq-row:hover { background: rgba(190, 242, 100, 0.035); }
+
+    .rq-row.gone {
+        opacity: 0;
+        transform: translateX(-24px);
+        pointer-events: none;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    /* Selection checkbox column */
+    .rq-row .pick {
+        padding-top: 4px;
+        flex-shrink: 0;
+    }
+
+    /* Avatar */
+    .rq-avatar {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--primary-dark);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        position: relative;
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.24);
+    }
+    .rq-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .rq-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .rq-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
+    .rq-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); }
+    .rq-avatar.v6 { background: linear-gradient(135deg, #FDA4AF, #E11D48); color: #fff; }
+
+    .rq-avatar .dot {
+        position: absolute;
+        bottom: 1px;
+        right: 1px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+    }
+    .rq-avatar .dot.off { background: var(--gray-300); }
+
+    /* Type badge on avatar */
+    .rq-type {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.6rem;
+        border: 2px solid var(--white);
+        color: var(--primary-dark);
+        background: var(--secondary);
+        box-shadow: 0 3px 8px rgba(11, 17, 33, 0.12);
+    }
+    .rq-type.mentor   { background: #A78BFA; color: #fff; }
+    .rq-type.session  { background: var(--accent); color: #fff; }
+    .rq-type.exchange { background: #FCD34D; }
+    .rq-type.swap     { background: var(--green); color: #fff; }
+
+    /* Body */
+    .rq-body { flex: 1; min-width: 0; }
+    .rq-body .top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+    .rq-body h4 {
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        line-height: 1.3;
+    }
+    .rq-body h4 .verified { color: var(--accent); font-size: 0.76rem; }
+
+    .rq-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        line-height: 1.5;
+    }
+    .rq-chip.new      { background: rgba(190, 242, 100, 0.24); color: #4D7C0F; }
+    .rq-chip.mentor   { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .rq-chip.session  { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .rq-chip.exchange { background: rgba(245, 158, 11, 0.16); color: #B45309; }
+    .rq-chip.urgent   { background: rgba(239, 68, 68, 0.14); color: #DC2626; }
+
+    .rq-role {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-bottom: 10px;
+    }
+
+    /* Message */
+    .rq-msg {
+        font-size: 0.83rem;
+        color: var(--gray-600);
+        line-height: 1.62;
+        padding: 11px 14px;
+        border-radius: 12px;
+        background: var(--cream);
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 12px;
+        font-style: italic;
+        position: relative;
+    }
+    .rq-msg::before {
+        content: '“';
+        color: var(--secondary-deep);
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        line-height: 0;
+        vertical-align: -0.15em;
+        margin-right: 4px;
+    }
+
+    /* Swap block (exchange requests) */
+    .rq-swap {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 12px;
+    }
+    .rq-swap-col { min-width: 0; }
+    .rq-swap-col .lbl {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-bottom: 5px;
+    }
+    .rq-swap-col.teach .lbl { color: #4D7C0F; }
+    .rq-swap-col.learn .lbl { color: #0284C7; }
+    .rq-swap-col .lbl i { font-size: 0.7rem; }
+    .rq-swap-col .name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .rq-swap-col .skill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 4px;
+        padding: 3px 9px;
+        border-radius: 50px;
+        font-size: 0.66rem;
+        font-weight: 600;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .rq-swap-col.learn .skill {
+        background: rgba(56, 189, 248, 0.14);
+        color: #0369A1;
+    }
+    .rq-swap-arrow {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        color: var(--primary-dark);
+        font-size: 0.8rem;
+        box-shadow: 0 3px 8px rgba(11, 17, 33, 0.06);
+    }
+
+    /* Meta row */
+    .rq-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    .rq-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .rq-meta i { color: var(--gray-300); font-size: 0.78rem; }
+    .rq-meta .rating { color: #B45309; font-weight: 700; }
+    .rq-meta .rating i { color: #F59E0B; }
+
+    /* Actions */
+    .rq-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+        min-width: 138px;
+        align-items: stretch;
+    }
+    .rq-act {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 16px;
+        border-radius: 50px;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .rq-act.accept {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.35);
+    }
+    .rq-act.accept:hover {
+        background: var(--secondary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.5);
+    }
+    .rq-act.decline {
+        background: var(--white);
+        color: var(--gray-600);
+        border: 1.5px solid var(--gray-200);
+    }
+    .rq-act.decline:hover {
+        background: rgba(239, 68, 68, 0.06);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: var(--danger);
+        transform: translateY(-2px);
+    }
+    .rq-act.ghost {
+        background: transparent;
+        color: var(--gray-600);
+        border: none;
+        padding: 6px 10px;
+        font-size: 0.74rem;
+        font-weight: 600;
+    }
+    .rq-act.ghost:hover {
+        background: var(--gray-100);
+        color: var(--primary-dark);
+    }
+    .rq-act.primary {
+        background: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .rq-act.primary:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(11, 17, 33, 0.24);
+    }
+
+    /* Empty state */
+    .rq-empty {
+        padding: 66px 26px 74px;
+        text-align: center;
+    }
+    .rq-empty .ic {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.75rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .rq-empty h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+    .rq-empty p {
+        max-width: 380px;
+        margin: 0 auto 20px;
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+
+    /* ---------- Side panels ---------- */
+    .rq-panel-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 20px 22px 18px;
+    }
+    .rq-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .rq-panel-head h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .rq-panel-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .rq-panel-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .rq-panel-head .link:hover { color: var(--primary-dark); }
+
+    /* Type breakdown */
+    .rq-break {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .rq-break:last-child { border-bottom: none; padding-bottom: 0; }
+    .rq-break:first-child { padding-top: 0; }
+
+    .rq-break .lbl {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 0.79rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .rq-break .lbl .ic {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        font-size: 0.72rem;
+        flex-shrink: 0;
+    }
+    .rq-break .lbl .ic.green { background: rgba(190, 242, 100, 0.2); color: #4D7C0F; }
+    .rq-break .lbl .ic.violet { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .rq-break .lbl .ic.sky { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .rq-break .lbl .ic.amber { background: rgba(245, 158, 11, 0.16); color: #B45309; }
+
+    .rq-break strong {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    /* Quick tips */
+    .rq-tip {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .rq-tip:last-child { border-bottom: none; padding-bottom: 0; }
+    .rq-tip:first-child { padding-top: 0; }
+    .rq-tip .ic {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 0.78rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .rq-tip .ic.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .rq-tip .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .rq-tip .ic.amber { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .rq-tip-body { flex: 1; min-width: 0; }
+    .rq-tip-body h5 {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+    .rq-tip-body p {
+        font-size: 0.71rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+
+    /* Recent activity */
+    .rq-activity {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .rq-activity:last-child { border-bottom: none; padding-bottom: 0; }
+    .rq-activity:first-child { padding-top: 0; }
+
+    .rq-activity .avatar.xs {
+        width: 30px;
+        height: 30px;
+        font-size: 0.6rem;
+        flex-shrink: 0;
+    }
+    .rq-activity-body { flex: 1; min-width: 0; }
+    .rq-activity-body h5 {
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .rq-activity-body p {
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        margin-top: 1px;
+    }
+    .rq-activity-body p strong { color: var(--secondary-deep); font-weight: 700; }
+
+    .rq-activity .stamp {
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 50px;
+        flex-shrink: 0;
+    }
+    .rq-activity .stamp.accepted {
+        background: rgba(190, 242, 100, 0.22);
+        color: #4D7C0F;
+    }
+    .rq-activity .stamp.declined {
+        background: rgba(239, 68, 68, 0.12);
+        color: #B91C1C;
+    }
+
+    /* Trust note */
+    .rq-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+    }
+    .rq-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .rq-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .rq-kpis { grid-template-columns: repeat(2, 1fr); }
+        .rq-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+        .rq-row { flex-wrap: wrap; }
+        .rq-actions {
+            flex-direction: row;
+            width: 100%;
+            min-width: 0;
+            margin-top: 4px;
+            padding-left: 68px;
+        }
+        .rq-actions .rq-act { flex: 1; }
+        .rq-actions .rq-act.ghost { flex: 0 0 auto; }
+    }
+
+    @media (max-width: 640px) {
+        .rq-kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .rq-kpi { padding: 14px; gap: 11px; }
+        .rq-kpi .ic { width: 38px; height: 38px; font-size: 0.92rem; }
+        .rq-kpi .v { font-size: 1.22rem; }
+        .rq-row { padding: 16px 18px; gap: 12px; }
+        .rq-avatar { width: 44px; height: 44px; font-size: 0.9rem; }
+        .rq-actions { padding-left: 0; }
+        .rq-actions .rq-act { padding: 9px 12px; font-size: 0.74rem; }
+        .rq-swap { grid-template-columns: 1fr; gap: 8px; }
+        .rq-swap-arrow { transform: rotate(90deg); justify-self: center; }
+        .rq-head-actions { width: 100%; }
+        .rq-head-actions .btn { flex: 1; }
+        .rq-bulk { padding: 12px 18px; }
+        .rq-tab { padding: 10px 12px; font-size: 0.78rem; }
+        .rq-tab .count { display: none; }
+    }
+
+    @media (max-width: 460px) {
+        .rq-actions { flex-direction: column; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="rq-head fade-up">
+    <div>
+        <span class="badge-soft pulse"><i class="bi bi-inbox-fill"></i> 3 pending requests</span>
+        <h1>Your <span>Requests</span></h1>
+        <p>Accept, decline or archive every connection, mentorship, session and exchange request in one place. Nothing is sent back until you decide.</p>
+    </div>
+
+    <div class="rq-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening request preferences…">
+            <i class="bi bi-sliders"></i> Preferences
+        </button>
+        <button class="btn btn-secondary" data-toast="Opening your sent requests…">
+            <i class="bi bi-send"></i> Sent requests
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     KPI STRIP
+     ==================================================== -->
+<section class="rq-kpis">
+    <div class="rq-kpi fade-up">
+        <div class="ic"><i class="bi bi-envelope-paper-fill"></i></div>
+        <div>
+            <div class="v" data-count="3">0</div>
+            <div class="l">Pending requests</div>
+        </div>
+    </div>
+
+    <div class="rq-kpi fade-up">
+        <div class="ic accent"><i class="bi bi-check2-circle"></i></div>
+        <div>
+            <div class="v" data-count="9">0</div>
+            <div class="l">Accepted this week</div>
+        </div>
+    </div>
+
+    <div class="rq-kpi fade-up">
+        <div class="ic violet"><i class="bi bi-send-fill"></i></div>
+        <div>
+            <div class="v" data-count="6">0</div>
+            <div class="l">Sent &amp; awaiting</div>
+        </div>
+    </div>
+
+    <div class="rq-kpi fade-up">
+        <div class="ic amber"><i class="bi bi-clock-history"></i></div>
+        <div>
+            <div class="v">~<span data-count="4">0</span><em>h</em></div>
+            <div class="l">Your avg. response</div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="rq-layout">
+
+    <!-- ============================================
+         MAIN: REQUEST LIST
+         ============================================ -->
+    <div class="rq-main">
+
+        <div class="rq-card fade-up">
+
+            <!-- Tabs -->
+            <div class="rq-tabs" role="tablist" aria-label="Request categories">
+                <button class="rq-tab active" data-tab="incoming" role="tab" aria-selected="true">
+                    <i class="bi bi-inbox-fill"></i> Incoming <span class="count alert">3</span>
+                </button>
+                <button class="rq-tab" data-tab="connection" role="tab" aria-selected="false">
+                    <i class="bi bi-person-plus-fill"></i> Connections <span class="count">2</span>
+                </button>
+                <button class="rq-tab" data-tab="mentor" role="tab" aria-selected="false">
+                    <i class="bi bi-person-badge-fill"></i> Mentorship <span class="count">1</span>
+                </button>
+                <button class="rq-tab" data-tab="session" role="tab" aria-selected="false">
+                    <i class="bi bi-camera-video-fill"></i> Sessions <span class="count">0</span>
+                </button>
+                <button class="rq-tab" data-tab="exchange" role="tab" aria-selected="false">
+                    <i class="bi bi-arrow-left-right"></i> Exchange <span class="count">0</span>
+                </button>
+                <button class="rq-tab" data-tab="archived" role="tab" aria-selected="false">
+                    <i class="bi bi-archive"></i> Archived <span class="count">14</span>
+                </button>
+            </div>
+
+            <!-- Bulk actions -->
+            <div class="rq-bulk">
+                <label class="rq-check">
+                    <input type="checkbox" id="rqSelectAll">
+                    <span class="box"><i class="bi bi-check-lg"></i></span>
+                    Select all
+                </label>
+
+                <span class="spacer"></span>
+
+                <button class="rq-bulk-btn primary" data-bulk="accept" disabled>
+                    <i class="bi bi-check2-all"></i> Accept selected
+                </button>
+                <button class="rq-bulk-btn danger" data-bulk="decline" disabled>
+                    <i class="bi bi-x-lg"></i> Decline
+                </button>
+                <button class="rq-bulk-btn" data-bulk="archive" disabled>
+                    <i class="bi bi-archive"></i> Archive
+                </button>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: INCOMING
+                 Backend: {% for request in incoming_requests %} … {% endfor %}
+                 ============================================================ -->
+            <div class="rq-panel active" id="rqPanelIncoming" role="tabpanel">
+                <div class="rq-list" id="rqList">
+
+                    <!-- ---- Request 1: Connection ---- -->
+                    <article class="rq-row" data-id="1" data-name="Sara Kim" data-type="connection">
+                        <div class="pick">
+                            <label class="rq-check">
+                                <input type="checkbox" class="rq-pick">
+                                <span class="box"><i class="bi bi-check-lg"></i></span>
+                            </label>
+                        </div>
+
+                        <div class="rq-avatar">
+                            SK
+                            <span class="dot"></span>
+                            <span class="rq-type" title="Connection request">
+                                <i class="bi bi-person-plus-fill"></i>
+                            </span>
+                        </div>
+
+                        <div class="rq-body">
+                            <div class="top">
+                                <h4>Sara Kim <i class="bi bi-patch-check-fill verified" title="Verified"></i></h4>
+                                <span class="rq-chip new"><i class="bi bi-stars"></i> New</span>
+                                <span class="rq-chip exchange"><i class="bi bi-person-plus-fill"></i> Connection</span>
+                            </div>
+                            <div class="rq-role">Product Designer · Lagos, NG · Replies in ~5m</div>
+
+                            <div class="rq-msg">
+                                Hey Amara! I saw you teach React — I'd love to swap my UI Design skills for it.
+                                I've got 5 years of experience and can start this week.
+                            </div>
+
+                            <div class="rq-swap">
+                                <div class="rq-swap-col teach">
+                                    <div class="lbl"><i class="bi bi-arrow-up-right"></i> You teach</div>
+                                    <div class="name">Amara Okoye</div>
+                                    <span class="skill"><i class="bi bi-filetype-jsx"></i> React</span>
+                                </div>
+                                <div class="rq-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                                <div class="rq-swap-col learn">
+                                    <div class="lbl"><i class="bi bi-arrow-down-left"></i> They teach</div>
+                                    <div class="name">Sara Kim</div>
+                                    <span class="skill"><i class="bi bi-palette"></i> UI Design</span>
+                                </div>
+                            </div>
+
+                            <div class="rq-meta">
+                                <span class="rating"><i class="bi bi-star-fill"></i> 4.9 · 42 exchanges</span>
+                                <span><i class="bi bi-clock"></i> Sent 2 hours ago</span>
+                                <span><i class="bi bi-globe"></i> English, Korean</span>
+                            </div>
+                        </div>
+
+                        <div class="rq-actions">
+                            <button class="rq-act accept" data-action="accept" data-name="Sara Kim">
+                                <i class="bi bi-check-lg"></i> Accept
+                            </button>
+                            <button class="rq-act decline" data-action="decline" data-name="Sara Kim">
+                                <i class="bi bi-x-lg"></i> Decline
+                            </button>
+                            <button class="rq-act ghost" data-action="view" data-name="Sara Kim">
+                                <i class="bi bi-person-badge"></i> Full profile
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Request 2: Connection ---- -->
+                    <article class="rq-row" data-id="2" data-name="Tunde Kalu" data-type="connection">
+                        <div class="pick">
+                            <label class="rq-check">
+                                <input type="checkbox" class="rq-pick">
+                                <span class="box"><i class="bi bi-check-lg"></i></span>
+                            </label>
+                        </div>
+
+                        <div class="rq-avatar v4">
+                            TK
+                            <span class="dot"></span>
+                            <span class="rq-type" title="Connection request">
+                                <i class="bi bi-person-plus-fill"></i>
+                            </span>
+                        </div>
+
+                        <div class="rq-body">
+                            <div class="top">
+                                <h4>Tunde Kalu <i class="bi bi-patch-check-fill verified" title="Verified"></i></h4>
+                                <span class="rq-chip new"><i class="bi bi-stars"></i> New</span>
+                                <span class="rq-chip exchange"><i class="bi bi-person-plus-fill"></i> Connection</span>
+                            </div>
+                            <div class="rq-role">Motion Designer · Lagos, NG · Replies in ~3m</div>
+
+                            <div class="rq-msg">
+                                I'm learning React to build an interactive portfolio. Happy to teach Figma
+                                &amp; motion design in return — 24 exchanges already under my belt.
+                            </div>
+
+                            <div class="rq-swap">
+                                <div class="rq-swap-col teach">
+                                    <div class="lbl"><i class="bi bi-arrow-up-right"></i> You teach</div>
+                                    <div class="name">Amara Okoye</div>
+                                    <span class="skill"><i class="bi bi-filetype-jsx"></i> React</span>
+                                </div>
+                                <div class="rq-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                                <div class="rq-swap-col learn">
+                                    <div class="lbl"><i class="bi bi-arrow-down-left"></i> They teach</div>
+                                    <div class="name">Tunde Kalu</div>
+                                    <span class="skill"><i class="bi bi-magic"></i> Figma &amp; Motion</span>
+                                </div>
+                            </div>
+
+                            <div class="rq-meta">
+                                <span class="rating"><i class="bi bi-star-fill"></i> 5.0 · 24 exchanges</span>
+                                <span><i class="bi bi-clock"></i> Sent 4 hours ago</span>
+                                <span><i class="bi bi-globe"></i> English, Yoruba</span>
+                            </div>
+                        </div>
+
+                        <div class="rq-actions">
+                            <button class="rq-act accept" data-action="accept" data-name="Tunde Kalu">
+                                <i class="bi bi-check-lg"></i> Accept
+                            </button>
+                            <button class="rq-act decline" data-action="decline" data-name="Tunde Kalu">
+                                <i class="bi bi-x-lg"></i> Decline
+                            </button>
+                            <button class="rq-act ghost" data-action="view" data-name="Tunde Kalu">
+                                <i class="bi bi-person-badge"></i> Full profile
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- ---- Request 3: Mentorship ---- -->
+                    <article class="rq-row" data-id="3" data-name="Lena Brava" data-type="mentor">
+                        <div class="pick">
+                            <label class="rq-check">
+                                <input type="checkbox" class="rq-pick">
+                                <span class="box"><i class="bi bi-check-lg"></i></span>
+                            </label>
+                        </div>
+
+                        <div class="rq-avatar v3">
+                            LB
+                            <span class="dot off"></span>
+                            <span class="rq-type mentor" title="Mentorship request">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </span>
+                        </div>
+
+                        <div class="rq-body">
+                            <div class="top">
+                                <h4>Lena Brava <i class="bi bi-patch-check-fill verified" title="Verified"></i></h4>
+                                <span class="rq-chip new"><i class="bi bi-stars"></i> New</span>
+                                <span class="rq-chip mentor"><i class="bi bi-person-badge-fill"></i> Mentorship</span>
+                            </div>
+                            <div class="rq-role">Product Designer · Remote · Replies in ~20m</div>
+
+                            <div class="rq-msg">
+                                Hi! I'd love to be your mentee for the frontend track. In return I can offer
+                                design critique sessions — I've mentored 30+ juniors on product thinking.
+                            </div>
+
+                            <div class="rq-meta">
+                                <span class="rating"><i class="bi bi-star-fill"></i> 4.8 · 18 exchanges</span>
+                                <span><i class="bi bi-clock"></i> Sent 1 day ago</span>
+                                <span><i class="bi bi-person-check"></i> 30+ mentees</span>
+                                <span><i class="bi bi-globe"></i> English, Spanish</span>
+                            </div>
+                        </div>
+
+                        <div class="rq-actions">
+                            <button class="rq-act accept" data-action="accept" data-name="Lena Brava">
+                                <i class="bi bi-check-lg"></i> Accept
+                            </button>
+                            <button class="rq-act decline" data-action="decline" data-name="Lena Brava">
+                                <i class="bi bi-x-lg"></i> Decline
+                            </button>
+                            <button class="rq-act ghost" data-action="view" data-name="Lena Brava">
+                                <i class="bi bi-person-badge"></i> Full profile
+                            </button>
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- Empty state -->
+                <div class="rq-empty" id="rqEmptyIncoming" style="display:none;">
+                    <div class="ic"><i class="bi bi-check2-circle"></i></div>
+                    <h4>You're all caught up!</h4>
+                    <p>No pending requests right now. New ones land here the moment someone wants to learn or swap with you.</p>
+                    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-secondary btn-sm" data-toast="Finding new matches…">
+                            <i class="bi bi-arrow-left-right"></i> Find new matches
+                        </button>
+                        <button class="btn btn-line btn-sm" data-toast="Opening the archive…">
+                            <i class="bi bi-archive"></i> View archive
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: CONNECTIONS ONLY
+                 ============================================================ -->
+            <div class="rq-panel" id="rqPanelConnection" role="tabpanel">
+                <div class="rq-list" id="rqListConnections">
+                    <!-- Same structure as above, filtered to connection only -->
+                    <!-- (cards 1 & 2 duplicated here for a full experience) -->
+                </div>
+                <div class="rq-empty">
+                    <div class="ic"><i class="bi bi-person-plus"></i></div>
+                    <h4>No connection requests match</h4>
+                    <p>Once someone sends you a connection request, it'll show up here so you can accept or decline.</p>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: MENTORSHIP
+                 ============================================================ -->
+            <div class="rq-panel" id="rqPanelMentor" role="tabpanel">
+                <div class="rq-list" id="rqListMentor"></div>
+                <div class="rq-empty">
+                    <div class="ic"><i class="bi bi-person-badge"></i></div>
+                    <h4>No mentorship requests match</h4>
+                    <p>When someone asks you to be their mentor — or asks you to mentor them — it'll land here.</p>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: SESSIONS
+                 ============================================================ -->
+            <div class="rq-panel" id="rqPanelSession" role="tabpanel">
+                <div class="rq-list" id="rqListSession"></div>
+                <div class="rq-empty">
+                    <div class="ic"><i class="bi bi-camera-video"></i></div>
+                    <h4>No session requests</h4>
+                    <p>Session booking requests from your connections will appear here.</p>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: EXCHANGE
+                 ============================================================ -->
+            <div class="rq-panel" id="rqPanelExchange" role="tabpanel">
+                <div class="rq-list" id="rqListExchange"></div>
+                <div class="rq-empty">
+                    <div class="ic"><i class="bi bi-arrow-left-right"></i></div>
+                    <h4>No exchange requests</h4>
+                    <p>Two-way skill swap requests will show up here for your review.</p>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANEL: ARCHIVED
+                 ============================================================ -->
+            <div class="rq-panel" id="rqPanelArchived" role="tabpanel">
+                <div class="rq-list">
+                    <article class="rq-row" style="opacity:0.75;">
+                        <div class="pick"></div>
+                        <div class="rq-avatar v2" style="filter:grayscale(0.4);">
+                            DO
+                            <span class="dot off"></span>
+                            <span class="rq-type" style="background:var(--gray-200);color:var(--gray-600);">
+                                <i class="bi bi-archive-fill"></i>
+                            </span>
+                        </div>
+                        <div class="rq-body">
+                            <div class="top">
+                                <h4 style="color:var(--gray-600);">Daniel Okafor</h4>
+                                <span class="rq-chip" style="background:var(--gray-100);color:var(--gray-600);">
+                                    <i class="bi bi-archive"></i> Archived
+                                </span>
+                            </div>
+                            <div class="rq-role">Frontend Engineer · Abuja, NG</div>
+                            <div class="rq-meta">
+                                <span><i class="bi bi-clock"></i> Archived 8 days ago</span>
+                            </div>
+                        </div>
+                        <div class="rq-actions">
+                            <button class="rq-act primary" data-toast="Restoring Daniel's request…">
+                                <i class="bi bi-arrow-counterclockwise"></i> Restore
+                            </button>
+                        </div>
+                    </article>
+
+                    <article class="rq-row" style="opacity:0.75;">
+                        <div class="pick"></div>
+                        <div class="rq-avatar v5" style="filter:grayscale(0.4);">
+                            RK
+                            <span class="dot off"></span>
+                            <span class="rq-type" style="background:var(--gray-200);color:var(--gray-600);">
+                                <i class="bi bi-archive-fill"></i>
+                            </span>
+                        </div>
+                        <div class="rq-body">
+                            <div class="top">
+                                <h4 style="color:var(--gray-600);">Ravi Kapoor</h4>
+                                <span class="rq-chip" style="background:var(--gray-100);color:var(--gray-600);">
+                                    <i class="bi bi-archive"></i> Archived
+                                </span>
+                            </div>
+                            <div class="rq-role">Backend Engineer · Bengaluru, IN</div>
+                            <div class="rq-meta">
+                                <span><i class="bi bi-clock"></i> Archived 2 weeks ago</span>
+                            </div>
+                        </div>
+                        <div class="rq-actions">
+                            <button class="rq-act primary" data-toast="Restoring Ravi's request…">
+                                <i class="bi bi-arrow-counterclockwise"></i> Restore
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================
+         SIDE PANELS
+         ============================================ -->
+    <div class="rq-side">
+
+        <!-- Breakdown -->
+        <div class="rq-panel-card fade-up">
+            <div class="rq-panel-head">
+                <h4><i class="bi bi-pie-chart-fill"></i> Request breakdown</h4>
+                <button class="link" data-toast="Opening request analytics…">Report</button>
+            </div>
+
+            <div class="rq-break">
+                <span class="lbl"><span class="ic green"><i class="bi bi-person-plus-fill"></i></span> Connections</span>
+                <strong>2</strong>
+            </div>
+            <div class="rq-break">
+                <span class="lbl"><span class="ic violet"><i class="bi bi-person-badge-fill"></i></span> Mentorship</span>
+                <strong>1</strong>
+            </div>
+            <div class="rq-break">
+                <span class="lbl"><span class="ic sky"><i class="bi bi-camera-video-fill"></i></span> Sessions</span>
+                <strong>0</strong>
+            </div>
+            <div class="rq-break">
+                <span class="lbl"><span class="ic amber"><i class="bi bi-arrow-left-right"></i></span> Exchange</span>
+                <strong>0</strong>
+            </div>
+        </div>
+
+        <!-- Handling tips -->
+        <div class="rq-panel-card fade-up">
+            <div class="rq-panel-head">
+                <h4><i class="bi bi-lightbulb-fill"></i> Handling requests</h4>
+            </div>
+
+            <div class="rq-tip">
+                <div class="ic"><i class="bi bi-chat-left-quote"></i></div>
+                <div class="rq-tip-body">
+                    <h5>Personalise your reply</h5>
+                    <p>A short message before accepting builds trust and gets the swap moving faster.</p>
+                </div>
+            </div>
+
+            <div class="rq-tip">
+                <div class="ic sky"><i class="bi bi-clock-history"></i></div>
+                <div class="rq-tip-body">
+                    <h5>Reply within 24h</h5>
+                    <p>Requests answered within a day are 3× more likely to result in a completed swap.</p>
+                </div>
+            </div>
+
+            <div class="rq-tip">
+                <div class="ic violet"><i class="bi bi-shield-check"></i></div>
+                <div class="rq-tip-body">
+                    <h5>Declining is free</h5>
+                    <p>Declined requests never see that you said no — it's private and permanent.</p>
+                </div>
+            </div>
+
+            <div class="rq-tip">
+                <div class="ic amber"><i class="bi bi-flag"></i></div>
+                <div class="rq-tip-body">
+                    <h5>Report spam</h5>
+                    <p>If a request feels off, block and report — Knotwork acts on reports within 24h.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="rq-panel-card fade-up">
+            <div class="rq-panel-head">
+                <h4><i class="bi bi-clock-history"></i> Recent activity</h4>
+                <button class="link" data-toast="Opening full activity log…">View all</button>
+            </div>
+
+            <div class="rq-activity">
+                <span class="avatar xs">JT</span>
+                <div class="rq-activity-body">
+                    <h5>Jonas Tan</h5>
+                    <p>Connection request</p>
+                </div>
+                <span class="stamp accepted"><i class="bi bi-check2"></i> Accepted</span>
+            </div>
+
+            <div class="rq-activity">
+                <span class="avatar xs" style="background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;">AN</span>
+                <div class="rq-activity-body">
+                    <h5>Amara Nwosu</h5>
+                    <p>Mentorship request</p>
+                </div>
+                <span class="stamp accepted"><i class="bi bi-check2"></i> Accepted</span>
+            </div>
+
+            <div class="rq-activity">
+                <span class="avatar xs" style="background:linear-gradient(135deg,#FDA4AF,#E11D48);color:#fff;">MR</span>
+                <div class="rq-activity-body">
+                    <h5>Maya Rahman</h5>
+                    <p>Exchange request</p>
+                </div>
+                <span class="stamp accepted"><i class="bi bi-check2"></i> Accepted</span>
+            </div>
+
+            <div class="rq-activity">
+                <span class="avatar xs" style="background:linear-gradient(135deg,#FCD34D,#F59E0B);">RK</span>
+                <div class="rq-activity-body">
+                    <h5>Ravi Kapoor</h5>
+                    <p>Connection request</p>
+                </div>
+                <span class="stamp declined"><i class="bi bi-x-lg"></i> Declined</span>
+            </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="rq-trust fade-up">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>
+                <strong>Your decisions are private.</strong> Declined requests are never notified, and blocking is
+                silent. Only you see the choices you make here.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           TABS — switch panels
+           ====================================================== */
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('.rq-tab'));
+        var panels = Array.prototype.slice.call(document.querySelectorAll('.rq-panel'));
+        var list = document.getElementById('rqList');
+        var emptyIncoming = document.getElementById('rqEmptyIncoming');
+        var listConnections = document.getElementById('rqListConnections');
+        var listMentor = document.getElementById('rqListMentor');
+
+        function activateTab(name) {
+            tabs.forEach(function (t) {
+                var on = t.dataset.tab === name;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            panels.forEach(function (p) {
+                var key = 'rqPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+                p.classList.toggle('active', p.id === key);
+            });
+        }
+
+        /* ---------- Distribute request cards to their filtered panels ---------- */
+        function distributeCards() {
+            if (!list || !listConnections || !listMentor) return;
+            var cards = Array.prototype.slice.call(list.querySelectorAll('.rq-row'));
+            cards.forEach(function (card) {
+                var type = card.dataset.type;
+                if (type === 'connection') listConnections.appendChild(card.cloneNode(true));
+                if (type === 'mentor') listMentor.appendChild(card.cloneNode(true));
+            });
+        }
+
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activateTab(this.dataset.tab); });
+        });
+
+        /* ======================================================
+           SELECT ALL / PICK CHECKS
+           ====================================================== */
+        var selectAll = document.getElementById('rqSelectAll');
+        var bulkBtns = Array.prototype.slice.call(document.querySelectorAll('.rq-bulk-btn'));
+
+        function activePicks() {
+            var activePanel = document.querySelector('.rq-panel.active');
+            if (!activePanel) return [];
+            return Array.prototype.slice.call(activePanel.querySelectorAll('.rq-pick'));
+        }
+
+        function syncBulk() {
+            var picks = activePicks();
+            var checked = picks.filter(function (c) { return c.checked; });
+            var anyChecked = checked.length > 0;
+
+            bulkBtns.forEach(function (b) { b.disabled = !anyChecked; });
+
+            if (selectAll) {
+                selectAll.checked = picks.length > 0 && checked.length === picks.length;
+                selectAll.indeterminate = checked.length > 0 && checked.length < picks.length;
+            }
+        }
+
+        /* Delegated listener for .rq-pick */
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.classList && e.target.classList.contains('rq-pick')) {
+                syncBulk();
+            }
+        });
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                var picks = activePicks();
+                picks.forEach(function (c) { c.checked = selectAll.checked; });
+                syncBulk();
+            });
+        }
+
+        /* ======================================================
+           ACCEPT / DECLINE
+           ====================================================== */
+        function dismissRow(row, action) {
+            if (!row || row.classList.contains('gone')) return;
+            var name = row.dataset.name || 'this person';
+
+            /* Remove from any cloned panels too */
+            document.querySelectorAll('.rq-row[data-id="' + row.dataset.id + '"]').forEach(function (r) {
+                r.classList.add('gone');
+            });
+
+            setTimeout(function () {
+                document.querySelectorAll('.rq-row[data-id="' + row.dataset.id + '"]').forEach(function (r) {
+                    r.style.display = 'none';
+                });
+                checkEmptyStates();
+                syncBulk();
+            }, 420);
+
+            if (window.__toast) {
+                if (action === 'accept') {
+                    window.__toast('You accepted ' + name + "'s request — say hello!", 'success');
+                } else if (action === 'decline') {
+                    window.__toast('Request from ' + name + ' declined', '');
+                } else if (action === 'archive') {
+                    window.__toast('Archived ' + name + "'s request", '');
+                }
+            }
+        }
+
+        /* Delegated accept/decline/view */
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rq-act');
+            if (!btn) return;
+
+            var action = btn.dataset.action;
+            var row = btn.closest('.rq-row');
+            if (action === 'accept' || action === 'decline') {
+                if (row) dismissRow(row, action);
+            } else if (action === 'view') {
+                var name = btn.dataset.name || 'this person';
+                if (window.__toast) window.__toast('Opening profile for ' + name + '…', '');
+            }
+        });
+
+        /* ======================================================
+           BULK ACTIONS
+           ====================================================== */
+        bulkBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var action = this.dataset.bulk;
+                var picks = activePicks().filter(function (c) { return c.checked; });
+                if (picks.length === 0) return;
+
+                picks.forEach(function (check) {
+                    var row = check.closest('.rq-row');
+                    if (row) dismissRow(row, action);
+                    check.checked = false;
+                });
+
+                /* Reset select-all */
+                if (selectAll) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                }
+                syncBulk();
+            });
+        });
+
+        /* ======================================================
+           EMPTY STATE LOGIC
+           ====================================================== */
+        function checkEmptyStates() {
+            if (list) {
+                var visible = Array.prototype.filter.call(
+                    list.querySelectorAll('.rq-row'),
+                    function (r) { return r.style.display !== 'none'; }
+                ).length;
+                if (emptyIncoming) {
+                    emptyIncoming.style.display = visible === 0 ? 'block' : 'none';
+                    list.style.display = visible === 0 ? 'none' : 'block';
+                }
+            }
+        }
+
+        /* ======================================================
+           MARK ALL READ — quick action on badge
+           ====================================================== */
+        var headBadge = document.querySelector('.badge-soft');
+        if (headBadge) {
+            headBadge.style.cursor = 'pointer';
+            headBadge.addEventListener('click', function () {
+                if (window.__toast) window.__toast('All requests marked as seen', 'success');
+                headBadge.classList.remove('pulse');
+                headBadge.innerHTML = '<i class="bi bi-check2-circle"></i> All caught up';
+            });
+        }
+
+        /* ======================================================
+           INIT
+           ====================================================== */
+        distributeCards();
+        syncBulk();
+        checkEmptyStates();
+
+    })();
+</script>
+
+{% endblock content %}

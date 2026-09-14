@@ -1,0 +1,1234 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Learning{% endblock %}
+{% block breadcrumb %}My Learning{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       MY LEARNING — page-scoped styles (prefix: .lp-)
+       ============================================================ */
+
+    /* ---------- HERO ---------- */
+    .lp-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 30px 34px;
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .lp-hero::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -6%;
+        width: 55%;
+        height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .lp-hero::after {
+        content: '∞';
+        position: absolute;
+        bottom: -80px;
+        left: 30%;
+        font-family: 'Playfair Display', serif;
+        font-size: 15rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.02);
+        pointer-events: none;
+    }
+    .lp-hero-text { position: relative; z-index: 2; max-width: 620px; }
+    .lp-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.65rem, 2.8vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 10px;
+    }
+    .lp-hero h1 span { color: var(--secondary); font-style: italic; }
+    .lp-hero p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.94rem;
+        line-height: 1.7;
+        max-width: 520px;
+        margin-bottom: 0;
+    }
+    .lp-hero p strong { color: var(--white); font-weight: 600; }
+
+    .lp-hero-panel {
+        position: relative;
+        z-index: 2;
+        flex: 0 0 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .lp-hero-panel .row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    .lp-hero-panel .row span {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.45);
+    }
+    .lp-hero-panel .row strong {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+    .lp-hero-panel .bar { background: rgba(255, 255, 255, 0.12); }
+
+    .lp-hero-mini {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+        text-align: center;
+    }
+    .lp-hero-mini strong {
+        display: block;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+    }
+    .lp-hero-mini span {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.45);
+        font-weight: 600;
+    }
+
+    /* ---------- TOOLBAR ---------- */
+    .lp-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 16px 26px 4px;
+    }
+    .lp-search {
+        position: relative;
+        flex: 1 1 200px;
+        max-width: 320px;
+    }
+    .lp-search i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-300);
+        font-size: 0.8rem;
+    }
+    .lp-search input {
+        width: 100%;
+        padding: 9px 16px 9px 40px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-size: 0.82rem;
+        font-family: inherit;
+        color: var(--gray-800);
+        outline: none;
+        transition: var(--transition);
+    }
+    .lp-search input::placeholder { color: var(--gray-300); }
+    .lp-search input:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    .lp-chips {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding: 2px 0;
+    }
+    .lp-chips::-webkit-scrollbar { display: none; }
+    .lp-chip {
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 7px 14px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: inherit;
+        white-space: nowrap;
+    }
+    .lp-chip:hover { border-color: var(--secondary); color: var(--primary-dark); }
+    .lp-chip.active {
+        background: var(--primary-dark);
+        color: var(--secondary);
+        border-color: var(--primary-dark);
+    }
+
+    .lp-select {
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        border-radius: 50px;
+        padding: 8px 14px;
+        font-size: 0.78rem;
+        font-family: inherit;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        outline: none;
+        transition: var(--transition);
+        margin-left: auto;
+    }
+    .lp-select:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    /* ---------- COURSE GRID ---------- */
+    .lp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(292px, 1fr));
+        gap: 20px;
+        padding-top: 16px;
+    }
+
+    .lp-course {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.06);
+        border-radius: var(--radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: var(--transition);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+    .lp-course:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.35);
+    }
+
+    /* Cover */
+    .lp-cover {
+        position: relative;
+        height: 92px;
+        display: grid;
+        place-items: center;
+        font-size: 1.7rem;
+        color: #4D7C0F;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.34), rgba(190, 242, 100, 0.10));
+    }
+    .lp-cover::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.55), transparent 58%);
+        pointer-events: none;
+    }
+    .lp-cover.accent { background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(56, 189, 248, 0.07)); color: #0369A1; }
+    .lp-cover.violet { background: linear-gradient(135deg, rgba(139, 92, 246, 0.24), rgba(139, 92, 246, 0.07)); color: #6D28D9; }
+    .lp-cover.amber  { background: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(245, 158, 11, 0.07)); color: #B45309; }
+    .lp-cover.slate  { background: linear-gradient(135deg, rgba(30, 41, 59, 0.14), rgba(30, 41, 59, 0.04)); color: var(--primary-light); }
+    .lp-cover.green  { background: linear-gradient(135deg, rgba(34, 197, 94, 0.26), rgba(34, 197, 94, 0.07)); color: #15803D; }
+
+    .lp-tag {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: var(--primary-dark);
+    }
+    .lp-save {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: var(--gray-600);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 0.78rem;
+        transition: var(--transition);
+    }
+    .lp-save:hover { color: var(--primary-dark); transform: scale(1.1); }
+    .lp-save.on { background: var(--secondary); color: var(--primary-dark); }
+
+    /* Body */
+    .lp-body {
+        padding: 16px 18px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1;
+    }
+    .lp-title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .lp-title {
+        font-size: 0.93rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.35;
+    }
+    .lp-sub {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .lp-sub strong { color: var(--gray-800); font-weight: 600; }
+
+    .lp-pill {
+        font-size: 0.6rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 50px;
+        white-space: nowrap;
+        letter-spacing: 0.03em;
+        flex-shrink: 0;
+    }
+    .lp-pill.good  { background: rgba(190, 242, 100, 0.25); color: #4D7C0F; }
+    .lp-pill.warn  { background: rgba(245, 158, 11, 0.16); color: #B45309; }
+    .lp-pill.info  { background: rgba(56, 189, 248, 0.16); color: #0369A1; }
+    .lp-pill.done  { background: rgba(34, 197, 94, 0.15); color: #15803D; }
+    .lp-pill.muted { background: var(--gray-100); color: var(--gray-600); }
+
+    .lp-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 0.71rem;
+        color: var(--gray-600);
+    }
+    .lp-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .lp-meta i { color: var(--gray-300); font-size: 0.75rem; }
+
+    .lp-progress-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 7px;
+    }
+    .lp-progress-top span { font-size: 0.7rem; color: var(--gray-600); font-weight: 500; }
+    .lp-progress-top strong { font-size: 0.76rem; font-weight: 700; color: var(--primary-dark); }
+
+    .lp-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 13px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .lp-next {
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .lp-next i { color: var(--secondary-deep); font-size: 0.8rem; flex-shrink: 0; }
+
+    /* ---------- EMPTY STATE ---------- */
+    .lp-empty {
+        display: none;
+        text-align: center;
+        padding: 54px 20px 46px;
+    }
+    .lp-empty.show { display: block; }
+    .lp-empty .ic {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.16);
+        color: #4D7C0F;
+        display: grid;
+        place-items: center;
+        font-size: 1.45rem;
+        margin: 0 auto 16px;
+    }
+    .lp-empty h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .lp-empty p {
+        font-size: 0.82rem;
+        color: var(--gray-600);
+        max-width: 340px;
+        margin: 0 auto 18px;
+        line-height: 1.65;
+    }
+
+    /* ---------- CERTIFICATE ROWS ---------- */
+    .lp-cert {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .lp-cert:first-of-type { padding-top: 0; }
+    .lp-cert:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .lp-cert-ic {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .lp-cert-body { flex: 1; min-width: 0; }
+    .lp-cert-body h5 {
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .lp-cert-body p { font-size: 0.71rem; color: var(--gray-600); }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+        .lp-hero { padding: 26px 22px; }
+        .lp-hero-panel { flex: 1 1 100%; }
+        .lp-toolbar { padding: 14px 20px 2px; }
+        .lp-select { margin-left: 0; }
+    }
+    @media (max-width: 640px) {
+        .lp-grid { grid-template-columns: 1fr; gap: 16px; }
+        .lp-search { max-width: none; flex: 1 1 100%; }
+        .lp-hero h1 { font-size: 1.5rem; }
+        .lp-actions { flex-wrap: wrap; }
+        .lp-actions .btn-ghost,
+        .lp-actions .btn-join { width: 100%; }
+        .lp-next { width: 100%; }
+    }
+</style>
+
+<!-- ==================== HERO ==================== -->
+<section class="lp-hero fade-up">
+    <div class="lp-hero-text">
+        <span class="hero-badge"><i class="bi bi-mortarboard-fill"></i> FRONTEND TRACK · COHORT 12</span>
+        <h1>My <span>Learning</span></h1>
+        <p>
+            You have <strong>4 active courses</strong> and <strong>3 certificates</strong> waiting to be claimed.
+            Keep the pace — two sessions this week unlocks the <strong>Momentum</strong> badge.
+        </p>
+    </div>
+
+    <div class="lp-hero-panel">
+        <div class="row">
+            <span>Track progress</span>
+            <strong>68%</strong>
+        </div>
+        <div class="bar"><span data-value="68"></span></div>
+        <div class="lp-hero-mini">
+            <div><strong>4</strong><span>Active</span></div>
+            <div><strong>3</strong><span>Done</span></div>
+            <div><strong>4</strong><span>Saved</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== STATS ==================== -->
+<section class="stats-grid">
+    <div class="stat-card fade-up">
+        <div class="stat-top">
+            <div class="stat-icon"><i class="bi bi-play-circle"></i></div>
+            <span class="stat-trend">+1 this month</span>
+        </div>
+        <div class="value" data-count="4">0</div>
+        <div class="label">Courses in progress</div>
+    </div>
+
+    <div class="stat-card fade-up">
+        <div class="stat-top">
+            <div class="stat-icon accent"><i class="bi bi-patch-check"></i></div>
+            <span class="stat-trend">+2 this year</span>
+        </div>
+        <div class="value" data-count="3">0</div>
+        <div class="label">Courses completed</div>
+    </div>
+
+    <div class="stat-card fade-up">
+        <div class="stat-top">
+            <div class="stat-icon violet"><i class="bi bi-clock-history"></i></div>
+            <span class="stat-trend">+8.5h</span>
+        </div>
+        <div class="value"><span data-count="48">0</span><span>h</span></div>
+        <div class="label">Total learning hours</div>
+    </div>
+
+    <div class="stat-card fade-up">
+        <div class="stat-top">
+            <div class="stat-icon amber"><i class="bi bi-award"></i></div>
+            <span class="stat-trend">Verified</span>
+        </div>
+        <div class="value" data-count="3">0</div>
+        <div class="label">Certificates earned</div>
+    </div>
+</section>
+
+<!-- ==================== COURSE TABS ==================== -->
+<section class="card tabs-card fade-up">
+
+    <div class="tabs-head">
+        <h3><i class="bi bi-collection"></i> My courses</h3>
+        <a href="#" class="link">Browse catalogue <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="active" role="tab" aria-selected="true">
+            Active <span class="count">4</span>
+        </button>
+        <button class="tab" data-tab="completed" role="tab" aria-selected="false">
+            Completed <span class="count">3</span>
+        </button>
+        <button class="tab" data-tab="saved" role="tab" aria-selected="false">
+            Saved <span class="count">4</span>
+        </button>
+    </div>
+
+    <!-- ---------- TOOLBAR ---------- -->
+    <div class="lp-toolbar">
+        <div class="lp-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="lpSearch" placeholder="Search your courses, mentors…" aria-label="Search your courses">
+        </div>
+
+        <div class="lp-chips" role="group" aria-label="Filter by track">
+            <button class="lp-chip active" data-filter="all">All tracks</button>
+            <button class="lp-chip" data-filter="frontend">Frontend</button>
+            <button class="lp-chip" data-filter="design">Design</button>
+            <button class="lp-chip" data-filter="backend">Backend</button>
+            <button class="lp-chip" data-filter="data">Data</button>
+        </div>
+
+        <select class="lp-select" id="lpSort" aria-label="Sort courses">
+            <option value="recent">Recently accessed</option>
+            <option value="progress">Highest progress</option>
+            <option value="title">Title (A–Z)</option>
+        </select>
+    </div>
+
+    <div class="tab-panels">
+
+        <!-- ============================================================
+             TAB: ACTIVE
+             ============================================================ -->
+        <div class="tab-panel active" id="tab-active">
+            <div class="lp-grid">
+
+                <!-- Course 1 -->
+                <article class="lp-course" data-title="advanced react patterns" data-track="frontend"
+                         data-progress="82" data-recent="5"
+                         data-tags="daniel okafor react javascript hooks frontend intermediate">
+                    <div class="lp-cover">
+                        <span class="lp-tag">Frontend</span>
+                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
+                        <i class="bi bi-filetype-jsx"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Advanced React Patterns</h4>
+                            <span class="lp-pill good">On track</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Daniel Okafor</strong> · Intermediate</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 12 modules</span>
+                            <span><i class="bi bi-clock"></i> 6h 20m left</span>
+                        </div>
+
+                        <div>
+                            <div class="lp-progress-top">
+                                <span>Progress</span>
+                                <strong>82%</strong>
+                            </div>
+                            <div class="bar"><span data-value="82"></span></div>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: Custom Hooks</span>
+                            <button class="btn-ghost" data-toast="Resuming Advanced React Patterns…"
+                                    data-toast-type="success">Resume</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Course 2 -->
+                <article class="lp-course" data-title="ui ux design systems" data-track="design"
+                         data-progress="54" data-recent="4"
+                         data-tags="fatima bello figma design tokens ui ux design">
+                    <div class="lp-cover accent">
+                        <span class="lp-tag">Design</span>
+                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
+                        <i class="bi bi-pen"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">UI/UX Design Systems</h4>
+                            <span class="lp-pill warn">Needs attention</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Fatima Bello</strong> · Intermediate</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 10 modules</span>
+                            <span><i class="bi bi-clock"></i> 9h 10m left</span>
+                        </div>
+
+                        <div>
+                            <div class="lp-progress-top">
+                                <span>Progress</span>
+                                <strong>54%</strong>
+                            </div>
+                            <div class="bar accent"><span data-value="54"></span></div>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: Design Tokens</span>
+                            <button class="btn-ghost" data-toast="Resuming UI/UX Design Systems…"
+                                    data-toast-type="success">Resume</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Course 3 -->
+                <article class="lp-course" data-title="backend fundamentals" data-track="backend"
+                         data-progress="27" data-recent="3"
+                         data-tags="chidi nwosu django python rest api backend">
+                    <div class="lp-cover violet">
+                        <span class="lp-tag">Backend</span>
+                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Backend Fundamentals</h4>
+                            <span class="lp-pill info">Just started</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Chidi Nwosu</strong> · Beginner</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 14 modules</span>
+                            <span><i class="bi bi-clock"></i> 11h 45m left</span>
+                        </div>
+
+                        <div>
+                            <div class="lp-progress-top">
+                                <span>Progress</span>
+                                <strong>27%</strong>
+                            </div>
+                            <div class="bar violet"><span data-value="27"></span></div>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: REST vs GraphQL</span>
+                            <button class="btn-ghost" data-toast="Resuming Backend Fundamentals…"
+                                    data-toast-type="success">Resume</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Course 4 -->
+                <article class="lp-course" data-title="data storytelling with python" data-track="data"
+                         data-progress="41" data-recent="2"
+                         data-tags="maya rahman pandas matplotlib data analysis python">
+                    <div class="lp-cover amber">
+                        <span class="lp-tag">Data</span>
+                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Data Storytelling with Python</h4>
+                            <span class="lp-pill good">On track</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Maya Rahman</strong> · Intermediate</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 8 modules</span>
+                            <span><i class="bi bi-clock"></i> 5h 05m left</span>
+                        </div>
+
+                        <div>
+                            <div class="lp-progress-top">
+                                <span>Progress</span>
+                                <strong>41%</strong>
+                            </div>
+                            <div class="bar"><span data-value="41"></span></div>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: Visual Encoding</span>
+                            <button class="btn-ghost" data-toast="Resuming Data Storytelling…"
+                                    data-toast-type="success">Resume</button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <div class="lp-empty">
+                <div class="ic"><i class="bi bi-inbox"></i></div>
+                <h4>No active courses match</h4>
+                <p>Try a different track filter or clear your search to see all of your in-progress courses.</p>
+                <button class="btn btn-secondary" data-toast="Opening course catalogue…">Browse courses</button>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB: COMPLETED
+             ============================================================ -->
+        <div class="tab-panel" id="tab-completed">
+            <div class="lp-grid">
+
+                <!-- Completed 1 -->
+                <article class="lp-course" data-title="javascript essentials" data-track="frontend"
+                         data-progress="100" data-recent="3"
+                         data-tags="daniel okafor javascript es6 frontend certificate">
+                    <div class="lp-cover green">
+                        <span class="lp-tag">Frontend</span>
+                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
+                        <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">JavaScript Essentials</h4>
+                            <span class="lp-pill done">Completed</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Daniel Okafor</strong> · <strong>Grade A</strong></p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 16 modules</span>
+                            <span><i class="bi bi-calendar-check"></i> Mar 2025</span>
+                            <span><i class="bi bi-star-fill" style="color:#F59E0B"></i> 4.9</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-hash"></i> KW-JS-2041</span>
+                            <button class="btn-ghost" data-toast="Downloading your certificate…"
+                                    data-toast-type="success">
+                                <i class="bi bi-download"></i> Certificate
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Completed 2 -->
+                <article class="lp-course" data-title="figma for developers" data-track="design"
+                         data-progress="100" data-recent="2"
+                         data-tags="fatima bello figma design handoff certificate">
+                    <div class="lp-cover green">
+                        <span class="lp-tag">Design</span>
+                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
+                        <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Figma for Developers</h4>
+                            <span class="lp-pill done">Completed</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Fatima Bello</strong> · <strong>Grade A−</strong></p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 9 modules</span>
+                            <span><i class="bi bi-calendar-check"></i> Jan 2025</span>
+                            <span><i class="bi bi-star-fill" style="color:#F59E0B"></i> 4.7</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-hash"></i> KW-FG-1188</span>
+                            <button class="btn-ghost" data-toast="Downloading your certificate…"
+                                    data-toast-type="success">
+                                <i class="bi bi-download"></i> Certificate
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Completed 3 -->
+                <article class="lp-course" data-title="public speaking lab" data-track="design"
+                         data-progress="100" data-recent="1"
+                         data-tags="tolu fashina public speaking communication soft skills certificate">
+                    <div class="lp-cover green">
+                        <span class="lp-tag">Soft skills</span>
+                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
+                        <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Public Speaking Lab</h4>
+                            <span class="lp-pill done">Completed</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Tolu Fashina</strong> · <strong>Grade B+</strong></p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 6 modules</span>
+                            <span><i class="bi bi-calendar-check"></i> Nov 2024</span>
+                            <span><i class="bi bi-star-fill" style="color:#F59E0B"></i> 4.6</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-hash"></i> KW-PS-0942</span>
+                            <button class="btn-ghost" data-toast="Downloading your certificate…"
+                                    data-toast-type="success">
+                                <i class="bi bi-download"></i> Certificate
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <div class="lp-empty">
+                <div class="ic"><i class="bi bi-trophy"></i></div>
+                <h4>No completed courses yet</h4>
+                <p>Finish your first course and your verified certificate will appear right here.</p>
+                <button class="btn btn-secondary" data-toast="Resuming your latest lesson…">Continue learning</button>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             TAB: SAVED
+             ============================================================ -->
+        <div class="tab-panel" id="tab-saved">
+            <div class="lp-grid">
+
+                <!-- Saved 1 -->
+                <article class="lp-course" data-title="typescript in depth" data-track="frontend"
+                         data-progress="0" data-recent="4"
+                         data-tags="daniel okafor typescript javascript typing frontend">
+                    <div class="lp-cover slate">
+                        <span class="lp-tag">Frontend</span>
+                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
+                        <i class="bi bi-filetype-tsx"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">TypeScript in Depth</h4>
+                            <span class="lp-pill muted">Not started</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Daniel Okafor</strong> · Advanced</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 12 modules</span>
+                            <span><i class="bi bi-clock"></i> 8h 30m</span>
+                            <span><i class="bi bi-bookmark"></i> Saved 3d ago</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-info-circle"></i> Prereq: JavaScript</span>
+                            <button class="btn-join" data-toast="Enrolling in TypeScript in Depth…"
+                                    data-toast-type="success">Start course</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Saved 2 -->
+                <article class="lp-course" data-title="motion design basics" data-track="design"
+                         data-progress="0" data-recent="3"
+                         data-tags="fatima bello motion animation after effects design">
+                    <div class="lp-cover accent">
+                        <span class="lp-tag">Design</span>
+                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
+                        <i class="bi bi-magic"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Motion Design Basics</h4>
+                            <span class="lp-pill muted">Not started</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Fatima Bello</strong> · Beginner</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 7 modules</span>
+                            <span><i class="bi bi-clock"></i> 4h 15m</span>
+                            <span><i class="bi bi-bookmark"></i> Saved 1w ago</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-info-circle"></i> No prerequisites</span>
+                            <button class="btn-join" data-toast="Enrolling in Motion Design Basics…"
+                                    data-toast-type="success">Start course</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Saved 3 -->
+                <article class="lp-course" data-title="system design interview prep" data-track="backend"
+                         data-progress="0" data-recent="2"
+                         data-tags="chidi nwosu system design architecture scalability backend interview">
+                    <div class="lp-cover violet">
+                        <span class="lp-tag">Backend</span>
+                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">System Design Interview Prep</h4>
+                            <span class="lp-pill muted">Not started</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Chidi Nwosu</strong> · Advanced</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 10 modules</span>
+                            <span><i class="bi bi-clock"></i> 7h 40m</span>
+                            <span><i class="bi bi-bookmark"></i> Saved 2w ago</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-info-circle"></i> Prereq: Backend basics</span>
+                            <button class="btn-join" data-toast="Enrolling in System Design Interview Prep…"
+                                    data-toast-type="success">Start course</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Saved 4 -->
+                <article class="lp-course" data-title="accessibility first" data-track="frontend"
+                         data-progress="0" data-recent="1"
+                         data-tags="fatima bello a11y wcag accessibility frontend design">
+                    <div class="lp-cover">
+                        <span class="lp-tag">Frontend</span>
+                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
+                        <i class="bi bi-universal-access"></i>
+                    </div>
+                    <div class="lp-body">
+                        <div class="lp-title-row">
+                            <h4 class="lp-title">Accessibility First</h4>
+                            <span class="lp-pill muted">Not started</span>
+                        </div>
+                        <p class="lp-sub">with <strong>Fatima Bello</strong> · Intermediate</p>
+
+                        <div class="lp-meta">
+                            <span><i class="bi bi-collection"></i> 8 modules</span>
+                            <span><i class="bi bi-clock"></i> 5h 00m</span>
+                            <span><i class="bi bi-bookmark"></i> Saved 3w ago</span>
+                        </div>
+
+                        <div class="lp-actions">
+                            <span class="lp-next"><i class="bi bi-info-circle"></i> No prerequisites</span>
+                            <button class="btn-join" data-toast="Enrolling in Accessibility First…"
+                                    data-toast-type="success">Start course</button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <div class="lp-empty">
+                <div class="ic"><i class="bi bi-bookmark"></i></div>
+                <h4>Nothing saved yet</h4>
+                <p>Tap the bookmark icon on any course to keep it here for later — your list is private to you.</p>
+                <button class="btn btn-secondary" data-toast="Opening course catalogue…">Browse catalogue</button>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ==================== DEADLINES + CERTIFICATES ==================== -->
+<section class="grid-2">
+
+    <!-- LEFT -->
+    <div class="col-stack">
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-calendar-event"></i> Upcoming deadlines</h3>
+                <a href="#" class="link">Calendar <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="session live">
+                <div class="session-time">
+                    <strong>18:30</strong>
+                    <span>Today</span>
+                </div>
+                <div class="session-info">
+                    <h5>React Hooks Deep Dive</h5>
+                    <p>with <strong>Daniel O.</strong> · 45 min</p>
+                </div>
+                <button class="btn-join" data-toast="Joining React Hooks Deep Dive…">Join</button>
+            </div>
+
+            <div class="session">
+                <div class="session-time">
+                    <strong>23:59</strong>
+                    <span>Fri</span>
+                </div>
+                <div class="session-info">
+                    <h5>Design Systems — Module 6 quiz</h5>
+                    <p>with <strong>Fatima B.</strong> · 20 min</p>
+                </div>
+                <button class="btn-join muted" data-toast="Opening assessment…">Start</button>
+            </div>
+
+            <div class="session">
+                <div class="session-time">
+                    <strong>10:00</strong>
+                    <span>Sat</span>
+                </div>
+                <div class="session-info">
+                    <h5>Backend Fundamentals — Peer review</h5>
+                    <p>with <strong>Chidi N.</strong> · 30 min</p>
+                </div>
+                <button class="btn-join muted" data-toast="Opening peer review…">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-stack">
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-award"></i> Certificates</h3>
+                <a href="#" class="link">All <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="lp-cert">
+                <div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div>
+                <div class="lp-cert-body">
+                    <h5>JavaScript Essentials</h5>
+                    <p>Issued Mar 2025 · ID KW-JS-2041</p>
+                </div>
+                <button class="btn-ghost" data-toast="Downloading certificate…" data-toast-type="success">PDF</button>
+            </div>
+
+            <div class="lp-cert">
+                <div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div>
+                <div class="lp-cert-body">
+                    <h5>Figma for Developers</h5>
+                    <p>Issued Jan 2025 · ID KW-FG-1188</p>
+                </div>
+                <button class="btn-ghost" data-toast="Downloading certificate…" data-toast-type="success">PDF</button>
+            </div>
+
+            <div class="lp-cert">
+                <div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div>
+                <div class="lp-cert-body">
+                    <h5>Public Speaking Lab</h5>
+                    <p>Issued Nov 2024 · ID KW-PS-0942</p>
+                </div>
+                <button class="btn-ghost" data-toast="Downloading certificate…" data-toast-type="success">PDF</button>
+            </div>
+        </div>
+
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-bullseye"></i> Weekly goal</h3>
+                <span class="link" style="cursor:default;">4 of 5 sessions</span>
+            </div>
+            <div class="bar"><span data-value="80"></span></div>
+            <p style="font-size:0.78rem;color:var(--gray-600);margin-top:12px;line-height:1.65;">
+                One more session this week keeps your <strong style="color:var(--primary-dark);">12-day streak</strong>
+                alive and unlocks the <strong style="color:var(--primary-dark);">Momentum</strong> badge.
+            </p>
+            <button class="btn btn-secondary" style="width:100%;margin-top:16px;"
+                    data-toast="Opening match finder…" data-toast-type="success">
+                Book a session <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+</section>
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           ELEMENTS
+           ====================================================== */
+        var searchInput = document.getElementById('lpSearch');
+        var sortSelect  = document.getElementById('lpSort');
+        var chips       = document.querySelectorAll('.lp-chip');
+        var grids       = document.querySelectorAll('.lp-grid');
+
+        var activeTrack = 'all';
+
+        /* ======================================================
+           FILTER + SEARCH
+           ====================================================== */
+        function applyFilters() {
+            var q = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+            grids.forEach(function (grid) {
+                var visible = 0;
+
+                grid.querySelectorAll('.lp-course').forEach(function (card) {
+                    var haystack = (card.dataset.title || '') + ' ' + (card.dataset.tags || '');
+                    var matchesQuery = !q || haystack.indexOf(q) !== -1;
+                    var matchesTrack = activeTrack === 'all' || card.dataset.track === activeTrack;
+                    var show = matchesQuery && matchesTrack;
+
+                    card.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+
+                // Toggle the empty state that follows this grid
+                var empty = grid.parentElement.querySelector('.lp-empty');
+                if (empty) empty.classList.toggle('show', visible === 0);
+            });
+        }
+
+        /* ======================================================
+           SORT
+           ====================================================== */
+        function sortCards() {
+            if (!sortSelect) return;
+            var mode = sortSelect.value;
+
+            grids.forEach(function (grid) {
+                var cards = Array.prototype.slice.call(grid.querySelectorAll('.lp-course'));
+
+                cards.sort(function (a, b) {
+                    if (mode === 'title') {
+                        return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                    }
+                    if (mode === 'progress') {
+                        return (parseInt(b.dataset.progress, 10) || 0) -
+                               (parseInt(a.dataset.progress, 10) || 0);
+                    }
+                    // recent (default)
+                    return (parseInt(b.dataset.recent, 10) || 0) -
+                           (parseInt(a.dataset.recent, 10) || 0);
+                });
+
+                cards.forEach(function (c) { grid.appendChild(c); });
+            });
+        }
+
+        /* ======================================================
+           EVENTS
+           ====================================================== */
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
+
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                sortCards();
+                applyFilters();
+            });
+        }
+
+        chips.forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                chips.forEach(function (c) { c.classList.remove('active'); });
+                this.classList.add('active');
+                activeTrack = this.dataset.filter || 'all';
+                applyFilters();
+            });
+        });
+
+        /* ======================================================
+           RE-ANIMATE BARS WHEN A TAB IS OPENED
+           ====================================================== */
+        document.querySelectorAll('.tabs-card .tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                var panel = document.getElementById('tab-' + this.dataset.tab);
+                if (!panel) return;
+
+                panel.querySelectorAll('.bar > span[data-value]').forEach(function (el) {
+                    el.style.width = '0';
+                    requestAnimationFrame(function () {
+                        setTimeout(function () {
+                            el.style.width = el.dataset.value + '%';
+                        }, 50);
+                    });
+                });
+            });
+        });
+
+        /* ======================================================
+           BOOKMARK TOGGLE (inline, no page reload)
+           ====================================================== */
+        document.querySelectorAll('.lp-save').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var on = this.classList.toggle('on');
+                var icon = this.querySelector('i');
+
+                if (icon) {
+                    icon.className = on ? 'bi bi-bookmark-fill' : 'bi bi-bookmark';
+                }
+
+                var card = this.closest('.lp-course');
+                var title = card ? card.dataset.title : 'Course';
+
+                if (window.__toast) {
+                    window.__toast(
+                        on ? 'Saved “' + title + '” to your list' : 'Removed “' + title + '” from saved',
+                        on ? 'success' : null
+                    );
+                }
+            });
+        });
+
+        /* ======================================================
+           INITIAL STATE
+           ====================================================== */
+        sortCards();
+        applyFilters();
+
+    })();
+</script>
+
+{% endblock content %}

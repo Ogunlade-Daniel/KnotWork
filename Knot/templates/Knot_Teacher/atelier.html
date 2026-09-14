@@ -1,0 +1,1806 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}The Atelier{% endblock %}
+{% block page_title %}The Atelier{% endblock %}
+{% block breadcrumb %}Atelier{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   THE ATELIER — course workshop
+   Tabs: Published · Drafts · Compose
+   ============================================================ */
+
+.atelier{
+    --gold:        var(--secondary, #BEF264);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.32);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+    --violet:      #8B5CF6;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --rose:        #F43F5E;
+    --rose-soft:   rgba(244, 63, 94, 0.12);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.at-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.at-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.at-mast-left .am-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+}
+.at-mast-left .am-kicker i{ color: var(--gold); font-size: 0.72rem; }
+
+.at-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.at-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.at-mast-left .am-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.at-mast-left .am-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.at-mast-left .am-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.at-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ============================================================
+   buttons
+   ============================================================ */
+.atelier .btn-gold{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+}
+.atelier .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+.atelier .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.atelier .btn-ghost:hover{
+    border-color: var(--gold); color: var(--gold-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   2 · TAB STRIP
+   ============================================================ */
+.at-tabs{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    align-self: flex-start;
+    max-width: 100%;
+}
+.at-tabs::-webkit-scrollbar{ display: none; }
+
+.at-tab{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.at-tab i{
+    font-size: 0.9rem;
+    color: var(--faint);
+    transition: var(--transition, all .25s ease);
+}
+.at-tab:hover{
+    color: var(--ink);
+    background: var(--paper-2);
+}
+.at-tab:hover i{ color: var(--gold-deep); }
+
+.at-tab.active{
+    background: linear-gradient(135deg, var(--ink), var(--ink-3));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.16);
+}
+.at-tab.active i{ color: var(--gold-light); }
+
+.at-tab .tab-count{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    transition: var(--transition, all .25s ease);
+}
+.at-tab.active .tab-count{
+    background: var(--gold);
+    color: var(--ink);
+}
+.at-tab .tab-dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-deep);
+    box-shadow: 0 0 0 3px rgba(126, 211, 33, 0.18);
+    animation: tabPulse 2s ease-in-out infinite;
+}
+@keyframes tabPulse{
+    0%, 100%{ opacity: 1; transform: scale(1); }
+    50%     { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* divider before the compose action */
+.at-tab.compose{
+    margin-left: 4px;
+    padding-left: 20px;
+    position: relative;
+}
+.at-tab.compose::before{
+    content: '';
+    position: absolute;
+    left: 2px; top: 50%;
+    transform: translateY(-50%);
+    width: 1px; height: 20px;
+    background: var(--line);
+}
+.at-tab.compose i{ color: var(--gold-deep); }
+.at-tab.compose.active{
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    box-shadow: 0 8px 22px rgba(190, 242, 100, 0.36);
+}
+.at-tab.compose.active i{ color: var(--ink); }
+
+/* ============================================================
+   3 · TOOLBAR
+   ============================================================ */
+.at-toolbar{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+}
+.tb-search{
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+}
+.tb-search i{
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-size: 0.82rem;
+    pointer-events: none;
+}
+.tb-search input{
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .25s ease);
+}
+.tb-search input::placeholder{ color: var(--faint); }
+.tb-search input:focus{
+    border-color: var(--gold);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--gold-soft);
+}
+
+.tb-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    letter-spacing: 0.02em;
+}
+.tb-chip i{ font-size: 0.78rem; color: var(--faint); transition: var(--transition, all .25s ease); }
+.tb-chip:hover{
+    border-color: var(--gold-line);
+    color: var(--ink);
+    background: var(--paper);
+}
+.tb-chip:hover i{ color: var(--gold-deep); }
+.tb-chip.active{
+    background: var(--gold-soft);
+    border-color: var(--gold-line);
+    color: var(--gold-deep);
+}
+.tb-chip.active i{ color: var(--gold-deep); }
+
+.tb-divider{
+    width: 1px; height: 22px;
+    background: var(--line);
+    margin: 0 2px;
+}
+
+.tb-view{
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+}
+.tb-view button{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--faint);
+    cursor: pointer;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    transition: var(--transition, all .25s ease);
+}
+.tb-view button:hover{ color: var(--ink); }
+.tb-view button.active{
+    background: var(--paper);
+    color: var(--gold-deep);
+    box-shadow: 0 2px 6px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   4 · TAB PANELS
+   ============================================================ */
+.tab-panel{
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: panelFade .45s var(--ease);
+}
+.tab-panel.active{ display: flex; }
+@keyframes panelFade{
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   5 · COURSE CARD (Published + Drafts)
+   ============================================================ */
+.courses-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+}
+
+.course-card{
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .3s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+.course-card:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+    border-color: var(--gold-line);
+}
+
+/* cover strip */
+.cc-cover{
+    position: relative;
+    height: 108px;
+    background:
+        radial-gradient(ellipse at 88% 15%, rgba(190, 242, 100, 0.22), transparent 60%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 60%, var(--ink-3) 100%);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.cc-cover::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 20px 20px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+}
+.cc-cover::after{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+.course-card.sky .cc-cover{ background:
+    radial-gradient(ellipse at 88% 15%, rgba(56, 189, 248, 0.22), transparent 60%),
+    linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 60%, var(--ink-3) 100%); }
+.course-card.sky .cc-cover::after{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+
+.course-card.violet .cc-cover{ background:
+    radial-gradient(ellipse at 88% 15%, rgba(139, 92, 246, 0.24), transparent 60%),
+    linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 60%, var(--ink-3) 100%); }
+.course-card.violet .cc-cover::after{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+
+.course-card.leaf .cc-cover{ background:
+    radial-gradient(ellipse at 88% 15%, rgba(190, 242, 100, 0.18), transparent 60%),
+    linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 60%, var(--ink-3) 100%); }
+.course-card.leaf .cc-cover::after{ background: linear-gradient(90deg, var(--gold), var(--gold-deep)); }
+
+.cc-code{
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    z-index: 2;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.cc-code::before{
+    content: '';
+    width: 12px;
+    height: 1.5px;
+    background: currentColor;
+    display: inline-block;
+}
+.course-card.sky .cc-code{ color: var(--sky); }
+.course-card.violet .cc-code{ color: #C4B5FD; }
+.course-card.leaf .cc-code{ color: var(--gold-light); }
+
+.cc-status{
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.85);
+}
+.cc-status.live{
+    background: rgba(190, 242, 100, 0.20);
+    border-color: rgba(190, 242, 100, 0.46);
+    color: var(--gold-light);
+}
+.cc-status.live .blip{
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: tabPulse 1.8s ease-in-out infinite;
+}
+.cc-status.draft{
+    background: rgba(139, 92, 246, 0.16);
+    border-color: rgba(139, 92, 246, 0.42);
+    color: #C4B5FD;
+}
+.cc-status.review{
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.42);
+    color: #7DD3FC;
+}
+
+/* stat ribbon on cover bottom */
+.cc-cover-stats{
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.35) 0%, transparent 100%);
+    z-index: 2;
+}
+.cc-cover-stats .crs{
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.cc-cover-stats .crs .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+.cc-cover-stats .crs .k{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+}
+.cc-cover-stats .crs .v.gold{ color: var(--gold-light); }
+
+/* body */
+.cc-body{
+    padding: 18px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+.cc-title{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.22;
+    letter-spacing: -0.008em;
+}
+.cc-desc{
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.55;
+    min-height: 34px;
+    flex: 1;
+}
+
+/* progress */
+.cc-progress{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding-top: 4px;
+}
+.cc-progress .prow{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+.cc-progress .prow .k{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.cc-progress .prow .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.cc-progress .pbar{
+    height: 5px;
+    border-radius: 5px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+.cc-progress .pbar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+    transition: width 1.1s var(--ease);
+}
+.course-card.sky .pbar > span{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.course-card.violet .pbar > span{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+.course-card.leaf .pbar > span{ background: linear-gradient(90deg, var(--gold-light), var(--gold-deep)); }
+
+/* footer */
+.cc-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--line-soft);
+}
+.cc-foot .meta{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+.cc-foot .meta i{
+    font-size: 0.72rem;
+    color: var(--faint);
+}
+.cc-foot .meta strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.cc-actions{
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: var(--transition, all .3s ease);
+}
+.course-card:hover .cc-actions{
+    opacity: 1;
+    transform: translateY(0);
+}
+.cc-actions button{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.cc-actions button:hover{
+    border-color: var(--gold);
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+}
+
+/* always-visible badge when hover actions hidden on touch */
+@media (hover: none){
+    .cc-actions{ opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   6 · DRAFT CARD — variation
+   ============================================================ */
+.course-card.is-draft .cc-cover{
+    background: repeating-linear-gradient(
+        45deg,
+        var(--ink) 0px,
+        var(--ink) 20px,
+        var(--ink-2) 20px,
+        var(--ink-2) 40px
+    );
+}
+.course-card.is-draft .cc-cover::after{
+    background: linear-gradient(90deg, #A78BFA, var(--violet));
+}
+
+/* draft checklist */
+.draft-checklist{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px dashed var(--line);
+    margin-top: 4px;
+}
+.dc-item{
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 1.35;
+}
+.dc-item .dc-check{
+    width: 16px; height: 16px;
+    border-radius: 5px;
+    border: 1.8px solid var(--line);
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--paper);
+}
+.dc-item .dc-check i{
+    font-size: 0.55rem;
+    color: transparent;
+}
+.dc-item.done{ color: var(--ink); }
+.dc-item.done .dc-check{
+    background: var(--gold);
+    border-color: var(--gold);
+}
+.dc-item.done .dc-check i{ color: var(--ink); }
+
+/* ============================================================
+   7 · COMPOSE TAB
+   ============================================================ */
+.compose-intro{
+    padding: 26px 28px;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(ellipse at 90% 15%, rgba(190, 242, 100, 0.18), transparent 55%),
+        radial-gradient(ellipse at 10% 100%, rgba(56, 189, 248, 0.14), transparent 55%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+}
+.compose-intro::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 30%, var(--sky) 65%, var(--violet) 100%);
+}
+.compose-intro::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 26px 26px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+}
+.ci-body{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.ci-text{ flex: 1; min-width: 240px; }
+.ci-text .eyebrow{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 13px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.14);
+    border: 1px solid rgba(190, 242, 100, 0.42);
+    color: var(--gold-light);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+.ci-text h2{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.ci-text h2 em{
+    color: var(--gold-light);
+    font-style: italic;
+}
+.ci-text p{
+    font-size: 0.84rem;
+    color: rgba(255,255,255,0.68);
+    line-height: 1.7;
+    max-width: 520px;
+}
+.ci-text p strong{ color: #fff; font-weight: 700; }
+
+.ci-actions{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.ci-actions .btn-gold{
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    box-shadow: 0 12px 30px rgba(190, 242, 100, 0.36);
+}
+
+/* pathway grid */
+.pathway-grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+@media (max-width: 900px){ .pathway-grid{ grid-template-columns: 1fr; } }
+
+.pathway{
+    position: relative;
+    padding: 24px 22px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    cursor: pointer;
+    transition: var(--transition, all .3s ease);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    text-align: left;
+    font-family: inherit;
+}
+.pathway::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .5s var(--ease);
+}
+.pathway:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+    border-color: var(--gold-line);
+}
+.pathway:hover::before{ transform: scaleX(1); }
+
+.pathway.sky::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.pathway.violet::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+
+.pathway-ic{
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 1.15rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+}
+.pathway.sky .pathway-ic{ background: var(--sky-soft); color: #0284C7; }
+.pathway.violet .pathway-ic{ background: var(--violet-soft); color: var(--violet); }
+
+.pathway h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.22;
+    letter-spacing: -0.006em;
+}
+.pathway p{
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.55;
+    flex: 1;
+}
+.pathway-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+}
+.pathway-foot i{
+    color: var(--gold);
+    font-size: 0.72rem;
+    transition: var(--transition, all .25s ease);
+}
+.pathway:hover .pathway-foot i{
+    transform: translateX(3px);
+    color: var(--gold-deep);
+}
+
+/* tips panel */
+.tips-panel{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 780px){ .tips-panel{ grid-template-columns: 1fr; } }
+
+.tip-card{
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.tip-card .tip-ic{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.tip-card.sky .tip-ic{ background: var(--sky-soft); color: #0284C7; }
+.tip-card.violet .tip-ic{ background: var(--violet-soft); color: var(--violet); }
+.tip-card h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+.tip-card p{
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* ============================================================
+   8 · EMPTY STATE
+   ============================================================ */
+.empty-state{
+    padding: 60px 32px;
+    text-align: center;
+    background: var(--paper);
+    border: 1.5px dashed var(--line);
+    border-radius: var(--r-xl);
+}
+.empty-state .es-ic{
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    margin: 0 auto 18px;
+    font-size: 1.5rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+}
+.empty-state h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+.empty-state p{
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto 20px;
+}
+
+/* ============================================================
+   9 · PANEL (used in compose tab for recent drafts)
+   ============================================================ */
+.panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+}
+.panel-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.panel-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.panel-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.panel-head.violet h3 i{ background: var(--violet-soft); color: var(--violet); }
+
+.panel-link{
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+
+.panel-body{ padding: 16px 22px 20px; }
+
+/* recent row */
+.recent-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 4px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+}
+.recent-row:first-child{ padding-top: 4px; }
+.recent-row:last-child{ border-bottom: none; padding-bottom: 0; }
+.recent-row:hover{ transform: translateX(4px); }
+
+.rr-thumb{
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    box-shadow: 0 6px 16px rgba(190, 242, 100, 0.28);
+    position: relative;
+}
+.rr-thumb.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; box-shadow: 0 6px 16px rgba(56, 189, 248, 0.28); }
+.rr-thumb.v3{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; box-shadow: 0 6px 16px rgba(139, 92, 246, 0.28); }
+
+.rr-body{ flex: 1; min-width: 0; }
+.rr-body h5{
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rr-body p{
+    font-size: 0.66rem;
+    color: var(--muted);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.rr-body p i{ font-size: 0.68rem; color: var(--faint); }
+
+.rr-score{
+    text-align: right;
+    flex-shrink: 0;
+}
+.rr-score strong{
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+.rr-score span{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    display: block;
+    margin-top: 3px;
+}
+
+/* ============================================================
+   10 · FOOT BAR
+   ============================================================ */
+.at-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 4px 4px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.at-foot strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.at-foot .foot-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .at-mast-left h1{ font-size: 1.5rem; }
+    .at-toolbar{ padding: 12px 14px; gap: 8px; }
+    .tb-search{ min-width: 100%; }
+    .courses-grid{ grid-template-columns: 1fr; }
+    .cc-actions{ opacity: 1; transform: none; }
+}
+</style>
+
+
+<div class="atelier">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="at-mast">
+        <div class="at-mast-left">
+            <span class="am-kicker"><i class="bi bi-palette2"></i> Faculty Atelier · Level XII</span>
+            <h1>Your <em>course workshop.</em></h1>
+            <p class="am-sub">
+                <strong>6</strong> published
+                <span class="sep"></span>
+                <strong>3</strong> in draft
+                <span class="sep"></span>
+                <strong>148</strong> students enrolled
+                <span class="sep"></span>
+                Avg rating <strong>4.85★</strong>
+            </p>
+        </div>
+        <div class="at-mast-right">
+            <button class="btn-ghost" data-toast="Opening course templates…">
+                <i class="bi bi-file-earmark-plus"></i> Templates
+            </button>
+            <button class="btn-gold" data-toast="Opening course composer…">
+                <i class="bi bi-plus-lg"></i> Compose course
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · TABS
+         ==================================================== -->
+    <div class="at-tabs" role="tablist" aria-label="Course workshop views">
+        <button class="at-tab active" role="tab" aria-selected="true" data-tab="published">
+            <i class="bi bi-broadcast"></i> Published
+            <span class="tab-count">6</span>
+        </button>
+        <button class="at-tab" role="tab" aria-selected="false" data-tab="drafts">
+            <i class="bi bi-pencil-square"></i> Drafts
+            <span class="tab-count">3</span>
+        </button>
+        <button class="at-tab compose" role="tab" aria-selected="false" data-tab="compose">
+            <i class="bi bi-plus-circle"></i> Compose
+            <span class="tab-dot" aria-hidden="true"></span>
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         3 · TOOLBAR
+         ==================================================== -->
+    <div class="at-toolbar">
+        <div class="tb-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search by title, code or keyword…" aria-label="Search courses">
+        </div>
+
+        <button class="tb-chip active" data-toast="Filtering all">
+            <i class="bi bi-funnel"></i> All
+        </button>
+        <button class="tb-chip" data-toast="Filtering by live">
+            <i class="bi bi-broadcast"></i> Live
+        </button>
+        <button class="tb-chip" data-toast="Filtering by draft">
+            <i class="bi bi-pencil-square"></i> Draft
+        </button>
+
+        <div class="tb-divider" aria-hidden="true"></div>
+
+        <button class="tb-chip" data-toast="Sorting by recent">
+            <i class="bi bi-sort-down"></i> Recent
+        </button>
+
+        <div class="tb-view" role="group" aria-label="View mode">
+            <button class="active" aria-label="Grid view" data-toast="Grid view"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+            <button aria-label="List view" data-toast="List view"><i class="bi bi-list-ul"></i></button>
+        </div>
+    </div>
+
+
+    <!-- ====================================================
+         4 · TAB PANEL — PUBLISHED
+         ==================================================== -->
+    <section class="tab-panel active" id="panel-published" role="tabpanel" aria-labelledby="tab-published">
+
+        <div class="courses-grid">
+
+            <article class="course-card" data-toast="Opening Advanced React Patterns…">
+                <div class="cc-cover">
+                    <span class="cc-code">Course I</span>
+                    <span class="cc-status live"><span class="blip"></span> Live</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">42</span><span class="k">students</span></div>
+                        <div class="crs"><span class="v gold">4.9★</span><span class="k">rating</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Advanced React Patterns</h4>
+                    <p class="cc-desc">Composition, state machines and the performance patterns senior teams actually ship.</p>
+
+                    <div class="cc-progress">
+                        <div class="prow">
+                            <span class="k">Cohort progress</span>
+                            <span class="v">68%</span>
+                        </div>
+                        <div class="pbar"><span data-value="68"></span></div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-collection"></i> <strong>12</strong> modules</span>
+                    <div class="cc-actions">
+                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
+                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card sky" data-toast="Opening UI/UX Design Systems…">
+                <div class="cc-cover">
+                    <span class="cc-code">Course II</span>
+                    <span class="cc-status live"><span class="blip"></span> Live</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">36</span><span class="k">students</span></div>
+                        <div class="crs"><span class="v gold">4.8★</span><span class="k">rating</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">UI/UX Design Systems</h4>
+                    <p class="cc-desc">Tokens, component APIs, documentation and the craft behind a scalable system.</p>
+
+                    <div class="cc-progress">
+                        <div class="prow">
+                            <span class="k">Cohort progress</span>
+                            <span class="v">54%</span>
+                        </div>
+                        <div class="pbar"><span data-value="54"></span></div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-collection"></i> <strong>16</strong> modules</span>
+                    <div class="cc-actions">
+                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
+                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card violet" data-toast="Opening Backend Fundamentals…">
+                <div class="cc-cover">
+                    <span class="cc-code">Course III</span>
+                    <span class="cc-status live"><span class="blip"></span> Live</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">28</span><span class="k">students</span></div>
+                        <div class="crs"><span class="v gold">4.7★</span><span class="k">rating</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Backend Fundamentals</h4>
+                    <p class="cc-desc">Models, auth, APIs and deployment — the full path from first endpoint to production.</p>
+
+                    <div class="cc-progress">
+                        <div class="prow">
+                            <span class="k">Cohort progress</span>
+                            <span class="v">47%</span>
+                        </div>
+                        <div class="pbar"><span data-value="47"></span></div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-collection"></i> <strong>14</strong> modules</span>
+                    <div class="cc-actions">
+                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
+                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card leaf" data-toast="Opening TypeScript for React…">
+                <div class="cc-cover">
+                    <span class="cc-code">Course IV</span>
+                    <span class="cc-status live"><span class="blip"></span> Live</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">22</span><span class="k">students</span></div>
+                        <div class="crs"><span class="v gold">4.9★</span><span class="k">rating</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">TypeScript for React</h4>
+                    <p class="cc-desc">Generics, discriminated unions and typed component APIs that catch bugs before users do.</p>
+
+                    <div class="cc-progress">
+                        <div class="prow">
+                            <span class="k">Cohort progress</span>
+                            <span class="v">61%</span>
+                        </div>
+                        <div class="pbar"><span data-value="61"></span></div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-collection"></i> <strong>10</strong> modules</span>
+                    <div class="cc-actions">
+                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
+                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card" data-toast="Opening Motion Design Basics…">
+                <div class="cc-cover">
+                    <span class="cc-code">Course V</span>
+                    <span class="cc-status review">In Review</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">18</span><span class="k">students</span></div>
+                        <div class="crs"><span class="v gold">4.6★</span><span class="k">rating</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Motion Design Basics</h4>
+                    <p class="cc-desc">Easing, timing and micro-interactions — the details that make interfaces feel alive.</p>
+
+                    <div class="cc-progress">
+                        <div class="prow">
+                            <span class="k">Cohort progress</span>
+                            <span class="v">34%</span>
+                        </div>
+                        <div class="pbar"><span data-value="34"></span></div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-collection"></i> <strong>8</strong> modules</span>
+                    <div class="cc-actions">
+                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
+                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card sky" data-toast="Opening Testing React Apps…">
+                <div class="cc-cover">
+                    <span class="cc-code">Course VI</span>
+                    <span class="cc-status review">In Review</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">12</span><span class="k">students</span></div>
+                        <div class="crs"><span class="v gold">4.7★</span><span class="k">rating</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Testing React Apps</h4>
+                    <p class="cc-desc">Vitest, React Testing Library and the habits that keep a growing codebase honest.</p>
+
+                    <div class="cc-progress">
+                        <div class="prow">
+                            <span class="k">Cohort progress</span>
+                            <span class="v">22%</span>
+                        </div>
+                        <div class="pbar"><span data-value="22"></span></div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-collection"></i> <strong>12</strong> modules</span>
+                    <div class="cc-actions">
+                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
+                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="at-foot">
+            <span>Showing <strong>6</strong> of <strong>6</strong> published courses</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Loading more…">
+                    <i class="bi bi-arrow-repeat"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         5 · TAB PANEL — DRAFTS
+         ==================================================== -->
+    <section class="tab-panel" id="panel-drafts" role="tabpanel" aria-labelledby="tab-drafts">
+
+        <div class="courses-grid">
+
+            <article class="course-card is-draft" data-toast="Continuing Design Tokens…">
+                <div class="cc-cover">
+                    <span class="cc-code">Draft I</span>
+                    <span class="cc-status draft">Draft</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">62%</span><span class="k">complete</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Design Tokens Masterclass</h4>
+                    <p class="cc-desc">Deep dive into tokens, semantic layers and multi-brand theming systems.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details</div>
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Outline complete</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Upload 4 remaining lessons</div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>2d ago</strong></span>
+                    <div class="cc-actions">
+                        <button aria-label="Continue editing" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Delete draft" data-toast="Opening delete…"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card is-draft" data-toast="Continuing Advanced CSS Grid…">
+                <div class="cc-cover">
+                    <span class="cc-code">Draft II</span>
+                    <span class="cc-status draft">Draft</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">35%</span><span class="k">complete</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Advanced CSS Grid</h4>
+                    <p class="cc-desc">Modern layout patterns, subgrid, and the mental models behind resilient grids.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Complete outline</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Upload lessons</div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>5d ago</strong></span>
+                    <div class="cc-actions">
+                        <button aria-label="Continue editing" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Delete draft" data-toast="Opening delete…"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card is-draft" data-toast="Continuing Web Performance…">
+                <div class="cc-cover">
+                    <span class="cc-code">Draft III</span>
+                    <span class="cc-status draft">Draft</span>
+                    <div class="cc-cover-stats">
+                        <div class="crs"><span class="v">12%</span><span class="k">complete</span></div>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <h4 class="cc-title">Web Performance at Scale</h4>
+                    <p class="cc-desc">Core Web Vitals, profiling, bundle strategy and the discipline of shipping fast software.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Complete outline</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Upload lessons</div>
+                    </div>
+                </div>
+                <div class="cc-foot">
+                    <span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>1w ago</strong></span>
+                    <div class="cc-actions">
+                        <button aria-label="Continue editing" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
+                        <button aria-label="Delete draft" data-toast="Opening delete…"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- add new draft tile -->
+            <button class="pathway" data-toast="Opening blank course composer…" style="min-height:260px;align-items:center;justify-content:center;text-align:center;gap:14px;">
+                <div class="pathway-ic" style="width:56px;height:56px;border-radius:50%;">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
+                <div>
+                    <h4 style="margin-bottom:6px;">Start a new draft</h4>
+                    <p style="max-width:220px;margin:0 auto;">Begin a fresh course from a blank canvas or a template.</p>
+                </div>
+            </button>
+
+        </div>
+
+        <div class="at-foot">
+            <span>Showing <strong>3</strong> of <strong>3</strong> drafts · <strong>2</strong> ready for review</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Opening bulk actions…">
+                    <i class="bi bi-list-check"></i> Bulk actions
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         6 · TAB PANEL — COMPOSE
+         ==================================================== -->
+    <section class="tab-panel" id="panel-compose" role="tabpanel" aria-labelledby="tab-compose">
+
+        <!-- intro banner -->
+        <div class="compose-intro">
+            <div class="ci-body">
+                <div class="ci-text">
+                    <span class="eyebrow"><i class="bi bi-stars"></i> Compose · create · publish</span>
+                    <h2>Start your next <em>signature course.</em></h2>
+                    <p>
+                        Choose how you'd like to begin. You can always switch paths later —
+                        drafts are yours to shape, and nothing publishes until you say so.
+                    </p>
+                </div>
+                <div class="ci-actions">
+                    <button class="btn-ghost" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.18);color:#fff;" data-toast="Opening guide…">
+                        <i class="bi bi-book"></i> Read the guide
+                    </button>
+                    <button class="btn-gold" data-toast="Opening full composer…">
+                        <i class="bi bi-magic"></i> Full composer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- pathway cards -->
+        <div class="pathway-grid">
+
+            <button class="pathway" data-toast="Starting blank course…">
+                <div class="pathway-ic"><i class="bi bi-file-earmark-plus"></i></div>
+                <h4>Blank canvas</h4>
+                <p>Begin with a clean slate. Define structure, then add lessons module by module at your own pace.</p>
+                <div class="pathway-foot">
+                    <span><i class="bi bi-lightning-charge-fill"></i> Recommended</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </button>
+
+            <button class="pathway sky" data-toast="Opening template gallery…">
+                <div class="pathway-ic"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                <h4>From a template</h4>
+                <p>Start from one of your existing courses or a curated faculty template — then tune it to your voice.</p>
+                <div class="pathway-foot">
+                    <span><i class="bi bi-collection"></i> 12 templates available</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </button>
+
+            <button class="pathway violet" data-toast="Opening import…">
+                <div class="pathway-ic"><i class="bi bi-cloud-arrow-up"></i></div>
+                <h4>Import existing</h4>
+                <p>Bring in a course from another platform, a markdown bundle, or a zip of lesson files.</p>
+                <div class="pathway-foot">
+                    <span><i class="bi bi-file-earmark-zip"></i> Zip · Markdown · SCORM</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </button>
+
+        </div>
+
+        <!-- tips -->
+        <div class="tips-panel">
+            <div class="tip-card">
+                <span class="tip-ic"><i class="bi bi-lightbulb"></i></span>
+                <div>
+                    <h5>Lead with the outcome</h5>
+                    <p>Courses with a single, sharp promise convert 3× better than broad survey courses.</p>
+                </div>
+            </div>
+            <div class="tip-card sky">
+                <span class="tip-ic"><i class="bi bi-collection-play"></i></span>
+                <div>
+                    <h5>8–14 modules is the sweet spot</h5>
+                    <p>Long enough to feel substantial, short enough for students to finish and rate.</p>
+                </div>
+            </div>
+            <div class="tip-card violet">
+                <span class="tip-ic"><i class="bi bi-chat-square-quote"></i></span>
+                <div>
+                    <h5>Ship a pilot first</h5>
+                    <p>Publish to a small cohort, refine from their feedback, then open to everyone.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- recent drafts quick access -->
+        <article class="panel">
+            <div class="panel-head violet">
+                <h3><i class="bi bi-clock-history"></i> Pick up where you left off</h3>
+                <button class="panel-link" data-toast="Switching to drafts…">
+                    All drafts <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="recent-row" data-toast="Continuing Design Tokens Masterclass…">
+                    <span class="rr-thumb">DT</span>
+                    <div class="rr-body">
+                        <h5>Design Tokens Masterclass</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 2 days ago · 8 of 12 lessons</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>62%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+                <div class="recent-row" data-toast="Continuing Advanced CSS Grid…">
+                    <span class="rr-thumb v2">CG</span>
+                    <div class="rr-body">
+                        <h5>Advanced CSS Grid</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 5 days ago · 3 of 9 lessons</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>35%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+                <div class="recent-row" data-toast="Continuing Web Performance at Scale…">
+                    <span class="rr-thumb v3">WP</span>
+                    <div class="rr-body">
+                        <h5>Web Performance at Scale</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 1 week ago · 1 of 10 lessons</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>12%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+    </section>
+
+</div>
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.atelier');
+    if (!root) return;
+
+    /* ---------- tab switching ---------- */
+    var tabs = root.querySelectorAll('.at-tab');
+    var panels = {
+        published: document.getElementById('panel-published'),
+        drafts: document.getElementById('panel-drafts'),
+        compose: document.getElementById('panel-compose')
+    };
+
+    function activateTab(name) {
+        tabs.forEach(function (t) {
+            var isActive = t.dataset.tab === name;
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        Object.keys(panels).forEach(function (k) {
+            if (!panels[k]) return;
+            panels[k].classList.toggle('active', k === name);
+        });
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            activateTab(tab.dataset.tab);
+        });
+    });
+
+    /* ---------- progress bars (animate on load) ---------- */
+    requestAnimationFrame(function () {
+        root.querySelectorAll('.pbar > span[data-value]').forEach(function (el) {
+            var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+            setTimeout(function () { el.style.width = v + '%'; }, 120);
+        });
+    });
+
+    /* ---------- toolbar chip toggling ---------- */
+    root.querySelectorAll('.tb-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            var group = chip.parentElement;
+            // Only toggle "filters" (first 3 chips share a filter group)
+            var isFilter = ['All','Live','Draft'].some(function (label) {
+                return chip.textContent.trim().indexOf(label) !== -1;
+            });
+            if (isFilter) {
+                group.querySelectorAll('.tb-chip').forEach(function (c) {
+                    var label = c.textContent.trim();
+                    if (['All','Live','Draft'].some(function (l) { return label.indexOf(l) !== -1; })) {
+                        c.classList.remove('active');
+                    }
+                });
+                chip.classList.add('active');
+            }
+        });
+    });
+
+    /* ---------- view mode toggle ---------- */
+    root.querySelectorAll('.tb-view button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            root.querySelectorAll('.tb-view button').forEach(function (b) {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+        });
+    });
+
+    /* ---------- search filter (simple, live) ---------- */
+    var search = root.querySelector('.tb-search input');
+    if (search) {
+        search.addEventListener('input', function (e) {
+            var q = (e.target.value || '').toLowerCase().trim();
+            root.querySelectorAll('.courses-grid .course-card').forEach(function (card) {
+                var title = (card.querySelector('.cc-title') || {}).textContent || '';
+                var desc  = (card.querySelector('.cc-desc') || {}).textContent || '';
+                var hay   = (title + ' ' + desc).toLowerCase();
+                card.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
+            });
+        });
+    }
+
+})();
+</script>
+
+{% endblock content %}

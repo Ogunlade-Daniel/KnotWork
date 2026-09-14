@@ -1,12 +1,169 @@
 {% extends "Knot_Base/base.html" %}
-
 {% load static %}
-{% load humanize %}
-
-{% block title %} Blog {% endblock title %}
-
+{% block title %}KnotWork Journal{% endblock title %}
 {% block content %}
+<style>
+    .blog-hero {
+        padding: 145px 0 80px;
+        background: var(--primary);
+        color: var(--white)
+    }
 
+    .blog-hero .section-label {
+        color: var(--secondary-light);
+        background: rgba(190, 242, 100, .12)
+    }
 
+    .blog-hero h1 {
+        max-width: 720px;
+        margin: 18px 0;
+        font: 700 clamp(2.8rem, 6vw, 5rem)/1.03 'Playfair Display', serif
+    }
 
+    .blog-hero h1 span {
+        color: var(--secondary);
+        font-style: italic
+    }
+
+    .blog-hero p {
+        max-width: 590px;
+        color: rgba(255, 255, 255, .68);
+        font-size: 1.08rem;
+        line-height: 1.8
+    }
+
+    .blog-feed {
+        padding: 88px 0 105px;
+        background: var(--cream)
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 28px;
+        margin-top: 44px
+    }
+
+    .post-card {
+        display: flex;
+        min-height: 290px;
+        flex-direction: column;
+        padding: 30px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, .05);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition)
+    }
+
+    .post-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md)
+    }
+
+    .post-icon {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 28px;
+        border-radius: 14px;
+        background: rgba(190, 242, 100, .16);
+        color: var(--primary);
+        font-size: 1.3rem
+    }
+
+    .post-card:nth-child(2n) .post-icon {
+        background: rgba(56, 189, 248, .12);
+        color: var(--accent)
+    }
+
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        color: var(--gray-600);
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em
+    }
+
+    .post-card h2 {
+        margin: 16px 0 10px;
+        color: var(--primary-dark);
+        font: 700 1.45rem/1.15 'Playfair Display', serif
+    }
+
+    .post-card p {
+        color: var(--gray-600);
+        font-size: .9rem;
+        line-height: 1.7
+    }
+
+    .post-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 24px;
+        color: var(--gray-600);
+        font-size: .78rem
+    }
+
+    .post-footer a {
+        color: var(--primary);
+        font-weight: 700
+    }
+
+    .blog-cta {
+        padding: 76px 0;
+        background: var(--white);
+        text-align: center
+    }
+
+    .blog-cta h2 {
+        margin-bottom: 22px;
+        color: var(--primary-dark);
+        font: 700 clamp(2rem, 4vw, 3rem)/1.1 'Playfair Display', serif
+    }
+
+    @media(max-width:680px) {
+        .blog-grid {
+            grid-template-columns: 1fr
+        }
+
+        .blog-hero {
+            padding: 125px 0 68px
+        }
+    }
+</style>
+<section class="blog-hero">
+    <div class="container"><span class="section-label"><i class="bi bi-journal-text"></i> The KnotWork Journal</span>
+        <h1>Ideas for learning, teaching, and <span>staying curious</span>.</h1>
+        <p>Practical notes and real stories from the people making knowledge more generous.</p>
+    </div>
+</section>
+<section class="blog-feed">
+    <div class="container">
+        <div class="text-center"><span class="section-label"><i class="bi bi-pencil"></i> Latest thinking</span>
+            <h2 class="section-title">From the <span>network</span>.</h2>
+            <p class="section-sub mx-auto">A few useful things to read between sessions.</p>
+            <div class="section-divider"><span></span><span></span><span></span></div>
+        </div>
+        <div class="blog-grid">{% for post in posts %}<article class="post-card"><span class="post-icon"><i
+                        class="{{ post.icon }}"></i></span>
+                <div class="post-meta"><span>{{ post.category }}</span><span>{{ post.date }}</span></div>
+                <h2>{{ post.title }}</h2>
+                <p>{{ post.excerpt }}</p>
+                <div class="post-footer"><span>{{ post.read_time }}</span><a href="{% url 'get_started' %}">Read the
+                        idea <i class="bi bi-arrow-up-right"></i></a></div>
+            </article>{% endfor %}</div>
+    </div>
+</section>
+<section class="blog-cta">
+    <div class="container">
+        <h2>Make your next idea part of the exchange.</h2><a class="btn btn-secondary" href="{% url 'get_started' %}"><i
+                class="bi bi-person-plus"></i> Join KnotWork</a>
+    </div>
+</section>
 {% endblock content %}

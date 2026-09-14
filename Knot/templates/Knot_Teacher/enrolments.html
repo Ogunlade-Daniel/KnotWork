@@ -1,0 +1,2443 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Enrolments{% endblock %}
+{% block page_title %}Enrolments{% endblock %}
+{% block breadcrumb %}Enrolments{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ENROLMENTS — applicants, admissions, and cohort capacity
+   Layout: triage · tabs · applicant review · capacity rail
+   ============================================================ */
+
+.enrolments{
+    --gold:        var(--secondary, #BEF264);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.32);
+
+    --emerald:     #10B981;
+    --emerald-light:#6EE7B7;
+    --emerald-deep:#059669;
+    --emerald-soft:rgba(16, 185, 129, 0.12);
+    --emerald-line:rgba(16, 185, 129, 0.34);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-light:   #7DD3FC;
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+    --sky-line:    rgba(56, 189, 248, 0.34);
+
+    --violet:      #8B5CF6;
+    --violet-light:#A78BFA;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --violet-line: rgba(139, 92, 246, 0.34);
+
+    --rose:        #F43F5E;
+    --rose-light:  #FB7185;
+    --rose-soft:   rgba(244, 63, 94, 0.10);
+    --rose-line:   rgba(244, 63, 94, 0.32);
+
+    --amber:       #F59E0B;
+    --amber-light: #FCD34D;
+    --amber-soft:  rgba(245, 158, 11, 0.12);
+    --amber-line:  rgba(245, 158, 11, 0.32);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ---------- entrance ---------- */
+.enrolments .e-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: eRise .7s var(--ease) forwards;
+}
+.enrolments .e-rise:nth-child(1){ animation-delay: .02s; }
+.enrolments .e-rise:nth-child(2){ animation-delay: .08s; }
+.enrolments .e-rise:nth-child(3){ animation-delay: .14s; }
+.enrolments .e-rise:nth-child(4){ animation-delay: .20s; }
+@keyframes eRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.e-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.e-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--emerald) 0%,
+        var(--emerald-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.e-mast-left .em-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--emerald-deep);
+    margin-bottom: 10px;
+}
+.e-mast-left .em-kicker i{ color: var(--emerald); font-size: 0.72rem; }
+.e-mast-left .em-kicker .queue-pill{
+    padding: 2px 9px;
+    border-radius: 50px;
+    background: var(--emerald);
+    color: #fff;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-left: 4px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.36);
+}
+
+.e-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.e-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--emerald-deep), var(--emerald));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.e-mast-left .em-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.e-mast-left .em-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.e-mast-left .em-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.e-mast-left .em-sub .warn{ color: #B45309; font-weight: 700; }
+
+.e-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---------- buttons ---------- */
+.enrolments .btn-emerald{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--emerald-light), var(--emerald));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(16, 185, 129, 0.32);
+}
+.enrolments .btn-emerald:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(16, 185, 129, 0.44);
+}
+.enrolments .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.enrolments .btn-ghost:hover{
+    border-color: var(--emerald); color: var(--emerald-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   2 · TRIAGE STRIP
+   ============================================================ */
+.triage{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 1180px){ .triage{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .triage{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tri-tile{
+    position: relative;
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tri-tile::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--emerald), var(--emerald-light));
+    border-radius: 3px 3px 0 0;
+}
+.tri-tile.amber::before{ background: linear-gradient(90deg, var(--amber-light), var(--amber)); }
+.tri-tile.rose::before{ background: linear-gradient(90deg, var(--rose-light), var(--rose)); }
+.tri-tile.sky::before{ background: linear-gradient(90deg, var(--sky-light), var(--sky)); }
+.tri-tile.violet::before{ background: linear-gradient(90deg, var(--violet-light), var(--violet)); }
+.tri-tile.gold::before{ background: linear-gradient(90deg, var(--gold-light), var(--gold)); }
+
+.tri-tile:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--emerald-line);
+}
+
+.tt-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tt-icon{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--emerald-soft);
+    color: var(--emerald);
+    flex-shrink: 0;
+}
+.tri-tile.amber .tt-icon{ background: var(--amber-soft); color: #B45309; }
+.tri-tile.rose .tt-icon{ background: var(--rose-soft); color: var(--rose); }
+.tri-tile.sky .tt-icon{ background: var(--sky-soft); color: #0284C7; }
+.tri-tile.violet .tt-icon{ background: var(--violet-soft); color: var(--violet); }
+.tri-tile.gold .tt-icon{ background: var(--gold-soft); color: var(--gold-deep); }
+
+.tt-micro{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.tt-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.tt-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+.tt-val.emerald{ color: var(--emerald-deep); }
+.tt-val.amber{ color: #B45309; }
+.tt-val.rose{ color: var(--rose); }
+.tt-label{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   3 · TABS
+   ============================================================ */
+.e-tabs{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow-x: auto;
+    scrollbar-width: none;
+    align-self: flex-start;
+    max-width: 100%;
+}
+.e-tabs::-webkit-scrollbar{ display: none; }
+
+.e-tab{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.e-tab i{
+    font-size: 0.9rem;
+    color: var(--faint);
+    transition: var(--transition, all .25s ease);
+}
+.e-tab:hover{
+    color: var(--ink);
+    background: var(--paper-2);
+}
+.e-tab:hover i{ color: var(--emerald-deep); }
+.e-tab.active{
+    background: linear-gradient(135deg, var(--ink), var(--ink-3));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.16);
+}
+.e-tab.active i{ color: var(--emerald-light); }
+
+.e-tab .tab-count{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    transition: var(--transition, all .25s ease);
+}
+.e-tab.active .tab-count{
+    background: var(--emerald);
+    color: #fff;
+}
+.e-tab .tab-dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+    animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse{
+    0%, 100%{ opacity: 1; transform: scale(1); }
+    50%     { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ============================================================
+   4 · TOOLBAR
+   ============================================================ */
+.e-toolbar{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+}
+.tb-search{
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+}
+.tb-search i{
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-size: 0.82rem;
+    pointer-events: none;
+}
+.tb-search input{
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .25s ease);
+}
+.tb-search input::placeholder{ color: var(--faint); }
+.tb-search input:focus{
+    border-color: var(--emerald);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--emerald-soft);
+}
+
+.tb-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.tb-chip i{ font-size: 0.78rem; color: var(--faint); transition: var(--transition, all .25s ease); }
+.tb-chip:hover{
+    border-color: var(--emerald-line);
+    color: var(--ink);
+    background: var(--paper);
+}
+.tb-chip:hover i{ color: var(--emerald-deep); }
+.tb-chip.active{
+    background: var(--emerald-soft);
+    border-color: var(--emerald-line);
+    color: var(--emerald-deep);
+}
+.tb-chip.active i{ color: var(--emerald-deep); }
+
+.tb-divider{
+    width: 1px; height: 22px;
+    background: var(--line);
+    margin: 0 2px;
+}
+
+/* ============================================================
+   5 · TAB PANELS
+   ============================================================ */
+.tab-panel{
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: panelFade .45s var(--ease);
+}
+.tab-panel.active{ display: flex; }
+@keyframes panelFade{
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   6 · SPLIT — applicants + capacity rail
+   ============================================================ */
+.e-split{
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+@media (max-width: 1180px){
+    .e-split{ grid-template-columns: 1fr; }
+}
+
+.stack{
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+/* ============================================================
+   7 · APPLICANT CARD
+   ============================================================ */
+.applicant{
+    position: relative;
+    padding: 22px 24px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .3s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.applicant::before{
+    content: '';
+    position: absolute;
+    top: 12px; bottom: 12px; left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--emerald);
+    transition: var(--transition, all .25s ease);
+}
+.applicant:hover{
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--emerald-line);
+}
+.applicant:hover::before{ top: 6px; bottom: 6px; }
+
+/* priority accent */
+.applicant.priority-strong::before{ background: linear-gradient(180deg, var(--emerald), var(--emerald-deep)); }
+.applicant.priority-review::before{ background: var(--sky); }
+.applicant.priority-question::before{ background: var(--amber); }
+.applicant.priority-flag::before{ background: var(--rose); }
+
+.app-head{
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.ap-av{
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    position: relative;
+    box-shadow: 0 8px 20px rgba(190, 242, 100, 0.24);
+}
+.ap-av::after{
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(11, 17, 33, 0.10);
+}
+.ap-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.ap-av.v3{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; }
+.ap-av.v4{ background: linear-gradient(135deg, var(--rose-light), var(--rose)); color: #fff; }
+.ap-av.v5{ background: linear-gradient(135deg, var(--emerald-light), var(--emerald)); color: var(--ink); }
+.ap-av .badge{
+    position: absolute;
+    bottom: -4px; right: -4px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--emerald);
+    color: #fff;
+    border: 2.5px solid var(--paper);
+    font-size: 0.62rem;
+    box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4);
+}
+
+.ap-info{ flex: 1; min-width: 0; }
+.ap-info h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.ap-info h3 .ref{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px;
+    border-radius: 50px;
+    background: var(--violet-soft);
+    color: var(--violet);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.ap-info h3 .ref i{ font-size: 0.6rem; }
+
+.ap-info p{
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    line-height: 1.5;
+}
+.ap-info p .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.ap-info p strong{ color: var(--ink-3); font-weight: 700; }
+
+.ap-when{
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    line-height: 1.4;
+}
+.ap-when.urgent{ color: #B45309; }
+.ap-when.fresh{ color: var(--emerald-deep); }
+
+/* course chip */
+.ap-course{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    padding: 5px 12px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+.ap-course i{
+    color: var(--emerald);
+    font-size: 0.72rem;
+}
+.ap-course strong{ color: var(--ink-3); font-weight: 700; }
+
+/* motivation quote */
+.ap-quote{
+    position: relative;
+    padding: 14px 16px 12px 44px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--emerald);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--ink-3);
+    font-style: italic;
+}
+.ap-quote::before{
+    content: '"';
+    position: absolute;
+    left: 14px;
+    top: 2px;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--emerald);
+    line-height: 1;
+    opacity: 0.55;
+}
+.ap-quote strong{ color: var(--ink); font-weight: 700; font-style: normal; }
+
+/* signal strip */
+.ap-signals{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+}
+@media (max-width: 780px){ .ap-signals{ grid-template-columns: repeat(2, 1fr); } }
+
+.ap-signal{
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    min-width: 0;
+}
+.ap-signal .sig-ic{
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    background: var(--emerald-soft);
+    color: var(--emerald-deep);
+}
+.ap-signal.amber .sig-ic{ background: var(--amber-soft); color: #B45309; }
+.ap-signal.sky .sig-ic{ background: var(--sky-soft); color: #0284C7; }
+.ap-signal.violet .sig-ic{ background: var(--violet-soft); color: var(--violet); }
+.ap-signal.rose .sig-ic{ background: var(--rose-soft); color: var(--rose); }
+.ap-signal .sig-body{ min-width: 0; }
+.ap-signal .sig-body .k{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 2px;
+}
+.ap-signal .sig-body .v{
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ap-signal .sig-body .v em{
+    font-style: normal;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 2px;
+}
+
+/* actions */
+.ap-actions{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-soft);
+}
+.ap-actions .grow{ flex: 1; }
+
+.decide{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+}
+.decide i{ font-size: 0.86rem; }
+
+.decide.accept{
+    background: linear-gradient(135deg, var(--emerald-light), var(--emerald));
+    color: var(--ink);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.32);
+}
+.decide.accept:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.44);
+}
+
+.decide.waitlist{
+    background: var(--paper);
+    color: #B45309;
+    border: 1px solid var(--amber-line);
+}
+.decide.waitlist:hover{
+    background: var(--amber-soft);
+    border-color: var(--amber);
+    transform: translateY(-2px);
+}
+
+.decide.decline{
+    background: var(--paper);
+    color: var(--rose);
+    border: 1px solid var(--line);
+}
+.decide.decline:hover{
+    background: var(--rose-soft);
+    border-color: var(--rose);
+    transform: translateY(-2px);
+}
+
+.decide.view{
+    background: transparent;
+    color: var(--muted);
+    padding: 10px 14px;
+}
+.decide.view:hover{
+    color: var(--ink);
+    background: var(--paper-2);
+}
+
+/* ============================================================
+   8 · RIGHT RAIL
+   ============================================================ */
+.rail{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+    transition: var(--transition, all .25s ease);
+}
+.rail:hover{ box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10)); }
+
+.rail-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.rail-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.rail-head h3 i{
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 0.72rem;
+    background: var(--emerald-soft);
+    color: var(--emerald-deep);
+    flex-shrink: 0;
+}
+.rail-head.sky h3 i{ background: var(--sky-soft); color: #0284C7; }
+.rail-head.violet h3 i{ background: var(--violet-soft); color: var(--violet); }
+.rail-head.amber h3 i{ background: var(--amber-soft); color: #B45309; }
+.rail-head.rose h3 i{ background: var(--rose-soft); color: var(--rose); }
+.rail-head.gold h3 i{ background: var(--gold-soft); color: var(--gold-deep); }
+
+.rail-link{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.rail-link:hover{ color: var(--emerald-deep); gap: 9px; }
+
+.rail-body{ padding: 14px 20px 20px; }
+
+/* capacity rows */
+.capacity-list{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cap-row{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.cap-top{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+.cap-top .k{
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cap-top .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+.cap-top .v em{
+    font-style: normal;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--faint);
+    margin-left: 2px;
+}
+.cap-top .v.tight{ color: var(--amber); }
+.cap-top .v.full{ color: var(--rose); }
+
+.cap-bar{
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+.cap-bar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--emerald-light), var(--emerald));
+    transition: width 1.1s var(--ease);
+}
+.cap-row.tight .cap-bar > span{ background: linear-gradient(90deg, var(--amber-light), var(--amber)); }
+.cap-row.full  .cap-bar > span{ background: linear-gradient(90deg, var(--rose-light), var(--rose)); }
+
+/* recent decisions */
+.dec-list{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.dec-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 4px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .2s ease);
+    cursor: pointer;
+}
+.dec-item:first-child{ padding-top: 4px; }
+.dec-item:last-child{ border-bottom: none; padding-bottom: 0; }
+.dec-item:hover{ transform: translateX(3px); }
+
+.di-av{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+}
+.di-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.di-av.v3{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; }
+.di-av.v4{ background: linear-gradient(135deg, var(--rose-light), var(--rose)); color: #fff; }
+
+.di-body{ flex: 1; min-width: 0; }
+.di-body h5{
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.di-body p{
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 500;
+}
+.di-body p strong{ color: var(--muted); font-weight: 700; }
+
+.di-outcome{
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 50px;
+    flex-shrink: 0;
+}
+.di-outcome.accept{ background: var(--emerald-soft); color: var(--emerald-deep); }
+.di-outcome.decline{ background: var(--rose-soft); color: var(--rose); }
+.di-outcome.waitlist{ background: var(--amber-soft); color: #B45309; }
+
+/* waitlist queue list */
+.queue-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.queue-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    transition: var(--transition, all .2s ease);
+    cursor: pointer;
+}
+.queue-item:hover{
+    background: var(--paper);
+    border-color: var(--amber-line);
+    transform: translateX(3px);
+}
+.queue-pos{
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--amber-soft);
+    color: #B45309;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.queue-body{ flex: 1; min-width: 0; }
+.queue-body h6{
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.queue-body p{
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 500;
+}
+.queue-est{
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    flex-shrink: 0;
+}
+
+/* small stat blocks inside rail */
+.rail-stats{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.rail-stat{
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px solid var(--line-soft);
+    text-align: left;
+}
+.rail-stat .k{
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 6px;
+}
+.rail-stat .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.rail-stat .v em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+.rail-stat .v.emerald{ color: var(--emerald-deep); }
+.rail-stat .v.amber{ color: #B45309; }
+
+/* ============================================================
+   9 · DECISION ROW (Approved / Declined / Waitlist panels)
+   ============================================================ */
+.decisions-panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+}
+.dp-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.dp-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.dp-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+.dp-head.emerald h3 i{ background: var(--emerald-soft); color: var(--emerald-deep); }
+.dp-head.rose h3 i{ background: var(--rose-soft); color: var(--rose); }
+.dp-head.amber h3 i{ background: var(--amber-soft); color: #B45309; }
+
+.dp-head .meta{
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.dp-body{ padding: 4px 22px 16px; }
+
+.dp-row{
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 4px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .2s ease);
+    cursor: pointer;
+}
+.dp-row:last-child{ border-bottom: none; }
+.dp-row:hover{ background: var(--paper-2); border-radius: 10px; padding-left: 10px; }
+
+@media (max-width: 900px){
+    .dp-row{
+        grid-template-columns: 44px 1fr auto;
+        gap: 12px;
+    }
+    .dp-row .dp-course,
+    .dp-row .dp-date{ display: none; }
+}
+
+.dpr-av{
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    flex-shrink: 0;
+}
+.dpr-av.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.dpr-av.v3{ background: linear-gradient(135deg, var(--violet-light), var(--violet)); color: #fff; }
+.dpr-av.v4{ background: linear-gradient(135deg, var(--rose-light), var(--rose)); color: #fff; }
+.dpr-av.v5{ background: linear-gradient(135deg, var(--emerald-light), var(--emerald)); color: var(--ink); }
+
+.dpr-who h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dpr-who p{
+    font-size: 0.66rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dpr-who p i{ font-size: 0.66rem; color: var(--faint); }
+
+.dp-course{
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dp-course i{ color: var(--emerald); font-size: 0.72rem; flex-shrink: 0; }
+
+.dp-date{
+    font-size: 0.66rem;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.dp-date strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.dpr-actions{
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.dpr-btn{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    display: grid; place-items: center;
+    font-size: 0.76rem;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+}
+.dpr-btn:hover{
+    border-color: var(--emerald);
+    color: var(--emerald-deep);
+    background: var(--emerald-soft);
+}
+.dpr-btn.rose:hover{
+    border-color: var(--rose);
+    color: var(--rose);
+    background: var(--rose-soft);
+}
+.dpr-btn.amber:hover{
+    border-color: var(--amber);
+    color: #B45309;
+    background: var(--amber-soft);
+}
+
+/* declined row — muted */
+.decisions-panel.declined .dpr-av{ filter: grayscale(0.3); opacity: 0.7; }
+.decisions-panel.declined .dpr-who h5{ color: var(--muted); }
+
+/* ============================================================
+   10 · EMPTY
+   ============================================================ */
+.empty-state{
+    padding: 60px 32px;
+    text-align: center;
+    background: var(--paper);
+    border: 1.5px dashed var(--line);
+    border-radius: var(--r-xl);
+}
+.empty-state .es-ic{
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    margin: 0 auto 18px;
+    font-size: 1.5rem;
+    background: var(--emerald-soft);
+    color: var(--emerald);
+}
+.empty-state h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+.empty-state p{
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto 20px;
+}
+
+/* ============================================================
+   11 · FOOT
+   ============================================================ */
+.e-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 4px 4px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.e-foot strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.e-foot .foot-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .e-mast-left h1{ font-size: 1.5rem; }
+    .e-toolbar{ padding: 12px 14px; gap: 8px; }
+    .tb-search{ min-width: 100%; }
+    .applicant{ padding: 18px 18px 16px; }
+    .ap-signals{ grid-template-columns: 1fr 1fr; }
+    .ap-actions{ flex-direction: column; align-items: stretch; }
+    .decide{ justify-content: center; }
+    .dp-row{ grid-template-columns: 40px 1fr auto; padding: 12px 4px; }
+    .dpr-av{ width: 40px; height: 40px; font-size: 0.76rem; }
+}
+</style>
+
+
+<div class="enrolments">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="e-mast e-rise">
+        <div class="e-mast-left">
+            <span class="em-kicker">
+                <i class="bi bi-person-plus-fill"></i> Enrolments
+                <span class="queue-pill">4 new</span>
+            </span>
+            <h1>Who shall <em>join the cohort?</em></h1>
+            <p class="em-sub">
+                <strong>4</strong> awaiting decision
+                <span class="sep"></span>
+                <strong>3</strong> on waitlist
+                <span class="sep"></span>
+                128 of 148 seats filled
+                <span class="sep"></span>
+                <span class="warn">2 courses at capacity</span>
+            </p>
+        </div>
+        <div class="e-mast-right">
+            <button class="btn-ghost" data-toast="Opening application form…">
+                <i class="bi bi-file-earmark-text"></i> Application form
+            </button>
+            <button class="btn-ghost" data-toast="Opening capacity settings…">
+                <i class="bi bi-sliders"></i> Capacity
+            </button>
+            <button class="btn-emerald" data-toast="Opening bulk review…">
+                <i class="bi bi-list-check"></i> Bulk review
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · TRIAGE STRIP
+         ==================================================== -->
+    <section class="triage">
+        <article class="tri-tile e-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-inbox-fill"></i></span>
+                <span class="tt-micro">Pending</span>
+            </div>
+            <div class="tt-val emerald" data-count="4">0</div>
+            <div class="tt-label">Awaiting your decision</div>
+        </article>
+
+        <article class="tri-tile sky e-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-check2-circle"></i></span>
+                <span class="tt-micro">Approved</span>
+            </div>
+            <div class="tt-val" data-count="128">0</div>
+            <div class="tt-label">Active students</div>
+        </article>
+
+        <article class="tri-tile amber e-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-hourglass-split"></i></span>
+                <span class="tt-micro">Waitlist</span>
+            </div>
+            <div class="tt-val amber" data-count="3">0</div>
+            <div class="tt-label">On the waitlist</div>
+        </article>
+
+        <article class="tri-tile rose e-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-x-circle"></i></span>
+                <span class="tt-micro">Declined</span>
+            </div>
+            <div class="tt-val rose" data-count="12">0</div>
+            <div class="tt-label">This quarter</div>
+        </article>
+
+        <article class="tri-tile violet e-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-stopwatch"></i></span>
+                <span class="tt-micro">Average</span>
+            </div>
+            <div class="tt-val">1.8<em>d</em></div>
+            <div class="tt-label">Decision time</div>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         3 · TABS
+         ==================================================== -->
+    <div class="e-tabs" role="tablist" aria-label="Enrolment views">
+        <button class="e-tab active" role="tab" aria-selected="true" data-tab="pending">
+            <i class="bi bi-inbox-fill"></i> Pending
+            <span class="tab-count">4</span>
+        </button>
+        <button class="e-tab" role="tab" aria-selected="false" data-tab="approved">
+            <i class="bi bi-check2-circle"></i> Approved
+            <span class="tab-count">128</span>
+        </button>
+        <button class="e-tab" role="tab" aria-selected="false" data-tab="waitlist">
+            <i class="bi bi-hourglass-split"></i> Waitlist
+            <span class="tab-count">3</span>
+        </button>
+        <button class="e-tab" role="tab" aria-selected="false" data-tab="declined">
+            <i class="bi bi-x-circle"></i> Declined
+            <span class="tab-count">12</span>
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         4 · TOOLBAR
+         ==================================================== -->
+    <div class="e-toolbar">
+        <div class="tb-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search by name, course or city…" aria-label="Search applicants" data-search>
+        </div>
+
+        <button class="tb-chip active" data-toast="Showing all">
+            <i class="bi bi-grid-fill"></i> All
+        </button>
+        <button class="tb-chip" data-toast="Filtering referred">
+            <i class="bi bi-person-check"></i> Referred
+        </button>
+        <button class="tb-chip" data-toast="Filtering returning">
+            <i class="bi bi-arrow-repeat"></i> Returning
+        </button>
+        <button class="tb-chip" data-toast="Filtering at capacity">
+            <i class="bi bi-exclamation-circle"></i> At capacity
+        </button>
+
+        <div class="tb-divider" aria-hidden="true"></div>
+
+        <button class="tb-chip" data-toast="Sorting by submitted date">
+            <i class="bi bi-sort-down"></i> Most recent
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         5 · TAB PANEL — PENDING
+         ==================================================== -->
+    <section class="tab-panel active" id="panel-pending" role="tabpanel">
+
+        <div class="e-split">
+
+            <!-- ============================================
+                 LEFT · APPLICANT CARDS
+                 ============================================ -->
+            <div class="stack">
+
+                <!-- APPLICANT 1 — strong applicant, referred -->
+                <article class="applicant priority-strong" data-applicant="lara">
+                    <div class="ap-head">
+                        <span class="ap-av v5">
+                            LM
+                            <span class="badge" title="Referred by a graduate"><i class="bi bi-person-check-fill"></i></span>
+                        </span>
+                        <div class="ap-info">
+                            <h3>
+                                Lara Mendes
+                                <span class="ref"><i class="bi bi-person-check-fill"></i> Referred by Sara K.</span>
+                            </h3>
+                            <p>
+                                Lagos, Nigeria
+                                <span class="sep"></span>
+                                Full-stack engineer · <strong>3 years</strong>
+                                <span class="sep"></span>
+                                Timezone <strong>GMT+1</strong>
+                            </p>
+                        </div>
+                        <div class="ap-when fresh">
+                            New<br>2h ago
+                        </div>
+                    </div>
+
+                    <span class="ap-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        Applying to <strong>Advanced React Patterns</strong>
+                    </span>
+
+                    <p class="ap-quote">
+                        I've been following Sara's posts about the composition module since January, and
+                        I want to build the patterns she keeps describing. I've <strong>shipped three production
+                        apps in React</strong> but my code keeps sliding into the same shapes — I'm ready to break that.
+                    </p>
+
+                    <div class="ap-signals">
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-bar-chart-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Level</div>
+                                <div class="v">Intermediate <em>est.</em></div>
+                            </div>
+                        </div>
+                        <div class="ap-signal violet">
+                            <span class="sig-ic"><i class="bi bi-people-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Referral</div>
+                                <div class="v">Sara Kim</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal sky">
+                            <span class="sig-ic"><i class="bi bi-code-slash"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Portfolio</div>
+                                <div class="v">GitHub linked</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-clock-history"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Committed</div>
+                                <div class="v">15h<em>/week</em></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ap-actions">
+                        <button class="decide accept" data-toast="Accepting Lara Mendes…" data-toast-type="success">
+                            <i class="bi bi-check2-circle"></i> Accept
+                        </button>
+                        <button class="decide waitlist" data-toast="Adding to waitlist…">
+                            <i class="bi bi-hourglass-split"></i> Waitlist
+                        </button>
+                        <button class="decide decline" data-toast="Opening decline options…">
+                            <i class="bi bi-x-circle"></i> Decline
+                        </button>
+                        <span class="grow"></span>
+                        <button class="decide view" data-toast="Opening full application…">
+                            <i class="bi bi-arrow-right"></i> Full
+                        </button>
+                    </div>
+                </article>
+
+                <!-- APPLICANT 2 — returning student -->
+                <article class="applicant priority-review" data-applicant="kwame">
+                    <div class="ap-head">
+                        <span class="ap-av v2">
+                            KA
+                        </span>
+                        <div class="ap-info">
+                            <h3>
+                                Kwame Asante
+                                <span class="ref" style="background: var(--sky-soft); color: #0284C7;">
+                                    <i class="bi bi-arrow-repeat"></i> Returning
+                                </span>
+                            </h3>
+                            <p>
+                                Kumasi, Ghana
+                                <span class="sep"></span>
+                                Completed <strong>1 course</strong> with you
+                                <span class="sep"></span>
+                                Timezone <strong>GMT</strong>
+                            </p>
+                        </div>
+                        <div class="ap-when">
+                            <br>Yesterday
+                        </div>
+                    </div>
+
+                    <span class="ap-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        Applying to <strong>TypeScript for React</strong>
+                    </span>
+
+                    <p class="ap-quote">
+                        You taught me how to think about <strong>useEffect cleanups</strong> and it changed how I
+                        write every piece of code. Now I keep hitting type errors I can't name, and I want the
+                        same treatment for TypeScript. <strong>Ready to commit properly this time.</strong>
+                    </p>
+
+                    <div class="ap-signals">
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-bar-chart-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Level</div>
+                                <div class="v">Intermediate</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal sky">
+                            <span class="sig-ic"><i class="bi bi-trophy-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Prior course</div>
+                                <div class="v">Advanced React · 4.8★</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal amber">
+                            <span class="sig-ic"><i class="bi bi-lightning-charge-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Last activity</div>
+                                <div class="v">6 days ago</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-clock-history"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Committed</div>
+                                <div class="v">10h<em>/week</em></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ap-actions">
+                        <button class="decide accept" data-toast="Accepting Kwame Asante…" data-toast-type="success">
+                            <i class="bi bi-check2-circle"></i> Accept
+                        </button>
+                        <button class="decide waitlist" data-toast="Adding to waitlist…">
+                            <i class="bi bi-hourglass-split"></i> Waitlist
+                        </button>
+                        <button class="decide decline" data-toast="Opening decline options…">
+                            <i class="bi bi-x-circle"></i> Decline
+                        </button>
+                        <span class="grow"></span>
+                        <button class="decide view" data-toast="Opening full application…">
+                            <i class="bi bi-arrow-right"></i> Full
+                        </button>
+                    </div>
+                </article>
+
+                <!-- APPLICANT 3 — needs review (capacity warning) -->
+                <article class="applicant priority-question" data-applicant="yuki">
+                    <div class="ap-head">
+                        <span class="ap-av v3">
+                            YT
+                        </span>
+                        <div class="ap-info">
+                            <h3>
+                                Yuki Tanaka
+                                <span class="ref" style="background: var(--amber-soft); color: #B45309;">
+                                    <i class="bi bi-exclamation-circle"></i> At capacity
+                                </span>
+                            </h3>
+                            <p>
+                                Tokyo, Japan
+                                <span class="sep"></span>
+                                Product designer · <strong>5 years</strong>
+                                <span class="sep"></span>
+                                Timezone <strong>GMT+9</strong>
+                            </p>
+                        </div>
+                        <div class="ap-when urgent">
+                            <br>2d ago
+                        </div>
+                    </div>
+
+                    <span class="ap-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        Applying to <strong>UI/UX Design Systems</strong>
+                    </span>
+
+                    <p class="ap-quote">
+                        I've built design systems at three companies but I've never written the <strong>documentation
+                        layer</strong> well. I want to learn how you think about that — and whether my instinct to
+                        over-document is right or wrong.
+                    </p>
+
+                    <div class="ap-signals">
+                        <div class="ap-signal rose">
+                            <span class="sig-ic"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Course capacity</div>
+                                <div class="v">36 of 36</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-bar-chart-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Level</div>
+                                <div class="v">Senior</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal sky">
+                            <span class="sig-ic"><i class="bi bi-briefcase-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Background</div>
+                                <div class="v">Product design</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal amber">
+                            <span class="sig-ic"><i class="bi bi-clock-history"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Committed</div>
+                                <div class="v">8h<em>/week</em></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ap-actions">
+                        <button class="decide accept" data-toast="Accepting — will exceed capacity" data-toast-type="success">
+                            <i class="bi bi-check2-circle"></i> Accept (over capacity)
+                        </button>
+                        <button class="decide waitlist" data-toast="Adding to waitlist…" style="background: var(--amber); color: #fff; border: none;">
+                            <i class="bi bi-hourglass-split"></i> Recommend waitlist
+                        </button>
+                        <button class="decide decline" data-toast="Opening decline options…">
+                            <i class="bi bi-x-circle"></i> Decline
+                        </button>
+                        <span class="grow"></span>
+                        <button class="decide view" data-toast="Opening full application…">
+                            <i class="bi bi-arrow-right"></i> Full
+                        </button>
+                    </div>
+                </article>
+
+                <!-- APPLICANT 4 — flag for review -->
+                <article class="applicant priority-flag" data-applicant="jonas">
+                    <div class="ap-head">
+                        <span class="ap-av v4">
+                            JP
+                        </span>
+                        <div class="ap-info">
+                            <h3>
+                                Jonas Petrov
+                                <span class="ref" style="background: var(--rose-soft); color: var(--rose);">
+                                    <i class="bi bi-flag-fill"></i> Flagged
+                                </span>
+                            </h3>
+                            <p>
+                                Berlin, Germany
+                                <span class="sep"></span>
+                                Career switcher · <strong>1 year</strong> of code
+                                <span class="sep"></span>
+                                Timezone <strong>GMT+1</strong>
+                            </p>
+                        </div>
+                        <div class="ap-when">
+                            <br>3d ago
+                        </div>
+                    </div>
+
+                    <span class="ap-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        Applying to <strong>Backend Fundamentals</strong>
+                    </span>
+
+                    <p class="ap-quote">
+                        I quit my marketing job six months ago and I've been learning on my own since. I know
+                        I'm behind most of your cohort but I'm <strong>willing to put in whatever it takes</strong>.
+                        Please give me a shot.
+                    </p>
+
+                    <div class="ap-signals">
+                        <div class="ap-signal rose">
+                            <span class="sig-ic"><i class="bi bi-flag-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Flag</div>
+                                <div class="v">Missing portfolio</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-bar-chart-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Level</div>
+                                <div class="v">Beginner</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal amber">
+                            <span class="sig-ic"><i class="bi bi-person-dash-fill"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Prereqs</div>
+                                <div class="v">Incomplete</div>
+                            </div>
+                        </div>
+                        <div class="ap-signal">
+                            <span class="sig-ic"><i class="bi bi-clock-history"></i></span>
+                            <div class="sig-body">
+                                <div class="k">Committed</div>
+                                <div class="v">30h<em>/week</em></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ap-actions">
+                        <button class="decide accept" data-toast="Accepting Jonas Petrov…" data-toast-type="success">
+                            <i class="bi bi-check2-circle"></i> Accept
+                        </button>
+                        <button class="decide waitlist" data-toast="Adding to waitlist…">
+                            <i class="bi bi-hourglass-split"></i> Waitlist
+                        </button>
+                        <button class="decide decline" data-toast="Opening decline with feedback…">
+                            <i class="bi bi-x-circle"></i> Decline with feedback
+                        </button>
+                        <span class="grow"></span>
+                        <button class="decide view" data-toast="Opening full application…">
+                            <i class="bi bi-arrow-right"></i> Full
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- ============================================
+                 RIGHT · RAIL
+                 ============================================ -->
+            <aside class="stack">
+
+                <!-- capacity by course -->
+                <div class="rail">
+                    <div class="rail-head">
+                        <h3><i class="bi bi-bar-chart-steps"></i> Course capacity</h3>
+                        <button class="rail-link" data-toast="Opening capacity settings…">
+                            Manage <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="rail-body">
+                        <div class="capacity-list">
+
+                            <div class="cap-row full">
+                                <div class="cap-top">
+                                    <span class="k">UI/UX Design Systems</span>
+                                    <span class="v full">36<em>/36</em></span>
+                                </div>
+                                <div class="cap-bar"><span data-value="100"></span></div>
+                            </div>
+
+                            <div class="cap-row tight">
+                                <div class="cap-top">
+                                    <span class="k">Advanced React Patterns</span>
+                                    <span class="v tight">42<em>/45</em></span>
+                                </div>
+                                <div class="cap-bar"><span data-value="93"></span></div>
+                            </div>
+
+                            <div class="cap-row tight">
+                                <div class="cap-top">
+                                    <span class="k">TypeScript for React</span>
+                                    <span class="v tight">22<em>/25</em></span>
+                                </div>
+                                <div class="cap-bar"><span data-value="88"></span></div>
+                            </div>
+
+                            <div class="cap-row">
+                                <div class="cap-top">
+                                    <span class="k">Backend Fundamentals</span>
+                                    <span class="v">28<em>/40</em></span>
+                                </div>
+                                <div class="cap-bar"><span data-value="70"></span></div>
+                            </div>
+
+                            <div class="cap-row">
+                                <div class="cap-top">
+                                    <span class="k">Testing React Apps</span>
+                                    <span class="v">0<em>/20</em></span>
+                                </div>
+                                <div class="cap-bar"><span data-value="0"></span></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- quick stats -->
+                <div class="rail">
+                    <div class="rail-head sky">
+                        <h3><i class="bi bi-speedometer2"></i> Decision quality</h3>
+                    </div>
+                    <div class="rail-body">
+                        <div class="rail-stats">
+                            <div class="rail-stat">
+                                <div class="k">Avg rating</div>
+                                <div class="v emerald">4.9<em>★</em></div>
+                            </div>
+                            <div class="rail-stat">
+                                <div class="k">Completion</div>
+                                <div class="v">96<em>%</em></div>
+                            </div>
+                            <div class="rail-stat">
+                                <div class="k">Decision time</div>
+                                <div class="v">1.8<em>d</em></div>
+                            </div>
+                            <div class="rail-stat">
+                                <div class="k">Accept rate</div>
+                                <div class="v amber">72<em>%</em></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- recent decisions -->
+                <div class="rail">
+                    <div class="rail-head violet">
+                        <h3><i class="bi bi-clock-history"></i> Recent decisions</h3>
+                        <button class="rail-link" data-toast="Opening full log…">
+                            Log <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="rail-body">
+                        <div class="dec-list">
+
+                            <div class="dec-item" data-toast="Opening Amara Obi's profile…">
+                                <span class="di-av v3">AO</span>
+                                <div class="di-body">
+                                    <h5>Amara Obi</h5>
+                                    <p>UI/UX · <strong>2 days ago</strong></p>
+                                </div>
+                                <span class="di-outcome accept">Accepted</span>
+                            </div>
+
+                            <div class="dec-item" data-toast="Opening Fatima Diallo's profile…">
+                                <span class="di-av">FD</span>
+                                <div class="di-body">
+                                    <h5>Fatima Diallo</h5>
+                                    <p>Backend · <strong>4 days ago</strong></p>
+                                </div>
+                                <span class="di-outcome accept">Accepted</span>
+                            </div>
+
+                            <div class="dec-item" data-toast="Opening Lars B.'s profile…">
+                                <span class="di-av v4">LB</span>
+                                <div class="di-body">
+                                    <h5>Lars Bergmann</h5>
+                                    <p>Testing · <strong>1 week ago</strong></p>
+                                </div>
+                                <span class="di-outcome decline">Declined</span>
+                            </div>
+
+                            <div class="dec-item" data-toast="Opening Priya S.'s profile…">
+                                <span class="di-av v2">PS</span>
+                                <div class="di-body">
+                                    <h5>Priya Sharma</h5>
+                                    <p>TypeScript · <strong>1 week ago</strong></p>
+                                </div>
+                                <span class="di-outcome waitlist">Waitlist</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- waitlist queue -->
+                <div class="rail">
+                    <div class="rail-head amber">
+                        <h3><i class="bi bi-hourglass-split"></i> Waitlist queue</h3>
+                        <button class="rail-link" data-toast="Opening waitlist…">
+                            All <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="rail-body">
+                        <div class="queue-list">
+
+                            <div class="queue-item" data-toast="Opening Priya Sharma…">
+                                <span class="queue-pos">1</span>
+                                <div class="queue-body">
+                                    <h6>Priya Sharma</h6>
+                                    <p>TypeScript for React · applied 1w ago</p>
+                                </div>
+                                <span class="queue-est">Apr 15</span>
+                            </div>
+
+                            <div class="queue-item" data-toast="Opening Diego M.'s profile…">
+                                <span class="queue-pos">2</span>
+                                <div class="queue-body">
+                                    <h6>Diego Morales</h6>
+                                    <p>Advanced React Patterns · applied 2w ago</p>
+                                </div>
+                                <span class="queue-est">Apr 22</span>
+                            </div>
+
+                            <div class="queue-item" data-toast="Opening Leila K.'s profile…">
+                                <span class="queue-pos">3</span>
+                                <div class="queue-body">
+                                    <h6>Leila Khoury</h6>
+                                    <p>UI/UX Design Systems · applied 3w ago</p>
+                                </div>
+                                <span class="queue-est">May 5</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
+
+        </div>
+
+        <div class="e-foot">
+            <span><strong>4</strong> applications awaiting decision · oldest is <strong>3 days</strong> · average decision <strong>1.8 days</strong></span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Opening decision history…">
+                    <i class="bi bi-clock-history"></i> History
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         6 · TAB PANEL — APPROVED
+         ==================================================== -->
+    <section class="tab-panel" id="panel-approved" role="tabpanel">
+
+        <div class="decisions-panel">
+            <div class="dp-head emerald">
+                <h3><i class="bi bi-check2-circle"></i> Approved students</h3>
+                <span class="meta">Showing 6 of 128</span>
+            </div>
+            <div class="dp-body">
+
+                <div class="dp-row" data-toast="Opening Amara Obi's profile…">
+                    <span class="dpr-av v3">AO</span>
+                    <div class="dpr-who">
+                        <h5>Amara Obi</h5>
+                        <p><i class="bi bi-geo-alt"></i> Accra, Ghana</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> UI/UX Design Systems</span>
+                    <span class="dp-date">Approved <strong>2d ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Revoke" data-toast="Opening revoke…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Fatima Diallo's profile…">
+                    <span class="dpr-av">FD</span>
+                    <div class="dpr-who">
+                        <h5>Fatima Diallo</h5>
+                        <p><i class="bi bi-geo-alt"></i> Dakar, Senegal</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Backend Fundamentals</span>
+                    <span class="dp-date">Approved <strong>4d ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Revoke" data-toast="Opening revoke…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Lena Petrov's profile…">
+                    <span class="dpr-av v2">LP</span>
+                    <div class="dpr-who">
+                        <h5>Lena Petrov</h5>
+                        <p><i class="bi bi-geo-alt"></i> Berlin, Germany</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Advanced React Patterns</span>
+                    <span class="dp-date">Approved <strong>1w ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Revoke" data-toast="Opening revoke…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Sara Kim's profile…">
+                    <span class="dpr-av v5">SK</span>
+                    <div class="dpr-who">
+                        <h5>Sara Kim</h5>
+                        <p><i class="bi bi-geo-alt"></i> Lagos, Nigeria</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Advanced React Patterns</span>
+                    <span class="dp-date">Approved <strong>2w ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Revoke" data-toast="Opening revoke…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Tunde Kalu's profile…">
+                    <span class="dpr-av v3">TK</span>
+                    <div class="dpr-who">
+                        <h5>Tunde Kalu</h5>
+                        <p><i class="bi bi-geo-alt"></i> Abuja, Nigeria</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> UI/UX Design Systems</span>
+                    <span class="dp-date">Approved <strong>3w ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Revoke" data-toast="Opening revoke…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Maya Rahman's profile…">
+                    <span class="dpr-av v2">MR</span>
+                    <div class="dpr-who">
+                        <h5>Maya Rahman</h5>
+                        <p><i class="bi bi-geo-alt"></i> Nairobi, Kenya</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Backend Fundamentals</span>
+                    <span class="dp-date">Approved <strong>1mo ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Revoke" data-toast="Opening revoke…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="e-foot">
+            <span>Showing <strong>6</strong> of <strong>128</strong> approved students · <strong>3</strong> joined this week</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Loading more…">
+                    <i class="bi bi-arrow-down-circle"></i> Load more
+                </button>
+                <button class="btn-ghost" data-toast="Opening export…">
+                    <i class="bi bi-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         7 · TAB PANEL — WAITLIST
+         ==================================================== -->
+    <section class="tab-panel" id="panel-waitlist" role="tabpanel">
+
+        <div class="decisions-panel">
+            <div class="dp-head amber">
+                <h3><i class="bi bi-hourglass-split"></i> Waitlist</h3>
+                <span class="meta">3 candidates · est. first opening Apr 15</span>
+            </div>
+            <div class="dp-body">
+
+                <div class="dp-row" data-toast="Opening Priya Sharma's profile…">
+                    <span class="dpr-av v3">PS</span>
+                    <div class="dpr-who">
+                        <h5>Priya Sharma</h5>
+                        <p><i class="bi bi-geo-alt"></i> Mumbai, India · <i class="bi bi-clock-history"></i> Waitlisted 1w</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> TypeScript for React</span>
+                    <span class="dp-date">Est. <strong>Apr 15</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn amber" aria-label="Promote" data-toast="Promoting to enrolled…"><i class="bi bi-arrow-up-circle"></i></button>
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Remove" data-toast="Opening remove…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Diego Morales's profile…">
+                    <span class="dpr-av v2">DM</span>
+                    <div class="dpr-who">
+                        <h5>Diego Morales</h5>
+                        <p><i class="bi bi-geo-alt"></i> Mexico City · <i class="bi bi-clock-history"></i> Waitlisted 2w</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Advanced React Patterns</span>
+                    <span class="dp-date">Est. <strong>Apr 22</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn amber" aria-label="Promote" data-toast="Promoting to enrolled…"><i class="bi bi-arrow-up-circle"></i></button>
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Remove" data-toast="Opening remove…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Leila Khoury's profile…">
+                    <span class="dpr-av v4">LK</span>
+                    <div class="dpr-who">
+                        <h5>Leila Khoury</h5>
+                        <p><i class="bi bi-geo-alt"></i> Beirut, Lebanon · <i class="bi bi-clock-history"></i> Waitlisted 3w</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> UI/UX Design Systems</span>
+                    <span class="dp-date">Est. <strong>May 5</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn amber" aria-label="Promote" data-toast="Promoting to enrolled…"><i class="bi bi-arrow-up-circle"></i></button>
+                        <button class="dpr-btn" aria-label="Message" data-toast="Opening message…"><i class="bi bi-chat-dots"></i></button>
+                        <button class="dpr-btn rose" aria-label="Remove" data-toast="Opening remove…"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="e-foot">
+            <span><strong>3</strong> on the waitlist · average wait <strong>2 weeks</strong> · first opening in <strong>8 days</strong></span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Notifying all waitlisted…">
+                    <i class="bi bi-send"></i> Notify all
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         8 · TAB PANEL — DECLINED
+         ==================================================== -->
+    <section class="tab-panel" id="panel-declined" role="tabpanel">
+
+        <div class="decisions-panel declined">
+            <div class="dp-head rose">
+                <h3><i class="bi bi-x-circle"></i> Declined this quarter</h3>
+                <span class="meta">12 decisions · avg 1.8d</span>
+            </div>
+            <div class="dp-body">
+
+                <div class="dp-row" data-toast="Opening Lars Bergmann's profile…">
+                    <span class="dpr-av v4">LB</span>
+                    <div class="dpr-who">
+                        <h5>Lars Bergmann</h5>
+                        <p><i class="bi bi-geo-alt"></i> Hamburg, Germany</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Testing React Apps</span>
+                    <span class="dp-date">Declined <strong>1w ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Reconsider" data-toast="Reconsidering…"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        <button class="dpr-btn" aria-label="Reason" data-toast="Opening decline reason…"><i class="bi bi-file-text"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Valentina R.'s profile…">
+                    <span class="dpr-av v3">VR</span>
+                    <div class="dpr-who">
+                        <h5>Valentina Rossi</h5>
+                        <p><i class="bi bi-geo-alt"></i> Rome, Italy</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> UI/UX Design Systems</span>
+                    <span class="dp-date">Declined <strong>2w ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Reconsider" data-toast="Reconsidering…"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        <button class="dpr-btn" aria-label="Reason" data-toast="Opening decline reason…"><i class="bi bi-file-text"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Oliver N.'s profile…">
+                    <span class="dpr-av v2">ON</span>
+                    <div class="dpr-who">
+                        <h5>Oliver Nielsen</h5>
+                        <p><i class="bi bi-geo-alt"></i> Copenhagen, Denmark</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Advanced React Patterns</span>
+                    <span class="dp-date">Declined <strong>3w ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Reconsider" data-toast="Reconsidering…"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        <button class="dpr-btn" aria-label="Reason" data-toast="Opening decline reason…"><i class="bi bi-file-text"></i></button>
+                    </div>
+                </div>
+
+                <div class="dp-row" data-toast="Opening Aiko S.'s profile…">
+                    <span class="dpr-av v5">AS</span>
+                    <div class="dpr-who">
+                        <h5>Aiko Sato</h5>
+                        <p><i class="bi bi-geo-alt"></i> Osaka, Japan</p>
+                    </div>
+                    <span class="dp-course"><i class="bi bi-journal-bookmark-fill"></i> Backend Fundamentals</span>
+                    <span class="dp-date">Declined <strong>1mo ago</strong></span>
+                    <div class="dpr-actions">
+                        <button class="dpr-btn" aria-label="Reconsider" data-toast="Reconsidering…"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        <button class="dpr-btn" aria-label="Reason" data-toast="Opening decline reason…"><i class="bi bi-file-text"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="e-foot">
+            <span>Showing <strong>4</strong> of <strong>12</strong> declined this quarter · decisions include feedback</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Opening feedback templates…">
+                    <i class="bi bi-chat-square-text"></i> Templates
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+</div><!-- /.enrolments -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.enrolments');
+    if (!root) return;
+
+    /* ---------- animated counters ---------- */
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ---------- capacity bars ---------- */
+    requestAnimationFrame(function () {
+        root.querySelectorAll('.cap-bar > span[data-value]').forEach(function (el) {
+            var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+            setTimeout(function () { el.style.width = v + '%'; }, 120);
+        });
+    });
+
+    /* ---------- tab switching ---------- */
+    var tabs = root.querySelectorAll('.e-tab');
+    var panels = {
+        pending:  document.getElementById('panel-pending'),
+        approved: document.getElementById('panel-approved'),
+        waitlist: document.getElementById('panel-waitlist'),
+        declined: document.getElementById('panel-declined')
+    };
+    function activateTab(name) {
+        tabs.forEach(function (t) {
+            var on = t.dataset.tab === name;
+            t.classList.toggle('active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        Object.keys(panels).forEach(function (k) {
+            if (!panels[k]) return;
+            panels[k].classList.toggle('active', k === name);
+        });
+    }
+    tabs.forEach(function (t) {
+        t.addEventListener('click', function () { activateTab(t.dataset.tab); });
+    });
+
+    /* ---------- search filter ---------- */
+    var search = root.querySelector('[data-search]');
+    if (search) {
+        search.addEventListener('input', function (e) {
+            var q = (e.target.value || '').toLowerCase().trim();
+            root.querySelectorAll('.applicant, .dp-row').forEach(function (card) {
+                var text = card.textContent.toLowerCase();
+                card.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+            });
+        });
+    }
+
+    /* ---------- filter chips (demo behaviour) ---------- */
+    var chips = root.querySelectorAll('.tb-chip');
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            var label = chip.textContent.trim();
+            var isFilter = ['All','Referred','Returning','At capacity'].some(function (k) {
+                return label.indexOf(k) !== -1;
+            });
+            if (isFilter) {
+                chips.forEach(function (c) {
+                    var l = c.textContent.trim();
+                    if (['All','Referred','Returning','At capacity'].some(function (k) { return l.indexOf(k) !== -1; })) {
+                        c.classList.remove('active');
+                    }
+                });
+                chip.classList.add('active');
+            }
+        });
+    });
+
+    /* ================================================================
+       DECISION ACTIONS — accept / waitlist / decline
+       ================================================================ */
+    function removeApplicant(card, message) {
+        if (!card) return;
+        card.style.transition = 'opacity .35s ease, transform .35s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(20px)';
+        setTimeout(function () {
+            card.style.display = 'none';
+        }, 380);
+        if (window.__toast) window.__toast(message, 'success');
+    }
+
+    root.querySelectorAll('.decide').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var card = btn.closest('.applicant');
+            var nameEl = card ? card.querySelector('.ap-info h3') : null;
+            var name = nameEl ? nameEl.childNodes[0].textContent.trim() : 'Applicant';
+
+            if (btn.classList.contains('accept')) {
+                removeApplicant(card, name + ' accepted · welcome email sent');
+            } else if (btn.classList.contains('waitlist')) {
+                removeApplicant(card, name + ' added to waitlist');
+            } else if (btn.classList.contains('decline')) {
+                removeApplicant(card, name + ' declined · feedback sent');
+            }
+        });
+    });
+
+})();
+</script>
+
+{% endblock content %}

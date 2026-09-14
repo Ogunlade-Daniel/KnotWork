@@ -1,0 +1,2286 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Settings{% endblock %}
+
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       SETTINGS — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .st-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .st-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .st-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .st-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 620px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Layout ---------- */
+    .st-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* ---------- Side nav ---------- */
+    .st-nav {
+        position: sticky;
+        top: calc(var(--topbar-h) + 18px);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 14px 12px;
+    }
+
+    .st-nav-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        padding: 12px 12px 6px;
+        margin: 0;
+    }
+    .st-nav-label:first-child { padding-top: 4px; }
+
+    .st-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: left;
+        position: relative;
+        width: 100%;
+    }
+    .st-nav-item i {
+        width: 18px;
+        font-size: 0.92rem;
+        text-align: center;
+        color: var(--gray-300);
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+    .st-nav-item:hover {
+        background: var(--gray-100);
+        color: var(--primary-dark);
+    }
+    .st-nav-item:hover i { color: var(--primary-dark); }
+    .st-nav-item.active {
+        background: rgba(190, 242, 100, 0.14);
+        color: var(--primary-dark);
+        font-weight: 600;
+    }
+    .st-nav-item.active i { color: var(--secondary-deep); }
+    .st-nav-item.active::before {
+        content: '';
+        position: absolute;
+        left: -12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 22px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+    }
+    .st-nav-item .tag {
+        margin-left: auto;
+        font-size: 0.58rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+        letter-spacing: 0.04em;
+    }
+    .st-nav-item .tag.danger {
+        background: rgba(239, 68, 68, 0.12);
+        color: #B91C1C;
+    }
+
+    /* ---------- Content card ---------- */
+    .st-content {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        min-width: 0;
+    }
+
+    /* Panels */
+    .st-panel { display: none; }
+    .st-panel.active { display: block; animation: stFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    @keyframes stFade {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Panel head */
+    .st-panel-head {
+        padding: 26px 30px 22px;
+        border-bottom: 1px solid var(--gray-100);
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.7), rgba(248, 250, 252, 0));
+    }
+    .st-panel-head h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+        line-height: 1.25;
+    }
+    .st-panel-head h2 i { color: var(--secondary-deep); font-size: 1.05rem; }
+    .st-panel-head p {
+        font-size: 0.86rem;
+        color: var(--gray-600);
+        line-height: 1.65;
+        max-width: 620px;
+    }
+
+    /* Panel body */
+    .st-panel-body {
+        padding: 26px 30px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Section */
+    .st-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .st-section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-bottom: 4px;
+    }
+    .st-section-title h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .st-section-title h3 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .st-section-title .hint {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+
+    /* ---------- Form rows ---------- */
+    .st-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+    .st-grid.one { grid-template-columns: 1fr; }
+    .st-grid.three { grid-template-columns: repeat(3, 1fr); }
+
+    .st-field { min-width: 0; }
+    .st-field.full { grid-column: 1 / -1; }
+
+    .st-field label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+    .st-field label .req {
+        color: var(--danger);
+        font-weight: 800;
+    }
+    .st-field label .opt {
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: var(--gray-300);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .st-input,
+    .st-select,
+    .st-textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 12px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.86rem;
+        color: var(--gray-800);
+        outline: none;
+        transition: var(--transition);
+        line-height: 1.5;
+    }
+    .st-textarea {
+        resize: vertical;
+        min-height: 110px;
+    }
+    .st-input::placeholder,
+    .st-textarea::placeholder { color: var(--gray-300); }
+
+    .st-input:focus,
+    .st-select:focus,
+    .st-textarea:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+
+    .st-input[readonly] {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        cursor: not-allowed;
+    }
+
+    /* Input with prefix (e.g. @, https://) */
+    .st-input-wrap {
+        display: flex;
+        align-items: stretch;
+        border-radius: 12px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--white);
+        transition: var(--transition);
+        overflow: hidden;
+    }
+    .st-input-wrap:focus-within {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+    .st-input-wrap .prefix {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-right: 1.5px solid var(--gray-200);
+        white-space: nowrap;
+    }
+    .st-input-wrap input {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 15px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.86rem;
+        color: var(--gray-800);
+        outline: none;
+    }
+    .st-input-wrap input::placeholder { color: var(--gray-300); }
+
+    .st-field-help {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-top: 6px;
+        line-height: 1.55;
+    }
+
+    /* ---------- Avatar uploader ---------- */
+    .st-avatar-row {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        flex-wrap: wrap;
+        padding: 20px 22px;
+        border-radius: var(--radius);
+        background: var(--cream);
+        border: 1px solid var(--gray-100);
+    }
+
+    .st-avatar-preview {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.75rem;
+        color: var(--primary-dark);
+        box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+    }
+    .st-avatar-preview .camera {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--primary-dark);
+        color: var(--secondary);
+        display: grid;
+        place-items: center;
+        font-size: 0.75rem;
+        border: 2.5px solid var(--white);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .st-avatar-preview .camera:hover {
+        background: var(--primary-light);
+        transform: scale(1.08);
+    }
+
+    .st-avatar-info { flex: 1; min-width: 0; }
+    .st-avatar-info h4 {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+    .st-avatar-info p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+    .st-avatar-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------- Toggles ---------- */
+    .st-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--gray-100);
+        cursor: pointer;
+        user-select: none;
+    }
+    .st-toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .st-toggle-row:first-of-type { padding-top: 0; }
+    .st-toggle-row:hover .st-toggle-label h5 { color: var(--primary-dark); }
+
+    .st-toggle-row input { position: absolute; opacity: 0; pointer-events: none; }
+
+    .st-toggle {
+        position: relative;
+        width: 42px;
+        height: 24px;
+        border-radius: 50px;
+        background: var(--gray-200);
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .st-toggle::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--white);
+        box-shadow: 0 2px 6px rgba(11, 17, 33, 0.2);
+        transition: var(--transition);
+    }
+    .st-toggle-row input:checked + .st-toggle {
+        background: var(--secondary);
+    }
+    .st-toggle-row input:checked + .st-toggle::after {
+        transform: translateX(18px);
+        background: var(--primary-dark);
+    }
+    .st-toggle-row input:focus-visible + .st-toggle {
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.28);
+    }
+
+    .st-toggle-label { flex: 1; min-width: 0; }
+    .st-toggle-label h5 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        line-height: 1.3;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .st-toggle-label h5 i { color: var(--gray-300); font-size: 0.8rem; }
+    .st-toggle-label p {
+        font-size: 0.73rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-top: 3px;
+    }
+
+    /* ---------- Skill chips ---------- */
+    .st-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .st-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .st-chip:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.08);
+    }
+    .st-chip.on {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .st-chip.on .x {
+        color: var(--secondary);
+        opacity: 0.75;
+    }
+    .st-chip .x {
+        font-size: 0.7rem;
+        opacity: 0.5;
+        transition: var(--transition);
+    }
+    .st-chip:hover .x { opacity: 1; }
+
+    .st-chip.add {
+        border-style: dashed;
+        color: var(--gray-600);
+    }
+    .st-chip.add:hover {
+        border-color: var(--secondary-deep);
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.14);
+    }
+
+    /* Add field row */
+    .st-add-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    .st-add-row input {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 14px;
+        border-radius: 50px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        color: var(--gray-800);
+        outline: none;
+        transition: var(--transition);
+    }
+    .st-add-row input::placeholder { color: var(--gray-300); }
+    .st-add-row input:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
+    }
+    .st-add-row button {
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: none;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .st-add-row button:hover {
+        background: var(--secondary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.46);
+    }
+
+    /* ---------- Radio / pill selector ---------- */
+    .st-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .st-pill {
+        padding: 9px 16px;
+        border-radius: 50px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .st-pill:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+    }
+    .st-pill.on {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: var(--secondary);
+    }
+    .st-pill.on i { color: var(--secondary); }
+    .st-pill i { font-size: 0.85rem; color: var(--gray-300); transition: var(--transition); }
+
+    /* ---------- Theme preview ---------- */
+    .st-theme-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    .st-theme {
+        position: relative;
+        padding: 14px;
+        border-radius: var(--radius);
+        border: 2px solid var(--gray-200);
+        background: var(--white);
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: left;
+        font-family: inherit;
+    }
+    .st-theme:hover { border-color: var(--secondary); transform: translateY(-3px); }
+    .st-theme.on {
+        border-color: var(--secondary-deep);
+        box-shadow: 0 8px 24px rgba(190, 242, 100, 0.24);
+    }
+    .st-theme.on::after {
+        content: '\F26E';
+        font-family: 'bootstrap-icons';
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        font-size: 0.9rem;
+        color: var(--secondary-deep);
+    }
+    .st-theme .preview {
+        height: 54px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid var(--gray-100);
+        overflow: hidden;
+        display: flex;
+    }
+    .st-theme .preview .side {
+        width: 32%;
+        background: linear-gradient(180deg, #020617, #1E293B);
+    }
+    .st-theme .preview .main {
+        flex: 1;
+        background: #F8FAFC;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .st-theme .preview .main::before {
+        content: '';
+        display: block;
+        height: 6px;
+        width: 60%;
+        border-radius: 3px;
+        background: #BEF264;
+    }
+    .st-theme .preview .main::after {
+        content: '';
+        display: block;
+        height: 4px;
+        width: 80%;
+        border-radius: 3px;
+        background: #CBD5E1;
+    }
+    .st-theme.light .preview .side { background: linear-gradient(180deg, #E2E8F0, #CBD5E1); }
+    .st-theme.light .preview .main { background: #FFFFFF; }
+    .st-theme.dark .preview .side { background: linear-gradient(180deg, #020617, #020617); }
+    .st-theme.dark .preview .main { background: #0B1121; }
+    .st-theme.dark .preview .main::before { background: #BEF264; }
+    .st-theme.dark .preview .main::after { background: #1E293B; }
+
+    .st-theme .name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+    }
+    .st-theme .desc {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        margin-top: 2px;
+    }
+
+    /* ---------- Session / device rows ---------- */
+    .st-device {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: var(--cream);
+        border: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .st-device + .st-device { margin-top: 10px; }
+    .st-device:hover { border-color: rgba(190, 242, 100, 0.36); }
+    .st-device .ic {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1.05rem;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        flex-shrink: 0;
+    }
+    .st-device .ic.sky { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .st-device .body { flex: 1; min-width: 0; }
+    .st-device .body h5 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        line-height: 1.3;
+    }
+    .st-device .body h5 .current {
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .st-device .body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+    .st-device .body p strong { color: var(--gray-800); font-weight: 600; }
+    .st-device .actions { flex-shrink: 0; }
+
+    /* ---------- Connected accounts ---------- */
+    .st-account {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: var(--white);
+        border: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .st-account + .st-account { margin-top: 10px; }
+    .st-account .brand {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .st-account .brand.google { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .st-account .brand.github { background: rgba(11, 17, 33, 0.08); color: var(--primary-dark); }
+    .st-account .brand.apple { background: rgba(11, 17, 33, 0.08); color: var(--primary-dark); }
+    .st-account .body { flex: 1; min-width: 0; }
+    .st-account .body h5 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+    }
+    .st-account .body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .st-account .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 50px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .st-account .status.on { background: rgba(190, 242, 100, 0.24); color: #4D7C0F; }
+    .st-account .status.off { background: var(--gray-100); color: var(--gray-600); }
+
+    /* ---------- 2FA card ---------- */
+    .st-2fa {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 20px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.12), rgba(56, 189, 248, 0.08));
+        border: 1px solid rgba(190, 242, 100, 0.32);
+    }
+    .st-2fa .ic {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 1.2rem;
+        background: var(--white);
+        color: #4D7C0F;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(190, 242, 100, 0.24);
+    }
+    .st-2fa .body { flex: 1; min-width: 0; }
+    .st-2fa .body h5 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+        line-height: 1.3;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .st-2fa .body h5 .status {
+        padding: 2px 9px;
+        border-radius: 50px;
+        background: rgba(34, 197, 94, 0.16);
+        color: #15803D;
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .st-2fa .body p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+    }
+    .st-2fa .body p strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Action footer ---------- */
+    .st-panel-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 18px 30px 22px;
+        border-top: 1px solid var(--gray-100);
+        background: linear-gradient(0deg, rgba(248, 250, 252, 0.5), transparent);
+        flex-wrap: wrap;
+    }
+    .st-panel-foot .left {
+        margin-right: auto;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .st-panel-foot .left i { color: var(--secondary-deep); font-size: 0.85rem; }
+
+    /* ---------- Danger zone ---------- */
+    .st-danger {
+        padding: 20px 22px;
+        border-radius: var(--radius);
+        border: 1.5px solid rgba(239, 68, 68, 0.24);
+        background: rgba(239, 68, 68, 0.04);
+    }
+    .st-danger h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #B91C1C;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .st-danger h4 i { font-size: 1rem; }
+    .st-danger p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.65;
+        margin-bottom: 14px;
+        max-width: 560px;
+    }
+    .st-danger-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-danger-line {
+        background: transparent;
+        color: #B91C1C;
+        border: 1.5px solid rgba(239, 68, 68, 0.32);
+        padding: 10px 18px;
+        border-radius: 50px;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .btn-danger-line:hover {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: var(--danger);
+        transform: translateY(-2px);
+    }
+    .btn-danger-solid {
+        background: var(--danger);
+        color: var(--white);
+        border: none;
+        padding: 10px 18px;
+        border-radius: 50px;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.28);
+    }
+    .btn-danger-solid:hover {
+        background: #DC2626;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(239, 68, 68, 0.42);
+    }
+
+    /* ---------- Unsaved indicator ---------- */
+    .st-unsaved {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #B45309;
+        padding: 3px 10px;
+        border-radius: 50px;
+        background: rgba(245, 158, 11, 0.14);
+    }
+    .st-unsaved i { font-size: 0.6rem; animation: stPulse 1.4s infinite; }
+    @keyframes stPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    /* ---------- Trust note ---------- */
+    .st-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+        margin-top: 6px;
+    }
+    .st-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .st-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .st-layout { grid-template-columns: 220px 1fr; }
+        .st-grid.three { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+        .st-layout { grid-template-columns: 1fr; }
+        .st-nav {
+            position: static;
+            flex-direction: row;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 10px;
+        }
+        .st-nav::-webkit-scrollbar { display: none; }
+        .st-nav-label { display: none; }
+        .st-nav-item {
+            width: auto;
+            flex-shrink: 0;
+            padding: 9px 14px;
+        }
+        .st-nav-item.active::before { display: none; }
+        .st-nav-item .tag { display: none; }
+        .st-grid { grid-template-columns: 1fr; }
+        .st-grid.three { grid-template-columns: 1fr; }
+        .st-theme-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+        .st-panel-head { padding: 22px 20px 18px; }
+        .st-panel-body { padding: 22px 20px 26px; }
+        .st-panel-foot { padding: 16px 20px 20px; }
+        .st-panel-head h2 { font-size: 1.15rem; }
+        .st-avatar-row { padding: 16px; gap: 16px; }
+        .st-avatar-preview { width: 72px; height: 72px; font-size: 1.4rem; }
+        .st-2fa { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .st-2fa .btn { width: 100%; }
+        .st-head-actions { width: 100%; }
+        .st-head-actions .btn { flex: 1; }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="st-head fade-up">
+    <div>
+        <span class="badge-soft"><i class="bi bi-gear-fill"></i> Account settings</span>
+        <h1>Your <span>Settings</span></h1>
+        <p>Manage your profile, skills, notifications, security and privacy — everything under your control, always.</p>
+    </div>
+
+    <div class="st-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening your export options…">
+            <i class="bi bi-download"></i> Export data
+        </button>
+        <button class="btn btn-secondary" data-toast="Opening help centre…">
+            <i class="bi bi-question-circle"></i> Need help?
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="st-layout">
+
+    <!-- ============================================
+         SIDE NAV
+         ============================================ -->
+    <nav class="st-nav fade-up" aria-label="Settings sections">
+        <p class="st-nav-label">Account</p>
+        <button class="st-nav-item active" data-tab="profile" aria-selected="true">
+            <i class="bi bi-person-fill"></i> Profile
+        </button>
+        <button class="st-nav-item" data-tab="skills" aria-selected="false">
+            <i class="bi bi-mortarboard-fill"></i> Skills &amp; learning
+        </button>
+        <button class="st-nav-item" data-tab="notifications" aria-selected="false">
+            <i class="bi bi-bell-fill"></i> Notifications
+        </button>
+
+        <p class="st-nav-label">Privacy &amp; safety</p>
+        <button class="st-nav-item" data-tab="security" aria-selected="false">
+            <i class="bi bi-shield-lock-fill"></i> Security
+            <span class="tag">2FA</span>
+        </button>
+        <button class="st-nav-item" data-tab="privacy" aria-selected="false">
+            <i class="bi bi-eye-fill"></i> Privacy
+        </button>
+
+        <p class="st-nav-label">Preferences</p>
+        <button class="st-nav-item" data-tab="appearance" aria-selected="false">
+            <i class="bi bi-palette-fill"></i> Appearance
+        </button>
+        <button class="st-nav-item" data-tab="billing" aria-selected="false">
+            <i class="bi bi-wallet2"></i> Billing &amp; credits
+        </button>
+
+        <p class="st-nav-label">Danger zone</p>
+        <button class="st-nav-item" data-tab="danger" aria-selected="false">
+            <i class="bi bi-exclamation-octagon-fill"></i> Danger zone
+        </button>
+    </nav>
+
+
+    <!-- ============================================
+         CONTENT
+         ============================================ -->
+    <div class="st-content fade-up">
+
+        <!-- ============================================================
+             PANEL: PROFILE
+             ============================================================ -->
+        <div class="st-panel active" id="stPanelProfile" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-person-badge-fill"></i> Profile information</h2>
+                <p>This is what other members see. Keep it clear and honest — a strong profile gets more match requests.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <!-- Avatar -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-image-fill"></i> Profile photo</h3>
+                        <span class="hint">PNG, JPG · max 2 MB</span>
+                    </div>
+
+                    <div class="st-avatar-row">
+                        <div class="st-avatar-preview">
+                            AO
+                            <span class="camera" data-toast="Opening photo picker…" title="Change photo">
+                                <i class="bi bi-camera-fill"></i>
+                            </span>
+                        </div>
+
+                        <div class="st-avatar-info">
+                            <h4>Your avatar</h4>
+                            <p>A clear photo of yourself builds trust far faster than an initial. If you prefer privacy, keep the initials.</p>
+                            <div class="st-avatar-actions">
+                                <button class="btn btn-secondary btn-sm" data-toast="Opening photo upload…">
+                                    <i class="bi bi-upload"></i> Upload photo
+                                </button>
+                                <button class="btn btn-line btn-sm" data-toast="Avatar removed">
+                                    <i class="bi bi-trash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Basic info -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-person-vcard"></i> Basic information</h3>
+                    </div>
+
+                    <div class="st-grid">
+                        <div class="st-field">
+                            <label for="stFirst">First name <span class="req">*</span></label>
+                            <input type="text" id="stFirst" class="st-input" value="Amara" placeholder="Your first name">
+                        </div>
+                        <div class="st-field">
+                            <label for="stLast">Last name <span class="req">*</span></label>
+                            <input type="text" id="stLast" class="st-input" value="Okoye" placeholder="Your last name">
+                        </div>
+                        <div class="st-field">
+                            <label for="stUsername">Username <span class="req">*</span></label>
+                            <div class="st-input-wrap">
+                                <span class="prefix">@</span>
+                                <input type="text" id="stUsername" value="amara.okoye" placeholder="username">
+                            </div>
+                            <div class="st-field-help">knotwork.io/@amara.okoye · Must be unique</div>
+                        </div>
+                        <div class="st-field">
+                            <label for="stEmail">Email address <span class="req">*</span></label>
+                            <input type="email" id="stEmail" class="st-input" value="amara.okoye@knotwork.io" placeholder="you@example.com">
+                            <div class="st-field-help">
+                                <i class="bi bi-patch-check-fill" style="color:var(--secondary-deep);font-size:0.72rem;"></i>
+                                Verified · Used for sign-in and notifications
+                            </div>
+                        </div>
+                        <div class="st-field full">
+                            <label for="stBio">Short bio <span class="opt">Optional</span></label>
+                            <textarea id="stBio" class="st-textarea" placeholder="Tell the community what you're working on…">Frontend learner building a React portfolio. Learning three tracks in parallel — always up for a design swap.</textarea>
+                            <div class="st-field-help">Up to 280 characters · <strong style="color:var(--primary-dark);">138</strong> used</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location & language -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-geo-alt-fill"></i> Location &amp; language</h3>
+                    </div>
+
+                    <div class="st-grid three">
+                        <div class="st-field">
+                            <label for="stCountry">Country</label>
+                            <select id="stCountry" class="st-select">
+                                <option>Nigeria</option>
+                                <option>Ghana</option>
+                                <option>Kenya</option>
+                                <option>South Africa</option>
+                                <option>United Kingdom</option>
+                                <option>United States</option>
+                            </select>
+                        </div>
+                        <div class="st-field">
+                            <label for="stCity">City</label>
+                            <input type="text" id="stCity" class="st-input" value="Lagos" placeholder="Your city">
+                        </div>
+                        <div class="st-field">
+                            <label for="stTimezone">Time zone</label>
+                            <select id="stTimezone" class="st-select">
+                                <option>GMT +01:00 · Lagos</option>
+                                <option>GMT +00:00 · London</option>
+                                <option>GMT −05:00 · New York</option>
+                                <option>GMT +05:30 · Mumbai</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social links -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-link-45deg"></i> Social links</h3>
+                        <span class="hint">Optional</span>
+                    </div>
+
+                    <div class="st-grid">
+                        <div class="st-field">
+                            <label for="stWebsite">Website</label>
+                            <div class="st-input-wrap">
+                                <span class="prefix">https://</span>
+                                <input type="text" id="stWebsite" value="amara.design" placeholder="yourwebsite.com">
+                            </div>
+                        </div>
+                        <div class="st-field">
+                            <label for="stTwitter">X / Twitter</label>
+                            <div class="st-input-wrap">
+                                <span class="prefix">@</span>
+                                <input type="text" id="stTwitter" value="amaraokoye" placeholder="handle">
+                            </div>
+                        </div>
+                        <div class="st-field">
+                            <label for="stGithub">GitHub</label>
+                            <div class="st-input-wrap">
+                                <span class="prefix">github.com/</span>
+                                <input type="text" id="stGithub" value="amaraokoye" placeholder="username">
+                            </div>
+                        </div>
+                        <div class="st-field">
+                            <label for="stLinkedin">LinkedIn</label>
+                            <div class="st-input-wrap">
+                                <span class="prefix">linkedin.com/in/</span>
+                                <input type="text" id="stLinkedin" value="amaraokoye" placeholder="username">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-info-circle"></i> Last saved 3 days ago</div>
+                <button class="btn btn-line btn-sm" data-toast="Changes discarded">Discard</button>
+                <button class="btn btn-secondary btn-sm" data-toast="Profile updated!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Save changes
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: SKILLS & LEARNING
+             ============================================================ -->
+        <div class="st-panel" id="stPanelSkills" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-mortarboard-fill"></i> Skills &amp; learning</h2>
+                <p>The skills you list here drive your matches. The more precise your tags, the better your swap quality.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <!-- Skills you teach -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-arrow-up-right"></i> Skills you teach</h3>
+                        <span class="hint">3 selected · add up to 10</span>
+                    </div>
+
+                    <div class="st-chips">
+                        <button class="st-chip on">React <i class="bi bi-x-lg x"></i></button>
+                        <button class="st-chip on">JavaScript <i class="bi bi-x-lg x"></i></button>
+                        <button class="st-chip on">UI Design <i class="bi bi-x-lg x"></i></button>
+                        <button class="st-chip">TypeScript</button>
+                        <button class="st-chip">Next.js</button>
+                        <button class="st-chip">CSS</button>
+                        <button class="st-chip">Tailwind</button>
+                        <button class="st-chip">Accessibility</button>
+                        <button class="st-chip">Animation</button>
+                        <button class="st-chip">Public Speaking</button>
+                    </div>
+
+                    <div class="st-add-row">
+                        <input type="text" placeholder="Add another teach skill…">
+                        <button data-toast="Skill added">Add</button>
+                    </div>
+                </div>
+
+                <!-- Skills you want to learn -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-arrow-down-left"></i> Skills you want to learn</h3>
+                        <span class="hint">2 selected · add up to 10</span>
+                    </div>
+
+                    <div class="st-chips">
+                        <button class="st-chip on">Figma <i class="bi bi-x-lg x"></i></button>
+                        <button class="st-chip on">Design Systems <i class="bi bi-x-lg x"></i></button>
+                        <button class="st-chip">Python</button>
+                        <button class="st-chip">SQL</button>
+                        <button class="st-chip">Data Analysis</button>
+                        <button class="st-chip">Motion Design</button>
+                        <button class="st-chip">Backend / Django</button>
+                        <button class="st-chip">Product Management</button>
+                        <button class="st-chip">Public Speaking</button>
+                    </div>
+
+                    <div class="st-add-row">
+                        <input type="text" placeholder="Add another skill you want to learn…">
+                        <button data-toast="Skill added">Add</button>
+                    </div>
+                </div>
+
+                <!-- Availability -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-calendar-week-fill"></i> Availability</h3>
+                        <span class="hint">When can people book you?</span>
+                    </div>
+
+                    <div class="st-pills">
+                        <button class="st-pill"><i class="bi bi-sunrise"></i> Weekday mornings</button>
+                        <button class="st-pill on"><i class="bi bi-sun"></i> Weekday evenings</button>
+                        <button class="st-pill on"><i class="bi bi-sunset"></i> Weekend mornings</button>
+                        <button class="st-pill"><i class="bi bi-moon"></i> Weekend evenings</button>
+                        <button class="st-pill on"><i class="bi bi-infinity"></i> Flexible</button>
+                    </div>
+                </div>
+
+                <!-- Learning preferences -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-sliders"></i> Learning preferences</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-people-fill"></i> Open to group sessions</h5>
+                            <p>Allow other learners to join your booked sessions (up to 4 people).</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-person-video3"></i> Accept mentorship requests</h5>
+                            <p>Let members apply to become your mentee on the frontend track.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-cash-coin"></i> Accept paid requests</h5>
+                            <p>Enable credit-based requests in addition to skill exchanges.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-broadcast"></i> Show in match deck</h5>
+                            <p>Appear in other members' match queues based on your skills.</p>
+                        </span>
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-lightning-charge-fill"></i> Changes take effect immediately</div>
+                <button class="btn btn-line btn-sm" data-toast="Changes discarded">Discard</button>
+                <button class="btn btn-secondary btn-sm" data-toast="Skills updated!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Save changes
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: NOTIFICATIONS
+             ============================================================ -->
+        <div class="st-panel" id="stPanelNotifications" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-bell-fill"></i> Notification preferences</h2>
+                <p>Control what lands in your inbox and your in-app bell. You can always change these later.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <!-- Channels -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-broadcast"></i> Channels</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-app-indicator"></i> In-app notifications</h5>
+                            <p>Show notifications inside the Knotwork bell menu.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-envelope-fill"></i> Email notifications</h5>
+                            <p>Send important updates to amara.okoye@knotwork.io.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-phone-fill"></i> Push notifications</h5>
+                            <p>Get notified on your device — sessions, messages, matches.</p>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Requests & matches -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-arrow-left-right"></i> Requests &amp; matches</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>New connection requests</h5>
+                            <p>When someone wants to add you to their network.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>New skill exchange requests</h5>
+                            <p>When someone wants to swap skills with you.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Mentorship requests</h5>
+                            <p>When a learner applies to be your mentee.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Weekly match digest</h5>
+                            <p>A summary of your best matches every Monday.</p>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Sessions -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-camera-video-fill"></i> Sessions</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Session reminders</h5>
+                            <p>Notify me 15 minutes and 5 minutes before each session.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Reschedule &amp; cancellation alerts</h5>
+                            <p>When a mentor or student changes a booked session.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Post-session review prompt</h5>
+                            <p>Remind me to leave a rating after each completed session.</p>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Community & learning -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-people-fill"></i> Community &amp; learning</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Replies to my community posts</h5>
+                            <p>When someone answers or mentions you.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>New courses in my tracks</h5>
+                            <p>When a course is added to Frontend or Design Systems.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Streak reminders</h5>
+                            <p>Nudge me if I haven't logged learning by 20:00.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Product updates &amp; tips</h5>
+                            <p>Occasional emails about new features on Knotwork.</p>
+                        </span>
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-envelope-check"></i> Preference centre synced</div>
+                <button class="btn btn-line btn-sm" data-toast="Notifications paused for 24 hours">
+                    <i class="bi bi-pause-circle"></i> Pause 24h
+                </button>
+                <button class="btn btn-secondary btn-sm" data-toast="Notification preferences saved!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Save
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: SECURITY
+             ============================================================ -->
+        <div class="st-panel" id="stPanelSecurity" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-shield-lock-fill"></i> Security</h2>
+                <p>Protect your account with strong authentication and monitor the devices that access it.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <!-- Password -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-key-fill"></i> Password</h3>
+                        <span class="hint">Last changed 42 days ago</span>
+                    </div>
+
+                    <div class="st-grid">
+                        <div class="st-field full">
+                            <label for="stCurrentPwd">Current password <span class="req">*</span></label>
+                            <input type="password" id="stCurrentPwd" class="st-input" placeholder="••••••••">
+                        </div>
+                        <div class="st-field">
+                            <label for="stNewPwd">New password <span class="req">*</span></label>
+                            <input type="password" id="stNewPwd" class="st-input" placeholder="At least 10 characters">
+                        </div>
+                        <div class="st-field">
+                            <label for="stConfirmPwd">Confirm new password <span class="req">*</span></label>
+                            <input type="password" id="stConfirmPwd" class="st-input" placeholder="Repeat the new password">
+                        </div>
+                        <div class="st-field full">
+                            <div class="st-field-help">
+                                Use at least <strong style="color:var(--primary-dark);">10 characters</strong>, including one number and one symbol.
+                                Never reuse a password from another site.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2FA -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-phone-vibrate-fill"></i> Two-factor authentication</h3>
+                    </div>
+
+                    <div class="st-2fa">
+                        <div class="ic"><i class="bi bi-shield-check"></i></div>
+                        <div class="body">
+                            <h5>Authenticator app <span class="status">Enabled</span></h5>
+                            <p>2FA is active on this account. You'll be asked for a 6-digit code when signing in from a new device.</p>
+                        </div>
+                        <button class="btn btn-line btn-sm" data-toast="Opening 2FA management…">
+                            Manage
+                        </button>
+                    </div>
+
+                    <label class="st-toggle-row" style="margin-top:4px;">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-bell"></i> Alert me about new sign-ins</h5>
+                            <p>Get an email whenever your account is accessed from a new device.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5><i class="bi bi-lock"></i> Require re-authentication for sensitive actions</h5>
+                            <p>Ask for your password before changing email, password or payment methods.</p>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Active sessions -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-laptop"></i> Active sessions</h3>
+                        <button class="btn-ghost btn-sm" data-toast="All other sessions signed out">
+                            <i class="bi bi-box-arrow-right"></i> Sign out others
+                        </button>
+                    </div>
+
+                    <div class="st-device">
+                        <div class="ic"><i class="bi bi-laptop-fill"></i></div>
+                        <div class="body">
+                            <h5>Chrome on macOS <span class="current">This device</span></h5>
+                            <p>Lagos, Nigeria · <strong>Active now</strong> · IP 102.89.•••.•••</p>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-ghost btn-sm" disabled style="opacity:0.5;cursor:not-allowed;">Current</button>
+                        </div>
+                    </div>
+
+                    <div class="st-device">
+                        <div class="ic sky"><i class="bi bi-phone-fill"></i></div>
+                        <div class="body">
+                            <h5>Knotwork iOS App</h5>
+                            <p>iPhone 15 · <strong>Active 2 hours ago</strong> · Lagos, Nigeria</p>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-ghost btn-sm" data-toast="Signed out from iPhone 15">Sign out</button>
+                        </div>
+                    </div>
+
+                    <div class="st-device">
+                        <div class="ic sky"><i class="bi bi-tablet-fill"></i></div>
+                        <div class="body">
+                            <h5>Safari on iPad</h5>
+                            <p>iPad Air · <strong>Active 4 days ago</strong> · Abuja, Nigeria</p>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-ghost btn-sm" data-toast="Signed out from iPad">Sign out</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connected accounts -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-link-45deg"></i> Connected accounts</h3>
+                        <span class="hint">Used for quick sign-in</span>
+                    </div>
+
+                    <div class="st-account">
+                        <div class="brand google"><i class="bi bi-google"></i></div>
+                        <div class="body">
+                            <h5>Google</h5>
+                            <p>amara.okoye@gmail.com</p>
+                        </div>
+                        <span class="status on">Connected</span>
+                        <button class="btn-ghost btn-sm" data-toast="Disconnecting Google…">Disconnect</button>
+                    </div>
+
+                    <div class="st-account">
+                        <div class="brand github"><i class="bi bi-github"></i></div>
+                        <div class="body">
+                            <h5>GitHub</h5>
+                            <p>@amaraokoye</p>
+                        </div>
+                        <span class="status on">Connected</span>
+                        <button class="btn-ghost btn-sm" data-toast="Disconnecting GitHub…">Disconnect</button>
+                    </div>
+
+                    <div class="st-account">
+                        <div class="brand apple"><i class="bi bi-apple"></i></div>
+                        <div class="body">
+                            <h5>Apple ID</h5>
+                            <p>Not connected</p>
+                        </div>
+                        <span class="status off">Not linked</span>
+                        <button class="btn-ghost btn-sm" data-toast="Opening Apple sign-in…">Connect</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-shield-check"></i> Protected by 2FA</div>
+                <button class="btn btn-secondary btn-sm" data-toast="Password updated!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Update password
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: PRIVACY
+             ============================================================ -->
+        <div class="st-panel" id="stPanelPrivacy" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-eye-fill"></i> Privacy</h2>
+                <p>Decide what the community can see and how your data is used. You stay in full control.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-person-bounding-box"></i> Profile visibility</h3>
+                    </div>
+
+                    <div class="st-pills">
+                        <button class="st-pill on"><i class="bi bi-globe2"></i> Public</button>
+                        <button class="st-pill"><i class="bi bi-people-fill"></i> Connections only</button>
+                        <button class="st-pill"><i class="bi bi-eye-slash-fill"></i> Private</button>
+                    </div>
+                    <div class="st-field-help">Public profiles appear in browse and community. Private profiles only accept requests.</div>
+                </div>
+
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-sliders"></i> What others can see</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Show my email on profile</h5>
+                            <p>Only visible to members you've connected with.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Show my location</h5>
+                            <p>Displays your country and city on your profile card.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Show my learning stats</h5>
+                            <p>Streak, XP, and track progress visible to other members.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Show my achievements</h5>
+                            <p>Display badges on your public profile.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Allow search engines to index my profile</h5>
+                            <p>Recommended off if you prefer privacy.</p>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-database-fill"></i> Data &amp; activity</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Use my activity to improve matches</h5>
+                            <p>Helps us recommend better swaps based on your behaviour.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Personalised content in community feed</h5>
+                            <p>Sorts posts by your interests. Turn off for chronological.</p>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="st-trust">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>
+                        <strong>Your data belongs to you.</strong> You can export everything we hold on you at any time
+                        from the top right of this page. We never sell your personal data.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-download"></i> Last export: 12 Feb 2026</div>
+                <button class="btn btn-line btn-sm" data-toast="Preparing your data export…">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Request export
+                </button>
+                <button class="btn btn-secondary btn-sm" data-toast="Privacy settings saved!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Save
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: APPEARANCE
+             ============================================================ -->
+        <div class="st-panel" id="stPanelAppearance" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-palette-fill"></i> Appearance</h2>
+                <p>Make Knotwork feel like home — pick your theme, language and accessibility options.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <!-- Theme -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-brightness-high-fill"></i> Theme</h3>
+                        <span class="hint">Applies across the whole app</span>
+                    </div>
+
+                    <div class="st-theme-grid">
+                        <button class="st-theme on" data-theme="system">
+                            <div class="preview">
+                                <div class="side"></div>
+                                <div class="main"></div>
+                            </div>
+                            <div class="name">System</div>
+                            <div class="desc">Follows your OS setting</div>
+                        </button>
+
+                        <button class="st-theme light" data-theme="light">
+                            <div class="preview">
+                                <div class="side"></div>
+                                <div class="main"></div>
+                            </div>
+                            <div class="name">Light</div>
+                            <div class="desc">Always bright &amp; clean</div>
+                        </button>
+
+                        <button class="st-theme dark" data-theme="dark">
+                            <div class="preview">
+                                <div class="side"></div>
+                                <div class="main"></div>
+                            </div>
+                            <div class="name">Dark</div>
+                            <div class="desc">Easier on the eyes</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Language -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-translate"></i> Language &amp; region</h3>
+                    </div>
+
+                    <div class="st-grid">
+                        <div class="st-field">
+                            <label for="stLanguage">Display language</label>
+                            <select id="stLanguage" class="st-select">
+                                <option>English (UK)</option>
+                                <option>English (US)</option>
+                                <option>Français</option>
+                                <option>Español</option>
+                                <option>Yorùbá</option>
+                            </select>
+                        </div>
+                        <div class="st-field">
+                            <label for="stDateFormat">Date format</label>
+                            <select id="stDateFormat" class="st-select">
+                                <option>DD / MM / YYYY</option>
+                                <option>MM / DD / YYYY</option>
+                                <option>YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accessibility -->
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-universal-access-circle"></i> Accessibility</h3>
+                    </div>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Reduce motion</h5>
+                            <p>Disable hover lifts, animated rings, and transition effects.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox" checked>
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>High-contrast text</h5>
+                            <p>Boost contrast on smaller text for readability.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Larger font size</h5>
+                            <p>Increases base font size by 15% across the app.</p>
+                        </span>
+                    </label>
+
+                    <label class="st-toggle-row">
+                        <input type="checkbox">
+                        <span class="st-toggle"></span>
+                        <span class="st-toggle-label">
+                            <h5>Always show focus outlines</h5>
+                            <p>Visible focus ring on every interactive element — for keyboard users.</p>
+                        </span>
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-check2-circle"></i> Preferences apply instantly</div>
+                <button class="btn btn-secondary btn-sm" data-toast="Appearance saved!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Save preferences
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: BILLING (shortcut)
+             ============================================================ -->
+        <div class="st-panel" id="stPanelBilling" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-wallet2"></i> Billing &amp; credits</h2>
+                <p>Quick access to your wallet and payment methods. Full controls live in the Credits &amp; Billing page.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-wallet-fill"></i> Current balance</h3>
+                        <span class="hint">Updated 5 minutes ago</span>
+                    </div>
+
+                    <div class="st-grid three">
+                        <div class="st-field">
+                            <label>Available</label>
+                            <input type="text" class="st-input" value="640 credits" readonly>
+                        </div>
+                        <div class="st-field">
+                            <label>Pending</label>
+                            <input type="text" class="st-input" value="80 credits" readonly>
+                        </div>
+                        <div class="st-field">
+                            <label>Default payment method</label>
+                            <input type="text" class="st-input" value="Visa •••• 4242" readonly>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                        <button class="btn btn-secondary btn-sm" data-toast="Opening top-up flow…">
+                            <i class="bi bi-plus-lg"></i> Add credits
+                        </button>
+                        <button class="btn btn-line btn-sm" data-toast="Opening billing page…">
+                            <i class="bi bi-arrow-right"></i> Go to Credits &amp; Billing
+                        </button>
+                    </div>
+                </div>
+
+                <div class="st-section">
+                    <div class="st-section-title">
+                        <h3><i class="bi bi-receipt-cutoff"></i> Invoicing</h3>
+                    </div>
+
+                    <div class="st-grid">
+                        <div class="st-field">
+                            <label for="stVat">VAT number <span class="opt">Optional</span></label>
+                            <input type="text" id="stVat" class="st-input" value="NG-3849102" placeholder="VAT number">
+                        </div>
+                        <div class="st-field">
+                            <label for="stCompany">Company name <span class="opt">Optional</span></label>
+                            <input type="text" id="stCompany" class="st-input" placeholder="For business invoices">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="st-panel-foot">
+                <div class="left"><i class="bi bi-shield-check"></i> Billing managed by Stripe</div>
+                <button class="btn btn-secondary btn-sm" data-toast="Billing details saved!" data-toast-type="success">
+                    <i class="bi bi-check-lg"></i> Save billing details
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ============================================================
+             PANEL: DANGER ZONE
+             ============================================================ -->
+        <div class="st-panel" id="stPanelDanger" role="tabpanel">
+
+            <div class="st-panel-head">
+                <h2><i class="bi bi-exclamation-octagon-fill" style="color:var(--danger);"></i> Danger zone</h2>
+                <p>These actions are irreversible. Take a moment before continuing — once done, they cannot be undone.</p>
+            </div>
+
+            <div class="st-panel-body">
+
+                <div class="st-danger">
+                    <h4><i class="bi bi-pause-circle-fill"></i> Deactivate account</h4>
+                    <p>Temporarily hide your profile and pause all activity. Your credits, connections and progress are kept. You can reactivate any time by signing in again.</p>
+                    <div class="st-danger-actions">
+                        <button class="btn-danger-line" data-toast="Opening deactivation flow…">
+                            <i class="bi bi-pause-circle"></i> Deactivate account
+                        </button>
+                    </div>
+                </div>
+
+                <div class="st-danger" style="border-color:rgba(239,68,68,0.42);background:rgba(239,68,68,0.06);">
+                    <h4><i class="bi bi-exclamation-triangle-fill"></i> Delete account permanently</h4>
+                    <p>All your data — profile, credits, transactions, sessions, connections, achievements and community posts — will be permanently removed. This action cannot be reversed.</p>
+                    <div class="st-danger-actions">
+                        <button class="btn-danger-line" data-toast="Opening data export…">
+                            <i class="bi bi-download"></i> Export data first
+                        </button>
+                        <button class="btn-danger-solid" data-toast="Opening final confirmation…">
+                            <i class="bi bi-trash3"></i> Delete my account
+                        </button>
+                    </div>
+                </div>
+
+                <div class="st-trust">
+                    <i class="bi bi-shield-check"></i>
+                    <span>
+                        <strong>Need to talk first?</strong> If something is wrong, our team can help before you take this step.
+                        <a href="#" data-toast="Opening support chat…" style="color:var(--accent);font-weight:700;">Contact support</a>.
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           TABS (side nav → panels)
+           ====================================================== */
+        var navItems = Array.prototype.slice.call(document.querySelectorAll('.st-nav-item'));
+        var panels = Array.prototype.slice.call(document.querySelectorAll('.st-panel'));
+
+        function activate(name) {
+            navItems.forEach(function (n) {
+                var on = n.dataset.tab === name;
+                n.classList.toggle('active', on);
+                n.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            panels.forEach(function (p) {
+                var key = 'stPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+                p.classList.toggle('active', p.id === key);
+            });
+
+            /* Scroll content top on tab change (mobile friendly) */
+            var card = document.querySelector('.st-content');
+            if (card && window.innerWidth <= 900) {
+                var top = card.getBoundingClientRect().top + window.pageYOffset - 90;
+                window.scrollTo({ top: top, behavior: 'smooth' });
+            }
+        }
+
+        navItems.forEach(function (n) {
+            n.addEventListener('click', function () { activate(this.dataset.tab); });
+        });
+
+        /* ======================================================
+           SKILL CHIPS — toggle on/off
+           ====================================================== */
+        document.querySelectorAll('.st-chip').forEach(function (chip) {
+            if (chip.classList.contains('add')) return;
+            chip.addEventListener('click', function () {
+                /* Chips with an X icon toggle; chips without get "selected" */
+                if (this.querySelector('.x')) {
+                    this.classList.toggle('on');
+                } else {
+                    this.classList.toggle('on');
+                }
+            });
+        });
+
+        /* ======================================================
+           ST-PILL selectors (single choice within a group)
+           ====================================================== */
+        document.querySelectorAll('.st-pills').forEach(function (group) {
+            /* Only treat as a single-select if the group has no explicit "multi" */
+            var singleSelect = group.dataset.multi !== 'true';
+            group.querySelectorAll('.st-pill').forEach(function (pill) {
+                pill.addEventListener('click', function () {
+                    if (singleSelect) {
+                        group.querySelectorAll('.st-pill').forEach(function (p) {
+                            p.classList.remove('on');
+                        });
+                        this.classList.add('on');
+                    } else {
+                        this.classList.toggle('on');
+                    }
+                });
+            });
+        });
+
+        /* ======================================================
+           THEME picker
+           ====================================================== */
+        document.querySelectorAll('.st-theme').forEach(function (theme) {
+            theme.addEventListener('click', function () {
+                document.querySelectorAll('.st-theme').forEach(function (t) {
+                    t.classList.remove('on');
+                });
+                this.classList.add('on');
+                var name = this.dataset.theme;
+                if (window.__toast) {
+                    window.__toast('Theme set to ' + name, 'success');
+                }
+            });
+        });
+
+        /* ======================================================
+           ADD SKILL rows
+           ====================================================== */
+        document.querySelectorAll('.st-add-row').forEach(function (row) {
+            var input = row.querySelector('input');
+            var btn = row.querySelector('button');
+            if (!btn || !input) return;
+
+            function addSkill() {
+                var value = input.value.trim();
+                if (!value) {
+                    if (window.__toast) window.__toast('Type a skill first', 'error');
+                    return;
+                }
+                var chip = document.createElement('button');
+                chip.className = 'st-chip on';
+                chip.innerHTML = value + ' <i class="bi bi-x-lg x"></i>';
+                chip.addEventListener('click', function () {
+                    this.classList.toggle('on');
+                });
+                /* Insert before the last chip in the container */
+                var container = row.previousElementSibling;
+                if (container && container.classList.contains('st-chips')) {
+                    container.insertBefore(chip, container.lastElementChild);
+                }
+                input.value = '';
+                if (window.__toast) window.__toast('Added "' + value + '"', 'success');
+            }
+
+            btn.addEventListener('click', addSkill);
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSkill();
+                }
+            });
+        });
+
+        /* ======================================================
+           Mark unsaved changes (visual hint)
+           ====================================================== */
+        document.querySelectorAll('.st-input, .st-textarea, .st-select').forEach(function (el) {
+            el.addEventListener('input', function () {
+                /* Only for editable fields */
+                if (this.hasAttribute('readonly')) return;
+                var panel = this.closest('.st-panel');
+                if (!panel) return;
+                var foot = panel.querySelector('.st-panel-foot .left');
+                if (!foot) return;
+                if (foot.querySelector('.st-unsaved')) return;
+                foot.innerHTML =
+                    '<span class="st-unsaved"><i class="bi bi-circle-fill"></i> Unsaved changes</span>';
+            });
+        });
+
+        /* ======================================================
+           Toast shorthand — hook into the shared window.__toast
+           ====================================================== */
+        document.querySelectorAll('[data-toast]').forEach(function (el) {
+            if (el.tagName === 'BUTTON' || el.classList.contains('camera')) return;
+        });
+
+    })();
+</script>
+
+{% endblock content %}

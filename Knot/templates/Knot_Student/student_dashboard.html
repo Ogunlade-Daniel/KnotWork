@@ -1,0 +1,480 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+
+    <!-- ==================== WELCOME ==================== -->
+    <section class="welcome fade-up">
+        <div class="welcome-text">
+            <span class="hero-badge"><i class="bi bi-fire"></i> 12-DAY LEARNING STREAK</span>
+            <h1 id="greetingText">Good evening, <span>Amara</span></h1>
+            <p>You're 68% through your Frontend track. Two more sessions this week keeps your streak alive and unlocks the <strong>Momentum</strong> badge.</p>
+            <div class="welcome-actions">
+                <button class="btn btn-secondary" data-toast="Resuming your last lesson…">
+                    Continue learning <i class="bi bi-arrow-right"></i>
+                </button>
+                <button class="btn btn-outline" data-toast="Opening match finder…">
+                    Find a match
+                </button>
+            </div>
+        </div>
+
+        <div class="ring-wrap">
+            <svg viewBox="0 0 120 120">
+                <defs>
+                    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#A3FF00"/>
+                        <stop offset="100%" stop-color="#38BDF8"/>
+                    </linearGradient>
+                </defs>
+                <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+                <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="ring-label">
+                <strong>68%</strong>
+                <span>Track complete</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== STATS ==================== -->
+    <section class="stats-grid">
+        <div class="stat-card fade-up">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="bi bi-mortarboard"></i></div>
+                <span class="stat-trend">+3 this month</span>
+            </div>
+            <div class="value" data-count="14">0</div>
+            <div class="label">Skills learned</div>
+        </div>
+
+        <div class="stat-card fade-up">
+            <div class="stat-top">
+                <div class="stat-icon accent"><i class="bi bi-camera-video"></i></div>
+                <span class="stat-trend">+6 this week</span>
+            </div>
+            <div class="value" data-count="32">0</div>
+            <div class="label">Exchange sessions</div>
+        </div>
+
+        <div class="stat-card fade-up">
+            <div class="stat-top">
+                <div class="stat-icon violet"><i class="bi bi-clock-history"></i></div>
+                <span class="stat-trend">+8.5h</span>
+            </div>
+            <div class="value"><span data-count="48">0</span><span>h</span></div>
+            <div class="label">Learning hours</div>
+        </div>
+
+        <div class="stat-card fade-up">
+            <div class="stat-top">
+                <div class="stat-icon amber"><i class="bi bi-bar-chart-line"></i></div>
+                <span class="stat-trend down">−2</span>
+            </div>
+            <div class="value">#12</div>
+            <div class="label">Cohort ranking · Top 5%</div>
+        </div>
+    </section>
+
+    <!-- ==================== TABS PANEL ==================== -->
+    <section class="card tabs-card fade-up">
+        <div class="tabs-head">
+            <h3><i class="bi bi-arrow-left-right"></i> Your network</h3>
+            <a href="#" class="link" style="font-size:0.78rem;font-weight:600;color:var(--gray-600);display:inline-flex;align-items:center;gap:6px;">
+                Explore all <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="matches" role="tab">
+                Skill Matches <span class="count">3</span>
+            </button>
+            <button class="tab" data-tab="requests" role="tab">
+                Requests <span class="count">2</span>
+            </button>
+            <button class="tab" data-tab="connections" role="tab">
+                My Connections <span class="count">7</span>
+            </button>
+        </div>
+
+        <div class="tab-panels">
+
+            <!-- TAB: Skill Matches -->
+            <div class="tab-panel active" id="tab-matches">
+                <div class="match-list">
+                    <div class="match-item">
+                        <div class="mi-avatar">SK</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Sara Kim</h4>
+                                <span class="mi-score">92% match</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Teaches UI Design</span>
+                                <span class="tag learn-sky"><i class="bi bi-arrow-down-left"></i> Wants React</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Request sent to Sara Kim!" data-toast-type="success">Connect</button>
+                    </div>
+
+                    <div class="match-item">
+                        <div class="mi-avatar alt">DO</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Daniel Okafor</h4>
+                                <span class="mi-score">87% match</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Teaches Public Speaking</span>
+                                <span class="tag learn-sky"><i class="bi bi-arrow-down-left"></i> Wants Figma</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Request sent to Daniel Okafor!" data-toast-type="success">Connect</button>
+                    </div>
+
+                    <div class="match-item">
+                        <div class="mi-avatar viol">MR</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Maya Rahman</h4>
+                                <span class="mi-score">81% match</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Teaches Data Analysis</span>
+                                <span class="tag learn-sky"><i class="bi bi-arrow-down-left"></i> Wants JavaScript</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Request sent to Maya Rahman!" data-toast-type="success">Connect</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Requests -->
+            <div class="tab-panel" id="tab-requests">
+                <div class="match-list">
+                    <div class="match-item">
+                        <div class="mi-avatar alt">TK</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Tunde K.</h4>
+                                <span class="mi-score">New</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag learn-sky"><i class="bi bi-clock"></i> Wants to swap Figma for React</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Request from Tunde accepted!" data-toast-type="success">Accept</button>
+                    </div>
+
+                    <div class="match-item">
+                        <div class="mi-avatar">LB</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Lena Brava</h4>
+                                <span class="mi-score">New</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag learn-sky"><i class="bi bi-clock"></i> Mentorship request · Product Design</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Request from Lena accepted!" data-toast-type="success">Accept</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Connections -->
+            <div class="tab-panel" id="tab-connections">
+                <div class="match-list">
+                    <div class="match-item">
+                        <div class="mi-avatar">JT</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Jonas Tan</h4>
+                                <span class="mi-score">Active</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Backend Engineering</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Opening chat with Jonas…">Message</button>
+                    </div>
+
+                    <div class="match-item">
+                        <div class="mi-avatar viol">AN</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Amara Nwosu</h4>
+                                <span class="mi-score">Active</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Data Science</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Opening chat with Amara…">Message</button>
+                    </div>
+
+                    <div class="match-item">
+                        <div class="mi-avatar alt">CN</div>
+                        <div class="mi-body">
+                            <div class="mi-top">
+                                <h4>Chidi N.</h4>
+                                <span class="mi-score">Active</span>
+                            </div>
+                            <div class="mi-tags">
+                                <span class="tag teach"><i class="bi bi-arrow-up-right"></i> API Design</span>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" data-toast="Opening chat with Chidi…">Message</button>
+                    </div>
+                </div>
+            </div>
+
+            {% comment %} <div class="mt-5">
+                <p><marquee behaviour="scroll" direction="right">Connect with people for more educational experience.</marquee></p>
+            </div> {% endcomment %}
+        </div>
+    </section>
+
+    <!-- ==================== MAIN GRID ==================== -->
+    <section class="grid-2">
+
+        <!-- LEFT COLUMN -->
+        <div class="col-stack">
+
+            <!-- CONTINUE LEARNING -->
+            <div class="card fade-up">
+                <div class="card-head">
+                    <h3><i class="bi bi-book-open"></i> Continue learning</h3>
+                    <a href="#" class="link">View all <i class="bi bi-arrow-right"></i></a>
+                </div>
+
+                <div class="course">
+                    <div class="course-icon"><i class="bi bi-filetype-jsx"></i></div>
+                    <div class="course-body">
+                        <div class="top">
+                            <h4>Advanced React Patterns</h4>
+                            <span class="pct">82%</span>
+                        </div>
+                        <p class="meta">with Daniel O. · 3 modules left</p>
+                        <div class="bar"><span data-value="82"></span></div>
+                    </div>
+                    <button class="btn-ghost" data-toast="Resuming Advanced React Patterns…">Resume</button>
+                </div>
+
+                <div class="course">
+                    <div class="course-icon accent"><i class="bi bi-pen"></i></div>
+                    <div class="course-body">
+                        <div class="top">
+                            <h4>UI/UX Design Systems</h4>
+                            <span class="pct">54%</span>
+                        </div>
+                        <p class="meta">with Fatima B. · 6 modules left</p>
+                        <div class="bar accent"><span data-value="54"></span></div>
+                    </div>
+                    <button class="btn-ghost" data-toast="Resuming UI/UX Design Systems…">Resume</button>
+                </div>
+
+                <div class="course">
+                    <div class="course-icon violet"><i class="bi bi-database"></i></div>
+                    <div class="course-body">
+                        <div class="top">
+                            <h4>Backend Fundamentals</h4>
+                            <span class="pct">27%</span>
+                        </div>
+                        <p class="meta">with Chidi N. · just started</p>
+                        <div class="bar violet"><span data-value="27"></span></div>
+                    </div>
+                    <button class="btn-ghost" data-toast="Resuming Backend Fundamentals…">Resume</button>
+                </div>
+            </div>
+
+            <!-- WEEKLY ACTIVITY -->
+            <div class="card fade-up">
+                <div class="card-head">
+                    <h3><i class="bi bi-bar-chart-line"></i> Weekly activity</h3>
+                    <span class="link" style="cursor:default;">This week · 8h 20m</span>
+                </div>
+
+                <div class="chart">
+                    <div class="col hi">
+                        <div class="track"><div class="bar-v" data-h="45" data-val="1.2h"></div></div>
+                        <span class="day">Mon</span>
+                    </div>
+                    <div class="col hi">
+                        <div class="track"><div class="bar-v" data-h="70" data-val="2.0h"></div></div>
+                        <span class="day">Tue</span>
+                    </div>
+                    <div class="col">
+                        <div class="track"><div class="bar-v" data-h="30" data-val="0.8h"></div></div>
+                        <span class="day">Wed</span>
+                    </div>
+                    <div class="col hi">
+                        <div class="track"><div class="bar-v" data-h="85" data-val="2.4h"></div></div>
+                        <span class="day">Thu</span>
+                    </div>
+                    <div class="col">
+                        <div class="track"><div class="bar-v" data-h="20" data-val="0.5h"></div></div>
+                        <span class="day">Fri</span>
+                    </div>
+                    <div class="col hi">
+                        <div class="track"><div class="bar-v" data-h="55" data-val="1.5h"></div></div>
+                        <span class="day">Sat</span>
+                    </div>
+                    <div class="col today">
+                        <div class="track"><div class="bar-v" data-h="12" data-val="0.3h"></div></div>
+                        <span class="day">Sun</span>
+                    </div>
+                </div>
+
+                <div class="chart-legend">
+                    <div class="item"><span class="swatch"></span> Goal met (≥1h)</div>
+                    <div class="item"><span class="swatch blue"></span> Today</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="col-stack">
+
+            <!-- STUDENT MENTOR -->
+            <div class="card fade-up">
+                <div class="card-head">
+                    <h3><i class="bi bi-person-video3"></i> Your mentor</h3>
+                    <a href="#" class="link">View profile <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="mentor-card">
+                    <span class="avatar lg">{{ mentor.initials|default:'TF' }}</span>
+                    <div class="mentor-info">
+                        <div class="mentor-name">{{ mentor.name|default:'Tolu Fashina' }}</div>
+                        <div class="mentor-role">{{ mentor.role|default:'Senior Fullstack Mentor' }}</div>
+                    </div>
+                    <button class="btn-ghost" data-toast="Opening your mentor chat…">
+                        <i class="bi bi-chat-left-text"></i> Message
+                    </button>
+                </div>
+            </div>
+
+            <!-- UPCOMING SESSIONS -->
+            <div class="card fade-up">
+                <div class="card-head">
+                    <h3><i class="bi bi-calendar-event"></i> Upcoming sessions</h3>
+                    <a href="#" class="link">Calendar <i class="bi bi-arrow-right"></i></a>
+                </div>
+
+                <div class="session live">
+                    <div class="session-time">
+                        <strong>18:30</strong>
+                        <span>Today</span>
+                    </div>
+                    <div class="session-info">
+                        <h5>React Hooks Deep Dive</h5>
+                        <p>with <strong>Daniel O.</strong> · 45 min</p>
+                    </div>
+                    <button class="btn-join" data-toast="Joining React Hooks Deep Dive…">Join</button>
+                </div>
+
+                <div class="session">
+                    <div class="session-time">
+                        <strong>10:00</strong>
+                        <span>Tomorrow</span>
+                    </div>
+                    <div class="session-info">
+                        <h5>Design Critique Circle</h5>
+                        <p>with <strong>Fatima B.</strong> · 60 min</p>
+                    </div>
+                    <button class="btn-join muted" data-session="design-critique">Details</button>
+                </div>
+
+                <div class="session">
+                    <div class="session-time">
+                        <strong>15:15</strong>
+                        <span>Thu</span>
+                    </div>
+                    <div class="session-info">
+                        <h5>API Design Workshop</h5>
+                        <p>with <strong>Chidi N.</strong> · 90 min</p>
+                    </div>
+                    <button class="btn-join muted" data-session="api-design">Details</button>
+                </div>
+            </div>
+
+            <!-- TOP MATCH -->
+            <div class="card fade-up">
+                <div class="card-head">
+                    <h3><i class="bi bi-arrow-left-right"></i> Your top match</h3>
+                    <a href="#" class="link">See all</a>
+                </div>
+
+                <div class="match-box">
+                    <div class="match-row">
+                        <div class="match-person">
+                            <span class="avatar lg" style="margin:0 auto;">AO</span>
+                            <div class="name">You</div>
+                            <span class="tag teach">Teaches React</span>
+                        </div>
+
+                        <div class="match-score">
+                            <span class="num">94%</span>
+                            <span class="lbl">Match</span>
+                        </div>
+
+                        <div class="match-person">
+                            <span class="avatar lg" style="margin:0 auto; background: linear-gradient(135deg, var(--accent), var(--secondary));">TK</span>
+                            <div class="name">Tunde K.</div>
+                            <span class="tag learn">Teaches Figma</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" data-toast="Exchange request sent to Tunde K.!" data-toast-type="success">
+                        Send exchange request
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==================== ACHIEVEMENTS ==================== -->
+    <section class="card fade-up">
+        <div class="card-head">
+            <h3><i class="bi bi-trophy"></i> Recent achievements</h3>
+            <a href="#" class="link">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="badges">
+            <div class="badge-item">
+                <div class="medal"><i class="bi bi-lightning-charge-fill"></i></div>
+                <h5>Momentum</h5>
+                <p>10-day streak</p>
+            </div>
+            <div class="badge-item">
+                <div class="medal"><i class="bi bi-handshake"></i></div>
+                <h5>First Exchange</h5>
+                <p>Completed a swap</p>
+            </div>
+            <div class="badge-item">
+                <div class="medal"><i class="bi bi-star-fill"></i></div>
+                <h5>Top Mentor</h5>
+                <p>5★ rating x3</p>
+            </div>
+            <div class="badge-item locked">
+                <div class="medal"><i class="bi bi-lock-fill"></i></div>
+                <h5>Polyglot</h5>
+                <p>Learn 5 skills</p>
+            </div>
+            <div class="badge-item locked">
+                <div class="medal"><i class="bi bi-lock-fill"></i></div>
+                <h5>Night Owl</h5>
+                <p>20 late sessions</p>
+            </div>
+        </div>
+    </section>
+
+{% endblock content %}

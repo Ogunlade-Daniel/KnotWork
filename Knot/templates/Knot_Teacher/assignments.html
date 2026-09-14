@@ -1,0 +1,2466 @@
+{% extends 'Knot_Teacher/teacher_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Assignments{% endblock %}
+{% block page_title %}Assignments{% endblock %}
+{% block breadcrumb %}Assignments{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ASSIGNMENTS — curriculum authoring & lifecycle management
+   Tabs: Active · Graded · Drafts · Compose
+   ============================================================ */
+
+.assignments{
+    --gold:        var(--secondary, #BEF264);
+    --gold-light:  var(--secondary-light, #D9F99D);
+    --gold-deep:   var(--secondary-deep, #7ED321);
+    --gold-soft:   rgba(190, 242, 100, 0.12);
+    --gold-line:   rgba(190, 242, 100, 0.32);
+
+    --sky:         var(--accent, #38BDF8);
+    --sky-soft:    rgba(56, 189, 248, 0.12);
+    --violet:      #8B5CF6;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --rose:        #F43F5E;
+    --rose-soft:   rgba(244, 63, 94, 0.10);
+    --amber:       #F59E0B;
+    --amber-soft:  rgba(245, 158, 11, 0.12);
+    --mint:        #10B981;
+    --mint-soft:   rgba(16, 185, 129, 0.12);
+
+    --ink:         var(--primary-dark, #020617);
+    --ink-2:       var(--primary, #0B1121);
+    --ink-3:       var(--primary-light, #1E293B);
+
+    --paper:       var(--white, #FFFFFF);
+    --paper-2:     var(--cream, #F8FAFC);
+    --line:        var(--gray-200, #E2E8F0);
+    --line-soft:   var(--gray-100, #F1F5F9);
+    --muted:       var(--gray-600, #475569);
+    --faint:       var(--gray-300, #CBD5E1);
+
+    --r:           var(--radius, 16px);
+    --r-xl:        var(--radius-xl, 24px);
+    --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ---------- entrance ---------- */
+.assignments .a-rise{
+    opacity: 0;
+    transform: translateY(16px);
+    animation: aRise .7s var(--ease) forwards;
+}
+.assignments .a-rise:nth-child(1){ animation-delay: .02s; }
+.assignments .a-rise:nth-child(2){ animation-delay: .08s; }
+.assignments .a-rise:nth-child(3){ animation-delay: .14s; }
+.assignments .a-rise:nth-child(4){ animation-delay: .20s; }
+.assignments .a-rise:nth-child(5){ animation-delay: .26s; }
+@keyframes aRise{ to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   1 · MASTHEAD
+   ============================================================ */
+.a-mast{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 4px 2px 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+.a-mast::after{
+    content: '';
+    position: absolute;
+    left: 2px; right: 2px; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%,
+        var(--gold-light) 22%,
+        transparent 52%);
+    border-radius: 2px;
+}
+.a-mast-left .am-kicker{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin-bottom: 10px;
+}
+.a-mast-left .am-kicker i{ color: var(--gold); font-size: 0.72rem; }
+
+.a-mast-left h1{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.a-mast-left h1 em{
+    font-style: italic;
+    background: linear-gradient(120deg, var(--gold-deep), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.a-mast-left .am-sub{
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.a-mast-left .am-sub .sep{
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--faint);
+}
+.a-mast-left .am-sub strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.a-mast-left .am-sub .attn{ color: #B91C1C; }
+
+.a-mast-right{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---------- buttons ---------- */
+.assignments .btn-gold{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 22px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink); font-family: inherit;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+    box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+}
+.assignments .btn-gold:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(190, 242, 100, 0.44);
+}
+.assignments .btn-ghost{
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px; border-radius: 50px;
+    background: var(--paper); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em;
+    cursor: pointer; transition: var(--transition, all .25s ease);
+}
+.assignments .btn-ghost:hover{
+    border-color: var(--gold); color: var(--gold-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.06);
+}
+
+/* ============================================================
+   2 · TRIAGE STRIP
+   ============================================================ */
+.triage{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 1180px){ .triage{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .triage{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tri-tile{
+    position: relative;
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .25s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tri-tile::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 3px 3px 0 0;
+}
+.tri-tile.rose::before{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+.tri-tile.amber::before{ background: linear-gradient(90deg, #FCD34D, var(--amber)); }
+.tri-tile.sky::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.tri-tile.violet::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+.tri-tile.mint::before{ background: linear-gradient(90deg, #6EE7B7, var(--mint)); }
+
+.tri-tile:hover{
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.10));
+    border-color: var(--gold-line);
+}
+
+.tt-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tt-icon{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.tri-tile.rose .tt-icon{ background: var(--rose-soft); color: var(--rose); }
+.tri-tile.amber .tt-icon{ background: var(--amber-soft); color: #B45309; }
+.tri-tile.sky .tt-icon{ background: var(--sky-soft); color: #0284C7; }
+.tri-tile.violet .tt-icon{ background: var(--violet-soft); color: var(--violet); }
+.tri-tile.mint .tt-icon{ background: var(--mint-soft); color: var(--mint); }
+
+.tt-micro{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.tt-val{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.tt-val em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 2px;
+}
+.tt-val.rose{ color: var(--rose); }
+.tt-label{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   3 · TAB STRIP
+   ============================================================ */
+.a-tabs{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 50px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    align-self: flex-start;
+    max-width: 100%;
+}
+.a-tabs::-webkit-scrollbar{ display: none; }
+
+.a-tab{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.a-tab i{
+    font-size: 0.9rem;
+    color: var(--faint);
+    transition: var(--transition, all .25s ease);
+}
+.a-tab:hover{
+    color: var(--ink);
+    background: var(--paper-2);
+}
+.a-tab:hover i{ color: var(--gold-deep); }
+
+.a-tab.active{
+    background: linear-gradient(135deg, var(--ink), var(--ink-3));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.16);
+}
+.a-tab.active i{ color: var(--gold-light); }
+
+.a-tab .tab-count{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 50px;
+    background: var(--line-soft);
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    transition: var(--transition, all .25s ease);
+}
+.a-tab.active .tab-count{
+    background: var(--gold);
+    color: var(--ink);
+}
+.a-tab .tab-dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-deep);
+    box-shadow: 0 0 0 3px rgba(126, 211, 33, 0.18);
+    animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse{
+    0%, 100%{ opacity: 1; transform: scale(1); }
+    50%     { opacity: 0.5; transform: scale(0.7); }
+}
+
+.a-tab.compose{
+    margin-left: 4px;
+    padding-left: 20px;
+    position: relative;
+}
+.a-tab.compose::before{
+    content: '';
+    position: absolute;
+    left: 2px; top: 50%;
+    transform: translateY(-50%);
+    width: 1px; height: 20px;
+    background: var(--line);
+}
+.a-tab.compose i{ color: var(--gold-deep); }
+.a-tab.compose.active{
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    box-shadow: 0 8px 22px rgba(190, 242, 100, 0.36);
+}
+.a-tab.compose.active i{ color: var(--ink); }
+
+/* ============================================================
+   4 · TOOLBAR
+   ============================================================ */
+.a-toolbar{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+}
+.tb-search{
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+}
+.tb-search i{
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-size: 0.82rem;
+    pointer-events: none;
+}
+.tb-search input{
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border-radius: 50px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--ink);
+    outline: none;
+    transition: var(--transition, all .25s ease);
+}
+.tb-search input::placeholder{ color: var(--faint); }
+.tb-search input:focus{
+    border-color: var(--gold);
+    background: var(--paper);
+    box-shadow: 0 0 0 4px var(--gold-soft);
+}
+
+.tb-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.tb-chip i{
+    font-size: 0.78rem;
+    color: var(--faint);
+    transition: var(--transition, all .25s ease);
+}
+.tb-chip:hover{
+    border-color: var(--gold-line);
+    color: var(--ink);
+    background: var(--paper);
+}
+.tb-chip:hover i{ color: var(--gold-deep); }
+.tb-chip.active{
+    background: var(--gold-soft);
+    border-color: var(--gold-line);
+    color: var(--gold-deep);
+}
+.tb-chip.active i{ color: var(--gold-deep); }
+
+.tb-divider{
+    width: 1px; height: 22px;
+    background: var(--line);
+    margin: 0 2px;
+}
+
+/* ============================================================
+   5 · TAB PANELS
+   ============================================================ */
+.tab-panel{
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: panelFade .45s var(--ease);
+}
+.tab-panel.active{ display: flex; }
+@keyframes panelFade{
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   6 · ASSIGNMENT CARDS
+   ============================================================ */
+.assign-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.asgn{
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    transition: var(--transition, all .3s ease);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+.asgn::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .5s var(--ease);
+    z-index: 3;
+}
+.asgn:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+    border-color: var(--gold-line);
+}
+.asgn:hover::before{ transform: scaleX(1); }
+
+.asgn.type-quiz::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.asgn.type-project::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+.asgn.type-discussion::before{ background: linear-gradient(90deg, #6EE7B7, var(--mint)); }
+.asgn.type-essay::before{ background: linear-gradient(90deg, var(--gold), var(--gold-deep)); }
+
+/* head */
+.asgn-head{
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.asgn-type{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.asgn-type i{ font-size: 0.68rem; }
+
+.asgn.type-quiz .asgn-type{ background: var(--sky-soft); color: #0284C7; }
+.asgn.type-project .asgn-type{ background: var(--violet-soft); color: var(--violet); }
+.asgn.type-discussion .asgn-type{ background: var(--mint-soft); color: var(--mint); }
+
+.asgn-status{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--mint-soft);
+    color: var(--mint);
+    flex-shrink: 0;
+}
+.asgn-status .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.asgn-status.closing{
+    background: var(--amber-soft);
+    color: #B45309;
+}
+.asgn-status.closed{
+    background: var(--line-soft);
+    color: var(--muted);
+}
+.asgn-status.draft{
+    background: var(--violet-soft);
+    color: var(--violet);
+}
+
+/* body */
+.asgn-body{
+    padding: 0 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.asgn-title{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.24;
+    letter-spacing: -0.008em;
+}
+
+.asgn-course{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+}
+.asgn-course i{ color: var(--faint); font-size: 0.72rem; }
+.asgn-course strong{ color: var(--ink-3); font-weight: 700; }
+
+.asgn-desc{
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.55;
+    min-height: 34px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* meta strip — due date + points + rubric */
+.asgn-meta{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+}
+.asgn-metric .k{
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 4px;
+}
+.asgn-metric .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+.asgn-metric .v em{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+.asgn-metric .v.warn{ color: #B45309; }
+.asgn-metric .v.rose{ color: var(--rose); }
+.asgn-metric .v.mint{ color: var(--mint); }
+
+/* submission progress block */
+.asgn-progress{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.ap-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+.ap-head .k{
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.ap-head .v{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.ap-head .v.urgent{ color: var(--rose); }
+.ap-bar{
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+.ap-bar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+    transition: width 1.1s var(--ease);
+}
+.asgn.type-quiz .ap-bar > span{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.asgn.type-project .ap-bar > span{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+.asgn.type-discussion .ap-bar > span{ background: linear-gradient(90deg, #6EE7B7, var(--mint)); }
+
+/* footer */
+.asgn-foot{
+    padding: 12px 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.asgn-avatars{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.asgn-av-stack{
+    display: flex;
+}
+.asgn-av-stack span{
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    border: 2px solid var(--paper);
+    margin-left: -9px;
+}
+.asgn-av-stack span:first-child{ margin-left: 0; }
+.asgn-av-stack span.v2{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; }
+.asgn-av-stack span.v3{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; }
+.asgn-av-stack span.more{
+    background: var(--line-soft);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 0.52rem;
+}
+.asgn-av-note{
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+.asgn-av-note strong{ color: var(--ink); font-weight: 700; }
+
+.asgn-cta{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: none;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition, all .25s ease);
+    box-shadow: 0 6px 16px rgba(190, 242, 100, 0.30);
+}
+.asgn-cta:hover{
+    transform: translateY(-2px);
+    background: var(--gold-light);
+    box-shadow: 0 10px 22px rgba(190, 242, 100, 0.44);
+}
+.asgn-cta.muted{
+    background: var(--paper);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    box-shadow: none;
+}
+.asgn-cta.muted:hover{
+    border-color: var(--gold-line);
+    color: var(--ink);
+    background: var(--gold-soft);
+    box-shadow: none;
+}
+.asgn-cta.rose{
+    background: linear-gradient(135deg, #FB7185, var(--rose));
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.30);
+}
+.asgn-cta.rose:hover{
+    box-shadow: 0 10px 22px rgba(244, 63, 94, 0.42);
+}
+.asgn-cta i{ font-size: 0.78rem; }
+
+/* ============================================================
+   7 · DRAFT CARD (checklist variant)
+   ============================================================ */
+.asgn.is-draft{
+    border-style: dashed;
+    border-color: var(--line);
+}
+.asgn.is-draft:hover{
+    border-style: solid;
+    border-color: var(--violet);
+}
+.asgn.is-draft::before{
+    background: linear-gradient(90deg, #A78BFA, var(--violet));
+}
+
+.draft-checklist{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--paper-2);
+    border: 1px dashed var(--line);
+    margin-top: 2px;
+}
+.dc-item{
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 1.35;
+}
+.dc-item .dc-check{
+    width: 16px; height: 16px;
+    border-radius: 5px;
+    border: 1.8px solid var(--line);
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--paper);
+}
+.dc-item .dc-check i{
+    font-size: 0.55rem;
+    color: transparent;
+}
+.dc-item.done{ color: var(--ink); }
+.dc-item.done .dc-check{
+    background: var(--gold);
+    border-color: var(--gold);
+}
+.dc-item.done .dc-check i{ color: var(--ink); }
+
+/* ============================================================
+   8 · GRADED CARD (analytics variant)
+   ============================================================ */
+.asgn.is-graded{
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper) 100%);
+}
+.asgn.is-graded::before{
+    transform: scaleX(1);
+    background: linear-gradient(90deg, var(--line), var(--line));
+}
+.asgn.is-graded:hover::before{
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+
+.distribution{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dist-row{
+    display: grid;
+    grid-template-columns: 26px 1fr 38px;
+    gap: 10px;
+    align-items: center;
+}
+.dist-row .letter{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+}
+.dist-row .bar{
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+.dist-row .bar > span{
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+    transition: width 1.1s var(--ease);
+}
+.dist-row.a .bar > span{ background: linear-gradient(90deg, var(--mint), #059669); }
+.dist-row.b .bar > span{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.dist-row.c .bar > span{ background: linear-gradient(90deg, var(--gold), var(--gold-deep)); }
+.dist-row.d .bar > span{ background: linear-gradient(90deg, #FCD34D, var(--amber)); }
+.dist-row.f .bar > span{ background: linear-gradient(90deg, #FB7185, var(--rose)); }
+.dist-row .pct{
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+/* ============================================================
+   9 · COMPOSE TAB
+   ============================================================ */
+.compose-intro{
+    padding: 26px 28px;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(ellipse at 90% 15%, rgba(190, 242, 100, 0.18), transparent 55%),
+        radial-gradient(ellipse at 10% 100%, rgba(56, 189, 248, 0.14), transparent 55%),
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink-3) 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+}
+.compose-intro::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+        var(--gold) 0%, var(--gold-light) 30%,
+        var(--sky) 65%, var(--violet) 100%);
+}
+.compose-intro::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 26px 26px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+}
+.ci-body{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.ci-text{ flex: 1; min-width: 240px; }
+.ci-text .eyebrow{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 13px;
+    border-radius: 50px;
+    background: rgba(190, 242, 100, 0.14);
+    border: 1px solid rgba(190, 242, 100, 0.42);
+    color: var(--gold-light);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+.ci-text h2{
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.ci-text h2 em{
+    color: var(--gold-light);
+    font-style: italic;
+}
+.ci-text p{
+    font-size: 0.84rem;
+    color: rgba(255,255,255,0.68);
+    line-height: 1.7;
+    max-width: 520px;
+}
+.ci-text p strong{ color: #fff; font-weight: 700; }
+.ci-actions{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* pathway cards */
+.pathway-grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+@media (max-width: 900px){ .pathway-grid{ grid-template-columns: 1fr; } }
+
+.pathway{
+    position: relative;
+    padding: 24px 22px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    cursor: pointer;
+    transition: var(--transition, all .3s ease);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    text-align: left;
+    font-family: inherit;
+}
+.pathway::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .5s var(--ease);
+}
+.pathway:hover{
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md, 0 12px 48px rgba(11,17,33,0.12));
+    border-color: var(--gold-line);
+}
+.pathway:hover::before{ transform: scaleX(1); }
+
+.pathway.sky::before{ background: linear-gradient(90deg, var(--sky), #0284C7); }
+.pathway.violet::before{ background: linear-gradient(90deg, #A78BFA, var(--violet)); }
+.pathway.mint::before{ background: linear-gradient(90deg, #6EE7B7, var(--mint)); }
+
+.pathway-ic{
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 1.15rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+}
+.pathway.sky .pathway-ic{ background: var(--sky-soft); color: #0284C7; }
+.pathway.violet .pathway-ic{ background: var(--violet-soft); color: var(--violet); }
+.pathway.mint .pathway-ic{ background: var(--mint-soft); color: var(--mint); }
+
+.pathway h4{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.22;
+    letter-spacing: -0.006em;
+}
+.pathway p{
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.55;
+    flex: 1;
+}
+.pathway-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+}
+.pathway-foot i{
+    color: var(--gold);
+    font-size: 0.72rem;
+    transition: var(--transition, all .25s ease);
+}
+.pathway:hover .pathway-foot i{
+    transform: translateX(3px);
+    color: var(--gold-deep);
+}
+
+/* tips row */
+.tips-panel{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+@media (max-width: 780px){ .tips-panel{ grid-template-columns: 1fr; } }
+
+.tip-card{
+    padding: 18px 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.tip-card .tip-ic{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.86rem;
+    background: var(--gold-soft);
+    color: var(--gold-deep);
+    flex-shrink: 0;
+}
+.tip-card.sky .tip-ic{ background: var(--sky-soft); color: #0284C7; }
+.tip-card.violet .tip-ic{ background: var(--violet-soft); color: var(--violet); }
+.tip-card h5{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+.tip-card p{
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* recent drafts panel */
+.panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm, 0 4px 20px rgba(11,17,33,0.05));
+    overflow: hidden;
+}
+.panel-head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.panel-head h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.panel-head h3 i{
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 0.78rem;
+    background: var(--violet-soft);
+    color: var(--violet);
+    flex-shrink: 0;
+}
+.panel-link{
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition, all .25s ease);
+    flex-shrink: 0;
+}
+.panel-link:hover{ color: var(--gold-deep); gap: 9px; }
+.panel-body{ padding: 12px 22px 20px; }
+
+.recent-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 4px;
+    border-bottom: 1px dotted var(--line);
+    transition: var(--transition, all .25s ease);
+    cursor: pointer;
+}
+.recent-row:first-child{ padding-top: 4px; }
+.recent-row:last-child{ border-bottom: none; padding-bottom: 0; }
+.recent-row:hover{ transform: translateX(4px); }
+
+.rr-thumb{
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    font-size: 1rem;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: var(--ink);
+    box-shadow: 0 6px 16px rgba(190, 242, 100, 0.28);
+}
+.rr-thumb.sky{ background: linear-gradient(135deg, var(--sky), #0284C7); color: #fff; box-shadow: 0 6px 16px rgba(56, 189, 248, 0.28); }
+.rr-thumb.violet{ background: linear-gradient(135deg, #A78BFA, var(--violet)); color: #fff; box-shadow: 0 6px 16px rgba(139, 92, 246, 0.28); }
+.rr-thumb.mint{ background: linear-gradient(135deg, #6EE7B7, var(--mint)); color: #fff; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.28); }
+
+.rr-body{ flex: 1; min-width: 0; }
+.rr-body h5{
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rr-body p{
+    font-size: 0.66rem;
+    color: var(--muted);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.rr-body p i{ font-size: 0.68rem; color: var(--faint); }
+
+.rr-score{
+    text-align: right;
+    flex-shrink: 0;
+}
+.rr-score strong{
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+.rr-score span{
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    display: block;
+    margin-top: 3px;
+}
+
+/* ============================================================
+   10 · FOOT BAR
+   ============================================================ */
+.a-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 4px 4px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+.a-foot strong{
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.a-foot .foot-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px){
+    .a-mast-left h1{ font-size: 1.5rem; }
+    .a-toolbar{ padding: 12px 14px; gap: 8px; }
+    .tb-search{ min-width: 100%; }
+    .assign-grid{ grid-template-columns: 1fr; }
+    .asgn-meta{ grid-template-columns: repeat(3, 1fr); gap: 6px; }
+}
+</style>
+
+
+<div class="assignments">
+
+    <!-- ====================================================
+         1 · MASTHEAD
+         ==================================================== -->
+    <header class="a-mast a-rise">
+        <div class="a-mast-left">
+            <span class="am-kicker"><i class="bi bi-file-earmark-text"></i> Curriculum · Authoring</span>
+            <h1>Design what they <em>learn next.</em></h1>
+            <p class="am-sub">
+                <strong>7</strong> active
+                <span class="sep"></span>
+                <strong>32</strong> graded
+                <span class="sep"></span>
+                <strong>4</strong> drafts
+                <span class="sep"></span>
+                <span class="attn">2 due this week</span>
+            </p>
+        </div>
+        <div class="a-mast-right">
+            <button class="btn-ghost" data-toast="Opening question bank…">
+                <i class="bi bi-collection"></i> Question bank
+            </button>
+            <button class="btn-ghost" data-toast="Opening rubric library…">
+                <i class="bi bi-list-check"></i> Rubrics
+            </button>
+            <button class="btn-gold" data-toast="Opening assignment composer…">
+                <i class="bi bi-plus-lg"></i> New assignment
+            </button>
+        </div>
+    </header>
+
+
+    <!-- ====================================================
+         2 · TRIAGE STRIP
+         ==================================================== -->
+    <section class="triage">
+        <article class="tri-tile mint a-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-broadcast"></i></span>
+                <span class="tt-micro">Open</span>
+            </div>
+            <div class="tt-val" data-count="7">0</div>
+            <div class="tt-label">Active assignments</div>
+        </article>
+
+        <article class="tri-tile sky a-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-inbox-fill"></i></span>
+                <span class="tt-micro">Submitted</span>
+            </div>
+            <div class="tt-val">48<em>/96</em></div>
+            <div class="tt-label">Across active work</div>
+        </article>
+
+        <article class="tri-tile amber a-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-clock-history"></i></span>
+                <span class="tt-micro">This week</span>
+            </div>
+            <div class="tt-val" data-count="2">0</div>
+            <div class="tt-label">Due dates</div>
+        </article>
+
+        <article class="tri-tile rose a-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-exclamation-circle-fill"></i></span>
+                <span class="tt-micro">Attention</span>
+            </div>
+            <div class="tt-val" data-count="3">0</div>
+            <div class="tt-label">Grading backlog</div>
+        </article>
+
+        <article class="tri-tile violet a-rise">
+            <div class="tt-top">
+                <span class="tt-icon"><i class="bi bi-pencil-square"></i></span>
+                <span class="tt-micro">Unfinished</span>
+            </div>
+            <div class="tt-val" data-count="4">0</div>
+            <div class="tt-label">Drafts in progress</div>
+        </article>
+    </section>
+
+
+    <!-- ====================================================
+         3 · TABS
+         ==================================================== -->
+    <div class="a-tabs" role="tablist" aria-label="Assignment views">
+        <button class="a-tab active" role="tab" aria-selected="true" data-tab="active">
+            <i class="bi bi-broadcast"></i> Active
+            <span class="tab-count">7</span>
+        </button>
+        <button class="a-tab" role="tab" aria-selected="false" data-tab="graded">
+            <i class="bi bi-check2-circle"></i> Graded
+            <span class="tab-count">32</span>
+        </button>
+        <button class="a-tab" role="tab" aria-selected="false" data-tab="drafts">
+            <i class="bi bi-pencil-square"></i> Drafts
+            <span class="tab-count">4</span>
+        </button>
+        <button class="a-tab compose" role="tab" aria-selected="false" data-tab="compose">
+            <i class="bi bi-plus-circle"></i> Compose
+            <span class="tab-dot" aria-hidden="true"></span>
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         4 · TOOLBAR
+         ==================================================== -->
+    <div class="a-toolbar">
+        <div class="tb-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search by title, course or type…" aria-label="Search assignments">
+        </div>
+
+        <button class="tb-chip active" data-toast="Showing all types">
+            <i class="bi bi-grid-fill"></i> All types
+        </button>
+        <button class="tb-chip" data-toast="Filtering quizzes">
+            <i class="bi bi-question-circle"></i> Quizzes
+        </button>
+        <button class="tb-chip" data-toast="Filtering essays">
+            <i class="bi bi-file-text"></i> Essays
+        </button>
+        <button class="tb-chip" data-toast="Filtering projects">
+            <i class="bi bi-code-square"></i> Projects
+        </button>
+
+        <div class="tb-divider" aria-hidden="true"></div>
+
+        <button class="tb-chip" data-toast="Sorting by due date">
+            <i class="bi bi-sort-down"></i> Due soonest
+        </button>
+    </div>
+
+
+    <!-- ====================================================
+         5 · TAB PANEL — ACTIVE
+         ==================================================== -->
+    <section class="tab-panel active" id="panel-active" role="tabpanel">
+
+        <div class="assign-grid">
+
+            <!-- QUIZ · React Hooks Quiz -->
+            <article class="asgn type-quiz" data-toast="Opening React Hooks Quiz…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-question-circle-fill"></i> Quiz</span>
+                    <span class="asgn-status closing"><span class="dot"></span> Closing soon</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">React Hooks Fundamentals</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+                    <p class="asgn-desc">12 auto-graded questions covering useState, useEffect, and custom hook composition patterns.</p>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Due</div>
+                            <div class="v warn">Apr 8<em>· 2d</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Points</div>
+                            <div class="v">50</div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Auto</div>
+                            <div class="v mint">Yes</div>
+                        </div>
+                    </div>
+
+                    <div class="asgn-progress">
+                        <div class="ap-head">
+                            <span class="k">Submissions</span>
+                            <span class="v">32 / 42</span>
+                        </div>
+                        <div class="ap-bar"><span data-value="76"></span></div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <div class="asgn-av-stack">
+                            <span>SK</span>
+                            <span class="v2">TK</span>
+                            <span class="v3">MR</span>
+                            <span class="more">+29</span>
+                        </div>
+                        <span class="asgn-av-note"><strong>10</strong> pending</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening submissions…">
+                        View
+                    </button>
+                </div>
+            </article>
+
+            <!-- ESSAY · Portfolio Review -->
+            <article class="asgn type-essay" data-toast="Opening Portfolio Review…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-file-text-fill"></i> Essay</span>
+                    <span class="asgn-status"><span class="dot"></span> Active</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Portfolio Review — Architecture Reflection</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+                    <p class="asgn-desc">A 2,000-word reflection on the architectural decisions made during the term project.</p>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Due</div>
+                            <div class="v">Apr 15<em>· 9d</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Points</div>
+                            <div class="v">100</div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Rubric</div>
+                            <div class="v">4 <em>crit</em></div>
+                        </div>
+                    </div>
+
+                    <div class="asgn-progress">
+                        <div class="ap-head">
+                            <span class="k">Submissions</span>
+                            <span class="v">18 / 42</span>
+                        </div>
+                        <div class="ap-bar"><span data-value="43"></span></div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <div class="asgn-av-stack">
+                            <span>SK</span>
+                            <span class="v2">TK</span>
+                            <span class="more">+16</span>
+                        </div>
+                        <span class="asgn-av-note"><strong>1</strong> to grade</span>
+                    </div>
+                    <button class="asgn-cta rose" data-toast="Opening grading queue…">
+                        <i class="bi bi-pencil-square"></i> Grade
+                    </button>
+                </div>
+            </article>
+
+            <!-- PROJECT · API Design -->
+            <article class="asgn type-project" data-toast="Opening API Design Project…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-code-square"></i> Project</span>
+                    <span class="asgn-status"><span class="dot"></span> Active</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">API Design Workshop</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Backend Fundamentals</strong>
+                    </span>
+                    <p class="asgn-desc">Design and document a REST API for a small domain — models, endpoints, error contract, and one test suite.</p>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Due</div>
+                            <div class="v">Apr 22<em>· 16d</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Points</div>
+                            <div class="v">150</div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Group</div>
+                            <div class="v">4 <em>max</em></div>
+                        </div>
+                    </div>
+
+                    <div class="asgn-progress">
+                        <div class="ap-head">
+                            <span class="k">Submissions</span>
+                            <span class="v">9 / 28</span>
+                        </div>
+                        <div class="ap-bar"><span data-value="32"></span></div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <div class="asgn-av-stack">
+                            <span class="v2">MR</span>
+                            <span>KA</span>
+                            <span class="more">+7</span>
+                        </div>
+                        <span class="asgn-av-note">Groups forming</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening submissions…">
+                        View
+                    </button>
+                </div>
+            </article>
+
+            <!-- DISCUSSION · Semantic Critique -->
+            <article class="asgn type-discussion" data-toast="Opening Design Critique Circle…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-chat-square-quote-fill"></i> Discussion</span>
+                    <span class="asgn-status"><span class="dot"></span> Active</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Design Critique Circle</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>UI/UX Design Systems</strong>
+                    </span>
+                    <p class="asgn-desc">Read two peers' case studies and write a structured critique — one strength, one question, one suggestion.</p>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Due</div>
+                            <div class="v">Apr 12<em>· 6d</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Points</div>
+                            <div class="v">40</div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Peer</div>
+                            <div class="v mint">Yes</div>
+                        </div>
+                    </div>
+
+                    <div class="asgn-progress">
+                        <div class="ap-head">
+                            <span class="k">Contributions</span>
+                            <span class="v">24 / 36</span>
+                        </div>
+                        <div class="ap-bar"><span data-value="67"></span></div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <div class="asgn-av-stack">
+                            <span>AO</span>
+                            <span class="v3">LP</span>
+                            <span class="more">+22</span>
+                        </div>
+                        <span class="asgn-av-note"><strong>24</strong> posts</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening discussion…">
+                        View
+                    </button>
+                </div>
+            </article>
+
+            <!-- QUIZ · TypeScript Generics Drill -->
+            <article class="asgn type-quiz" data-toast="Opening TypeScript Generics Drill…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-question-circle-fill"></i> Quiz</span>
+                    <span class="asgn-status closing"><span class="dot"></span> Closing soon</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">TypeScript Generics Drill</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>TypeScript for React</strong>
+                    </span>
+                    <p class="asgn-desc">8 exercises testing generic constraints, discriminated unions, and inference in component APIs.</p>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Due</div>
+                            <div class="v warn">Apr 10<em>· 4d</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Points</div>
+                            <div class="v">40</div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Auto</div>
+                            <div class="v mint">Yes</div>
+                        </div>
+                    </div>
+
+                    <div class="asgn-progress">
+                        <div class="ap-head">
+                            <span class="k">Submissions</span>
+                            <span class="v">14 / 22</span>
+                        </div>
+                        <div class="ap-bar"><span data-value="64"></span></div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <div class="asgn-av-stack">
+                            <span>AO</span>
+                            <span class="v2">YT</span>
+                            <span class="more">+12</span>
+                        </div>
+                        <span class="asgn-av-note"><strong>8</strong> pending</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening submissions…">
+                        View
+                    </button>
+                </div>
+            </article>
+
+            <!-- ESSAY · Reflective Journal -->
+            <article class="asgn type-essay" data-toast="Opening Reflective Journal…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-file-text-fill"></i> Essay</span>
+                    <span class="asgn-status"><span class="dot"></span> Active</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Design Systems — Reflective Journal</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>UI/UX Design Systems</strong>
+                    </span>
+                    <p class="asgn-desc">A weekly journal capturing one system you studied, one decision that surprised you, and one thing to try next.</p>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Due</div>
+                            <div class="v">Apr 18<em>· 12d</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Points</div>
+                            <div class="v">60</div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Rubric</div>
+                            <div class="v">3 <em>crit</em></div>
+                        </div>
+                    </div>
+
+                    <div class="asgn-progress">
+                        <div class="ap-head">
+                            <span class="k">Submissions</span>
+                            <span class="v">6 / 36</span>
+                        </div>
+                        <div class="ap-bar"><span data-value="17"></span></div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <div class="asgn-av-stack">
+                            <span>FD</span>
+                            <span class="v3">KA</span>
+                            <span class="more">+4</span>
+                        </div>
+                        <span class="asgn-av-note">Opened yesterday</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening submissions…">
+                        View
+                    </button>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="a-foot">
+            <span>Showing <strong>6</strong> of <strong>7</strong> active · <strong>2</strong> closing this week</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Loading more…">
+                    <i class="bi bi-arrow-down-circle"></i> Load more
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         6 · TAB PANEL — GRADED
+         ==================================================== -->
+    <section class="tab-panel" id="panel-graded" role="tabpanel">
+
+        <div class="assign-grid">
+
+            <!-- graded · Hooks quiz -->
+            <article class="asgn is-graded" data-toast="Opening React Hooks Quiz results…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-question-circle-fill"></i> Quiz</span>
+                    <span class="asgn-status closed"><span class="dot"></span> Closed Mar 28</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">React Fundamentals Quiz</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Avg</div>
+                            <div class="v mint">86<em>%</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Completed</div>
+                            <div class="v">42<em>/42</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Range</div>
+                            <div class="v">62–100</div>
+                        </div>
+                    </div>
+
+                    <div class="distribution">
+                        <div class="dist-row a">
+                            <span class="letter">A</span>
+                            <div class="bar"><span data-value="42"></span></div>
+                            <span class="pct">42%</span>
+                        </div>
+                        <div class="dist-row b">
+                            <span class="letter">B</span>
+                            <div class="bar"><span data-value="31"></span></div>
+                            <span class="pct">31%</span>
+                        </div>
+                        <div class="dist-row c">
+                            <span class="letter">C</span>
+                            <div class="bar"><span data-value="17"></span></div>
+                            <span class="pct">17%</span>
+                        </div>
+                        <div class="dist-row d">
+                            <span class="letter">D</span>
+                            <div class="bar"><span data-value="10"></span></div>
+                            <span class="pct">10%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Graded <strong>Mar 28</strong> · 1.4d avg turnaround</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening analytics…">
+                        <i class="bi bi-graph-up-arrow"></i> Analytics
+                    </button>
+                </div>
+            </article>
+
+            <!-- graded · Composition essay -->
+            <article class="asgn is-graded" data-toast="Opening Composition essay results…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-file-text-fill"></i> Essay</span>
+                    <span class="asgn-status closed"><span class="dot"></span> Closed Mar 22</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Composition Patterns Essay</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Avg</div>
+                            <div class="v mint">82<em>%</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Completed</div>
+                            <div class="v">39<em>/42</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Range</div>
+                            <div class="v">54–98</div>
+                        </div>
+                    </div>
+
+                    <div class="distribution">
+                        <div class="dist-row a">
+                            <span class="letter">A</span>
+                            <div class="bar"><span data-value="31"></span></div>
+                            <span class="pct">31%</span>
+                        </div>
+                        <div class="dist-row b">
+                            <span class="letter">B</span>
+                            <div class="bar"><span data-value="38"></span></div>
+                            <span class="pct">38%</span>
+                        </div>
+                        <div class="dist-row c">
+                            <span class="letter">C</span>
+                            <div class="bar"><span data-value="21"></span></div>
+                            <span class="pct">21%</span>
+                        </div>
+                        <div class="dist-row d">
+                            <span class="letter">D</span>
+                            <div class="bar"><span data-value="8"></span></div>
+                            <span class="pct">8%</span>
+                        </div>
+                        <div class="dist-row f">
+                            <span class="letter">F</span>
+                            <div class="bar"><span data-value="2"></span></div>
+                            <span class="pct">2%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Graded <strong>Mar 22</strong> · 2.1d avg turnaround</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening analytics…">
+                        <i class="bi bi-graph-up-arrow"></i> Analytics
+                    </button>
+                </div>
+            </article>
+
+            <!-- graded · State machines quiz -->
+            <article class="asgn is-graded" data-toast="Opening State machine quiz results…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-question-circle-fill"></i> Quiz</span>
+                    <span class="asgn-status closed"><span class="dot"></span> Closed Mar 15</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">State Machine Modeling Quiz</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Avg</div>
+                            <div class="v">78<em>%</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Completed</div>
+                            <div class="v">40<em>/42</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Range</div>
+                            <div class="v">48–96</div>
+                        </div>
+                    </div>
+
+                    <div class="distribution">
+                        <div class="dist-row a">
+                            <span class="letter">A</span>
+                            <div class="bar"><span data-value="22"></span></div>
+                            <span class="pct">22%</span>
+                        </div>
+                        <div class="dist-row b">
+                            <span class="letter">B</span>
+                            <div class="bar"><span data-value="35"></span></div>
+                            <span class="pct">35%</span>
+                        </div>
+                        <div class="dist-row c">
+                            <span class="letter">C</span>
+                            <div class="bar"><span data-value="28"></span></div>
+                            <span class="pct">28%</span>
+                        </div>
+                        <div class="dist-row d">
+                            <span class="letter">D</span>
+                            <div class="bar"><span data-value="13"></span></div>
+                            <span class="pct">13%</span>
+                        </div>
+                        <div class="dist-row f">
+                            <span class="letter">F</span>
+                            <div class="bar"><span data-value="2"></span></div>
+                            <span class="pct">2%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Graded <strong>Mar 15</strong> · 1.8d avg turnaround</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening analytics…">
+                        <i class="bi bi-graph-up-arrow"></i> Analytics
+                    </button>
+                </div>
+            </article>
+
+            <!-- graded · Wireframing project -->
+            <article class="asgn is-graded" data-toast="Opening Wireframing project results…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-code-square"></i> Project</span>
+                    <span class="asgn-status closed"><span class="dot"></span> Closed Mar 8</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Wireframing Sprint</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>UI/UX Design Systems</strong>
+                    </span>
+
+                    <div class="asgn-meta">
+                        <div class="asgn-metric">
+                            <div class="k">Avg</div>
+                            <div class="v mint">84<em>%</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Completed</div>
+                            <div class="v">34<em>/36</em></div>
+                        </div>
+                        <div class="asgn-metric">
+                            <div class="k">Range</div>
+                            <div class="v">58–100</div>
+                        </div>
+                    </div>
+
+                    <div class="distribution">
+                        <div class="dist-row a">
+                            <span class="letter">A</span>
+                            <div class="bar"><span data-value="38"></span></div>
+                            <span class="pct">38%</span>
+                        </div>
+                        <div class="dist-row b">
+                            <span class="letter">B</span>
+                            <div class="bar"><span data-value="35"></span></div>
+                            <span class="pct">35%</span>
+                        </div>
+                        <div class="dist-row c">
+                            <span class="letter">C</span>
+                            <div class="bar"><span data-value="20"></span></div>
+                            <span class="pct">20%</span>
+                        </div>
+                        <div class="dist-row d">
+                            <span class="letter">D</span>
+                            <div class="bar"><span data-value="7"></span></div>
+                            <span class="pct">7%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Graded <strong>Mar 8</strong> · 3.2d avg turnaround</span>
+                    </div>
+                    <button class="asgn-cta muted" data-toast="Opening analytics…">
+                        <i class="bi bi-graph-up-arrow"></i> Analytics
+                    </button>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="a-foot">
+            <span>Showing <strong>4</strong> of <strong>32</strong> graded · average class score <strong>82%</strong></span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Loading more…">
+                    <i class="bi bi-arrow-down-circle"></i> Load more
+                </button>
+                <button class="btn-ghost" data-toast="Opening export…">
+                    <i class="bi bi-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         7 · TAB PANEL — DRAFTS
+         ==================================================== -->
+    <section class="tab-panel" id="panel-drafts" role="tabpanel">
+
+        <div class="assign-grid">
+
+            <!-- draft · Testing React Apps quiz -->
+            <article class="asgn is-draft type-quiz" data-toast="Continuing Testing React Apps quiz…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-question-circle-fill"></i> Quiz</span>
+                    <span class="asgn-status draft"><span class="dot"></span> Draft</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Testing React Apps — Midterm Quiz</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+                    <p class="asgn-desc">15 questions covering Vitest, React Testing Library, and mocking patterns for hooks and async state.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details &amp; points</div>
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> 9 of 15 questions drafted</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Add 6 remaining questions</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Set due date &amp; publish</div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Edited <strong>2d ago</strong> · 62% complete</span>
+                    </div>
+                    <button class="asgn-cta" data-toast="Opening editor…">
+                        <i class="bi bi-pencil"></i> Continue
+                    </button>
+                </div>
+            </article>
+
+            <!-- draft · Motion design essay -->
+            <article class="asgn is-draft type-essay" data-toast="Continuing Motion Design essay…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-file-text-fill"></i> Essay</span>
+                    <span class="asgn-status draft"><span class="dot"></span> Draft</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Motion Design — Timeless Interfaces</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>UI/UX Design Systems</strong>
+                    </span>
+                    <p class="asgn-desc">Reflect on three interfaces whose motion design has aged gracefully, and one whose hasn't — and why.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Title &amp; description</div>
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Rubric attached</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Set word count target</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Set due date &amp; publish</div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Edited <strong>5d ago</strong> · 40% complete</span>
+                    </div>
+                    <button class="asgn-cta" data-toast="Opening editor…">
+                        <i class="bi bi-pencil"></i> Continue
+                    </button>
+                </div>
+            </article>
+
+            <!-- draft · Backend capstone -->
+            <article class="asgn is-draft type-project" data-toast="Continuing Backend capstone…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-code-square"></i> Project</span>
+                    <span class="asgn-status draft"><span class="dot"></span> Draft</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Backend Capstone — Full Stack Build</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Backend Fundamentals</strong>
+                    </span>
+                    <p class="asgn-desc">Build, deploy, and document a small full-stack app of the student's choice. Includes a demo video and design memo.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Title &amp; description</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Define milestone structure</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Attach rubric (5 criteria)</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Set due date &amp; publish</div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Edited <strong>1w ago</strong> · 25% complete</span>
+                    </div>
+                    <button class="asgn-cta" data-toast="Opening editor…">
+                        <i class="bi bi-pencil"></i> Continue
+                    </button>
+                </div>
+            </article>
+
+            <!-- draft · Peer critique template -->
+            <article class="asgn is-draft type-discussion" data-toast="Continuing Peer critique…">
+                <div class="asgn-head">
+                    <span class="asgn-type"><i class="bi bi-chat-square-quote-fill"></i> Discussion</span>
+                    <span class="asgn-status draft"><span class="dot"></span> Draft</span>
+                </div>
+                <div class="asgn-body">
+                    <h3 class="asgn-title">Peer Critique — Composition Deep Dive</h3>
+                    <span class="asgn-course">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <strong>Advanced React Patterns</strong>
+                    </span>
+                    <p class="asgn-desc">Structured peer review of two classmates' composition pattern choices, with one specific suggestion for each.</p>
+
+                    <div class="draft-checklist">
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Title &amp; description</div>
+                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Peer-matching rules</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Define critique template</div>
+                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Set due date &amp; publish</div>
+                    </div>
+                </div>
+                <div class="asgn-foot">
+                    <div class="asgn-avatars">
+                        <span class="asgn-av-note">Edited <strong>2w ago</strong> · 55% complete</span>
+                    </div>
+                    <button class="asgn-cta" data-toast="Opening editor…">
+                        <i class="bi bi-pencil"></i> Continue
+                    </button>
+                </div>
+            </article>
+
+            <!-- add new draft tile -->
+            <button class="pathway" data-toast="Opening blank composer…" style="min-height:280px;align-items:center;justify-content:center;text-align:center;gap:14px;">
+                <div class="pathway-ic" style="width:56px;height:56px;border-radius:50%;">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
+                <div>
+                    <h4 style="margin-bottom:6px;">Start a new draft</h4>
+                    <p style="max-width:220px;margin:0 auto;">Begin a fresh assignment, quiz, or project from a blank canvas.</p>
+                </div>
+            </button>
+
+        </div>
+
+        <div class="a-foot">
+            <span>Showing <strong>4</strong> of <strong>4</strong> drafts · <strong>1</strong> ready for review</span>
+            <div class="foot-actions">
+                <button class="btn-ghost" data-toast="Opening bulk actions…">
+                    <i class="bi bi-list-check"></i> Bulk actions
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================
+         8 · TAB PANEL — COMPOSE
+         ==================================================== -->
+    <section class="tab-panel" id="panel-compose" role="tabpanel">
+
+        <!-- intro banner -->
+        <div class="compose-intro">
+            <div class="ci-body">
+                <div class="ci-text">
+                    <span class="eyebrow"><i class="bi bi-stars"></i> Compose · create · publish</span>
+                    <h2>Start your next <em>assignment.</em></h2>
+                    <p>
+                        Choose how you'd like to begin. Whether it's a quiz that grades itself, a project that
+                        stretches a week, or a discussion that pulls the cohort together — nothing goes live
+                        until you say so.
+                    </p>
+                </div>
+                <div class="ci-actions">
+                    <button class="btn-ghost" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.18);color:#fff;" data-toast="Opening guide…">
+                        <i class="bi bi-book"></i> Read the guide
+                    </button>
+                    <button class="btn-gold" data-toast="Opening full composer…">
+                        <i class="bi bi-magic"></i> Full composer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- pathways -->
+        <div class="pathway-grid">
+
+            <button class="pathway sky" data-toast="Opening quiz builder…">
+                <div class="pathway-ic"><i class="bi bi-question-circle-fill"></i></div>
+                <h4>Auto-graded quiz</h4>
+                <p>Multiple choice, true/false, or short answer. Grades itself instantly and gives students their score on submission.</p>
+                <div class="pathway-foot">
+                    <span><i class="bi bi-lightning-charge-fill"></i> Fastest to grade</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </button>
+
+            <button class="pathway" data-toast="Opening essay composer…">
+                <div class="pathway-ic"><i class="bi bi-file-text-fill"></i></div>
+                <h4>Written submission</h4>
+                <p>Essays, reflections, and long-form responses. Attach a rubric and use the grading workspace to review each one.</p>
+                <div class="pathway-foot">
+                    <span><i class="bi bi-list-check"></i> Rubric-ready</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </button>
+
+            <button class="pathway violet" data-toast="Opening project composer…">
+                <div class="pathway-ic"><i class="bi bi-code-square"></i></div>
+                <h4>Project or build</h4>
+                <p>Multi-week builds with milestones. Support group submissions, demo videos, and code artifacts.</p>
+                <div class="pathway-foot">
+                    <span><i class="bi bi-people-fill"></i> Group-friendly</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </button>
+
+        </div>
+
+        <!-- tips -->
+        <div class="tips-panel">
+            <div class="tip-card">
+                <span class="tip-ic"><i class="bi bi-lightbulb-fill"></i></span>
+                <div>
+                    <h5>Start from an outcome</h5>
+                    <p>Write the assignment backwards from "what should they be able to do after this?" — the rest follows.</p>
+                </div>
+            </div>
+            <div class="tip-card sky">
+                <span class="tip-ic"><i class="bi bi-list-check"></i></span>
+                <div>
+                    <h5>Three criteria is enough</h5>
+                    <p>Rubrics with 3–4 criteria get used. Rubrics with 8+ sit unused, and students skim them.</p>
+                </div>
+            </div>
+            <div class="tip-card violet">
+                <span class="tip-ic"><i class="bi bi-clock-history"></i></span>
+                <div>
+                    <h5>Give a 24-hour grace window</h5>
+                    <p>Students with jobs and families finish strong work when the deadline isn't a cliff edge.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- quick-resume recent drafts -->
+        <article class="panel">
+            <div class="panel-head">
+                <h3><i class="bi bi-clock-history"></i> Pick up where you left off</h3>
+                <button class="panel-link" data-toast="Switching to drafts…">
+                    All drafts <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="panel-body">
+
+                <div class="recent-row" data-toast="Continuing Testing React Apps quiz…">
+                    <span class="rr-thumb sky"><i class="bi bi-question-circle-fill"></i></span>
+                    <div class="rr-body">
+                        <h5>Testing React Apps — Midterm Quiz</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 2 days ago · 9 of 15 questions</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>62%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+                <div class="recent-row" data-toast="Continuing Motion Design essay…">
+                    <span class="rr-thumb"><i class="bi bi-file-text-fill"></i></span>
+                    <div class="rr-body">
+                        <h5>Motion Design — Timeless Interfaces</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 5 days ago · Rubric attached</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>40%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+                <div class="recent-row" data-toast="Continuing Backend capstone…">
+                    <span class="rr-thumb violet"><i class="bi bi-code-square"></i></span>
+                    <div class="rr-body">
+                        <h5>Backend Capstone — Full Stack Build</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 1 week ago · Milestones pending</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>25%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+                <div class="recent-row" data-toast="Continuing Peer critique…">
+                    <span class="rr-thumb mint"><i class="bi bi-chat-square-quote-fill"></i></span>
+                    <div class="rr-body">
+                        <h5>Peer Critique — Composition Deep Dive</h5>
+                        <p><i class="bi bi-clock-history"></i> Edited 2 weeks ago · Template needed</p>
+                    </div>
+                    <div class="rr-score">
+                        <strong>55%</strong>
+                        <span>Done</span>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+    </section>
+
+</div><!-- /.assignments -->
+
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.assignments');
+    if (!root) return;
+
+    /* ---------- animated counters ---------- */
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseFloat(el.dataset.count) || 0;
+        var duration = 1300;
+        var start = null;
+        function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ---------- progress bars ---------- */
+    requestAnimationFrame(function () {
+        root.querySelectorAll('.ap-bar > span[data-value], .dist-row .bar > span[data-value]').forEach(function (el) {
+            var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+            setTimeout(function () { el.style.width = v + '%'; }, 120);
+        });
+    });
+
+    /* ---------- tab switching ---------- */
+    var tabs = root.querySelectorAll('.a-tab');
+    var panels = {
+        active:   document.getElementById('panel-active'),
+        graded:   document.getElementById('panel-graded'),
+        drafts:   document.getElementById('panel-drafts'),
+        compose:  document.getElementById('panel-compose')
+    };
+
+    function activateTab(name) {
+        tabs.forEach(function (t) {
+            var isActive = t.dataset.tab === name;
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        Object.keys(panels).forEach(function (k) {
+            if (!panels[k]) return;
+            panels[k].classList.toggle('active', k === name);
+        });
+        // Re-trigger bar animation when panel becomes visible
+        var panel = panels[name];
+        if (panel) {
+            panel.querySelectorAll('.ap-bar > span[data-value], .dist-row .bar > span[data-value]').forEach(function (el) {
+                var v = Math.min(parseFloat(el.dataset.value) || 0, 100);
+                el.style.width = '0';
+                setTimeout(function () { el.style.width = v + '%'; }, 60);
+            });
+        }
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            activateTab(tab.dataset.tab);
+        });
+    });
+
+    /* ---------- toolbar filter chips ---------- */
+    var chips = root.querySelectorAll('.tb-chip');
+    var typeChips = ['All types', 'Quizzes', 'Essays', 'Projects'];
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            var label = chip.textContent.trim();
+            var isType = typeChips.some(function (t) { return label.indexOf(t) !== -1; });
+            if (isType) {
+                chips.forEach(function (c) {
+                    var l = c.textContent.trim();
+                    if (typeChips.some(function (t) { return l.indexOf(t) !== -1; })) {
+                        c.classList.remove('active');
+                    }
+                });
+                chip.classList.add('active');
+            }
+        });
+    });
+
+    /* ---------- search filter ---------- */
+    var search = root.querySelector('.tb-search input');
+    if (search) {
+        search.addEventListener('input', function (e) {
+            var q = (e.target.value || '').toLowerCase().trim();
+            root.querySelectorAll('.assign-grid .asgn').forEach(function (card) {
+                var text = card.textContent.toLowerCase();
+                card.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+            });
+        });
+    }
+
+})();
+</script>
+
+{% endblock content %}

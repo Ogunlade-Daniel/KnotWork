@@ -12,6 +12,7 @@
         position: relative;
         overflow: hidden;
     }
+
     .exchange-hero::after {
         content: '';
         position: absolute;
@@ -23,8 +24,17 @@
         border-radius: 50%;
         box-shadow: 0 0 0 46px rgba(190, 242, 100, 0.03), 0 0 0 92px rgba(56, 189, 248, 0.025);
     }
-    .exchange-hero .container { position: relative; z-index: 1; }
-    .exchange-hero .section-label { color: var(--secondary-light); background: rgba(190, 242, 100, 0.12); }
+
+    .exchange-hero .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .exchange-hero .section-label {
+        color: var(--secondary-light);
+        background: rgba(190, 242, 100, 0.12);
+    }
+
     .exchange-hero h1 {
         max-width: 760px;
         margin: 18px 0;
@@ -32,50 +42,293 @@
         font-size: clamp(2.8rem, 6vw, 5rem);
         line-height: 1.04;
     }
-    .exchange-hero h1 span { color: var(--secondary); font-style: italic; }
-    .exchange-hero p { max-width: 650px; color: rgba(255,255,255,.7); font-size: 1.12rem; line-height: 1.8; }
-    .exchange-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-    .exchange-workspace { padding: 88px 0 100px; background: var(--cream); }
-    .exchange-layout { display: grid; grid-template-columns: minmax(280px,.8fr) minmax(0,1.2fr); gap: 48px; align-items: start; }
+
+    .exchange-hero h1 span {
+        color: var(--secondary);
+        font-style: italic;
+    }
+
+    .exchange-hero p {
+        max-width: 650px;
+        color: rgba(255, 255, 255, .7);
+        font-size: 1.12rem;
+        line-height: 1.8;
+    }
+
+    .exchange-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 30px;
+    }
+
+    .exchange-workspace {
+        padding: 88px 0 100px;
+        background: var(--cream);
+    }
+
+    .exchange-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr);
+        gap: 48px;
+        align-items: start;
+    }
+
     .exchange-intro h2,
-    .exchange-process h2 { margin: 14px 0; color: var(--primary-dark); font-family: 'Playfair Display',serif; font-size: clamp(2rem,4vw,3rem); line-height: 1.12; }
+    .exchange-process h2 {
+        margin: 14px 0;
+        color: var(--primary-dark);
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.12;
+    }
+
     .exchange-intro h2 span,
-    .exchange-process h2 span { color: var(--accent); font-style: italic; }
-    .exchange-intro > p { color: var(--gray-600); line-height: 1.8; }
-    .exchange-points { display: grid; gap: 14px; margin-top: 28px; }
-    .exchange-point { display: flex; gap: 12px; color: var(--gray-800); font-size: .9rem; }
-    .exchange-point i { color: var(--secondary); font-size: 1.1rem; }
-    .exchange-panel { padding: 32px; border: 1px solid rgba(11,17,33,.06); border-radius: var(--radius-xl); background: var(--white); box-shadow: var(--shadow-md); }
-    .exchange-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-    .exchange-panel-header h3 { color: var(--primary-dark); font-size: 1.15rem; }
-    .exchange-status { display: inline-flex; align-items: center; gap: 6px; color: #3f6212; font-size: .75rem; font-weight: 700; }
-    .exchange-status i { font-size: .6rem; }
-    .exchange-form { display: grid; gap: 18px; }
-    .exchange-form label { display: block; margin-bottom: 8px; color: var(--primary-dark); font-size: .84rem; font-weight: 700; }
-    .exchange-form select { width: 100%; padding: 13px 16px; border: 1px solid var(--gray-200); border-radius: 10px; background: var(--cream); color: var(--gray-800); font: inherit; outline: none; }
-    .exchange-form select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.12); }
-    .exchange-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .exchange-submit { width: 100%; justify-content: center; margin-top: 4px; }
-    .match-preview { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--gray-200); }
-    .match-preview-heading { display: flex; justify-content: space-between; margin-bottom: 14px; color: var(--gray-600); font-size: .76rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-    .match-preview-heading strong { color: #3f6212; font-size: 1.05rem; letter-spacing: 0; }
-    .preview-person { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: var(--cream); }
-    .preview-avatar { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; background: linear-gradient(135deg,var(--secondary),var(--accent)); color: var(--primary-dark); font-size: .82rem; font-weight: 800; }
-    .preview-person h4 { color: var(--primary-dark); font-size: .9rem; }
-    .preview-person p { color: var(--gray-600); font-size: .76rem; }
-    .preview-person .bi { margin-left: auto; color: var(--secondary); }
-    .exchange-process { padding: 90px 0; background: var(--white); }
-    .process-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; margin-top: 44px; }
-    .process-card { padding: 28px; border-top: 3px solid var(--secondary); background: var(--cream); }
-    .process-card:nth-child(2) { border-color: var(--accent); }
-    .process-card:nth-child(3) { border-color: var(--primary); }
-    .process-number { display: block; margin-bottom: 24px; color: var(--gray-300); font-family: 'Playfair Display',serif; font-size: 2rem; }
-    .process-card h3 { margin-bottom: 8px; color: var(--primary-dark); font-size: 1.1rem; }
-    .process-card p { color: var(--gray-600); font-size: .9rem; line-height: 1.7; }
-    .exchange-final { padding: 76px 0; background: var(--primary); color: var(--white); text-align: center; }
-    .exchange-final h2 { max-width: 600px; margin: 0 auto 24px; font-family: 'Playfair Display',serif; font-size: clamp(2rem,4vw,3.1rem); }
-    @media (max-width:800px) { .exchange-layout,.process-grid { grid-template-columns: 1fr; } }
-    @media (max-width:520px) { .exchange-hero { padding: 124px 0 68px; } .exchange-panel { padding: 24px 18px; } .exchange-fields { grid-template-columns: 1fr; } }
+    .exchange-process h2 span {
+        color: var(--accent);
+        font-style: italic;
+    }
+
+    .exchange-intro>p {
+        color: var(--gray-600);
+        line-height: 1.8;
+    }
+
+    .exchange-points {
+        display: grid;
+        gap: 14px;
+        margin-top: 28px;
+    }
+
+    .exchange-point {
+        display: flex;
+        gap: 12px;
+        color: var(--gray-800);
+        font-size: .9rem;
+    }
+
+    .exchange-point i {
+        color: var(--secondary);
+        font-size: 1.1rem;
+    }
+
+    .exchange-panel {
+        padding: 32px;
+        border: 1px solid rgba(11, 17, 33, .06);
+        border-radius: var(--radius-xl);
+        background: var(--white);
+        box-shadow: var(--shadow-md);
+    }
+
+    .exchange-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .exchange-panel-header h3 {
+        color: var(--primary-dark);
+        font-size: 1.15rem;
+    }
+
+    .exchange-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #3f6212;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    .exchange-status i {
+        font-size: .6rem;
+    }
+
+    .exchange-form {
+        display: grid;
+        gap: 18px;
+    }
+
+    .exchange-form label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary-dark);
+        font-size: .84rem;
+        font-weight: 700;
+    }
+
+    .exchange-form select {
+        width: 100%;
+        padding: 13px 16px;
+        border: 1px solid var(--gray-200);
+        border-radius: 10px;
+        background: var(--cream);
+        color: var(--gray-800);
+        font: inherit;
+        outline: none;
+    }
+
+    .exchange-form select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, .12);
+    }
+
+    .exchange-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .exchange-submit {
+        width: 100%;
+        justify-content: center;
+        margin-top: 4px;
+    }
+
+    .match-preview {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .match-preview-heading {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        color: var(--gray-600);
+        font-size: .76rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .match-preview-heading strong {
+        color: #3f6212;
+        font-size: 1.05rem;
+        letter-spacing: 0;
+    }
+
+    .preview-person {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--cream);
+    }
+
+    .preview-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        color: var(--primary-dark);
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    .preview-person h4 {
+        color: var(--primary-dark);
+        font-size: .9rem;
+    }
+
+    .preview-person p {
+        color: var(--gray-600);
+        font-size: .76rem;
+    }
+
+    .preview-person .bi {
+        margin-left: auto;
+        color: var(--secondary);
+    }
+
+    .exchange-process {
+        padding: 90px 0;
+        background: var(--white);
+    }
+
+    .process-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+        margin-top: 44px;
+    }
+
+    .process-card {
+        padding: 28px;
+        border-top: 3px solid var(--secondary);
+        background: var(--cream);
+    }
+
+    .process-card:nth-child(2) {
+        border-color: var(--accent);
+    }
+
+    .process-card:nth-child(3) {
+        border-color: var(--primary);
+    }
+
+    .process-number {
+        display: block;
+        margin-bottom: 24px;
+        color: var(--gray-300);
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+    }
+
+    .process-card h3 {
+        margin-bottom: 8px;
+        color: var(--primary-dark);
+        font-size: 1.1rem;
+    }
+
+    .process-card p {
+        color: var(--gray-600);
+        font-size: .9rem;
+        line-height: 1.7;
+    }
+
+    .exchange-final {
+        padding: 76px 0;
+        background: var(--primary);
+        color: var(--white);
+        text-align: center;
+    }
+
+    .exchange-final h2 {
+        max-width: 600px;
+        margin: 0 auto 24px;
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+    }
+
+    @media (max-width:800px) {
+
+        .exchange-layout,
+        .process-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width:520px) {
+        .exchange-hero {
+            padding: 124px 0 68px;
+        }
+
+        .exchange-panel {
+            padding: 24px 18px;
+        }
+
+        .exchange-fields {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 <section class="exchange-hero">
@@ -105,7 +358,7 @@
             </div>
             <div class="exchange-panel">
                 <div class="exchange-panel-header"><h3>Shape your ideal exchange</h3><span class="exchange-status"><i class="bi bi-circle-fill"></i> Matching live</span></div>
-                <form class="exchange-form" action="{% url 'sign_up' %}" method="get">
+                <form class="exchange-form" action="{% url 'get_started' %}" method="get">
                     <div class="exchange-fields">
                         <div><label for="teach-skill">I can teach</label><select id="teach-skill" name="teach">{% for topic in exchange_topics %}<option>{{ topic }}</option>{% endfor %}</select></div>
                         <div><label for="learn-skill">I want to learn</label><select id="learn-skill" name="learn">{% for topic in exchange_topics %}<option{% if topic == 'UI/UX Design' %} selected{% endif %}>{{ topic }}</option>{% endfor %}</select></div>
@@ -133,5 +386,5 @@
     </div>
 </section>
 
-<section class="exchange-final"><div class="container"><h2>The best thing you can learn may be taught by someone learning from you.</h2><a href="{% url 'sign_up' %}" class="btn btn-secondary"><i class="bi bi-person-plus"></i> Join the exchange</a></div></section>
+<section class="exchange-final"><div class="container"><h2>The best thing you can learn may be taught by someone learning from you.</h2><a href="{% url 'get_started' %}" class="btn btn-secondary"><i class="bi bi-person-plus"></i> Join the exchange</a></div></section>
 {% endblock content %}

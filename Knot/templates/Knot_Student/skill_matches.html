@@ -1,0 +1,1617 @@
+{% extends 'Knot_Student/student_base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Skill Matches{% endblock %}
+
+{% block breadcrumb %}Skill Matches{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       SKILL MATCHES — page-scoped styles
+       ============================================================ */
+
+    /* ---------- Page head ---------- */
+    .sm-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+    .sm-head h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.85rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin: 12px 0 8px;
+    }
+    .sm-head h1 span { color: var(--secondary-deep); font-style: italic; }
+    .sm-head p {
+        font-size: 0.92rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        max-width: 580px;
+    }
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .badge-soft i { font-size: 0.72rem; }
+
+    .btn-line {
+        background: var(--white);
+        color: var(--primary-dark);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .btn-line:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* ---------- Overview strip ---------- */
+    .sm-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .sm-stat {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .sm-stat::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .sm-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .sm-stat:hover::after { opacity: 1; }
+    .sm-stat .ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+    }
+    .sm-stat .ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .sm-stat .ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .sm-stat .ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .sm-stat .v {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .sm-stat .v em {
+        font-style: normal;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-left: 2px;
+    }
+    .sm-stat .l { font-size: 0.76rem; color: var(--gray-600); margin-top: 2px; }
+
+    /* ---------- Deck layout ---------- */
+    .sm-layout {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    .sm-col {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        min-width: 0;
+    }
+
+    /* ---------- Deck ---------- */
+    .sm-deck-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px 26px;
+        position: relative;
+        overflow: hidden;
+    }
+    .sm-deck-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .sm-deck-head h3 {
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .sm-deck-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .sm-deck-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .sm-deck-meta .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16);
+        animation: smPulse 2s infinite;
+        display: inline-block;
+    }
+    @keyframes smPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    /* Deck stage */
+    .sm-stage {
+        position: relative;
+        height: 500px;
+        margin: 0 auto;
+        max-width: 440px;
+        perspective: 1200px;
+    }
+
+    .sm-card {
+        position: absolute;
+        inset: 0;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.06);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(11, 17, 33, 0.16);
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: pan-y;
+        will-change: transform;
+        transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    opacity 0.35s ease;
+        display: flex;
+        flex-direction: column;
+    }
+    .sm-card:active { cursor: grabbing; }
+    .sm-card.dragging { transition: none; }
+
+    .sm-card[data-pos="0"] { z-index: 5; transform: translateY(0) scale(1); }
+    .sm-card[data-pos="1"] {
+        z-index: 4;
+        transform: translateY(14px) scale(0.96);
+        pointer-events: none;
+        opacity: 0.94;
+    }
+    .sm-card[data-pos="2"] {
+        z-index: 3;
+        transform: translateY(28px) scale(0.92);
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    .sm-card[data-pos="3"] {
+        z-index: 2;
+        transform: translateY(40px) scale(0.88);
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    /* Card top */
+    .sm-card-top {
+        position: relative;
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+        padding: 26px 24px 22px;
+        color: var(--white);
+        overflow: hidden;
+    }
+    .sm-card-top::before {
+        content: '';
+        position: absolute;
+        top: -55%;
+        right: -20%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 65%);
+        pointer-events: none;
+    }
+
+    .sm-avatar {
+        position: relative;
+        z-index: 2;
+        width: 74px;
+        height: 74px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        display: grid;
+        place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.6rem;
+        color: var(--primary-dark);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        margin-bottom: 14px;
+    }
+    .sm-avatar.v2 { background: linear-gradient(135deg, var(--accent), var(--secondary)); }
+    .sm-avatar.v3 { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .sm-avatar.v4 { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: var(--primary-dark); }
+    .sm-avatar.v5 { background: linear-gradient(135deg, #6EE7B7, #22C55E); color: var(--primary-dark); }
+
+    .sm-name {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .sm-name h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--white);
+    }
+    .sm-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.16);
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        color: var(--secondary-light);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .sm-verified i { font-size: 0.68rem; }
+
+    .sm-role {
+        position: relative;
+        z-index: 2;
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.62);
+        margin-top: 4px;
+    }
+    .sm-loc {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 6px;
+    }
+
+    /* Match score badge */
+    .sm-score {
+        position: absolute;
+        top: 22px;
+        right: 22px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+    .sm-score .num {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.2;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        padding: 5px 14px;
+        border-radius: 50px;
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.35);
+    }
+    .sm-score .lbl {
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Card body */
+    .sm-card-body {
+        padding: 20px 24px 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    .sm-card-body::-webkit-scrollbar { width: 4px; }
+    .sm-card-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+
+    .sm-bio {
+        font-size: 0.83rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+    }
+
+    /* Skill swap block */
+    .sm-swap {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 12px;
+        align-items: stretch;
+        padding: 14px;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 14px;
+    }
+    .sm-swap-col {
+        min-width: 0;
+    }
+    .sm-swap-col .lbl {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-bottom: 8px;
+    }
+    .sm-swap-col .lbl i { font-size: 0.72rem; }
+    .sm-swap-col.teach .lbl { color: #4D7C0F; }
+    .sm-swap-col.learn .lbl { color: #0284C7; }
+
+    .sm-skill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 11px;
+        border-radius: 50px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin: 0 5px 5px 0;
+        line-height: 1.4;
+    }
+    .sm-skill.teach {
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+        border: 1px solid rgba(190, 242, 100, 0.5);
+    }
+    .sm-skill.learn {
+        background: rgba(56, 189, 248, 0.14);
+        color: #0369A1;
+        border: 1px solid rgba(56, 189, 248, 0.32);
+    }
+
+    .sm-swap-arrow {
+        display: grid;
+        place-items: center;
+        align-self: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        color: var(--primary-dark);
+        font-size: 0.85rem;
+        box-shadow: 0 3px 10px rgba(11, 17, 33, 0.06);
+    }
+
+    /* Meta row */
+    .sm-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        padding-top: 4px;
+    }
+    .sm-meta-row span { display: inline-flex; align-items: center; gap: 6px; }
+    .sm-meta-row i { color: var(--gray-300); font-size: 0.8rem; }
+    .sm-meta-row .rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 700;
+        color: #B45309;
+    }
+    .sm-meta-row .rating i { color: #F59E0B; font-size: 0.72rem; }
+
+    /* Overlay stamps */
+    .sm-stamp {
+        position: absolute;
+        top: 68px;
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 8px 20px;
+        border: 4px solid;
+        border-radius: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease;
+        z-index: 10;
+    }
+    .sm-stamp.pass {
+        left: 24px;
+        color: var(--danger);
+        border-color: var(--danger);
+        transform: rotate(-14deg);
+    }
+    .sm-stamp.connect {
+        right: 24px;
+        color: #4D7C0F;
+        border-color: var(--secondary-deep);
+        transform: rotate(14deg);
+    }
+    .sm-card.show-pass .sm-stamp.pass { opacity: 1; }
+    .sm-card.show-connect .sm-stamp.connect { opacity: 1; }
+
+    /* Actions row */
+    .sm-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 22px 0 4px;
+    }
+    .sm-act {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-size: 1.25rem;
+        transition: var(--transition);
+        position: relative;
+        flex-shrink: 0;
+        font-family: inherit;
+    }
+    .sm-act.pass {
+        background: var(--white);
+        color: var(--danger);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 6px 18px rgba(11, 17, 33, 0.06);
+    }
+    .sm-act.pass:hover { border-color: var(--danger); transform: translateY(-4px) scale(1.05); }
+
+    .sm-act.info {
+        width: 46px;
+        height: 46px;
+        font-size: 1rem;
+        background: var(--white);
+        color: var(--accent);
+        border: 1.5px solid var(--gray-200);
+        box-shadow: 0 6px 18px rgba(11, 17, 33, 0.06);
+    }
+    .sm-act.info:hover { border-color: var(--accent); transform: translateY(-4px) scale(1.05); }
+
+    .sm-act.connect {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        box-shadow: 0 12px 30px rgba(190, 242, 100, 0.42);
+    }
+    .sm-act.connect:hover {
+        background: var(--secondary-light);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 18px 40px rgba(190, 242, 100, 0.52);
+    }
+
+    .sm-act .tip {
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        white-space: nowrap;
+    }
+
+    /* Keyboard hint */
+    .sm-hint {
+        text-align: center;
+        font-size: 0.72rem;
+        color: var(--gray-300);
+        padding-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .sm-hint kbd {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-bottom-width: 2px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        margin: 0 3px;
+    }
+
+    /* Empty deck state */
+    .sm-empty {
+        text-align: center;
+        padding: 60px 24px 40px;
+        display: none;
+    }
+    .sm-empty.show { display: block; }
+    .sm-empty .ic {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1.75rem;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+    }
+    .sm-empty h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+    .sm-empty p {
+        max-width: 360px;
+        margin: 0 auto 20px;
+        font-size: 0.86rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+    .sm-empty .btn-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------- Filters panel ---------- */
+    .sm-panel {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+    }
+    .sm-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .sm-panel-head h4 {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .sm-panel-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+    .sm-panel-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .sm-panel-head .link:hover { color: var(--primary-dark); }
+
+    /* Preference row (label + range) */
+    .sm-pref {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .sm-pref:last-child { border-bottom: none; padding-bottom: 0; }
+    .sm-pref:first-child { padding-top: 0; }
+    .sm-pref .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .sm-pref .row .lbl {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+    .sm-pref .row .val {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.2);
+        padding: 2px 9px;
+        border-radius: 50px;
+    }
+    .sm-range {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 50px;
+        background: var(--gray-200);
+        outline: none;
+        cursor: pointer;
+    }
+    .sm-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary-dark);
+        border: 3px solid var(--secondary);
+        box-shadow: 0 3px 10px rgba(11, 17, 33, 0.3);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .sm-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
+    .sm-range::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary-dark);
+        border: 3px solid var(--secondary);
+        cursor: pointer;
+    }
+
+    /* Toggle rows */
+    .sm-toggle {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        cursor: pointer;
+        user-select: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .sm-toggle:last-child { border-bottom: none; }
+    .sm-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+    .sm-toggle .track {
+        position: relative;
+        width: 38px;
+        height: 22px;
+        border-radius: 50px;
+        background: var(--gray-200);
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .sm-toggle .track::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--white);
+        box-shadow: 0 2px 5px rgba(11, 17, 33, 0.2);
+        transition: var(--transition);
+    }
+    .sm-toggle input:checked + .track {
+        background: var(--secondary);
+    }
+    .sm-toggle input:checked + .track::after {
+        transform: translateX(16px);
+        background: var(--primary-dark);
+    }
+    .sm-toggle input:focus-visible + .track {
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.28);
+    }
+    .sm-toggle .tl {
+        font-size: 0.79rem;
+        color: var(--gray-600);
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    .sm-toggle .tl strong {
+        display: block;
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 0.81rem;
+    }
+
+    /* ---------- Recent connections ---------- */
+    .sm-conn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .sm-conn:first-of-type { padding-top: 4px; }
+    .sm-conn:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .sm-conn:hover { transform: translateX(3px); }
+    .sm-conn .avatar.xs { width: 38px; height: 38px; font-size: 0.72rem; }
+    .sm-conn-body { flex: 1; min-width: 0; }
+    .sm-conn-body h5 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sm-conn-body p {
+        font-size: 0.71rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 1px;
+    }
+    .sm-conn-body p strong { color: var(--gray-800); font-weight: 600; }
+    .sm-conn-tag {
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+        flex-shrink: 0;
+    }
+    .sm-conn-tag.sky {
+        background: rgba(56, 189, 248, 0.14);
+        color: #0369A1;
+    }
+    .sm-conn-tag.violet {
+        background: rgba(139, 92, 246, 0.14);
+        color: #6D28D9;
+    }
+
+    /* ---------- Trust note ---------- */
+    .sm-trust {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        line-height: 1.65;
+        color: var(--gray-600);
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px dashed rgba(56, 189, 248, 0.32);
+    }
+    .sm-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .sm-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* ---------- How it works strip ---------- */
+    .sm-how {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    .sm-how-item {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+    }
+    .sm-how-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .sm-how-item .step {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-bottom: 12px;
+    }
+    .sm-how-item .num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--primary-dark);
+        color: var(--secondary);
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .sm-how-item h5 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 5px;
+        line-height: 1.35;
+    }
+    .sm-how-item p {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1180px) {
+        .sm-overview { grid-template-columns: repeat(2, 1fr); }
+        .sm-layout { grid-template-columns: 1fr; }
+        .sm-how { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+        .sm-overview { grid-template-columns: 1fr 1fr; gap: 12px; }
+        .sm-stat { padding: 14px; gap: 11px; }
+        .sm-stat .ic { width: 38px; height: 38px; font-size: 0.92rem; }
+        .sm-stat .v { font-size: 1.22rem; }
+        .sm-deck-card { padding: 20px 18px 22px; }
+        .sm-stage { height: 520px; }
+        .sm-card-top { padding: 22px 20px 18px; }
+        .sm-card-body { padding: 16px 20px 0; }
+        .sm-avatar { width: 64px; height: 64px; font-size: 1.35rem; }
+        .sm-name h4 { font-size: 1.08rem; }
+        .sm-actions { gap: 10px; }
+        .sm-act { width: 52px; height: 52px; font-size: 1.1rem; }
+        .sm-act.info { width: 44px; height: 44px; }
+        .sm-hint { font-size: 0.66rem; }
+        .sm-how { grid-template-columns: 1fr; }
+        .sm-head-actions { width: 100%; }
+        .sm-head-actions .btn { flex: 1; }
+    }
+
+    @media (max-width: 420px) {
+        .sm-swap { grid-template-columns: 1fr; gap: 10px; }
+        .sm-swap-arrow { transform: rotate(90deg); }
+    }
+</style>
+
+
+<!-- ====================================================
+     PAGE HEAD
+     ==================================================== -->
+<section class="sm-head fade-up">
+    <div>
+        <span class="badge-soft"><i class="bi bi-arrow-left-right"></i> 24 new matches today</span>
+        <h1>Skill <span>Matches</span></h1>
+        <p>Swipe through verified learners who want what you teach — and teach what you want to learn. Two-way match, or no match at all.</p>
+    </div>
+
+    <div class="sm-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-line" data-toast="Opening your matching preferences…">
+            <i class="bi bi-sliders"></i> Preferences
+        </button>
+        <button class="btn btn-secondary" data-toast="Refreshing your match deck…">
+            <i class="bi bi-arrow-clockwise"></i> Refresh deck
+        </button>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     OVERVIEW
+     ==================================================== -->
+<section class="sm-overview">
+    <div class="sm-stat fade-up">
+        <div class="ic"><i class="bi bi-stack"></i></div>
+        <div>
+            <div class="v" data-count="24">0</div>
+            <div class="l">Matches in deck</div>
+        </div>
+    </div>
+
+    <div class="sm-stat fade-up">
+        <div class="ic accent"><i class="bi bi-handshake"></i></div>
+        <div>
+            <div class="v" data-count="9">0</div>
+            <div class="l">Connected this week</div>
+        </div>
+    </div>
+
+    <div class="sm-stat fade-up">
+        <div class="ic violet"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+            <div class="v" data-count="94"><em>%</em></div>
+            <div class="l">Best match strength</div>
+        </div>
+    </div>
+
+    <div class="sm-stat fade-up">
+        <div class="ic amber"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+            <div class="v">~<span data-count="6">0</span><em>m</em></div>
+            <div class="l">Avg. reply time</div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ====================================================
+     MAIN LAYOUT
+     ==================================================== -->
+<section class="sm-layout">
+
+    <!-- ============================================
+         LEFT — SWIPE DECK
+         ============================================ -->
+    <div class="sm-col">
+
+        <div class="sm-deck-card fade-up">
+            <div class="sm-deck-head">
+                <h3><i class="bi bi-shuffle"></i> Your match deck</h3>
+                <div class="sm-deck-meta">
+                    <span><span class="live-dot"></span> Live</span>
+                    <span id="smDeckCount">4 profiles left</span>
+                </div>
+            </div>
+
+            <!-- Deck stage -->
+            <div class="sm-stage" id="smStage" aria-label="Swipeable match cards">
+
+                <!-- ============================================================
+                     CARD 1 — Sara Kim
+                     Backend: {% for match in matches %} … {% endfor %}
+                     ============================================================ -->
+                <article class="sm-card" data-pos="0" data-id="1" data-name="Sara Kim" tabindex="0">
+                    <div class="sm-stamp pass">Pass</div>
+                    <div class="sm-stamp connect">Connect</div>
+
+                    <div class="sm-card-top">
+                        <div class="sm-score">
+                            <span class="num">92%</span>
+                            <span class="lbl">Match</span>
+                        </div>
+                        <span class="sm-avatar">SK</span>
+                        <div class="sm-name">
+                            <h4>Sara Kim</h4>
+                            <span class="sm-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="sm-role">Product Designer · 5 yrs experience</div>
+                        <div class="sm-loc"><i class="bi bi-geo-alt"></i> Lagos, NG · Flexible hours</div>
+                    </div>
+
+                    <div class="sm-card-body">
+                        <p class="sm-bio">Design systems nerd. I've shipped three design systems for fintech and I'm picking up React to prototype faster in code.</p>
+
+                        <div class="sm-swap">
+                            <div class="sm-swap-col teach">
+                                <div class="lbl"><i class="bi bi-arrow-up-right"></i> Teaches</div>
+                                <span class="sm-skill teach">UI Design</span>
+                                <span class="sm-skill teach">Figma</span>
+                                <span class="sm-skill teach">Design Systems</span>
+                            </div>
+                            <div class="sm-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                            <div class="sm-swap-col learn">
+                                <div class="lbl"><i class="bi bi-arrow-down-left"></i> Wants</div>
+                                <span class="sm-skill learn">React</span>
+                                <span class="sm-skill learn">JavaScript</span>
+                            </div>
+                        </div>
+
+                        <div class="sm-meta-row">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 4.9 (42 reviews)</span>
+                            <span><i class="bi bi-people"></i> 18 exchanges</span>
+                            <span><i class="bi bi-clock-history"></i> Replies in ~5m</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ============================================================
+                     CARD 2 — Daniel Okafor
+                     ============================================================ -->
+                <article class="sm-card" data-pos="1" data-id="2" data-name="Daniel Okafor" tabindex="0">
+                    <div class="sm-stamp pass">Pass</div>
+                    <div class="sm-stamp connect">Connect</div>
+
+                    <div class="sm-card-top">
+                        <div class="sm-score">
+                            <span class="num">87%</span>
+                            <span class="lbl">Match</span>
+                        </div>
+                        <span class="sm-avatar v2">DO</span>
+                        <div class="sm-name">
+                            <h4>Daniel Okafor</h4>
+                            <span class="sm-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="sm-role">Frontend Engineer · Public Speaking Coach</div>
+                        <div class="sm-loc"><i class="bi bi-geo-alt"></i> Abuja, NG · Evenings</div>
+                    </div>
+
+                    <div class="sm-card-body">
+                        <p class="sm-bio">I write React all day and coach public speaking on the side. Want to swap speaking practice for deeper Figma skills.</p>
+
+                        <div class="sm-swap">
+                            <div class="sm-swap-col teach">
+                                <div class="lbl"><i class="bi bi-arrow-up-right"></i> Teaches</div>
+                                <span class="sm-skill teach">Public Speaking</span>
+                                <span class="sm-skill teach">React Hooks</span>
+                                <span class="sm-skill teach">TypeScript</span>
+                            </div>
+                            <div class="sm-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                            <div class="sm-swap-col learn">
+                                <div class="lbl"><i class="bi bi-arrow-down-left"></i> Wants</div>
+                                <span class="sm-skill learn">Figma</span>
+                                <span class="sm-skill learn">Design Systems</span>
+                            </div>
+                        </div>
+
+                        <div class="sm-meta-row">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 4.8 (36 reviews)</span>
+                            <span><i class="bi bi-people"></i> 14 exchanges</span>
+                            <span><i class="bi bi-clock-history"></i> Replies in ~12m</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ============================================================
+                     CARD 3 — Maya Rahman
+                     ============================================================ -->
+                <article class="sm-card" data-pos="2" data-id="3" data-name="Maya Rahman" tabindex="0">
+                    <div class="sm-stamp pass">Pass</div>
+                    <div class="sm-stamp connect">Connect</div>
+
+                    <div class="sm-card-top">
+                        <div class="sm-score">
+                            <span class="num">81%</span>
+                            <span class="lbl">Match</span>
+                        </div>
+                        <span class="sm-avatar v3">MR</span>
+                        <div class="sm-name">
+                            <h4>Maya Rahman</h4>
+                            <span class="sm-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="sm-role">Data Scientist · Analytics Lead</div>
+                        <div class="sm-loc"><i class="bi bi-geo-alt"></i> Remote · GMT+1</div>
+                    </div>
+
+                    <div class="sm-card-body">
+                        <p class="sm-bio">Analytics lead at a scale-up. I teach data storytelling and want to learn JavaScript for internal tooling.</p>
+
+                        <div class="sm-swap">
+                            <div class="sm-swap-col teach">
+                                <div class="lbl"><i class="bi bi-arrow-up-right"></i> Teaches</div>
+                                <span class="sm-skill teach">Data Analysis</span>
+                                <span class="sm-skill teach">Python</span>
+                                <span class="sm-skill teach">SQL</span>
+                            </div>
+                            <div class="sm-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                            <div class="sm-swap-col learn">
+                                <div class="lbl"><i class="bi bi-arrow-down-left"></i> Wants</div>
+                                <span class="sm-skill learn">JavaScript</span>
+                                <span class="sm-skill learn">React</span>
+                            </div>
+                        </div>
+
+                        <div class="sm-meta-row">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 4.7 (28 reviews)</span>
+                            <span><i class="bi bi-people"></i> 11 exchanges</span>
+                            <span><i class="bi bi-clock-history"></i> Replies in ~20m</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ============================================================
+                     CARD 4 — Tunde Kalu
+                     ============================================================ -->
+                <article class="sm-card" data-pos="3" data-id="4" data-name="Tunde Kalu" tabindex="0">
+                    <div class="sm-stamp pass">Pass</div>
+                    <div class="sm-stamp connect">Connect</div>
+
+                    <div class="sm-card-top">
+                        <div class="sm-score">
+                            <span class="num">94%</span>
+                            <span class="lbl">Match</span>
+                        </div>
+                        <span class="sm-avatar v4">TK</span>
+                        <div class="sm-name">
+                            <h4>Tunde Kalu</h4>
+                            <span class="sm-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="sm-role">Motion Designer · Figma Specialist</div>
+                        <div class="sm-loc"><i class="bi bi-geo-alt"></i> Lagos, NG · Weekends</div>
+                    </div>
+
+                    <div class="sm-card-body">
+                        <p class="sm-bio">Motion design and Figma wizard. Building an interactive portfolio and need help with React state management.</p>
+
+                        <div class="sm-swap">
+                            <div class="sm-swap-col teach">
+                                <div class="lbl"><i class="bi bi-arrow-up-right"></i> Teaches</div>
+                                <span class="sm-skill teach">Figma</span>
+                                <span class="sm-skill teach">Motion Design</span>
+                                <span class="sm-skill teach">Prototyping</span>
+                            </div>
+                            <div class="sm-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                            <div class="sm-swap-col learn">
+                                <div class="lbl"><i class="bi bi-arrow-down-left"></i> Wants</div>
+                                <span class="sm-skill learn">React</span>
+                                <span class="sm-skill learn">State Management</span>
+                            </div>
+                        </div>
+
+                        <div class="sm-meta-row">
+                            <span class="rating"><i class="bi bi-star-fill"></i> 5.0 (51 reviews)</span>
+                            <span><i class="bi bi-people"></i> 24 exchanges</span>
+                            <span><i class="bi bi-clock-history"></i> Replies in ~3m</span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- Empty deck state -->
+            <div class="sm-empty" id="smEmpty">
+                <div class="ic"><i class="bi bi-stars"></i></div>
+                <h4>You've reviewed every match!</h4>
+                <p>New profiles land every morning at 8:00. Adjust your preferences to widen your deck or check back tomorrow.</p>
+                <div class="btn-row">
+                    <button class="btn btn-secondary btn-sm" data-toast="Refreshing match deck…">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button class="btn btn-line btn-sm" data-toast="Opening preferences…">
+                        <i class="bi bi-sliders"></i> Preferences
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="sm-actions" id="smActions">
+                <button class="sm-act pass" id="smPass" aria-label="Pass on this match" title="Pass">
+                    <i class="bi bi-x-lg"></i>
+                    <span class="tip">Pass</span>
+                </button>
+                <button class="sm-act info" id="smInfo" aria-label="View full profile" title="Full profile" data-toast="Opening full profile…">
+                    <i class="bi bi-person-badge"></i>
+                </button>
+                <button class="sm-act connect" id="smConnect" aria-label="Connect with this match" title="Connect">
+                    <i class="bi bi-handshake"></i>
+                    <span class="tip">Connect</span>
+                </button>
+            </div>
+
+            <div class="sm-hint">
+                <span><i class="bi bi-mouse"></i> Drag the card</span>
+                <span><kbd>←</kbd> Pass</span>
+                <span><kbd>→</kbd> Connect</span>
+                <span><kbd>Space</kbd> Details</span>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-info-circle"></i> How matching works</h3>
+                <a href="#" class="link">Read the guide <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="sm-how">
+                <div class="sm-how-item">
+                    <span class="step"><span class="num">1</span> Teach</span>
+                    <h5>Add your skills</h5>
+                    <p>List what you can teach and what you want to learn. We do the rest.</p>
+                </div>
+                <div class="sm-how-item">
+                    <span class="step"><span class="num">2</span> Match</span>
+                    <h5>Two-way pairing</h5>
+                    <p>We only show people where the swap works both ways — no dead ends.</p>
+                </div>
+                <div class="sm-how-item">
+                    <span class="step"><span class="num">3</span> Swipe</span>
+                    <h5>Connect or pass</h5>
+                    <p>Swipe right to connect, left to pass. Nothing is sent until you decide.</p>
+                </div>
+                <div class="sm-how-item">
+                    <span class="step"><span class="num">4</span> Swap</span>
+                    <h5>Book a session</h5>
+                    <p>Once matched, agree a time and start exchanging — free, always.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ============================================
+         RIGHT — PREFERENCES & RECENT
+         ============================================ -->
+    <div class="sm-col">
+
+        <!-- Preferences -->
+        <div class="sm-panel fade-up">
+            <div class="sm-panel-head">
+                <h4><i class="bi bi-sliders"></i> Match preferences</h4>
+                <button class="link" data-toast="Preferences reset to default">Reset</button>
+            </div>
+
+            <div class="sm-pref">
+                <div class="row">
+                    <span class="lbl">Minimum match strength</span>
+                    <span class="val" id="smStrengthVal">80%</span>
+                </div>
+                <input type="range" class="sm-range" id="smStrength" min="50" max="100" step="5" value="80" aria-label="Minimum match strength">
+            </div>
+
+            <div class="sm-pref">
+                <div class="row">
+                    <span class="lbl">Maximum distance</span>
+                    <span class="val" id="smDistVal">Anywhere</span>
+                </div>
+                <input type="range" class="sm-range" id="smDist" min="0" max="4" step="1" value="4" aria-label="Maximum distance">
+            </div>
+
+            <div style="margin-top:14px;">
+                <label class="sm-toggle">
+                    <input type="checkbox" checked>
+                    <span class="track"></span>
+                    <span class="tl">
+                        <strong>Verified only</strong>
+                        Show only ID-verified learners
+                    </span>
+                </label>
+
+                <label class="sm-toggle">
+                    <input type="checkbox" checked>
+                    <span class="track"></span>
+                    <span class="tl">
+                        <strong>Beginners welcome</strong>
+                        Include learners with &lt; 5 exchanges
+                    </span>
+                </label>
+
+                <label class="sm-toggle">
+                    <input type="checkbox">
+                    <span class="track"></span>
+                    <span class="tl">
+                        <strong>Same timezone only</strong>
+                        Prioritise people nearby in time
+                    </span>
+                </label>
+
+                <label class="sm-toggle">
+                    <input type="checkbox" checked>
+                    <span class="track"></span>
+                    <span class="tl">
+                        <strong>Notify me on match</strong>
+                        Email when someone connects back
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Recent connections -->
+        <div class="card fade-up">
+            <div class="card-head">
+                <h3><i class="bi bi-clock-history"></i> Recent connections</h3>
+                <a href="#" class="link">See all <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="sm-conn">
+                <span class="avatar xs">JT</span>
+                <div class="sm-conn-body">
+                    <h5>Jonas Tan</h5>
+                    <p>You teach <strong>React</strong> · He teaches <strong>Backend</strong></p>
+                </div>
+                <span class="sm-conn-tag">Matched</span>
+            </div>
+
+            <div class="sm-conn">
+                <span class="avatar xs" style="background: linear-gradient(135deg, #A78BFA, #7C3AED); color:#fff;">AN</span>
+                <div class="sm-conn-body">
+                    <h5>Amara Nwosu</h5>
+                    <p>You learn <strong>Data Science</strong> · She learns <strong>Figma</strong></p>
+                </div>
+                <span class="sm-conn-tag sky">Session booked</span>
+            </div>
+
+            <div class="sm-conn">
+                <span class="avatar xs" style="background: linear-gradient(135deg, #6EE7B7, #22C55E); color:var(--primary-dark);">CN</span>
+                <div class="sm-conn-body">
+                    <h5>Chidi Nwosu</h5>
+                    <p>You learn <strong>API Design</strong> · He learns <strong>UI Design</strong></p>
+                </div>
+                <span class="sm-conn-tag">Matched</span>
+            </div>
+
+            <div class="sm-conn">
+                <span class="avatar xs">LB</span>
+                <div class="sm-conn-body">
+                    <h5>Lena Brava</h5>
+                    <p>You teach <strong>React</strong> · She teaches <strong>Design Thinking</strong></p>
+                </div>
+                <span class="sm-conn-tag violet">In progress</span>
+            </div>
+        </div>
+
+        <!-- Trust note -->
+        <div class="sm-trust fade-up">
+            <i class="bi bi-shield-check"></i>
+            <span>
+                <strong>Your safety matters.</strong> Every profile on Knotwork is ID-verified before it enters the match deck.
+                You can block, report, or pause matching at any time from your settings.
+            </span>
+        </div>
+
+    </div>
+</section>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           SWIPE DECK
+           ====================================================== */
+        var stage = document.getElementById('smStage');
+        var empty = document.getElementById('smEmpty');
+        var actions = document.getElementById('smActions');
+        var deckCount = document.getElementById('smDeckCount');
+
+        if (!stage) return;
+
+        var cards = Array.prototype.slice.call(stage.querySelectorAll('.sm-card'));
+        var SWIPE_THRESHOLD = 110;
+        var activeIndex = 0;
+
+        function updateDeck() {
+            var remaining = cards.filter(function (c) { return !c.dataset.gone; }).length;
+            if (deckCount) {
+                deckCount.textContent = remaining + ' profile' + (remaining === 1 ? '' : 's') + ' left';
+            }
+            if (remaining === 0) {
+                if (empty) empty.classList.add('show');
+                if (actions) actions.style.display = 'none';
+            }
+        }
+
+        function reorder() {
+            var live = cards.filter(function (c) { return !c.dataset.gone; });
+            live.forEach(function (card, i) {
+                card.dataset.pos = String(i);
+                if (i > 3) card.style.display = 'none';
+                else card.style.display = '';
+            });
+        }
+
+        function activeCard() {
+            return cards.filter(function (c) { return !c.dataset.gone; })[0] || null;
+        }
+
+        function dismiss(card, direction) {
+            if (!card || card.dataset.gone) return;
+            card.dataset.gone = '1';
+            card.classList.add(direction === 'right' ? 'show-connect' : 'show-pass');
+
+            var flyX = direction === 'right' ? window.innerWidth : -window.innerWidth;
+            card.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease';
+            card.style.transform = 'translate(' + flyX + 'px, -30px) rotate(' + (direction === 'right' ? 22 : -22) + 'deg)';
+            card.style.opacity = '0';
+
+            if (window.__toast) {
+                var name = card.dataset.name || 'this learner';
+                if (direction === 'right') {
+                    window.__toast('Connection request sent to ' + name + '!', 'success');
+                } else {
+                    window.__toast('Passed on ' + name, '');
+                }
+            }
+
+            setTimeout(function () {
+                card.style.display = 'none';
+                reorder();
+                updateDeck();
+                activeIndex = 0;
+                applyPositions();
+            }, 500);
+        }
+
+        function applyPositions() {
+            var live = cards.filter(function (c) { return !c.dataset.gone; });
+            live.forEach(function (card, i) {
+                card.dataset.pos = String(i);
+            });
+        }
+
+        /* ---------- Pointer drag ---------- */
+        cards.forEach(function (card) {
+            var startX = 0, startY = 0, dx = 0, dy = 0;
+            var dragging = false;
+
+            function isTop() {
+                return !card.dataset.gone && card.dataset.pos === '0';
+            }
+
+            card.addEventListener('pointerdown', function (e) {
+                if (!isTop()) return;
+                if (e.target.closest('button')) return;
+                dragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                dx = 0; dy = 0;
+                card.classList.add('dragging');
+                card.setPointerCapture && card.setPointerCapture(e.pointerId);
+            });
+
+            card.addEventListener('pointermove', function (e) {
+                if (!dragging) return;
+                dx = e.clientX - startX;
+                dy = e.clientY - startY;
+
+                var rot = dx / 18;
+                card.style.transform =
+                    'translate(' + dx + 'px, ' + dy * 0.4 + 'px) rotate(' + rot + 'deg)';
+
+                if (dx > 40) {
+                    card.classList.add('show-connect');
+                    card.classList.remove('show-pass');
+                } else if (dx < -40) {
+                    card.classList.add('show-pass');
+                    card.classList.remove('show-connect');
+                } else {
+                    card.classList.remove('show-pass', 'show-connect');
+                }
+            });
+
+            function release() {
+                if (!dragging) return;
+                dragging = false;
+                card.classList.remove('dragging');
+
+                if (dx > SWIPE_THRESHOLD) {
+                    dismiss(card, 'right');
+                } else if (dx < -SWIPE_THRESHOLD) {
+                    dismiss(card, 'left');
+                } else {
+                    card.style.transform = '';
+                    card.classList.remove('show-pass', 'show-connect');
+                }
+            }
+
+            card.addEventListener('pointerup', release);
+            card.addEventListener('pointercancel', release);
+            card.addEventListener('pointerleave', function () {
+                if (dragging) release();
+            });
+        });
+
+        /* ---------- Buttons ---------- */
+        var btnPass = document.getElementById('smPass');
+        var btnConnect = document.getElementById('smConnect');
+        var btnInfo = document.getElementById('smInfo');
+
+        if (btnPass) {
+            btnPass.addEventListener('click', function () {
+                var c = activeCard();
+                if (c) dismiss(c, 'left');
+            });
+        }
+
+        if (btnConnect) {
+            btnConnect.addEventListener('click', function () {
+                var c = activeCard();
+                if (c) dismiss(c, 'right');
+            });
+        }
+
+        if (btnInfo) {
+            btnInfo.addEventListener('click', function () {
+                var c = activeCard();
+                if (!c) return;
+                var name = c.dataset.name || 'this learner';
+                if (window.__toast) window.__toast('Opening full profile for ' + name + '…', '');
+            });
+        }
+
+        /* ---------- Keyboard shortcuts ---------- */
+        document.addEventListener('keydown', function (e) {
+            /* Skip if focused inside an input/textarea/select */
+            var tag = (document.activeElement && document.activeElement.tagName) || '';
+            if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
+            /* Skip if a modal/menu is open elsewhere */
+            if (document.querySelector('.dropdown.open')) return;
+
+            if (e.key === 'ArrowLeft') {
+                var c = activeCard();
+                if (c) { e.preventDefault(); dismiss(c, 'left'); }
+            } else if (e.key === 'ArrowRight') {
+                var c2 = activeCard();
+                if (c2) { e.preventDefault(); dismiss(c2, 'right'); }
+            } else if (e.key === ' ') {
+                var c3 = activeCard();
+                if (c3) {
+                    e.preventDefault();
+                    var name = c3.dataset.name || 'this learner';
+                    if (window.__toast) window.__toast('Opening full profile for ' + name + '…', '');
+                }
+            }
+        });
+
+        /* ---------- Init ---------- */
+        reorder();
+        updateDeck();
+
+        /* ======================================================
+           PREFERENCES — range labels
+           ====================================================== */
+        var strength = document.getElementById('smStrength');
+        var strengthVal = document.getElementById('smStrengthVal');
+        var dist = document.getElementById('smDist');
+        var distVal = document.getElementById('smDistVal');
+        var distLabels = ['Same city', 'Under 50km', 'Same country', 'Same continent', 'Anywhere'];
+
+        if (strength && strengthVal) {
+            strength.addEventListener('input', function () {
+                strengthVal.textContent = this.value + '%';
+            });
+        }
+
+        if (dist && distVal) {
+            dist.addEventListener('input', function () {
+                distVal.textContent = distLabels[parseInt(this.value, 10)] || 'Anywhere';
+            });
+            distVal.textContent = distLabels[parseInt(dist.value, 10)] || 'Anywhere';
+        }
+
+    })();
+</script>
+
+{% endblock content %}
