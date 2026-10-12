@@ -1,0 +1,2764 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Announcements{% endblock %}
+{% block page_title %}Announcements{% endblock %}
+{% block breadcrumb %}Content · Broadcast{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   ANNOUNCEMENTS — BROADCAST COMMAND CENTER
+   Improvised palette: broadcast-orange + signal-red + reach-emerald
+   ============================================================ */
+
+:root {
+    --bn-orange: #FB923C;
+    --bn-orange-deep: #C2410C;
+    --bn-orange-dim: rgba(251, 146, 60, 0.12);
+    --bn-orange-glow: rgba(251, 146, 60, 0.42);
+
+    --bn-red: #EF4444;
+    --bn-red-deep: #B91C1C;
+    --bn-red-dim: rgba(239, 68, 68, 0.12);
+    --bn-red-glow: rgba(239, 68, 68, 0.42);
+
+    --bn-emerald: #10B981;
+    --bn-emerald-deep: #047857;
+    --bn-emerald-dim: rgba(16, 185, 129, 0.12);
+    --bn-emerald-glow: rgba(16, 185, 129, 0.42);
+
+    --bn-violet: #8B5CF6;
+    --bn-violet-deep: #6D28D9;
+    --bn-violet-dim: rgba(139, 92, 246, 0.12);
+    --bn-violet-glow: rgba(139, 92, 246, 0.42);
+
+    --bn-blue: #3B82F6;
+    --bn-blue-deep: #1D4ED8;
+    --bn-blue-dim: rgba(59, 130, 246, 0.12);
+    --bn-blue-glow: rgba(59, 130, 246, 0.42);
+
+    --bn-amber: #F59E0B;
+    --bn-amber-deep: #B45309;
+    --bn-amber-dim: rgba(245, 158, 11, 0.12);
+
+    --bn-mesh-1: radial-gradient(circle at 12% 20%, rgba(251, 146, 60, 0.16), transparent 42%);
+    --bn-mesh-2: radial-gradient(circle at 88% 78%, rgba(139, 92, 246, 0.14), transparent 44%);
+    --bn-mesh-3: radial-gradient(circle at 62% 12%, rgba(16, 185, 129, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   ANNOUNCEMENTS WIRE — MARQUEE
+   ============================================================ */
+.bn-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(251, 146, 60, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(139, 92, 246, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(251, 146, 60, 0.28);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.bn-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--bn-orange), var(--bn-violet), var(--bn-emerald), var(--crown-2));
+    box-shadow: 0 0 22px rgba(251, 146, 60, 0.5);
+    z-index: 5;
+}
+.bn-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.bn-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.bn-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.bn-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.bn-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--bn-orange);
+    pointer-events: none;
+}
+.bn-wire-label .bn-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--bn-orange);
+    box-shadow: 0 0 0 0 var(--bn-orange-glow);
+    animation: bnPulse 1.6s infinite;
+}
+@keyframes bnPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+}
+.bn-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 180px;
+    animation: bnWireRoll 52s linear infinite;
+}
+.bn-wire:hover .bn-wire-track { animation-play-state: paused; }
+@keyframes bnWireRoll { to { transform: translateX(-50%); } }
+
+.bn-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.bn-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--bn-orange);
+    box-shadow: 0 0 8px var(--bn-orange-glow);
+    flex-shrink: 0;
+    animation: bnSpark 1.8s ease-in-out infinite;
+}
+.bn-wire-item.orange  .wdot { background: var(--bn-orange);  box-shadow: 0 0 8px var(--bn-orange-glow); }
+.bn-wire-item.violet  .wdot { background: var(--bn-violet);  box-shadow: 0 0 8px var(--bn-violet-glow); }
+.bn-wire-item.emerald .wdot { background: var(--bn-emerald); box-shadow: 0 0 8px var(--bn-emerald-glow); }
+.bn-wire-item.red     .wdot { background: var(--bn-red);     box-shadow: 0 0 8px var(--bn-red-glow); }
+.bn-wire-item.blue    .wdot { background: var(--bn-blue);    box-shadow: 0 0 8px var(--bn-blue-glow); }
+@keyframes bnSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.bn-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.bn-wire-item em {
+    font-style: normal;
+    color: var(--bn-orange);
+    font-weight: 700;
+}
+
+/* ============================================================
+   ANNOUNCEMENTS HERO
+   ============================================================ */
+.bn-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--bn-mesh-1), var(--bn-mesh-2), var(--bn-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(251, 146, 60, 0.20);
+}
+.bn-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--bn-orange), var(--bn-violet) 40%, var(--bn-emerald) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(251, 146, 60, 0.5);
+    z-index: 5;
+}
+.bn-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.bn-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.bn-hero-left { min-width: 0; flex: 1 1 520px; }
+.bn-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(251, 146, 60, 0.12);
+    border: 1px solid rgba(251, 146, 60, 0.42);
+    color: var(--bn-orange);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.bn-hero-kicker i { font-size: 0.7rem; }
+.bn-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.bn-hero-title em { color: var(--bn-orange); font-style: italic; }
+.bn-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 640px;
+    line-height: 1.62;
+}
+.bn-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.bn-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.bn-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.bn-hero-meta .hm:hover {
+    background: rgba(251, 146, 60, 0.10);
+    border-color: rgba(251, 146, 60, 0.42);
+    color: var(--bn-orange);
+    transform: translateY(-2px);
+}
+.bn-hero-meta .hm i { color: var(--bn-orange); font-size: 0.78rem; }
+.bn-hero-meta .hm.warn {
+    background: rgba(139, 92, 246, 0.10);
+    border-color: rgba(139, 92, 246, 0.42);
+    color: var(--bn-violet);
+}
+.bn-hero-meta .hm.warn i { color: var(--bn-violet); }
+
+.bn-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(251, 146, 60, 0.16), rgba(139, 92, 246, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(251, 146, 60, 0.42);
+    box-shadow:
+        0 18px 44px rgba(251, 146, 60, 0.18),
+        0 0 0 1px rgba(251, 146, 60, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--bn-orange) 120deg,
+                var(--bn-violet) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(251, 146, 60, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--bn-orange);
+    display: grid;
+    place-items: center;
+    color: var(--bn-orange);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(251, 146, 60, 0.55), 0 0 0 3px rgba(251, 146, 60, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(251, 146, 60, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.bn-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.bn-tabs::-webkit-scrollbar { display: none; }
+
+.bn-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.bn-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.bn-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.bn-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.bn-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+
+.bn-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.bn-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.bn-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.bn-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.bn-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.bn-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.bn-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.bn-panels { position: relative; }
+.bn-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: bnPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.bn-panel.active { display: flex; }
+@keyframes bnPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.bn-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.bn-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.bn-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--bs-accent, linear-gradient(90deg, var(--bn-orange), var(--bn-orange-deep)));
+}
+.bn-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.bn-stat.orange  { --bs-accent: linear-gradient(90deg, #FB923C, #C2410C); }
+.bn-stat.violet  { --bs-accent: linear-gradient(90deg, #8B5CF6, #6D28D9); }
+.bn-stat.emerald { --bs-accent: linear-gradient(90deg, #10B981, #047857); }
+.bn-stat.blue    { --bs-accent: linear-gradient(90deg, #3B82F6, #1D4ED8); }
+.bn-stat.red     { --bs-accent: linear-gradient(90deg, #EF4444, #B91C1C); }
+
+.bn-stat .bs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.bn-stat .bs-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.bn-stat.orange  .bs-ic { background: var(--bn-orange-dim);  color: var(--bn-orange-deep); }
+.bn-stat.violet  .bs-ic { background: var(--bn-violet-dim);  color: var(--bn-violet-deep); }
+.bn-stat.emerald .bs-ic { background: var(--bn-emerald-dim); color: var(--bn-emerald-deep); }
+.bn-stat.blue    .bs-ic { background: var(--bn-blue-dim);    color: var(--bn-blue-deep); }
+.bn-stat.red     .bs-ic { background: var(--bn-red-dim);     color: var(--bn-red-deep); }
+
+.bn-stat .bs-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.bn-stat .bs-trend.warn { background: var(--bn-orange-dim); color: var(--bn-orange-deep); }
+.bn-stat .bs-trend.info { background: var(--bn-blue-dim); color: var(--bn-blue-deep); }
+
+.bn-stat .bs-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.bn-stat .bs-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.bn-stat .bs-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   COMPOSER PANEL (unique to this page)
+   ============================================================ */
+.bn-composer {
+    position: relative;
+    border-radius: 24px;
+    padding: 28px 32px;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(251, 146, 60, 0.10), transparent 55%),
+        radial-gradient(circle at 10% 90%, rgba(139, 92, 246, 0.10), transparent 55%),
+        linear-gradient(140deg, #FFFFFF 0%, #F8FAFC 55%, #FFFFFF 100%);
+    border: 1px solid rgba(251, 146, 60, 0.22);
+    box-shadow: 0 18px 48px rgba(11, 17, 33, 0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+    overflow: hidden;
+    isolation: isolate;
+}
+.bn-composer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--bn-orange), var(--bn-violet), var(--bn-emerald));
+    box-shadow: 0 0 22px rgba(251, 146, 60, 0.4);
+}
+.bn-composer::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(251, 146, 60, 0.08), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.bn-composer-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.bn-composer-head .c-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 26px rgba(251, 146, 60, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.bn-composer-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    letter-spacing: -0.005em;
+}
+.bn-composer-head h2 em { color: var(--bn-orange); font-style: italic; }
+.bn-composer-head p {
+    font-size: 0.72rem;
+    color: var(--gray-400);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.bn-composer-head .c-status {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(34, 197, 94, 0.10);
+    border: 1px solid rgba(34, 197, 94, 0.32);
+    color: #15803D;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.bn-composer-head .c-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    animation: bnSpark 1.8s infinite;
+}
+
+.bn-composer-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 26px;
+    align-items: flex-start;
+}
+
+/* Composer left: fields */
+.bn-field { margin-bottom: 18px; }
+.bn-field-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.bn-field-label span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+.bn-field-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+
+.bn-input,
+.bn-textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.92rem;
+    color: var(--primary-dark);
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: var(--transition);
+    outline: none;
+    resize: none;
+}
+.bn-input:focus,
+.bn-textarea:focus {
+    border-color: var(--bn-orange);
+    box-shadow: 0 0 0 4px var(--bn-orange-dim);
+}
+.bn-input::placeholder,
+.bn-textarea::placeholder { color: var(--gray-400); }
+.bn-textarea {
+    min-height: 140px;
+    line-height: 1.6;
+    font-size: 0.88rem;
+}
+
+/* Audience pills */
+.bn-audience-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+.bn-audience-pill {
+    position: relative;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--gray-200);
+    background: var(--white);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bn-audience-pill:hover {
+    border-color: var(--bn-orange);
+    background: var(--bn-orange-dim);
+    transform: translateY(-2px);
+}
+.bn-audience-pill.selected {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.12), rgba(139, 92, 246, 0.10));
+    border-color: var(--bn-orange);
+    box-shadow: 0 6px 18px rgba(251, 146, 60, 0.18);
+}
+.bn-audience-pill .ap-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-size: 0.86rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.bn-audience-pill.selected .ap-ic {
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.32);
+}
+.bn-audience-pill .ap-body { min-width: 0; flex: 1; }
+.bn-audience-pill .ap-body strong {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bn-audience-pill .ap-body span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+}
+.bn-audience-pill.selected .ap-body span { color: var(--bn-orange-deep); font-weight: 700; }
+
+/* Channel pills */
+.bn-channel-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.bn-channel-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.bn-channel-pill:hover {
+    border-color: var(--bn-orange);
+    color: var(--primary-dark);
+}
+.bn-channel-pill.selected {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.12), rgba(139, 92, 246, 0.10));
+    border-color: var(--bn-orange);
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+.bn-channel-pill .chk {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gray-300);
+    display: grid;
+    place-items: center;
+    background: var(--white);
+    font-size: 0.6rem;
+    color: transparent;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.bn-channel-pill.selected .chk {
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    border-color: var(--bn-orange);
+    color: #fff;
+}
+
+/* Compose actions */
+.bn-compose-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--gray-200);
+    align-items: center;
+}
+.bn-send-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 26px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 12px 28px rgba(251, 146, 60, 0.32);
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+}
+.bn-send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(251, 146, 60, 0.44);
+}
+.bn-send-btn i { font-size: 1rem; }
+
+.bn-action-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    color: var(--gray-600);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.bn-action-ghost:hover {
+    border-color: var(--bn-orange);
+    color: var(--primary-dark);
+    background: var(--bn-orange-dim);
+    transform: translateY(-2px);
+}
+.bn-action-ghost i { font-size: 0.86rem; }
+
+/* Composer right: preview + countdown */
+.bn-preview {
+    position: relative;
+    border-radius: 18px;
+    padding: 20px 22px;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(251, 146, 60, 0.14), transparent 55%),
+        linear-gradient(140deg, #020617 0%, #0B1121 55%, #17243D 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.22);
+}
+.bn-preview::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--bn-orange), var(--bn-violet));
+    box-shadow: 0 0 18px rgba(251, 146, 60, 0.5);
+}
+.bn-preview .pv-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.bn-preview .pv-head .pv-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--bn-orange);
+    box-shadow: 0 0 10px var(--bn-orange-glow);
+    animation: bnSpark 1.8s infinite;
+}
+.bn-preview .pv-head h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--bn-orange);
+}
+.bn-preview .pv-head .pv-time {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.02em;
+}
+
+.pv-phone {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+.pv-phone .pv-notif {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.pv-phone .pv-notif .pv-ic {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    color: var(--primary-deep);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.pv-phone .pv-notif .pv-body { flex: 1; min-width: 0; }
+.pv-phone .pv-notif .pv-body strong {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pv-phone .pv-notif .pv-body p {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.pv-phone .pv-notif .pv-body .pv-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 2px 8px 2px 6px;
+    border-radius: 50px;
+    background: rgba(251, 146, 60, 0.14);
+    color: var(--bn-orange);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+.pv-phone .pv-notif .pv-body .pv-tag i { font-size: 0.56rem; }
+
+.pv-recipients {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 14px;
+}
+.pv-recipients .pv-rec-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+.pv-recipients .pv-rec-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+.pv-recipients .pv-rec-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--bn-orange);
+    letter-spacing: 0.06em;
+}
+
+.pv-schedule {
+    display: flex;
+    gap: 8px;
+}
+.pv-schedule-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    text-align: left;
+}
+.pv-schedule-btn:hover {
+    background: rgba(251, 146, 60, 0.10);
+    border-color: rgba(251, 146, 60, 0.42);
+}
+.pv-schedule-btn.selected {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.16), rgba(139, 92, 246, 0.14));
+    border-color: rgba(251, 146, 60, 0.55);
+}
+.pv-schedule-btn .sch-ic {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+.pv-schedule-btn .sch-ic i { color: var(--bn-orange); font-size: 0.7rem; }
+.pv-schedule-btn.selected .sch-ic { color: var(--bn-orange); }
+.pv-schedule-btn .sch-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.005em;
+}
+
+/* ============================================================
+   ANNOUNCEMENT CARDS (history)
+   ============================================================ */
+.bn-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.bn-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.bn-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--nc-accent, linear-gradient(180deg, var(--bn-orange), var(--bn-orange-deep)));
+    z-index: 2;
+}
+.bn-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.bn-card.sent      { --nc-accent: linear-gradient(180deg, #10B981, #047857); }
+.bn-card.scheduled { --nc-accent: linear-gradient(180deg, #3B82F6, #1D4ED8); }
+.bn-card.draft     { --nc-accent: linear-gradient(180deg, #94A3B8, #475569); }
+.bn-card.emergency { --nc-accent: linear-gradient(180deg, #EF4444, #B91C1C); }
+
+.bn-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr) auto;
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* Left: content */
+.bn-content { min-width: 0; flex: 1; }
+
+.bn-head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.bn-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.bn-status.sent      { background: var(--bn-emerald-dim); color: var(--bn-emerald-deep); border: 1px solid rgba(16,185,129,0.32); }
+.bn-status.scheduled { background: var(--bn-blue-dim);    color: var(--bn-blue-deep);    border: 1px solid rgba(59,130,246,0.32); }
+.bn-status.draft     { background: var(--gray-100);        color: var(--gray-600);        border: 1px solid var(--gray-200); }
+.bn-status.emergency { background: var(--bn-red-dim);      color: var(--bn-red-deep);     border: 1px solid rgba(239,68,68,0.32); }
+
+.bn-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+}
+.bn-status.sent .dot { background: var(--bn-emerald); }
+.bn-status.scheduled .dot { background: var(--bn-blue); animation: bnSpark 1.8s infinite; }
+
+.bn-channel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.bn-channel-badge i { font-size: 0.62rem; }
+
+.bn-audience-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+.bn-audience-tag.all      { background: var(--bn-orange-dim); color: var(--bn-orange-deep); border: 1px solid rgba(251,146,60,0.32); }
+.bn-audience-tag.students { background: var(--bn-blue-dim);   color: var(--bn-blue-deep);   border: 1px solid rgba(59,130,246,0.32); }
+.bn-audience-tag.teachers { background: var(--bn-emerald-dim); color: var(--bn-emerald-deep); border: 1px solid rgba(16,185,129,0.32); }
+.bn-audience-tag.mentors  { background: var(--bn-violet-dim); color: var(--bn-violet-deep); border: 1px solid rgba(139,92,246,0.32); }
+
+.bn-id {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+
+.bn-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.25;
+    margin-bottom: 8px;
+}
+.bn-body-preview {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    border-left: 3px solid var(--nc-accent);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.bn-body-preview em {
+    font-style: italic;
+    color: var(--bn-orange-deep);
+    font-weight: 700;
+    background: var(--bn-orange-dim);
+    padding: 0 4px;
+    border-radius: 3px;
+}
+
+.bn-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.bn-author .au-av {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    color: var(--primary-deep);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.58rem;
+    flex-shrink: 0;
+}
+.bn-author b { color: var(--gray-600); font-weight: 800; }
+
+/* Middle: delivery stats */
+.bn-delivery {
+    padding: 4px 0 4px 24px;
+    border-left: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.bn-delivery-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.bn-dv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+.bn-dv-cell {
+    text-align: left;
+    line-height: 1.15;
+}
+.bn-dv-cell b {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    letter-spacing: -0.005em;
+}
+.bn-dv-cell b.ok   { color: var(--bn-emerald-deep); }
+.bn-dv-cell b.warn { color: var(--bn-orange-deep); }
+.bn-dv-cell b.blue { color: var(--bn-blue-deep); }
+.bn-dv-cell span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 3px;
+}
+
+.bn-dv-bar {
+    height: 5px;
+    background: var(--gray-100);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+.bn-dv-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--bn-emerald), var(--bn-emerald-deep));
+    transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.bn-engagement {
+    display: flex;
+    gap: 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    align-items: center;
+    flex-wrap: wrap;
+}
+.bn-eng-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--gray-600);
+}
+.bn-eng-item i { color: var(--bn-orange-deep); font-size: 0.76rem; }
+.bn-eng-item b {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: var(--primary-dark);
+}
+
+/* Right: actions */
+.bn-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 180px;
+    padding-top: 4px;
+}
+.bn-actions .bn-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.bn-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.bn-btn i { font-size: 0.86rem; }
+
+.bn-btn.primary {
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(251, 146, 60, 0.32);
+}
+.bn-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(251, 146, 60, 0.44);
+}
+.bn-btn.ghost {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.bn-btn.ghost:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.bn-btn.danger {
+    background: var(--white);
+    color: var(--bn-red-deep);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.bn-btn.danger:hover {
+    background: var(--bn-red-dim);
+    border-color: var(--bn-red);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   ADMIN EXCLUSIVE — BROADCAST CONSOLE
+   ============================================================ */
+.broadcast-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(251, 146, 60, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(139, 92, 246, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(251, 146, 60, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.broadcast-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--bn-orange), var(--bn-violet) 50%, var(--bn-emerald) 100%);
+    box-shadow: 0 0 22px rgba(251, 146, 60, 0.5);
+}
+.broadcast-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.bc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.bc-head .bc-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(251, 146, 60, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.bc-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.bc-head h2 em { color: var(--bn-orange); font-style: italic; }
+.bc-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.bc-head .bc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(251, 146, 60, 0.12);
+    border: 1px solid rgba(251, 146, 60, 0.42);
+    color: var(--bn-orange);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.bc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.bc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.bc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.bc-tool:hover {
+    background: rgba(251, 146, 60, 0.10);
+    border-color: rgba(251, 146, 60, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(251, 146, 60, 0.18);
+}
+.bc-tool:hover::before { transform: translateX(120%); }
+.bc-tool .bc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--bn-orange);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.bc-tool:hover .bc-t-ic {
+    background: linear-gradient(135deg, var(--bn-orange), var(--bn-violet));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(251, 146, 60, 0.42);
+}
+.bc-tool.danger .bc-t-ic { color: var(--bn-red); }
+.bc-tool.danger:hover {
+    background: rgba(239, 68, 68, 0.10);
+    border-color: rgba(239, 68, 68, 0.42);
+}
+.bc-tool.danger:hover .bc-t-ic {
+    background: linear-gradient(135deg, var(--bn-red), var(--bn-red-deep));
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.42);
+}
+.bc-tool.emerald .bc-t-ic { color: var(--bn-emerald); }
+.bc-tool.emerald:hover { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.42); }
+.bc-tool.emerald:hover .bc-t-ic {
+    background: linear-gradient(135deg, var(--bn-emerald), var(--bn-emerald-deep));
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.42);
+}
+.bc-tool .bc-t-body { flex: 1; min-width: 0; }
+.bc-tool .bc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.bc-tool .bc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.bc-tool .bc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.bc-tool:hover .bc-t-arrow { color: var(--bn-orange); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .bn-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bn-card-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+    .bn-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .bn-actions .bn-action-label { display: none; }
+    .bn-composer-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 1180px) {
+    .bn-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .bn-delivery { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .bn-card-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .bn-actions { grid-column: auto; }
+}
+@media (max-width: 900px) {
+    .bn-hero { padding: 24px 20px; }
+    .bn-hero-title { font-size: 1.55rem; }
+    .bn-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .bn-tab .tab-label small { display: none; }
+    .bn-audience-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+    .bn-stat-strip { grid-template-columns: 1fr; }
+    .bn-hero { padding: 22px 18px; }
+    .bn-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .bn-actions { flex-direction: column; align-items: stretch; }
+    .bn-actions .bn-action-label { display: block; text-align: left; }
+    .bn-composer { padding: 22px 18px; }
+    .bn-dv-grid { grid-template-columns: 1fr; }
+    .pv-schedule { flex-direction: column; }
+}
+@media (max-width: 560px) {
+    .bn-tabs { padding: 6px; gap: 3px; }
+    .bn-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .bn-tab .tab-badge { display: none; }
+    .bn-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .bn-wire-label { display: none; }
+    .bn-wire-track { padding-left: 24px; }
+    .bn-audience-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bn-wire-track, .acb-avatar::before, .bn-wire-label .bn-dot,
+    .bn-wire-item .wdot, .admin-crown-badge::before,
+    .bn-status.scheduled .dot, .bn-composer-head .c-status .dot,
+    .bn-preview .pv-head .pv-dot {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     ANNOUNCEMENTS WIRE — MARQUEE
+     ============================================================ -->
+<div class="bn-wire" aria-label="Broadcast pulse">
+    <span class="bn-wire-edge left"></span>
+    <span class="bn-wire-edge right"></span>
+    <div class="bn-wire-label"><span class="bn-dot"></span> Broadcast Wire</div>
+    <div class="bn-wire-track">
+        <!-- Set A -->
+        <span class="bn-wire-item orange"><span class="wdot"></span><strong>4</strong> broadcasts sent today · <em>reaching 12,438 members</em></span>
+        <span class="bn-wire-item violet"><span class="wdot"></span><strong>2</strong> scheduled broadcasts queued · next in 42m</span>
+        <span class="bn-wire-item emerald"><span class="wdot"></span>Open rate <strong>68.4%</strong> · best on record</span>
+        <span class="bn-wire-item red"><span class="wdot"></span><strong>1</strong> emergency broadcast sent · platform incident resolved</span>
+        <span class="bn-wire-item blue"><span class="wdot"></span>Click-through <strong>24.8%</strong> · top 3 industries</span>
+        <span class="bn-wire-item orange"><span class="wdot"></span><strong>3</strong> drafts awaiting review</span>
+        <span class="bn-wire-item violet"><span class="wdot"></span>Most-engaged audience <strong>Teachers · 84%</strong></span>
+        <span class="bn-wire-item emerald"><span class="wdot"></span><strong>42</strong> broadcasts this month · 96% delivered</span>
+        <span class="bn-wire-item blue"><span class="wdot"></span>Unsubscribe rate <strong>0.42%</strong> · industry low</span>
+        <span class="bn-wire-item red"><span class="wdot"></span>Failed deliveries <strong>48</strong> · retrying</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="bn-wire-item orange"><span class="wdot"></span><strong>4</strong> broadcasts sent today · <em>reaching 12,438 members</em></span>
+        <span class="bn-wire-item violet"><span class="wdot"></span><strong>2</strong> scheduled broadcasts queued · next in 42m</span>
+        <span class="bn-wire-item emerald"><span class="wdot"></span>Open rate <strong>68.4%</strong> · best on record</span>
+        <span class="bn-wire-item red"><span class="wdot"></span><strong>1</strong> emergency broadcast sent · platform incident resolved</span>
+        <span class="bn-wire-item blue"><span class="wdot"></span>Click-through <strong>24.8%</strong> · top 3 industries</span>
+        <span class="bn-wire-item orange"><span class="wdot"></span><strong>3</strong> drafts awaiting review</span>
+        <span class="bn-wire-item violet"><span class="wdot"></span>Most-engaged audience <strong>Teachers · 84%</strong></span>
+        <span class="bn-wire-item emerald"><span class="wdot"></span><strong>42</strong> broadcasts this month · 96% delivered</span>
+        <span class="bn-wire-item blue"><span class="wdot"></span>Unsubscribe rate <strong>0.42%</strong> · industry low</span>
+        <span class="bn-wire-item red"><span class="wdot"></span>Failed deliveries <strong>48</strong> · retrying</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     ANNOUNCEMENTS HERO
+     ============================================================ -->
+<section class="bn-hero fade-up">
+    <div class="bn-hero-inner">
+        <div class="bn-hero-left">
+            <span class="bn-hero-kicker">
+                <i class="bi bi-megaphone-fill"></i>
+                Broadcast Command · Root Access
+            </span>
+            <h1 class="bn-hero-title">
+                One message, <em>every voice</em>.
+            </h1>
+            <p class="bn-hero-sub">
+                Send platform-wide broadcasts to <strong>Students</strong>, <strong>Teachers</strong>,
+                <strong>Mentors</strong>, or everyone at once. Compose once, deliver across
+                in-app, email, and push. Current reach: <strong>12,438 members</strong>,
+                open rate <strong>68.4%</strong>.
+            </p>
+            <div class="bn-hero-meta">
+                <span class="hm"><i class="bi bi-send-check-fill"></i> 4 sent today</span>
+                <span class="hm warn"><i class="bi bi-clock-fill"></i> 2 scheduled</span>
+                <span class="hm"><i class="bi bi-eye-fill"></i> 68.4% open rate</span>
+                <span class="hm"><i class="bi bi-people-fill"></i> 12.4k reach</span>
+            </div>
+        </div>
+
+        <div class="bn-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · BROADCAST</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="bn-tabs" role="tablist" aria-label="Broadcast sections">
+    <button class="bn-tab active" data-tab="compose" role="tab" style="--tab-accent: #FB923C; --tab-accent-deep: #C2410C; --tab-accent-dim: rgba(251,146,60,0.10); --tab-accent-glow: rgba(251,146,60,0.42);">
+        <span class="tab-ic"><i class="bi bi-pencil-square"></i></span>
+        <span class="tab-label">
+            Compose
+            <small>New broadcast</small>
+        </span>
+    </button>
+    <button class="bn-tab" data-tab="sent" role="tab" style="--tab-accent: #10B981; --tab-accent-deep: #047857; --tab-accent-dim: rgba(16,185,129,0.10); --tab-accent-glow: rgba(16,185,129,0.42);">
+        <span class="tab-ic"><i class="bi bi-send-check-fill"></i></span>
+        <span class="tab-label">
+            Sent
+            <small>Delivered</small>
+        </span>
+        <span class="tab-badge">42</span>
+    </button>
+    <button class="bn-tab" data-tab="scheduled" role="tab" style="--tab-accent: #3B82F6; --tab-accent-deep: #1D4ED8; --tab-accent-dim: rgba(59,130,246,0.10); --tab-accent-glow: rgba(59,130,246,0.42);">
+        <span class="tab-ic"><i class="bi bi-clock-fill"></i></span>
+        <span class="tab-label">
+            Scheduled
+            <small>Queued</small>
+        </span>
+        <span class="tab-badge">2</span>
+    </button>
+    <button class="bn-tab" data-tab="drafts" role="tab" style="--tab-accent: #64748B; --tab-accent-deep: #334155; --tab-accent-dim: rgba(100,116,139,0.10); --tab-accent-glow: rgba(100,116,139,0.32);">
+        <span class="tab-ic"><i class="bi bi-file-earmark-text-fill"></i></span>
+        <span class="tab-label">
+            Drafts
+            <small>Unsent</small>
+        </span>
+        <span class="tab-badge">3</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="bn-panels">
+
+    <!-- =================================================
+         PANEL 1 — COMPOSE
+         ================================================= -->
+    <div class="bn-panel active" id="panel-compose" role="tabpanel">
+
+        <div class="bn-stat-strip">
+            <div class="bn-stat orange fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-people-fill"></i></span><span class="bs-trend">+18%</span></div>
+                <span class="bs-label">Total Reach</span>
+                <div class="bs-value"><span data-count="12438">0</span></div>
+            </div>
+            <div class="bn-stat emerald fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-eye-fill"></i></span><span class="bs-trend">+3.2pp</span></div>
+                <span class="bs-label">Avg Open Rate</span>
+                <div class="bs-value"><span data-count="68">0</span><small>.4%</small></div>
+            </div>
+            <div class="bn-stat blue fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-cursor-fill"></i></span><span class="bs-trend info">+2.4pp</span></div>
+                <span class="bs-label">Avg Click-Through</span>
+                <div class="bs-value"><span data-count="24">0</span><small>.8%</small></div>
+            </div>
+            <div class="bn-stat violet fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-envelope-open-fill"></i></span><span class="bs-trend warn"><i class="bi bi-dash"></i> 96%</span></div>
+                <span class="bs-label">Deliverability</span>
+                <div class="bs-value"><span data-count="96">0</span><small>%</small></div>
+            </div>
+        </div>
+
+        <!-- ============ COMPOSER ============ -->
+        <div class="bn-composer fade-up">
+            <div class="bn-composer-head">
+                <span class="c-ic"><i class="bi bi-megaphone-fill"></i></span>
+                <div>
+                    <h2>New <em>Broadcast</em></h2>
+                    <p>Compose · Target · Schedule · Send</p>
+                </div>
+                <span class="c-status"><span class="dot"></span> Draft saved 2m ago</span>
+            </div>
+
+            <div class="bn-composer-grid">
+
+                <!-- Left: composer form -->
+                <div>
+                    <!-- Title -->
+                    <div class="bn-field">
+                        <div class="bn-field-label">
+                            <span>Broadcast Title</span>
+                            <small><span id="titleCount">0</span> / 90</small>
+                        </div>
+                        <input type="text" class="bn-input" placeholder="e.g. New Mentors Available for Booking" maxlength="90" id="bnTitle">
+                    </div>
+
+                    <!-- Message -->
+                    <div class="bn-field">
+                        <div class="bn-field-label">
+                            <span>Message Body</span>
+                            <small><span id="bodyCount">0</span> / 500</small>
+                        </div>
+                        <textarea class="bn-textarea" placeholder="Write your announcement…  Markdown is supported. Keep it short — under 200 characters delivers best." maxlength="500" id="bnBody"></textarea>
+                    </div>
+
+                    <!-- Audience -->
+                    <div class="bn-field">
+                        <div class="bn-field-label">
+                            <span>Audience</span>
+                            <small>Multiple selection enabled</small>
+                        </div>
+                        <div class="bn-audience-grid">
+                            <button type="button" class="bn-audience-pill selected" data-audience="students">
+                                <span class="ap-ic"><i class="bi bi-mortarboard-fill"></i></span>
+                                <span class="ap-body">
+                                    <strong>Students</strong>
+                                    <span>10,842 members</span>
+                                </span>
+                            </button>
+                            <button type="button" class="bn-audience-pill" data-audience="teachers">
+                                <span class="ap-ic"><i class="bi bi-person-workspace"></i></span>
+                                <span class="ap-body">
+                                    <strong>Teachers</strong>
+                                    <span>1,428 members</span>
+                                </span>
+                            </button>
+                            <button type="button" class="bn-audience-pill" data-audience="mentors">
+                                <span class="ap-ic"><i class="bi bi-person-badge-fill"></i></span>
+                                <span class="ap-body">
+                                    <strong>Mentors</strong>
+                                    <span>168 members</span>
+                                </span>
+                            </button>
+                            <button type="button" class="bn-audience-pill" data-audience="admins">
+                                <span class="ap-ic"><i class="bi bi-shield-lock-fill"></i></span>
+                                <span class="ap-body">
+                                    <strong>Admins</strong>
+                                    <span>24 members</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Channels -->
+                    <div class="bn-field">
+                        <div class="bn-field-label">
+                            <span>Delivery Channels</span>
+                            <small>How this reaches recipients</small>
+                        </div>
+                        <div class="bn-channel-row">
+                            <button type="button" class="bn-channel-pill selected" data-channel="inapp">
+                                <span class="chk"><i class="bi bi-check2"></i></span>
+                                <i class="bi bi-bell-fill"></i> In-App
+                            </button>
+                            <button type="button" class="bn-channel-pill selected" data-channel="email">
+                                <span class="chk"><i class="bi bi-check2"></i></span>
+                                <i class="bi bi-envelope-fill"></i> Email
+                            </button>
+                            <button type="button" class="bn-channel-pill" data-channel="push">
+                                <span class="chk"><i class="bi bi-check2"></i></span>
+                                <i class="bi bi-phone-fill"></i> Push
+                            </button>
+                            <button type="button" class="bn-channel-pill" data-channel="sms">
+                                <span class="chk"><i class="bi bi-check2"></i></span>
+                                <i class="bi bi-chat-dots-fill"></i> SMS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="bn-compose-actions">
+                        <button class="bn-send-btn" data-toast="Broadcast queued · sending to 10,842 students now" data-toast-type="success">
+                            <i class="bi bi-send-fill"></i> Send Broadcast
+                        </button>
+                        <button class="bn-action-ghost" data-toast="Opening scheduler…" data-toast-type="info">
+                            <i class="bi bi-clock-fill"></i> Schedule
+                        </button>
+                        <button class="bn-action-ghost" data-toast="Saved as draft" data-toast-type="info">
+                            <i class="bi bi-save-fill"></i> Save Draft
+                        </button>
+                        <button class="bn-action-ghost" data-toast="Test broadcast sent to your inbox" data-toast-type="violet">
+                            <i class="bi bi-send-check-fill"></i> Send Test
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: live preview -->
+                <div class="bn-preview">
+                    <div class="pv-head">
+                        <span class="pv-dot"></span>
+                        <h4>Live Preview</h4>
+                        <span class="pv-time">Updates instantly</span>
+                    </div>
+
+                    <div class="pv-phone">
+                        <div class="pv-notif">
+                            <span class="pv-ic"><i class="bi bi-megaphone-fill"></i></span>
+                            <div class="pv-body">
+                                <strong id="pvTitle">New Mentors Available for Booking</strong>
+                                <p id="pvBody">We've just verified 8 new mentors across Backend, Design, and Data. Book your first session this week and get 20% off.</p>
+                                <span class="pv-tag"><i class="bi bi-bell-fill"></i> In-App</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pv-recipients">
+                        <span class="pv-rec-label">Recipients</span>
+                        <div class="pv-rec-value">
+                            <span id="pvRecipients">10,842</span>
+                            <small>students</small>
+                        </div>
+                    </div>
+
+                    <div class="pv-schedule">
+                        <button class="pv-schedule-btn selected" data-toast="Sending immediately" data-toast-type="success">
+                            <span class="sch-ic"><i class="bi bi-lightning-charge-fill"></i> Send</span>
+                            <span class="sch-value">Immediately</span>
+                        </button>
+                        <button class="pv-schedule-btn" data-toast="Schedule picker opened" data-toast-type="info">
+                            <span class="sch-ic"><i class="bi bi-calendar3"></i> Schedule</span>
+                            <span class="sch-value">Pick time</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — SENT
+         ================================================= -->
+    <div class="bn-panel" id="panel-sent" role="tabpanel">
+
+        <div class="bn-stat-strip">
+            <div class="bn-stat emerald fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-send-check-fill"></i></span><span class="bs-trend">+4</span></div>
+                <span class="bs-label">Sent · This Month</span>
+                <div class="bs-value"><span data-count="42">0</span></div>
+            </div>
+            <div class="bn-stat orange fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-people-fill"></i></span><span class="bs-trend">+12%</span></div>
+                <span class="bs-label">Total Delivered</span>
+                <div class="bs-value"><span data-count="488">0</span><small>K</small></div>
+            </div>
+            <div class="bn-stat blue fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-eye-fill"></i></span><span class="bs-trend info">+3pp</span></div>
+                <span class="bs-label">Avg Open Rate</span>
+                <div class="bs-value"><span data-count="68">0</span><small>.4%</small></div>
+            </div>
+            <div class="bn-stat red fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-exclamation-triangle-fill"></i></span><span class="bs-trend warn"><i class="bi bi-dash"></i> low</span></div>
+                <span class="bs-label">Failed Deliveries</span>
+                <div class="bs-value"><span data-count="48">0</span></div>
+            </div>
+        </div>
+
+        <div class="bn-list">
+
+            <!-- Sent #1 -->
+            <article class="bn-card sent fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status sent"><span class="dot"></span> Sent</span>
+                            <span class="bn-audience-tag all"><i class="bi bi-people-fill"></i> All Members</span>
+                            <span class="bn-channel-badge"><i class="bi bi-bell-fill"></i> In-App + Email</span>
+                            <span class="bn-id">#AN-4821 · 2h ago</span>
+                        </div>
+
+                        <h3 class="bn-title">Platform v3.14 Release · New AI Tutor Preview</h3>
+                        <div class="bn-body-preview">
+                            We're shipping v3.14 today, with a preview of the new <em>AI Tutor</em> feature for all Teachers and Mentors. Plus performance improvements to the course player, faster search, and 12 new bug fixes…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Sent by <b>You</b> · 12:42 WAT
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Delivery &amp; Engagement</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b class="ok">12,214</b>
+                                <span>Delivered</span>
+                                <div class="bn-dv-bar"><span data-value="98"></span></div>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">224</b>
+                                <span>Failed</span>
+                                <div class="bn-dv-bar" style="background:var(--bn-red-dim);"><span data-value="2" style="background:linear-gradient(90deg,var(--bn-red),var(--bn-red-deep));"></span></div>
+                            </div>
+                        </div>
+                        <div class="bn-engagement">
+                            <span class="bn-eng-item"><i class="bi bi-eye-fill"></i> <b>8,421</b> opened</span>
+                            <span class="bn-eng-item"><i class="bi bi-cursor-fill"></i> <b>3,048</b> clicked</span>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Opening detailed analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="bn-btn ghost" data-toast="Resend queued to 224 failed recipients" data-toast-type="warning"><i class="bi bi-arrow-clockwise"></i> Resend Failed</button>
+                        <button class="bn-btn ghost" data-toast="Viewing broadcast preview" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="bn-btn danger" data-toast="⚠ Archive requires confirmation" data-toast-type="warning"><i class="bi bi-archive"></i> Archive</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Sent #2 -->
+            <article class="bn-card sent fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status sent"><span class="dot"></span> Sent</span>
+                            <span class="bn-audience-tag mentors"><i class="bi bi-person-badge-fill"></i> Mentors</span>
+                            <span class="bn-channel-badge"><i class="bi bi-envelope-fill"></i> Email</span>
+                            <span class="bn-id">#AN-4818 · 8h ago</span>
+                        </div>
+
+                        <h3 class="bn-title">New Payout Schedule · Faster Settlements</h3>
+                        <div class="bn-body-preview">
+                            Starting next Monday, mentor payouts will settle within <em>4 hours</em> instead of 24. Just make sure your bank details are verified in your profile. Full FAQ attached…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Sent by <b>You</b> · 06:14 WAT
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Delivery &amp; Engagement</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b class="ok">166</b>
+                                <span>Delivered</span>
+                                <div class="bn-dv-bar"><span data-value="99"></span></div>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">2</b>
+                                <span>Failed</span>
+                                <div class="bn-dv-bar" style="background:var(--bn-red-dim);"><span data-value="1" style="background:linear-gradient(90deg,var(--bn-red),var(--bn-red-deep));"></span></div>
+                            </div>
+                        </div>
+                        <div class="bn-engagement">
+                            <span class="bn-eng-item"><i class="bi bi-eye-fill"></i> <b>142</b> opened</span>
+                            <span class="bn-eng-item"><i class="bi bi-cursor-fill"></i> <b>98</b> clicked</span>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Opening detailed analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="bn-btn ghost" data-toast="Viewing broadcast preview" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="bn-btn danger" data-toast="⚠ Archive requires confirmation" data-toast-type="warning"><i class="bi bi-archive"></i> Archive</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Sent #3 -->
+            <article class="bn-card sent fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status sent"><span class="dot"></span> Sent</span>
+                            <span class="bn-audience-tag teachers"><i class="bi bi-person-workspace"></i> Teachers</span>
+                            <span class="bn-channel-badge"><i class="bi bi-bell-fill"></i> In-App</span>
+                            <span class="bn-id">#AN-4812 · 1d ago</span>
+                        </div>
+
+                        <h3 class="bn-title">New Course Editor · Live for All Teachers</h3>
+                        <div class="bn-body-preview">
+                            The <em>new course editor</em> is now live for all Teachers. Drag-and-drop lessons, rich content blocks, and auto-save every 5 seconds. Watch the 3-minute walkthrough…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Sent by <b>You</b> · 18:42 WAT
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Delivery &amp; Engagement</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b class="ok">1,401</b>
+                                <span>Delivered</span>
+                                <div class="bn-dv-bar"><span data-value="98"></span></div>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">27</b>
+                                <span>Failed</span>
+                                <div class="bn-dv-bar" style="background:var(--bn-red-dim);"><span data-value="2" style="background:linear-gradient(90deg,var(--bn-red),var(--bn-red-deep));"></span></div>
+                            </div>
+                        </div>
+                        <div class="bn-engagement">
+                            <span class="bn-eng-item"><i class="bi bi-eye-fill"></i> <b>1,148</b> opened</span>
+                            <span class="bn-eng-item"><i class="bi bi-cursor-fill"></i> <b>612</b> clicked</span>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Opening detailed analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="bn-btn ghost" data-toast="Viewing broadcast preview" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="bn-btn danger" data-toast="⚠ Archive requires confirmation" data-toast-type="warning"><i class="bi bi-archive"></i> Archive</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — SCHEDULED
+         ================================================= -->
+    <div class="bn-panel" id="panel-scheduled" role="tabpanel">
+
+        <div class="bn-stat-strip">
+            <div class="bn-stat blue fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-clock-fill"></i></span><span class="bs-trend info"><i class="bi bi-dash"></i> queued</span></div>
+                <span class="bs-label">Scheduled Broadcasts</span>
+                <div class="bs-value"><span data-count="2">0</span></div>
+            </div>
+            <div class="bn-stat orange fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-hourglass-split"></i></span><span class="bs-trend warn"><i class="bi bi-dash"></i> next</span></div>
+                <span class="bs-label">Next Delivery In</span>
+                <div class="bs-value"><span data-count="42">0</span><small>m</small></div>
+            </div>
+            <div class="bn-stat emerald fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-people-fill"></i></span><span class="bs-trend"><i class="bi bi-dash"></i> total</span></div>
+                <span class="bs-label">Queued Reach</span>
+                <div class="bs-value"><span data-count="12006">0</span></div>
+            </div>
+            <div class="bn-stat violet fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-calendar-week-fill"></i></span><span class="bs-trend info">+6</span></div>
+                <span class="bs-label">Scheduled · This Week</span>
+                <div class="bs-value"><span data-count="6">0</span></div>
+            </div>
+        </div>
+
+        <div class="bn-list">
+
+            <!-- Scheduled #1 -->
+            <article class="bn-card scheduled fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status scheduled"><span class="dot"></span> Scheduled</span>
+                            <span class="bn-audience-tag students"><i class="bi bi-mortarboard-fill"></i> Students</span>
+                            <span class="bn-channel-badge"><i class="bi bi-bell-fill"></i> In-App + Email</span>
+                            <span class="bn-id">#AN-4824 · in 42m</span>
+                        </div>
+
+                        <h3 class="bn-title">Weekly Digest · Top 5 Courses This Week</h3>
+                        <div class="bn-body-preview">
+                            Your weekly digest: the 5 most-enrolled courses this week, 3 new lessons added, and a <em>preview of the upcoming live cohort</em>. Unsubscribe anytime from settings…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Scheduled by <b>You</b> · delivers 14:00 WAT
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Delivery Plan</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b class="blue">10,842</b>
+                                <span>Recipients</span>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">42m</b>
+                                <span>Countdown</span>
+                            </div>
+                        </div>
+                        <div class="bn-engagement">
+                            <span class="bn-eng-item"><i class="bi bi-clock-history"></i> Recurring weekly</span>
+                            <span class="bn-eng-item"><i class="bi bi-calendar3"></i> Mon · 14:00 WAT</span>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Broadcast sent immediately" data-toast-type="success"><i class="bi bi-send-fill"></i> Send Now</button>
+                        <button class="bn-btn ghost" data-toast="Opening scheduler to edit" data-toast-type="info"><i class="bi bi-pencil-fill"></i> Edit</button>
+                        <button class="bn-btn danger" data-toast="⚠ Cancelling scheduled broadcast requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Cancel</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Scheduled #2 -->
+            <article class="bn-card scheduled fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status scheduled"><span class="dot"></span> Scheduled</span>
+                            <span class="bn-audience-tag teachers"><i class="bi bi-person-workspace"></i> Teachers</span>
+                            <span class="bn-channel-badge"><i class="bi bi-envelope-fill"></i> Email</span>
+                            <span class="bn-id">#AN-4825 · in 22h</span>
+                        </div>
+
+                        <h3 class="bn-title">Reminder · Update Your Course For Q2</h3>
+                        <div class="bn-body-preview">
+                            Q2 is starting next week. Refresh your course content, add new lessons, and <em>double-check your pricing</em>. Teachers who updated last quarter saw 28% more enrollments…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Scheduled by <b>You</b> · delivers tomorrow 09:00 WAT
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Delivery Plan</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b class="blue">1,428</b>
+                                <span>Recipients</span>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">22h</b>
+                                <span>Countdown</span>
+                            </div>
+                        </div>
+                        <div class="bn-engagement">
+                            <span class="bn-eng-item"><i class="bi bi-clock-history"></i> One-time</span>
+                            <span class="bn-eng-item"><i class="bi bi-calendar3"></i> Tue · 09:00 WAT</span>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Broadcast sent immediately" data-toast-type="success"><i class="bi bi-send-fill"></i> Send Now</button>
+                        <button class="bn-btn ghost" data-toast="Opening scheduler to edit" data-toast-type="info"><i class="bi bi-pencil-fill"></i> Edit</button>
+                        <button class="bn-btn danger" data-toast="⚠ Cancelling requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Cancel</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 4 — DRAFTS
+         ================================================= -->
+    <div class="bn-panel" id="panel-drafts" role="tabpanel">
+
+        <div class="bn-stat-strip">
+            <div class="bn-stat fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-file-earmark-text-fill"></i></span><span class="bs-trend warn"><i class="bi bi-dash"></i> unsent</span></div>
+                <span class="bs-label">Drafts</span>
+                <div class="bs-value"><span data-count="3">0</span></div>
+            </div>
+            <div class="bn-stat fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-clock-history"></i></span><span class="bs-trend info"><i class="bi bi-dash"></i> recent</span></div>
+                <span class="bs-label">Last Edited</span>
+                <div class="bs-value">2<small>m ago</small></div>
+            </div>
+            <div class="bn-stat fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-pencil-square"></i></span><span class="bs-trend"><i class="bi bi-dash"></i> ready</span></div>
+                <span class="bs-label">Ready to Send</span>
+                <div class="bs-value"><span data-count="2">0</span></div>
+            </div>
+            <div class="bn-stat fade-up">
+                <div class="bs-head"><span class="bs-ic"><i class="bi bi-trash3-fill"></i></span><span class="bs-trend warn"><i class="bi bi-dash"></i> old</span></div>
+                <span class="bs-label">Auto-Delete in</span>
+                <div class="bs-value"><span data-count="28">0</span><small>days</small></div>
+            </div>
+        </div>
+
+        <div class="bn-list">
+
+            <!-- Draft #1 -->
+            <article class="bn-card draft fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status draft"><span class="dot"></span> Draft</span>
+                            <span class="bn-audience-tag all"><i class="bi bi-people-fill"></i> All Members</span>
+                            <span class="bn-channel-badge"><i class="bi bi-bell-fill"></i> In-App</span>
+                            <span class="bn-id">#AN-DR-0842 · edited 2m ago</span>
+                        </div>
+
+                        <h3 class="bn-title">Eid Mubarak · Platform Greeting</h3>
+                        <div class="bn-body-preview">
+                            Wishing all our members celebrating Eid a joyous and peaceful holiday. Courses remain accessible 24/7, and our <em>support team will respond within 6 hours</em> during the holiday window…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Drafted by <b>You</b> · ready to send
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Draft Status</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b>12,438</b>
+                                <span>Est. Reach</span>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">Ready</b>
+                                <span>Status</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Draft loaded into composer" data-toast-type="info"><i class="bi bi-pencil-fill"></i> Edit Draft</button>
+                        <button class="bn-btn ghost" data-toast="Broadcast sent · reaching 12,438 members" data-toast-type="success"><i class="bi bi-send-fill"></i> Send Now</button>
+                        <button class="bn-btn danger" data-toast="⚠ Discarding draft" data-toast-type="warning"><i class="bi bi-trash3"></i> Discard</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Draft #2 -->
+            <article class="bn-card draft fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status draft"><span class="dot"></span> Draft</span>
+                            <span class="bn-audience-tag students"><i class="bi bi-mortarboard-fill"></i> Students</span>
+                            <span class="bn-channel-badge"><i class="bi bi-envelope-fill"></i> Email</span>
+                            <span class="bn-id">#AN-DR-0841 · edited 3h ago</span>
+                        </div>
+
+                        <h3 class="bn-title">Scholarship Applications Closing Soon</h3>
+                        <div class="bn-body-preview">
+                            Reminder: <em>Scholarship applications close in 5 days</em>. This cycle covers up to 100% off any course for eligible students. Click below to apply before time runs out…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Drafted by <b>You</b> · ready to send
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Draft Status</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b>10,842</b>
+                                <span>Est. Reach</span>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">Ready</b>
+                                <span>Status</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Draft loaded into composer" data-toast-type="info"><i class="bi bi-pencil-fill"></i> Edit Draft</button>
+                        <button class="bn-btn ghost" data-toast="Broadcast sent" data-toast-type="success"><i class="bi bi-send-fill"></i> Send Now</button>
+                        <button class="bn-btn danger" data-toast="⚠ Discarding draft" data-toast-type="warning"><i class="bi bi-trash3"></i> Discard</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Draft #3 - incomplete -->
+            <article class="bn-card draft fade-up">
+                <div class="bn-card-grid">
+                    <div class="bn-content">
+                        <div class="bn-head-row">
+                            <span class="bn-status draft"><span class="dot"></span> Draft · Incomplete</span>
+                            <span class="bn-audience-tag mentors"><i class="bi bi-person-badge-fill"></i> Mentors</span>
+                            <span class="bn-channel-badge"><i class="bi bi-bell-fill"></i> In-App</span>
+                            <span class="bn-id">#AN-DR-0838 · edited 2d ago</span>
+                        </div>
+
+                        <h3 class="bn-title">Q2 Mentor Onboarding Webinar</h3>
+                        <div class="bn-body-preview">
+                            Join us for a <em>90-minute webinar</em> on Q2 best practices for mentors. Covers new session tooling, pricing strategy, and Q&amp;A with the leadership team…
+                        </div>
+
+                        <span class="bn-author">
+                            <span class="au-av">AD</span>
+                            Drafted by <b>You</b> · missing schedule
+                        </span>
+                    </div>
+
+                    <div class="bn-delivery">
+                        <span class="bn-delivery-head">Draft Status</span>
+                        <div class="bn-dv-grid">
+                            <div class="bn-dv-cell">
+                                <b>168</b>
+                                <span>Est. Reach</span>
+                            </div>
+                            <div class="bn-dv-cell">
+                                <b class="warn">Incomplete</b>
+                                <span>Status</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bn-actions">
+                        <span class="bn-action-label">Actions</span>
+                        <button class="bn-btn primary" data-toast="Draft loaded into composer · complete missing fields" data-toast-type="warning"><i class="bi bi-pencil-fill"></i> Finish Draft</button>
+                        <button class="bn-btn danger" data-toast="⚠ Discarding draft" data-toast-type="warning"><i class="bi bi-trash3"></i> Discard</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — BROADCAST CONSOLE
+     ============================================================ -->
+<div class="broadcast-console fade-up">
+    <div class="bc-head">
+        <span class="bc-ic"><i class="bi bi-broadcast-pin"></i></span>
+        <div>
+            <h2>Broadcast <em>Console</em></h2>
+            <p>ROOT-ONLY · TEMPLATES · SEGMENTS · A/B TEST · EMERGENCY</p>
+        </div>
+        <span class="bc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="bc-grid">
+        <button class="bc-tool" data-toast="Template library opened — 12 templates" data-toast-type="info">
+            <span class="bc-t-ic"><i class="bi bi-file-earmark-text-fill"></i></span>
+            <div class="bc-t-body">
+                <strong>Template Library</strong>
+                <p>Reusable announcement templates for welcome, feature, incident, holiday.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool" data-toast="Smart segments opened — 8 saved segments" data-toast-type="info">
+            <span class="bc-t-ic"><i class="bi bi-diagram-3-fill"></i></span>
+            <div class="bc-t-body">
+                <strong>Smart Segments</strong>
+                <p>Target by activity, region, course enrollment, or LTV tier.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool emerald" data-toast="A/B test composer opened" data-toast-type="info">
+            <span class="bc-t-ic"><i class="bi bi-bezier2"></i></span>
+            <div class="bc-t-body">
+                <strong>A/B Test Broadcasts</strong>
+                <p>Test two subject lines or bodies — auto-pick winner in 4h.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool" data-toast="Localization settings opened — 6 languages" data-toast-type="info">
+            <span class="bc-t-ic"><i class="bi bi-translate"></i></span>
+            <div class="bc-t-body">
+                <strong>Localization</strong>
+                <p>Auto-translate broadcasts to member's preferred language.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool" data-toast="Send-time optimizer opened" data-toast-type="info">
+            <span class="bc-t-ic"><i class="bi bi-clock-history"></i></span>
+            <div class="bc-t-body">
+                <strong>Send-Time Optimizer</strong>
+                <p>ML-driven best-time delivery per member's timezone &amp; habits.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool emerald" data-toast="Quiet hours rules opened" data-toast-type="info">
+            <span class="bc-t-ic"><i class="bi bi-moon-stars-fill"></i></span>
+            <div class="bc-t-body">
+                <strong>Quiet Hours</strong>
+                <p>Block deliveries at night; queue for next morning per timezone.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool danger" data-toast="⚠ Emergency broadcast requires MFA + 2 approvals" data-toast-type="error">
+            <span class="bc-t-ic"><i class="bi bi-megaphone-fill"></i></span>
+            <div class="bc-t-body">
+                <strong>Emergency Broadcast</strong>
+                <p>Bypass quiet hours &amp; throttles. Send to all channels instantly.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+
+        <button class="bc-tool danger" data-toast="⚠ Freeze broadcasts — no outgoing messages until unfrozen" data-toast-type="error">
+            <span class="bc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="bc-t-body">
+                <strong>Freeze Broadcasts</strong>
+                <p>Pause all outgoing announcements during incidents.</p>
+            </div>
+            <i class="bi bi-arrow-right bc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.bn-tab');
+    const panels = document.querySelectorAll('.bn-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+            setTimeout(() => paintBars(panel || document), 60);
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       ANIMATE DELIVERY BARS
+       ============================================================ */
+    function paintBars(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.bn-dv-bar > span[data-value], .bar > span[data-value]').forEach(el => {
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 80));
+        });
+    }
+    window.addEventListener('load', () => paintBars(document));
+
+    /* ============================================================
+       COMPOSER — live character count + preview
+       ============================================================ */
+    const titleInput = document.getElementById('bnTitle');
+    const bodyInput = document.getElementById('bnBody');
+    const titleCount = document.getElementById('titleCount');
+    const bodyCount = document.getElementById('bodyCount');
+    const pvTitle = document.getElementById('pvTitle');
+    const pvBody = document.getElementById('pvBody');
+    const pvRecipients = document.getElementById('pvRecipients');
+
+    if (titleInput) {
+        titleInput.addEventListener('input', function () {
+            titleCount.textContent = this.value.length;
+            pvTitle.textContent = this.value || 'New Mentors Available for Booking';
+        });
+    }
+    if (bodyInput) {
+        bodyInput.addEventListener('input', function () {
+            bodyCount.textContent = this.value.length;
+            const v = this.value.trim();
+            if (v) {
+                // simple markdown-ish preview
+                const html = v.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                pvBody.innerHTML = html;
+            } else {
+                pvBody.textContent = "We've just verified 8 new mentors across Backend, Design, and Data. Book your first session this week and get 20% off.";
+            }
+        });
+    }
+
+    /* ============================================================
+       AUDIENCE PILLS
+       ============================================================ */
+    const audienceCounts = {
+        students: { count: 10842, label: 'students', members: 10842 },
+        teachers: { count: 1428,  label: 'teachers',  members: 1428 },
+        mentors:  { count: 168,   label: 'mentors',   members: 168 },
+        admins:   { count: 24,    label: 'admins',    members: 24 }
+    };
+
+    function updateRecipients() {
+        const selected = document.querySelectorAll('.bn-audience-pill.selected');
+        let total = 0;
+        selected.forEach(pill => {
+            const key = pill.dataset.audience;
+            if (audienceCounts[key]) total += audienceCounts[key].members;
+        });
+        if (pvRecipients) {
+            pvRecipients.textContent = total.toLocaleString();
+        }
+    }
+
+    document.querySelectorAll('.bn-audience-pill').forEach(pill => {
+        pill.addEventListener('click', function () {
+            this.classList.toggle('selected');
+            updateRecipients();
+        });
+    });
+
+    /* ============================================================
+       CHANNEL PILLS
+       ============================================================ */
+    document.querySelectorAll('.bn-channel-pill').forEach(pill => {
+        pill.addEventListener('click', function () {
+            this.classList.toggle('selected');
+        });
+    });
+
+    /* ============================================================
+       SCHEDULE BUTTONS (in preview)
+       ============================================================ */
+    document.querySelectorAll('.pv-schedule-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.pv-schedule-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.bc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

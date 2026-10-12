@@ -22,6 +22,7 @@
         gap: 22px;
         flex-wrap: wrap;
     }
+
     .ac-head h1 {
         font-family: 'Playfair Display', serif;
         font-size: clamp(1.85rem, 3.2vw, 2.5rem);
@@ -31,13 +32,19 @@
         letter-spacing: -0.01em;
         margin: 12px 0 8px;
     }
-    .ac-head h1 span { color: var(--secondary-deep); font-style: italic; }
+
+    .ac-head h1 span {
+        color: var(--secondary-deep);
+        font-style: italic;
+    }
+
     .ac-head p {
         font-size: 0.92rem;
         color: var(--gray-600);
         line-height: 1.7;
         max-width: 620px;
     }
+
     .badge-soft {
         display: inline-flex;
         align-items: center;
@@ -52,7 +59,10 @@
         letter-spacing: 0.1em;
         text-transform: uppercase;
     }
-    .badge-soft i { font-size: 0.72rem; }
+
+    .badge-soft i {
+        font-size: 0.72rem;
+    }
 
     .btn-line {
         background: var(--white);
@@ -60,6 +70,7 @@
         border: 1.5px solid var(--gray-200);
         box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
     }
+
     .btn-line:hover {
         border-color: var(--secondary);
         background: rgba(190, 242, 100, 0.10);
@@ -67,7 +78,11 @@
         transform: translateY(-3px);
         box-shadow: var(--shadow-sm);
     }
-    .btn-sm { padding: 10px 16px; font-size: 0.8rem; }
+
+    .btn-sm {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
 
     /* ---------- Overview hero ---------- */
     .ac-hero {
@@ -83,6 +98,7 @@
         gap: 36px;
         align-items: center;
     }
+
     .ac-hero::before {
         content: '';
         position: absolute;
@@ -93,6 +109,7 @@
         background: radial-gradient(ellipse, rgba(190, 242, 100, 0.13), transparent 68%);
         pointer-events: none;
     }
+
     .ac-hero::after {
         content: '✦';
         position: absolute;
@@ -104,7 +121,12 @@
         color: rgba(255, 255, 255, 0.02);
         pointer-events: none;
     }
-    .ac-hero-text { position: relative; z-index: 2; }
+
+    .ac-hero-text {
+        position: relative;
+        z-index: 2;
+    }
+
     .ac-hero-text h2 {
         font-family: 'Playfair Display', serif;
         font-size: clamp(1.5rem, 2.4vw, 1.9rem);
@@ -112,7 +134,12 @@
         line-height: 1.18;
         margin-bottom: 10px;
     }
-    .ac-hero-text h2 span { color: var(--secondary); font-style: italic; }
+
+    .ac-hero-text h2 span {
+        color: var(--secondary);
+        font-style: italic;
+    }
+
     .ac-hero-text p {
         color: rgba(255, 255, 255, 0.66);
         font-size: 0.9rem;
@@ -120,13 +147,18 @@
         margin-bottom: 20px;
         max-width: 480px;
     }
-    .ac-hero-text p strong { color: var(--white); font-weight: 600; }
+
+    .ac-hero-text p strong {
+        color: var(--white);
+        font-weight: 600;
+    }
 
     .ac-hero-pills {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
     }
+
     .ac-hero-pill {
         display: inline-flex;
         align-items: center;
@@ -139,8 +171,16 @@
         font-weight: 600;
         color: rgba(255, 255, 255, 0.86);
     }
-    .ac-hero-pill i { color: var(--secondary); font-size: 0.82rem; }
-    .ac-hero-pill strong { color: var(--white); font-weight: 700; }
+
+    .ac-hero-pill i {
+        color: var(--secondary);
+        font-size: 0.82rem;
+    }
+
+    .ac-hero-pill strong {
+        color: var(--white);
+        font-weight: 700;
+    }
 
     /* Hero progress card */
     .ac-hero-card {
@@ -153,18 +193,21 @@
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
     }
+
     .ac-hero-card .top {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 14px;
     }
+
     .ac-hero-card .top h4 {
         font-size: 0.82rem;
         font-weight: 700;
         color: var(--white);
         letter-spacing: 0.02em;
     }
+
     .ac-hero-card .top span {
         display: inline-flex;
         align-items: center;
@@ -186,6 +229,7 @@
         gap: 8px;
         margin-bottom: 12px;
     }
+
     .ac-hero-stats strong {
         font-family: 'Playfair Display', serif;
         font-size: 2.2rem;
@@ -194,6 +238,7 @@
         line-height: 1;
         letter-spacing: -0.02em;
     }
+
     .ac-hero-stats span {
         font-size: 0.85rem;
         font-weight: 600;
@@ -207,7 +252,8 @@
         overflow: hidden;
         margin-bottom: 14px;
     }
-    .ac-hero-bar > span {
+
+    .ac-hero-bar>span {
         display: block;
         height: 100%;
         width: 0;
@@ -226,12 +272,17 @@
         font-size: 0.76rem;
         color: rgba(255, 255, 255, 0.66);
     }
+
     .ac-hero-card .next i {
         color: var(--secondary);
         font-size: 0.9rem;
         flex-shrink: 0;
     }
-    .ac-hero-card .next strong { color: var(--white); font-weight: 700; }
+
+    .ac-hero-card .next strong {
+        color: var(--white);
+        font-weight: 700;
+    }
 
     /* ---------- Tier legend ---------- */
     .ac-tiers {
@@ -239,6 +290,7 @@
         grid-template-columns: repeat(4, 1fr);
         gap: 16px;
     }
+
     .ac-tier {
         display: flex;
         align-items: center;
@@ -252,19 +304,37 @@
         position: relative;
         overflow: hidden;
     }
+
     .ac-tier::before {
         content: '';
         position: absolute;
-        top: 0; left: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        bottom: 0;
         width: 3px;
         border-radius: 0 3px 3px 0;
     }
-    .ac-tier.bronze::before   { background: linear-gradient(180deg, #D97706, #B45309); }
-    .ac-tier.silver::before   { background: linear-gradient(180deg, #94A3B8, #64748B); }
-    .ac-tier.gold::before     { background: linear-gradient(180deg, #FCD34D, #F59E0B); }
-    .ac-tier.legendary::before{ background: linear-gradient(180deg, #A78BFA, #7C3AED); }
 
-    .ac-tier:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .ac-tier.bronze::before {
+        background: linear-gradient(180deg, #D97706, #B45309);
+    }
+
+    .ac-tier.silver::before {
+        background: linear-gradient(180deg, #94A3B8, #64748B);
+    }
+
+    .ac-tier.gold::before {
+        background: linear-gradient(180deg, #FCD34D, #F59E0B);
+    }
+
+    .ac-tier.legendary::before {
+        background: linear-gradient(180deg, #A78BFA, #7C3AED);
+    }
+
+    .ac-tier:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+    }
 
     .ac-tier .tier-icon {
         width: 42px;
@@ -275,12 +345,31 @@
         font-size: 1.05rem;
         flex-shrink: 0;
     }
-    .ac-tier.bronze   .tier-icon { background: rgba(217, 119, 6, 0.12); color: #B45309; }
-    .ac-tier.silver   .tier-icon { background: rgba(148, 163, 184, 0.16); color: #64748B; }
-    .ac-tier.gold     .tier-icon { background: rgba(252, 211, 77, 0.18); color: #B45309; }
-    .ac-tier.legendary .tier-icon { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
 
-    .ac-tier .body { min-width: 0; }
+    .ac-tier.bronze .tier-icon {
+        background: rgba(217, 119, 6, 0.12);
+        color: #B45309;
+    }
+
+    .ac-tier.silver .tier-icon {
+        background: rgba(148, 163, 184, 0.16);
+        color: #64748B;
+    }
+
+    .ac-tier.gold .tier-icon {
+        background: rgba(252, 211, 77, 0.18);
+        color: #B45309;
+    }
+
+    .ac-tier.legendary .tier-icon {
+        background: rgba(139, 92, 246, 0.14);
+        color: #6D28D9;
+    }
+
+    .ac-tier .body {
+        min-width: 0;
+    }
+
     .ac-tier .body strong {
         display: block;
         font-size: 1.05rem;
@@ -289,6 +378,7 @@
         line-height: 1.1;
         letter-spacing: -0.01em;
     }
+
     .ac-tier .body span {
         font-size: 0.72rem;
         color: var(--gray-600);
@@ -302,8 +392,20 @@
         gap: 24px;
         align-items: start;
     }
-    .ac-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-    .ac-side { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+    .ac-main {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        min-width: 0;
+    }
+
+    .ac-side {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        min-width: 0;
+    }
 
     /* ---------- Tabs card ---------- */
     .ac-tabs-card {
@@ -313,6 +415,7 @@
         box-shadow: var(--shadow-sm);
         overflow: hidden;
     }
+
     .ac-tabs-head {
         padding: 22px 26px 0;
         display: flex;
@@ -321,6 +424,7 @@
         gap: 12px;
         flex-wrap: wrap;
     }
+
     .ac-tabs-head h3 {
         font-size: 1.02rem;
         font-weight: 700;
@@ -329,7 +433,12 @@
         align-items: center;
         gap: 9px;
     }
-    .ac-tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .ac-tabs-head h3 i {
+        color: var(--secondary-deep);
+        font-size: 0.9rem;
+    }
+
     .ac-tabs-head .link {
         font-size: 0.76rem;
         font-weight: 600;
@@ -343,7 +452,11 @@
         cursor: pointer;
         font-family: inherit;
     }
-    .ac-tabs-head .link:hover { color: var(--primary-dark); gap: 9px; }
+
+    .ac-tabs-head .link:hover {
+        color: var(--primary-dark);
+        gap: 9px;
+    }
 
     .ac-tabs {
         display: flex;
@@ -354,7 +467,10 @@
         scrollbar-width: none;
         border-bottom: 1px solid var(--gray-100);
     }
-    .ac-tabs::-webkit-scrollbar { display: none; }
+
+    .ac-tabs::-webkit-scrollbar {
+        display: none;
+    }
 
     .ac-tab {
         display: inline-flex;
@@ -373,10 +489,13 @@
         white-space: nowrap;
         transition: var(--transition);
     }
+
     .ac-tab::after {
         content: '';
         position: absolute;
-        left: 12px; right: 12px; bottom: -1px;
+        left: 12px;
+        right: 12px;
+        bottom: -1px;
         height: 2.5px;
         border-radius: 4px 4px 0 0;
         background: var(--secondary);
@@ -384,11 +503,30 @@
         transform-origin: center;
         transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
-    .ac-tab:hover { color: var(--primary-dark); background: var(--gray-100); }
-    .ac-tab.active { color: var(--primary-dark); }
-    .ac-tab.active::after { transform: scaleX(1); }
-    .ac-tab i { font-size: 0.9rem; color: var(--gray-300); transition: var(--transition); }
-    .ac-tab.active i { color: var(--secondary-deep); }
+
+    .ac-tab:hover {
+        color: var(--primary-dark);
+        background: var(--gray-100);
+    }
+
+    .ac-tab.active {
+        color: var(--primary-dark);
+    }
+
+    .ac-tab.active::after {
+        transform: scaleX(1);
+    }
+
+    .ac-tab i {
+        font-size: 0.9rem;
+        color: var(--gray-300);
+        transition: var(--transition);
+    }
+
+    .ac-tab.active i {
+        color: var(--secondary-deep);
+    }
+
     .ac-tab .count {
         background: var(--gray-100);
         color: var(--gray-600);
@@ -399,6 +537,7 @@
         line-height: 1.6;
         transition: var(--transition);
     }
+
     .ac-tab.active .count {
         background: rgba(190, 242, 100, 0.3);
         color: #4D7C0F;
@@ -414,18 +553,28 @@
         background: linear-gradient(180deg, rgba(248, 250, 252, 0.85), rgba(248, 250, 252, 0));
         flex-wrap: wrap;
     }
+
     .ac-toolbar .count {
         font-size: 0.82rem;
         color: var(--gray-600);
         font-weight: 500;
     }
-    .ac-toolbar .count strong { color: var(--primary-dark); font-weight: 700; }
-    .ac-toolbar .spacer { flex: 1; }
+
+    .ac-toolbar .count strong {
+        color: var(--primary-dark);
+        font-weight: 700;
+    }
+
+    .ac-toolbar .spacer {
+        flex: 1;
+    }
+
     .ac-sort {
         display: flex;
         align-items: center;
         gap: 8px;
     }
+
     .ac-sort select {
         padding: 9px 14px;
         border-radius: 50px;
@@ -439,17 +588,33 @@
         outline: none;
         transition: var(--transition);
     }
+
     .ac-sort select:focus {
         border-color: var(--secondary);
         box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
     }
 
     /* Panels */
-    .ac-panel { display: none; padding: 22px; }
-    .ac-panel.active { display: block; animation: acFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .ac-panel {
+        display: none;
+        padding: 22px;
+    }
+
+    .ac-panel.active {
+        display: block;
+        animation: acFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
     @keyframes acFade {
-        from { opacity: 0; transform: translateY(8px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* ---------- Achievement grid ---------- */
@@ -474,6 +639,7 @@
         text-align: center;
         cursor: pointer;
     }
+
     .ac-card:hover {
         transform: translateY(-6px);
         box-shadow: var(--shadow-md);
@@ -497,19 +663,37 @@
         text-transform: uppercase;
         line-height: 1.5;
     }
-    .ac-ribbon.bronze   { background: rgba(217, 119, 6, 0.14); color: #B45309; }
-    .ac-ribbon.silver   { background: rgba(148, 163, 184, 0.2); color: #475569; }
-    .ac-ribbon.gold     { background: rgba(252, 211, 77, 0.28); color: #B45309; }
-    .ac-ribbon.legendary{ background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+
+    .ac-ribbon.bronze {
+        background: rgba(217, 119, 6, 0.14);
+        color: #B45309;
+    }
+
+    .ac-ribbon.silver {
+        background: rgba(148, 163, 184, 0.2);
+        color: #475569;
+    }
+
+    .ac-ribbon.gold {
+        background: rgba(252, 211, 77, 0.28);
+        color: #B45309;
+    }
+
+    .ac-ribbon.legendary {
+        background: linear-gradient(135deg, #A78BFA, #7C3AED);
+        color: #fff;
+    }
 
     /* Locked overlay */
     .ac-card.locked {
         background: linear-gradient(180deg, var(--cream) 0%, var(--white) 40%);
     }
+
     .ac-card.locked .medal {
         filter: grayscale(1);
         opacity: 0.55;
     }
+
     .ac-card.locked .title {
         color: var(--gray-600);
     }
@@ -531,9 +715,11 @@
             inset 0 -2px 0 rgba(0, 0, 0, 0.08);
         transition: var(--transition);
     }
+
     .ac-card:hover .ac-medal {
         transform: scale(1.08) rotate(-6deg);
     }
+
     .ac-medal::before {
         content: '';
         position: absolute;
@@ -541,31 +727,39 @@
         border-radius: 50%;
         border: 1.5px solid rgba(255, 255, 255, 0.4);
     }
+
     .ac-medal.sky {
         background: linear-gradient(135deg, var(--accent), #0284C7);
         color: #fff;
         box-shadow: 0 10px 26px rgba(56, 189, 248, 0.34), inset 0 -2px 0 rgba(0, 0, 0, 0.12);
     }
+
     .ac-medal.violet {
         background: linear-gradient(135deg, #A78BFA, #7C3AED);
         color: #fff;
         box-shadow: 0 10px 26px rgba(139, 92, 246, 0.34), inset 0 -2px 0 rgba(0, 0, 0, 0.12);
     }
+
     .ac-medal.amber {
         background: linear-gradient(135deg, #FCD34D, #F59E0B);
         box-shadow: 0 10px 26px rgba(245, 158, 11, 0.34), inset 0 -2px 0 rgba(0, 0, 0, 0.12);
     }
+
     .ac-medal.rose {
         background: linear-gradient(135deg, #FCA5A5, #E11D48);
         color: #fff;
         box-shadow: 0 10px 26px rgba(239, 68, 68, 0.32), inset 0 -2px 0 rgba(0, 0, 0, 0.12);
     }
+
     .ac-medal.dark {
         background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
         color: var(--secondary);
         box-shadow: 0 10px 26px rgba(11, 17, 33, 0.32);
     }
-    .ac-medal.dark::before { border-color: rgba(190, 242, 100, 0.3); }
+
+    .ac-medal.dark::before {
+        border-color: rgba(190, 242, 100, 0.3);
+    }
 
     /* Card content */
     .ac-card .title {
@@ -576,6 +770,7 @@
         margin-bottom: 5px;
         letter-spacing: -0.005em;
     }
+
     .ac-card .desc {
         font-size: 0.74rem;
         color: var(--gray-600);
@@ -589,6 +784,7 @@
         padding-top: 12px;
         border-top: 1px dashed var(--gray-200);
     }
+
     .ac-mini .row {
         display: flex;
         align-items: baseline;
@@ -598,18 +794,21 @@
         color: var(--gray-600);
         margin-bottom: 6px;
     }
+
     .ac-mini .row strong {
         color: var(--primary-dark);
         font-weight: 700;
         font-size: 0.72rem;
     }
+
     .ac-mini .track {
         height: 5px;
         border-radius: 50px;
         background: var(--gray-100);
         overflow: hidden;
     }
-    .ac-mini .track > span {
+
+    .ac-mini .track>span {
         display: block;
         height: 100%;
         width: 0;
@@ -633,7 +832,10 @@
         letter-spacing: 0.04em;
         text-transform: uppercase;
     }
-    .ac-unlocked i { font-size: 0.68rem; }
+
+    .ac-unlocked i {
+        font-size: 0.68rem;
+    }
 
     /* ---------- Featured / rarest badge (side panel) ---------- */
     .ac-rare {
@@ -646,6 +848,7 @@
         box-shadow: var(--shadow-md);
         text-align: center;
     }
+
     .ac-rare::before {
         content: '';
         position: absolute;
@@ -656,6 +859,7 @@
         background: radial-gradient(ellipse, rgba(190, 242, 100, 0.22), transparent 66%);
         pointer-events: none;
     }
+
     .ac-rare::after {
         content: '★';
         position: absolute;
@@ -701,6 +905,7 @@
             0 16px 40px rgba(190, 242, 100, 0.4),
             inset 0 -3px 0 rgba(0, 0, 0, 0.1);
     }
+
     .ac-rare .medal-lg::before {
         content: '';
         position: absolute;
@@ -719,6 +924,7 @@
         color: var(--white);
         margin-bottom: 6px;
     }
+
     .ac-rare p {
         position: relative;
         z-index: 2;
@@ -728,7 +934,11 @@
         max-width: 260px;
         margin: 0 auto;
     }
-    .ac-rare p strong { color: var(--white); font-weight: 600; }
+
+    .ac-rare p strong {
+        color: var(--white);
+        font-weight: 600;
+    }
 
     .ac-rare-meta {
         position: relative;
@@ -741,9 +951,11 @@
         padding-top: 16px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
+
     .ac-rare-meta div {
         text-align: center;
     }
+
     .ac-rare-meta div strong {
         display: block;
         font-size: 1.05rem;
@@ -751,6 +963,7 @@
         color: var(--white);
         line-height: 1.1;
     }
+
     .ac-rare-meta div span {
         font-size: 0.62rem;
         font-weight: 600;
@@ -758,6 +971,7 @@
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.5);
     }
+
     .ac-rare-meta .sep {
         width: 1px;
         height: 28px;
@@ -772,6 +986,7 @@
         box-shadow: var(--shadow-sm);
         padding: 22px 22px 20px;
     }
+
     .ac-panel-head {
         display: flex;
         align-items: center;
@@ -779,6 +994,7 @@
         gap: 10px;
         margin-bottom: 16px;
     }
+
     .ac-panel-head h4 {
         font-size: 0.92rem;
         font-weight: 700;
@@ -787,7 +1003,12 @@
         align-items: center;
         gap: 9px;
     }
-    .ac-panel-head h4 i { color: var(--secondary-deep); font-size: 0.85rem; }
+
+    .ac-panel-head h4 i {
+        color: var(--secondary-deep);
+        font-size: 0.85rem;
+    }
+
     .ac-panel-head .link {
         font-size: 0.72rem;
         font-weight: 600;
@@ -797,7 +1018,10 @@
         border: none;
         font-family: inherit;
     }
-    .ac-panel-head .link:hover { color: var(--primary-dark); }
+
+    .ac-panel-head .link:hover {
+        color: var(--primary-dark);
+    }
 
     /* Recent unlocks list */
     .ac-recent {
@@ -807,8 +1031,15 @@
         padding: 12px 0;
         border-bottom: 1px solid var(--gray-100);
     }
-    .ac-recent:last-child { border-bottom: none; padding-bottom: 0; }
-    .ac-recent:first-child { padding-top: 0; }
+
+    .ac-recent:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .ac-recent:first-child {
+        padding-top: 0;
+    }
 
     .ac-recent-medal {
         width: 40px;
@@ -822,22 +1053,29 @@
         background: linear-gradient(135deg, var(--secondary), var(--secondary-deep));
         box-shadow: 0 4px 12px rgba(190, 242, 100, 0.3);
     }
+
     .ac-recent-medal.sky {
         background: linear-gradient(135deg, var(--accent), #0284C7);
         color: #fff;
         box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
     }
+
     .ac-recent-medal.violet {
         background: linear-gradient(135deg, #A78BFA, #7C3AED);
         color: #fff;
         box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
     }
+
     .ac-recent-medal.amber {
         background: linear-gradient(135deg, #FCD34D, #F59E0B);
         box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
     }
 
-    .ac-recent-body { flex: 1; min-width: 0; }
+    .ac-recent-body {
+        flex: 1;
+        min-width: 0;
+    }
+
     .ac-recent-body h5 {
         font-size: 0.82rem;
         font-weight: 700;
@@ -847,12 +1085,17 @@
         text-overflow: ellipsis;
         line-height: 1.3;
     }
+
     .ac-recent-body p {
         font-size: 0.7rem;
         color: var(--gray-600);
         margin-top: 2px;
     }
-    .ac-recent-body p strong { color: var(--secondary-deep); font-weight: 700; }
+
+    .ac-recent-body p strong {
+        color: var(--secondary-deep);
+        font-weight: 700;
+    }
 
     /* Leaderboard */
     .ac-board {
@@ -862,8 +1105,15 @@
         padding: 10px 0;
         border-bottom: 1px solid var(--gray-100);
     }
-    .ac-board:last-child { border-bottom: none; padding-bottom: 0; }
-    .ac-board:first-child { padding-top: 0; }
+
+    .ac-board:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .ac-board:first-child {
+        padding-top: 0;
+    }
 
     .ac-board .rank {
         width: 24px;
@@ -878,9 +1128,21 @@
         background: var(--gray-100);
         color: var(--gray-600);
     }
-    .ac-board:nth-child(1) .rank { background: rgba(252, 211, 77, 0.28); color: #B45309; }
-    .ac-board:nth-child(2) .rank { background: rgba(148, 163, 184, 0.24); color: #475569; }
-    .ac-board:nth-child(3) .rank { background: rgba(217, 119, 6, 0.18); color: #B45309; }
+
+    .ac-board:nth-child(1) .rank {
+        background: rgba(252, 211, 77, 0.28);
+        color: #B45309;
+    }
+
+    .ac-board:nth-child(2) .rank {
+        background: rgba(148, 163, 184, 0.24);
+        color: #475569;
+    }
+
+    .ac-board:nth-child(3) .rank {
+        background: rgba(217, 119, 6, 0.18);
+        color: #B45309;
+    }
 
     .ac-board .avatar.xs {
         width: 32px;
@@ -888,7 +1150,12 @@
         font-size: 0.62rem;
         flex-shrink: 0;
     }
-    .ac-board-body { flex: 1; min-width: 0; }
+
+    .ac-board-body {
+        flex: 1;
+        min-width: 0;
+    }
+
     .ac-board-body h5 {
         font-size: 0.8rem;
         font-weight: 700;
@@ -897,12 +1164,17 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
     .ac-board-body p {
         font-size: 0.68rem;
         color: var(--gray-600);
         margin-top: 1px;
     }
-    .ac-board-body p strong { color: var(--secondary-deep); font-weight: 700; }
+
+    .ac-board-body p strong {
+        color: var(--secondary-deep);
+        font-weight: 700;
+    }
 
     .ac-board .me-tag {
         display: inline-flex;
@@ -931,777 +1203,246 @@
         background: rgba(56, 189, 248, 0.06);
         border: 1px dashed rgba(56, 189, 248, 0.32);
     }
-    .ac-trust i { color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
-    .ac-trust strong { color: var(--primary-dark); font-weight: 600; }
+
+    .ac-trust i {
+        color: var(--accent);
+        font-size: 1.05rem;
+        flex-shrink: 0;
+    }
+
+    .ac-trust strong {
+        color: var(--primary-dark);
+        font-weight: 600;
+    }
 
     /* ---------- Responsive ---------- */
     @media (max-width: 1180px) {
-        .ac-hero { grid-template-columns: 1fr; gap: 24px; }
-        .ac-tiers { grid-template-columns: repeat(2, 1fr); }
-        .ac-layout { grid-template-columns: 1fr; }
+        .ac-hero {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .ac-tiers {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .ac-layout {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 640px) {
-        .ac-hero { padding: 26px 22px; }
-        .ac-tiers { grid-template-columns: 1fr; gap: 12px; }
-        .ac-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-        .ac-card { padding: 18px 14px; }
-        .ac-medal { width: 64px; height: 64px; font-size: 1.45rem; margin-bottom: 12px; }
-        .ac-card .title { font-size: 0.82rem; }
-        .ac-card .desc { font-size: 0.68rem; min-height: 28px; }
-        .ac-toolbar { padding: 14px 18px; }
-        .ac-sort { flex: 1; }
-        .ac-sort select { flex: 1; }
-        .ac-panel { padding: 18px; }
-        .ac-head-actions { width: 100%; }
-        .ac-head-actions .btn { flex: 1; }
-        .ac-tab { padding: 10px 12px; font-size: 0.78rem; }
-        .ac-tab .count { display: none; }
+        .ac-hero {
+            padding: 26px 22px;
+        }
+
+        .ac-tiers {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .ac-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .ac-card {
+            padding: 18px 14px;
+        }
+
+        .ac-medal {
+            width: 64px;
+            height: 64px;
+            font-size: 1.45rem;
+            margin-bottom: 12px;
+        }
+
+        .ac-card .title {
+            font-size: 0.82rem;
+        }
+
+        .ac-card .desc {
+            font-size: 0.68rem;
+            min-height: 28px;
+        }
+
+        .ac-toolbar {
+            padding: 14px 18px;
+        }
+
+        .ac-sort {
+            flex: 1;
+        }
+
+        .ac-sort select {
+            flex: 1;
+        }
+
+        .ac-panel {
+            padding: 18px;
+        }
+
+        .ac-head-actions {
+            width: 100%;
+        }
+
+        .ac-head-actions .btn {
+            flex: 1;
+        }
+
+        .ac-tab {
+            padding: 10px 12px;
+            font-size: 0.78rem;
+        }
+
+        .ac-tab .count {
+            display: none;
+        }
     }
 
     @media (max-width: 460px) {
-        .ac-grid { grid-template-columns: 1fr; }
+        .ac-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
 
-<!-- ====================================================
-     PAGE HEAD
-     ==================================================== -->
 <section class="ac-head fade-up">
-    <div>
-        <span class="badge-soft"><i class="bi bi-trophy-fill"></i> 24 of 68 unlocked</span>
+    <div><span class="badge-soft"><i class="bi bi-trophy-fill"></i> {{ unlocked_count }} of {{ badge_count }}
+            unlocked</span>
         <h1>Your <span>Achievements</span></h1>
-        <p>Badges you've earned, badges you're close to unlocking, and the rare ones only the most consistent learners ever collect.</p>
+        <p>Progress is calculated from your current learning, connection, and community activity.</p>
     </div>
-
-    <div class="ac-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-line" data-toast="Opening your trophy case…">
-            <i class="bi bi-box-seam"></i> Trophy case
-        </button>
-        <button class="btn btn-secondary" data-toast="Sharing your achievements…">
-            <i class="bi bi-share"></i> Share progress
-        </button>
-    </div>
+    <div class="ac-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;"><a class="btn btn-line"
+            href="#achievement-collection"><i class="bi bi-box-seam"></i> Trophy case</a><button
+            class="btn btn-secondary" type="button" id="shareAchievements"><i class="bi bi-share"></i> Share
+            progress</button></div>
 </section>
 
-
-<!-- ====================================================
-     HERO
-     ==================================================== -->
 <section class="ac-hero fade-up">
     <div class="ac-hero-text">
-        <h2>You've unlocked <span>24 of 68</span> badges</h2>
-        <p>Every badge here is earned by doing real work — completing sessions, teaching others, showing up consistently. No purchases, no shortcuts.</p>
-
-        <div class="ac-hero-pills">
-            <span class="ac-hero-pill">
-                <i class="bi bi-trophy-fill"></i> <strong>24</strong> unlocked
-            </span>
-            <span class="ac-hero-pill">
-                <i class="bi bi-lock-fill"></i> <strong>44</strong> to go
-            </span>
-            <span class="ac-hero-pill">
-                <i class="bi bi-star-fill"></i> <strong>3</strong> legendary
-            </span>
-            <span class="ac-hero-pill">
-                <i class="bi bi-graph-up-arrow"></i> Top <strong>5%</strong> of cohort
-            </span>
-        </div>
+        <h2>You've unlocked <span>{{ unlocked_count }} of {{ badge_count }}</span> badges</h2>
+        <p>Achievements unlock automatically as you complete real platform activities.</p>
+        <div class="ac-hero-pills"><span class="ac-hero-pill"><i class="bi bi-trophy-fill"></i><strong>{{ unlocked_count
+                    }}</strong> unlocked</span><span class="ac-hero-pill"><i class="bi bi-lock-fill"></i><strong>{{
+                    locked_count }}</strong> to go</span><span class="ac-hero-pill"><i
+                    class="bi bi-mortarboard"></i><strong>{{ completed_courses }}</strong> courses completed</span><span
+                class="ac-hero-pill"><i class="bi bi-people"></i><strong>{{ accepted_connections }}</strong>
+                connections</span></div>
     </div>
-
     <div class="ac-hero-card">
         <div class="top">
-            <h4>Overall completion</h4>
-            <span><i class="bi bi-check2-circle"></i> 35%</span>
+            <h4>Overall completion</h4><span><i class="bi bi-check2-circle"></i> {{ completion_percent }}%</span>
         </div>
-
-        <div class="ac-hero-stats">
-            <strong>24</strong>
-            <span>/ 68 badges</span>
-        </div>
-
-        <div class="ac-hero-bar">
-            <span data-value="35"></span>
-        </div>
-
-        <div class="next">
-            <i class="bi bi-lightning-charge-fill"></i>
-            <span>Next up: <strong>Polyglot</strong> — learn 3 more skills to unlock.</span>
-        </div>
+        <div class="ac-hero-stats"><strong>{{ unlocked_count }}</strong><span>/ {{ badge_count }} badges</span></div>
+        <div class="ac-hero-bar"><span data-value="{{ completion_percent }}"></span></div>
+        <div class="next"><i class="bi bi-lightning-charge-fill"></i><span>{{ completed_sessions }} completed sessions ·
+                Keep learning to unlock the next badge.</span></div>
     </div>
 </section>
 
-
-<!-- ====================================================
-     TIER LEGEND
-     ==================================================== -->
 <section class="ac-tiers">
-    <div class="ac-tier bronze fade-up">
+    <div class="ac-tier bronze">
         <div class="tier-icon"><i class="bi bi-shield-fill"></i></div>
-        <div class="body">
-            <strong>12</strong>
-            <span>Bronze badges</span>
-        </div>
+        <div class="body"><strong>{{ bronze_count }}</strong><span>Bronze badges</span></div>
     </div>
-
-    <div class="ac-tier silver fade-up">
+    <div class="ac-tier silver">
         <div class="tier-icon"><i class="bi bi-shield-fill-check"></i></div>
-        <div class="body">
-            <strong>8</strong>
-            <span>Silver badges</span>
-        </div>
+        <div class="body"><strong>{{ silver_count }}</strong><span>Silver badges</span></div>
     </div>
-
-    <div class="ac-tier gold fade-up">
+    <div class="ac-tier gold">
         <div class="tier-icon"><i class="bi bi-award-fill"></i></div>
-        <div class="body">
-            <strong>4</strong>
-            <span>Gold badges</span>
-        </div>
+        <div class="body"><strong>{{ gold_count }}</strong><span>Gold badges</span></div>
     </div>
-
-    <div class="ac-tier legendary fade-up">
+    <div class="ac-tier legendary">
         <div class="tier-icon"><i class="bi bi-gem"></i></div>
-        <div class="body">
-            <strong>3</strong>
-            <span>Legendary badges</span>
-        </div>
+        <div class="body"><strong>{{ legendary_count }}</strong><span>Legendary badges</span></div>
     </div>
 </section>
 
-
-<!-- ====================================================
-     MAIN LAYOUT
-     ==================================================== -->
-<section class="ac-layout">
-
-    <!-- ============================================
-         MAIN: BADGE COLLECTION
-         ============================================ -->
+<section class="ac-layout" id="achievement-collection">
     <div class="ac-main">
-
         <div class="ac-tabs-card fade-up">
-
             <div class="ac-tabs-head">
-                <h3><i class="bi bi-collection-fill"></i> Badge collection</h3>
-                <button class="link" data-toast="Opening achievement guide…">
-                    How badges work <i class="bi bi-arrow-right"></i>
-                </button>
+                <h3><i class="bi bi-collection-fill"></i> Badge collection</h3><a class="link"
+                    href="{% url 'student_help' %}">How achievements work <i class="bi bi-arrow-right"></i></a>
             </div>
-
-            <!-- Tabs -->
-            <div class="ac-tabs" role="tablist" aria-label="Achievement categories">
-                <button class="ac-tab active" data-tab="all" role="tab" aria-selected="true">
-                    <i class="bi bi-grid-3x3-gap-fill"></i> All <span class="count">68</span>
-                </button>
-                <button class="ac-tab" data-tab="unlocked" role="tab" aria-selected="false">
-                    <i class="bi bi-check2-circle"></i> Unlocked <span class="count">24</span>
-                </button>
-                <button class="ac-tab" data-tab="locked" role="tab" aria-selected="false">
-                    <i class="bi bi-lock-fill"></i> In progress <span class="count">44</span>
-                </button>
-                <button class="ac-tab" data-tab="learning" role="tab" aria-selected="false">
-                    <i class="bi bi-mortarboard"></i> Learning <span class="count">18</span>
-                </button>
-                <button class="ac-tab" data-tab="social" role="tab" aria-selected="false">
-                    <i class="bi bi-people-fill"></i> Social <span class="count">14</span>
-                </button>
-                <button class="ac-tab" data-tab="legendary" role="tab" aria-selected="false">
-                    <i class="bi bi-gem"></i> Legendary <span class="count">3</span>
-                </button>
-            </div>
-
-            <!-- Toolbar -->
+            <nav class="ac-tabs" role="tablist" aria-label="Achievement categories">
+                <a class="ac-tab {% if filter_name == 'all' %}active{% endif %}" href="?filter=all">All <span
+                        class="count">{{ badge_count }}</span></a><a
+                    class="ac-tab {% if filter_name == 'unlocked' %}active{% endif %}" href="?filter=unlocked">Unlocked
+                    <span class="count">{{ unlocked_count }}</span></a><a
+                    class="ac-tab {% if filter_name == 'locked' %}active{% endif %}" href="?filter=locked">In progress
+                    <span class="count">{{ locked_count }}</span></a><a
+                    class="ac-tab {% if filter_name == 'learning' %}active{% endif %}" href="?filter=learning">Learning
+                    <span class="count">{{ learning_count }}</span></a><a
+                    class="ac-tab {% if filter_name == 'social' %}active{% endif %}" href="?filter=social">Social <span
+                        class="count">{{ social_count }}</span></a><a
+                    class="ac-tab {% if filter_name == 'legendary' %}active{% endif %}"
+                    href="?filter=legendary">Legendary <span class="count">{{ legendary_count }}</span></a>
+            </nav>
             <div class="ac-toolbar">
-                <p class="count"><strong id="acCount">24</strong> unlocked badges</p>
-                <span class="spacer"></span>
-                <div class="ac-sort">
-                    <select id="acSort">
-                        <option>Recently unlocked</option>
-                        <option>Rarest first</option>
-                        <option>Closest to unlock</option>
-                        <option>Alphabetical</option>
-                    </select>
-                </div>
+                <p class="count"><strong>{{ filtered_count }}</strong> achievements</p><span class="spacer"></span>
+                <form method="get"><input type="hidden" name="filter" value="{{ filter_name }}">
+                    <div class="ac-sort"><select name="sort" aria-label="Sort achievements"
+                            onchange="this.form.submit()">
+                            <option value="progress">Closest to unlock</option>
+                            <option value="name">Alphabetical</option>
+                            <option value="unlocked">Unlocked first</option>
+                        </select></div>
+                </form>
             </div>
-
-            <!-- ============================================================
-                 PANEL: ALL / UNLOCKED
-                 ============================================================ -->
-            <div class="ac-panel active" id="acPanelAll" role="tabpanel">
-                <div class="ac-grid" id="acGrid">
-
-                    <!-- ---- Legendary: Streak Master ---- -->
-                    <article class="ac-card" data-cat="learning" data-tier="legendary" data-state="locked" data-progress="40">
-                        <span class="ac-ribbon legendary">Legendary</span>
-                        <div class="ac-medal dark"><i class="bi bi-fire"></i></div>
-                        <div class="title">Streak Master</div>
-                        <div class="desc">Maintain a 30-day learning streak. Only 2% of members reach this.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>12 / 30 days</span><strong>40%</strong></div>
-                            <div class="track"><span data-value="40"></span></div>
-                        </div>
+            <div class="ac-panel active" role="tabpanel">
+                <div class="ac-grid">
+                    {% for badge in badges %}<article class="ac-card {% if not badge.unlocked %}locked{% endif %}"
+                        data-cat="{{ badge.category }}" data-tier="{{ badge.tier }}"
+                        data-state="{% if badge.unlocked %}unlocked{% else %}locked{% endif %}"
+                        data-progress="{{ badge.progress }}"><span class="ac-ribbon {{ badge.tier }}">{{
+                            badge.tier_label }}</span>
+                        <div class="ac-medal"><i class="bi {{ badge.icon }}"></i></div>
+                        <div class="title">{{ badge.title }}</div>
+                        <div class="desc">{{ badge.description }}</div>{% if badge.unlocked %}<span
+                            class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked</span>{% else %}<div
+                            class="ac-mini">
+                            <div class="row"><span>{{ badge.progress_label }}</span><strong>{{ badge.progress
+                                    }}%</strong></div>
+                            <div class="track"><span data-value="{{ badge.progress }}"></span></div>
+                        </div>{% endif %}
                     </article>
-
-                    <!-- ---- Unlocked: Momentum ---- -->
-                    <article class="ac-card" data-cat="learning" data-tier="bronze" data-state="unlocked">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal"><i class="bi bi-lightning-charge-fill"></i></div>
-                        <div class="title">Momentum</div>
-                        <div class="desc">Hit a 10-day learning streak without missing a day.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 18 Mar</span>
-                    </article>
-
-                    <!-- ---- Unlocked: First Connection ---- -->
-                    <article class="ac-card" data-cat="social" data-tier="bronze" data-state="unlocked">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal sky"><i class="bi bi-people-fill"></i></div>
-                        <div class="title">First Connection</div>
-                        <div class="desc">Sent your first skill exchange request to another member.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 08 Jan</span>
-                    </article>
-
-                    <!-- ---- Unlocked: First Course ---- -->
-                    <article class="ac-card" data-cat="learning" data-tier="bronze" data-state="unlocked">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal amber"><i class="bi bi-mortarboard-fill"></i></div>
-                        <div class="title">First Course</div>
-                        <div class="desc">Enrolled in your very first course on Knotwork.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 04 Jan</span>
-                    </article>
-
-                    <!-- ---- Unlocked: First Mentor ---- -->
-                    <article class="ac-card" data-cat="social" data-tier="silver" data-state="unlocked">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal violet"><i class="bi bi-person-badge-fill"></i></div>
-                        <div class="title">First Mentor</div>
-                        <div class="desc">Worked with a verified mentor on your learning track.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 12 Jan</span>
-                    </article>
-
-                    <!-- ---- Unlocked: First Session ---- -->
-                    <article class="ac-card" data-cat="learning" data-tier="bronze" data-state="unlocked">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal sky"><i class="bi bi-camera-video-fill"></i></div>
-                        <div class="title">First Session</div>
-                        <div class="desc">Completed your first skill exchange session.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 22 Jan</span>
-                    </article>
-
-                    <!-- ---- Unlocked: First Post ---- -->
-                    <article class="ac-card" data-cat="social" data-tier="bronze" data-state="unlocked">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal rose"><i class="bi bi-chat-left-text-fill"></i></div>
-                        <div class="title">First Post</div>
-                        <div class="desc">Shared your first post in the Knotwork community.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 15 Feb</span>
-                    </article>
-
-                    <!-- ---- Unlocked: First Exchange ---- -->
-                    <article class="ac-card" data-cat="social" data-tier="silver" data-state="unlocked">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal"><i class="bi bi-handshake"></i></div>
-                        <div class="title">First Exchange</div>
-                        <div class="desc">Completed a full two-way skill swap with another member.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 01 Mar</span>
-                    </article>
-
-                    <!-- ---- Unlocked: Top Mentor ---- -->
-                    <article class="ac-card" data-cat="social" data-tier="gold" data-state="unlocked">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal amber"><i class="bi bi-star-fill"></i></div>
-                        <div class="title">Top Mentor</div>
-                        <div class="desc">Received 3 five-star ratings from learners you've taught.</div>
-                        <span class="ac-unlocked"><i class="bi bi-check2"></i> Unlocked · 20 Mar</span>
-                    </article>
-
-                    <!-- ---- Locked: Polyglot ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="gold" data-state="locked" data-progress="60">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal amber"><i class="bi bi-translate"></i></div>
-                        <div class="title">Polyglot</div>
-                        <div class="desc">Learn five distinct skills across at least three categories.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>3 / 5 skills</span><strong>60%</strong></div>
-                            <div class="track"><span data-value="60"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Night Owl ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="silver" data-state="locked" data-progress="50">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal dark"><i class="bi bi-moon-stars-fill"></i></div>
-                        <div class="title">Night Owl</div>
-                        <div class="desc">Complete 20 sessions that start after 20:00 your local time.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>10 / 20 sessions</span><strong>50%</strong></div>
-                            <div class="track"><span data-value="50"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Marathon ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="gold" data-state="locked" data-progress="48">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal"><i class="bi bi-clock-history"></i></div>
-                        <div class="title">Marathon</div>
-                        <div class="desc">Log 100 total hours of learning time on Knotwork.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>48 / 100 hours</span><strong>48%</strong></div>
-                            <div class="track"><span data-value="48"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Perfectionist ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="silver" data-state="locked" data-progress="30">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal sky"><i class="bi bi-star-half"></i></div>
-                        <div class="title">Perfectionist</div>
-                        <div class="desc">Earn ten five-star ratings across your sessions.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>3 / 10 ratings</span><strong>30%</strong></div>
-                            <div class="track"><span data-value="30"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Community Pillar ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="gold" data-state="locked" data-progress="22">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal rose"><i class="bi bi-chat-square-quote-fill"></i></div>
-                        <div class="title">Community Pillar</div>
-                        <div class="desc">Write 50 helpful community posts, answers, or replies.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>11 / 50 posts</span><strong>22%</strong></div>
-                            <div class="track"><span data-value="22"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Teacher's Heart ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="legendary" data-state="locked" data-progress="12">
-                        <span class="ac-ribbon legendary">Legendary</span>
-                        <div class="ac-medal violet"><i class="bi bi-mortarboard"></i></div>
-                        <div class="title">Teacher's Heart</div>
-                        <div class="desc">Teach 100 hours of sessions to other members.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>12 / 100 hours</span><strong>12%</strong></div>
-                            <div class="track"><span data-value="12"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Global Learner ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="silver" data-state="locked" data-progress="36">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal"><i class="bi bi-globe-americas"></i></div>
-                        <div class="title">Global Learner</div>
-                        <div class="desc">Swap skills with members from five different countries.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>2 / 5 countries</span><strong>36%</strong></div>
-                            <div class="track"><span data-value="36"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Feedback Master ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="silver" data-state="locked" data-progress="65">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal sky"><i class="bi bi-star-fill"></i></div>
-                        <div class="title">Feedback Master</div>
-                        <div class="desc">Leave 25 reviews on sessions and courses you've completed.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>16 / 25 reviews</span><strong>65%</strong></div>
-                            <div class="track"><span data-value="65"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Mentor Bound ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="legendary" data-state="locked" data-progress="8">
-                        <span class="ac-ribbon legendary">Legendary</span>
-                        <div class="ac-medal violet"><i class="bi bi-award-fill"></i></div>
-                        <div class="title">Mentor Bound</div>
-                        <div class="desc">Be invited to join the Knotwork mentor programme.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>Level 7 · Top 5%</span><strong>8%</strong></div>
-                            <div class="track"><span data-value="8"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Iron Will ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="silver" data-state="locked" data-progress="88">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal"><i class="bi bi-shield-fill-check"></i></div>
-                        <div class="title">Iron Will</div>
-                        <div class="desc">Complete every session you book for a full month.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>22 / 25 sessions</span><strong>88%</strong></div>
-                            <div class="track"><span data-value="88"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Curious Mind ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="bronze" data-state="locked" data-progress="75">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal sky"><i class="bi bi-lightbulb-fill"></i></div>
-                        <div class="title">Curious Mind</div>
-                        <div class="desc">Explore 20 different courses in the catalogue.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>15 / 20 courses</span><strong>75%</strong></div>
-                            <div class="track"><span data-value="75"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Early Bird ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="bronze" data-state="locked" data-progress="80">
-                        <span class="ac-ribbon bronze">Bronze</span>
-                        <div class="ac-medal amber"><i class="bi bi-sunrise-fill"></i></div>
-                        <div class="title">Early Bird</div>
-                        <div class="desc">Complete 10 sessions that start before 09:00 local time.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>8 / 10 sessions</span><strong>80%</strong></div>
-                            <div class="track"><span data-value="80"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Mentor's Choice ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="gold" data-state="locked" data-progress="45">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal violet"><i class="bi bi-person-hearts"></i></div>
-                        <div class="title">Mentor's Choice</div>
-                        <div class="desc">Be recommended by three different mentors.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>1 / 3 mentors</span><strong>45%</strong></div>
-                            <div class="track"><span data-value="45"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Renaissance ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="gold" data-state="locked" data-progress="20">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal rose"><i class="bi bi-brush-fill"></i></div>
-                        <div class="title">Renaissance</div>
-                        <div class="desc">Reach intermediate level in three different categories.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>1 / 3 categories</span><strong>20%</strong></div>
-                            <div class="track"><span data-value="20"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Consistent ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="silver" data-state="locked" data-progress="70">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal"><i class="bi bi-calendar-check-fill"></i></div>
-                        <div class="title">Consistent</div>
-                        <div class="desc">Log learning time on 60 distinct days.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>42 / 60 days</span><strong>70%</strong></div>
-                            <div class="track"><span data-value="70"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Deep Diver ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="silver" data-state="locked" data-progress="55">
-                        <span class="ac-ribbon silver">Silver</span>
-                        <div class="ac-medal sky"><i class="bi bi-water"></i></div>
-                        <div class="title">Deep Diver</div>
-                        <div class="desc">Complete a course end-to-end without skipping modules.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>2 / 4 courses</span><strong>55%</strong></div>
-                            <div class="track"><span data-value="55"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Referral Star ---- -->
-                    <article class="ac-card locked" data-cat="social" data-tier="gold" data-state="locked" data-progress="25">
-                        <span class="ac-ribbon gold">Gold</span>
-                        <div class="ac-medal"><i class="bi bi-share-fill"></i></div>
-                        <div class="title">Referral Star</div>
-                        <div class="desc">Invite 5 friends who complete their first session.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>1 / 5 friends</span><strong>25%</strong></div>
-                            <div class="track"><span data-value="25"></span></div>
-                        </div>
-                    </article>
-
-                    <!-- ---- Locked: Legendary Streak ---- -->
-                    <article class="ac-card locked" data-cat="learning" data-tier="legendary" data-state="locked" data-progress="6">
-                        <span class="ac-ribbon legendary">Legendary</span>
-                        <div class="ac-medal dark"><i class="bi bi-tornado"></i></div>
-                        <div class="title">Unstoppable</div>
-                        <div class="desc">Maintain a 100-day streak. Only 0.1% of members ever do.</div>
-                        <div class="ac-mini">
-                            <div class="row"><span>12 / 100 days</span><strong>6%</strong></div>
-                            <div class="track"><span data-value="6"></span></div>
-                        </div>
-                    </article>
-
+                    {% empty %}<div class="ac-card">
+                        <div class="title">No achievements in this view</div>
+                        <div class="desc">Your progress will appear here as you use Knotwork.</div>
+                    </div>{% endfor %}
                 </div>
             </div>
         </div>
-
     </div>
-
-
-    <!-- ============================================
-         SIDE: RAREST, RECENT, LEADERBOARD
-         ============================================ -->
-    <div class="ac-side">
-
-        <!-- Rarest badge -->
-        <div class="ac-rare fade-up">
-            <span class="ac-rare-tag"><i class="bi bi-gem"></i> Your rarest</span>
-
-            <div class="medal-lg"><i class="bi bi-star-fill"></i></div>
-
-            <h3>Top Mentor</h3>
-            <p>Only <strong>1.8%</strong> of members have earned this by collecting three five-star ratings from learners.</p>
-
-            <div class="ac-rare-meta">
-                <div>
-                    <strong>1.8%</strong>
-                    <span>Owners</span>
-                </div>
-                <span class="sep"></span>
-                <div>
-                    <strong>3</strong>
-                    <span>Reviews</span>
-                </div>
-                <span class="sep"></span>
-                <div>
-                    <strong>20 Mar</strong>
-                    <span>Earned</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent unlocks -->
+    <aside class="ac-side">
         <div class="ac-panel-card fade-up">
             <div class="ac-panel-head">
-                <h4><i class="bi bi-clock-history"></i> Recent unlocks</h4>
-                <button class="link" data-toast="Opening the full activity feed…">View all</button>
-            </div>
-
-            <div class="ac-recent">
-                <div class="ac-recent-medal amber"><i class="bi bi-star-fill"></i></div>
+                <h4><i class="bi bi-clock-history"></i> Unlocked achievements</h4>
+            </div>{% for badge in recent_badges|slice:":5" %}<div class="ac-recent">
+                <div class="ac-recent-medal"><i class="bi {{ badge.icon }}"></i></div>
                 <div class="ac-recent-body">
-                    <h5>Top Mentor</h5>
-                    <p>Earned <strong>6 days ago</strong></p>
+                    <h5>{{ badge.title }}</h5>
+                    <p>{{ badge.progress_label }}</p>
                 </div>
-            </div>
-
-            <div class="ac-recent">
-                <div class="ac-recent-medal"><i class="bi bi-handshake"></i></div>
-                <div class="ac-recent-body">
-                    <h5>First Exchange</h5>
-                    <p>Earned <strong>25 days ago</strong></p>
-                </div>
-            </div>
-
-            <div class="ac-recent">
-                <div class="ac-recent-medal violet"><i class="bi bi-person-badge-fill"></i></div>
-                <div class="ac-recent-body">
-                    <h5>First Mentor</h5>
-                    <p>Earned <strong>2 months ago</strong></p>
-                </div>
-            </div>
-
-            <div class="ac-recent">
-                <div class="ac-recent-medal sky"><i class="bi bi-camera-video-fill"></i></div>
-                <div class="ac-recent-body">
-                    <h5>First Session</h5>
-                    <p>Earned <strong>2 months ago</strong></p>
-                </div>
-            </div>
+            </div>{% empty %}<p>No badges unlocked yet. Your first course, session, or community post can earn one.</p>
+            {% endfor %}
         </div>
-
-        <!-- Leaderboard -->
-        <div class="ac-panel-card fade-up">
-            <div class="ac-panel-head">
-                <h4><i class="bi bi-trophy-fill"></i> Badge leaderboard</h4>
-                <button class="link" data-toast="Opening the full leaderboard…">Full list</button>
-            </div>
-
-            <div class="ac-board">
-                <span class="rank">1</span>
-                <span class="avatar xs" style="background:linear-gradient(135deg,#FCD34D,#F59E0B);">TF</span>
-                <div class="ac-board-body">
-                    <h5>Tolu Fashina</h5>
-                    <p><strong>58</strong> badges · Legendary x3</p>
-                </div>
-            </div>
-
-            <div class="ac-board">
-                <span class="rank">2</span>
-                <span class="avatar xs" style="background:linear-gradient(135deg,var(--accent),var(--secondary));">DO</span>
-                <div class="ac-board-body">
-                    <h5>Daniel Okafor</h5>
-                    <p><strong>47</strong> badges · Legendary x2</p>
-                </div>
-            </div>
-
-            <div class="ac-board">
-                <span class="rank">3</span>
-                <span class="avatar xs" style="background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;">AN</span>
-                <div class="ac-board-body">
-                    <h5>Amara Nwosu</h5>
-                    <p><strong>42</strong> badges · Legendary x2</p>
-                </div>
-            </div>
-
-            <div class="ac-board">
-                <span class="rank">4</span>
-                <span class="avatar xs">FB</span>
-                <div class="ac-board-body">
-                    <h5>Fatima Bello</h5>
-                    <p><strong>38</strong> badges · Legendary x1</p>
-                </div>
-            </div>
-
-            <div class="ac-board">
-                <span class="rank">5</span>
-                <span class="avatar xs" style="background:linear-gradient(135deg,var(--secondary),var(--accent));">AO</span>
-                <div class="ac-board-body">
-                    <h5>Amara Okoye <span class="me-tag">You</span></h5>
-                    <p><strong>24</strong> badges · Legendary x0</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trust note -->
-        <div class="ac-trust fade-up">
-            <i class="bi bi-shield-check"></i>
-            <span>
-                <strong>Badges can't be bought.</strong> Every achievement here is earned by doing real work,
-                and reviewers can't be gamed. If you spot an issue with your progress, contact support.
-            </span>
-        </div>
-
-    </div>
+        <div class="ac-trust fade-up"><i class="bi bi-shield-check"></i><span>Progress reflects recorded activity and
+                refreshes when this page loads.</span></div>
+    </aside>
 </section>
 
 
 <script>
-    (function () {
-        'use strict';
-
-        /* ======================================================
-           TABS
-           ====================================================== */
-        var tabs = Array.prototype.slice.call(document.querySelectorAll('.ac-tab'));
-        var cards = Array.prototype.slice.call(document.querySelectorAll('.ac-card'));
-        var countEl = document.getElementById('acCount');
-
-        function applyFilter(tabName) {
-            var visible = 0;
-            cards.forEach(function (card) {
-                var cat = card.dataset.cat;
-                var state = card.dataset.state;
-                var tier = card.dataset.tier;
-                var show = false;
-
-                if (tabName === 'all') show = true;
-                else if (tabName === 'unlocked') show = state === 'unlocked';
-                else if (tabName === 'locked') show = state === 'locked';
-                else if (tabName === 'legendary') show = tier === 'legendary';
-                else show = cat === tabName;
-
-                card.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
-
-            if (countEl) {
-                var label = tabName === 'unlocked' ? 'unlocked badges'
-                          : tabName === 'locked'  ? 'badges in progress'
-                          : 'badges';
-                countEl.textContent = visible;
-                /* Update the label text next to the number */
-                var p = countEl.parentElement;
-                if (p) {
-                    p.childNodes.forEach(function (n) {
-                        if (n.nodeType === 3) {
-                            n.textContent = ' ' + label;
-                        }
-                    });
-                }
-            }
-        }
-
-        tabs.forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                var name = this.dataset.tab;
-                tabs.forEach(function (t) {
-                    t.classList.toggle('active', t === tab);
-                    t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
-                });
-                applyFilter(name);
-                animateMiniBars();
-            });
+    document.getElementById('shareAchievements')?.addEventListener('click', function () {
+        navigator.clipboard.writeText(window.location.href).then(function () {
+            if (window.__toast) window.__toast('Achievement page link copied', 'success');
         });
-
-        /* ======================================================
-           MINI PROGRESS BARS
-           ====================================================== */
-        function animateMiniBars() {
-            document.querySelectorAll('.ac-mini .track > span[data-value]').forEach(function (el) {
-                var val = el.dataset.value + '%';
-                el.style.width = '0';
-                setTimeout(function () {
-                    el.style.width = val;
-                }, 120);
-            });
-        }
-
-        /* ======================================================
-           HERO PROGRESS BAR
-           ====================================================== */
-        function animateHeroBar() {
-            document.querySelectorAll('.ac-hero-bar > span[data-value]').forEach(function (el) {
-                var val = el.dataset.value + '%';
-                el.style.width = '0';
-                setTimeout(function () {
-                    el.style.width = val;
-                }, 320);
-            });
-        }
-
-        /* ======================================================
-           SORT (visual feedback)
-           ====================================================== */
-        var sortSelect = document.getElementById('acSort');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', function () {
-                if (window.__toast) {
-                    window.__toast('Sorted by: ' + this.value, '');
-                }
-            });
-        }
-
-        /* ======================================================
-           CARD CLICK → detail toast
-           ====================================================== */
-        cards.forEach(function (card) {
-            card.addEventListener('click', function () {
-                var titleEl = this.querySelector('.title');
-                var title = titleEl ? titleEl.textContent.trim() : 'Badge';
-                var state = this.dataset.state;
-                if (window.__toast) {
-                    if (state === 'unlocked') {
-                        window.__toast('Viewing unlocked badge: ' + title, 'success');
-                    } else {
-                        window.__toast('Progress for "' + title + '"', '');
-                    }
-                }
-            });
-        });
-
-        /* ======================================================
-           INIT
-           ====================================================== */
-        window.addEventListener('load', function () {
-            animateHeroBar();
-            animateMiniBars();
-            /* Show initial "unlocked" count based on default tab = all */
-            applyFilter('all');
-        });
-
-    })();
+    });
 </script>
 
 {% endblock content %}

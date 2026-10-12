@@ -397,8 +397,40 @@
 .courses-grid{
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 18px;
+    gap: 32px;
 }
+.at-demo-content{ display:none !important; }
+.at-live-card .cc-cover-icon{ position:absolute; left:24px; top:44px; display:flex; align-items:center; gap:12px; color:var(--gold-light); font-size:1.8rem; z-index:2; }
+.at-live-card .cc-cover-icon .level-icon{ font-size:1rem; color:var(--sky); }
+.at-live-card .cc-cover-stats{ display:flex; align-items:flex-end; gap:24px; padding:12px 16px 11px 86px; }
+.at-live-card .cc-cover-stats .crs{ min-width:0; flex:1; display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
+.at-live-card .cc-cover-stats .crs + .crs{ padding-left:24px; border-left:1px solid rgba(255,255,255,.18); }
+.at-live-card .cc-cover-stats .crs .v{ max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.at-live-card .cc-cover-stats .crs .v.gold{ display:block; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:inherit; font-size:.62rem; }
+.at-live-card .cc-cover-stats .crs .k{ font-size:.5rem; letter-spacing:.12em; }
+.at-live-card .cc-body{ min-height:166px; }
+.published-empty-panel{ grid-column:1/-1; display:flex; align-items:center; gap:20px; padding:26px 28px; background:linear-gradient(135deg, rgba(190,242,100,.12), rgba(56,189,248,.08)); border:1px dashed var(--gold-line); }
+.published-empty-panel .empty-panel-icon{ width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; border-radius:16px; background:var(--ink); color:var(--gold-light); font-size:1.25rem; }
+.published-empty-panel .empty-panel-copy{ flex:1; min-width:0; }
+.published-empty-panel h3{ margin-bottom:4px; font-family:'Playfair Display',serif; font-size:1.12rem; color:var(--ink); }
+.published-empty-panel p{ margin:0; color:var(--muted); font-size:.78rem; line-height:1.55; }
+@media (max-width:640px){ .published-empty-panel{ align-items:flex-start; flex-direction:column; } }
+.at-compose-form{ background:linear-gradient(135deg, var(--ink), var(--ink-3)); border-radius:var(--r-xl); padding:28px; color:#fff; box-shadow:var(--shadow-md); }
+.at-compose-form h3{ margin-bottom:6px; font-family:'Playfair Display',serif; font-size:1.45rem; }
+.at-compose-form > p{ color:rgba(255,255,255,.65); font-size:.82rem; margin-bottom:22px; }
+.at-form-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.at-form-field{ display:flex; flex-direction:column; gap:7px; }
+.at-form-field.wide{ grid-column:1/-1; }
+.at-form-field label{ color:rgba(255,255,255,.72); font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.at-form-field input,.at-form-field select,.at-form-field textarea{ width:100%; border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:11px 13px; background:rgba(255,255,255,.08); color:#fff; font:inherit; outline:none; }
+.at-form-field select option{ color:var(--ink); background:#fff; }
+.at-form-field input:focus,.at-form-field select:focus,.at-form-field textarea:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(190,242,100,.16); }
+.at-form-field textarea{ resize:vertical; min-height:120px; }
+.at-form-field .errorlist{ color:#fecdd3; font-size:.72rem; }
+.at-icon-preview{ display:flex; align-items:center; gap:10px; min-height:38px; color:var(--gold-light); font-size:.78rem; }
+.at-icon-preview i{ font-size:1.25rem; }
+.at-form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; flex-wrap:wrap; }
+@media (max-width:640px){ .at-form-grid{ grid-template-columns:1fr; } .at-form-field.wide{ grid-column:auto; } }
 
 .course-card{
     position: relative;
@@ -558,8 +590,16 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: rgba(255,255,255,0.55);
+    line-height: 1.2;
 }
+.cc-cover-stats .crs .v + .k,
+.cc-cover-stats .crs .k + .v { margin-top: 1px; }
 .cc-cover-stats .crs .v.gold{ color: var(--gold-light); }
+
+@media (max-width:640px){
+    .at-live-card .cc-cover-stats{ gap:14px; padding-left:74px; }
+    .at-live-card .cc-cover-stats .crs + .crs{ padding-left:14px; }
+}
 
 /* body */
 .cc-body{
@@ -685,6 +725,98 @@
     color: var(--gold-deep);
     background: var(--gold-soft);
 }
+.draft-actions{
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+}
+.draft-actions form{ margin: 0; }
+.draft-action{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition, all .2s ease);
+    text-decoration: none;
+}
+.draft-action:hover{ border-color: var(--gold); color: var(--gold-deep); background: var(--gold-soft); }
+.draft-action.publish{ background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.draft-action.publish:hover{ background: var(--gold-light); }
+.atelier-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(2, 6, 23, .62);
+    backdrop-filter: blur(7px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility .25s ease;
+}
+.atelier-modal.open{ opacity: 1; visibility: visible; }
+.atelier-modal-card{
+    width: min(560px, 100%);
+    max-height: min(680px, calc(100vh - 40px));
+    overflow-y: auto;
+    padding: 26px;
+    border: 1px solid rgba(190,242,100,.25);
+    border-radius: 50px;
+    background: #09071e;
+    color: #fff;
+    box-shadow: 0 28px 90px rgba(2,6,23,.42);
+    transform: translateY(12px) scale(.98);
+    transition: transform 0.3s ease;
+}
+.atelier-modal.open .atelier-modal-card{ transform: translateY(0) scale(1); }
+.atelier-modal-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:20px; }
+.atelier-modal-kicker{ display:block; margin-bottom:6px; color:var(--gold); font-size:.6rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+.atelier-modal h3{ margin:0; font-family:'Playfair Display',serif; font-size:1.5rem; line-height:1.15; }
+.atelier-modal-close{ width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.16); border-radius:50%; background:rgba(255,255,255,.08); color:#fff; cursor:pointer; }
+.atelier-modal-close:hover{ background:var(--gold); color:var(--ink); transition: 0.3s ease}
+.atelier-modal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.atelier-modal-field{ display:flex; flex-direction:column; gap:7px; }
+.atelier-modal-field.wide{ grid-column:1/-1; }
+.atelier-modal-field label{ color:rgba(255,255,255,.68); font-size:.68rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.atelier-modal-field input,.atelier-modal-field select,.atelier-modal-field textarea{ width:100%; border:1px solid rgba(255,255,255,.14); border-radius:11px; padding:10px 12px; background:rgba(255,255,255,.08); color:#fff; font:inherit; outline:none; }
+.atelier-modal-field select option{ color:var(--ink); background:#fff; }
+.atelier-modal-field textarea{ min-height:110px; resize:vertical; }
+.atelier-modal-field input:focus,.atelier-modal-field select:focus,.atelier-modal-field textarea:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(190,242,100,.15); }
+.atelier-modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:18px; border-top:1px solid rgba(255,255,255,.12); }
+.atelier-modal-actions .btn-ghost,
+.atelier-modal-actions .btn-gold{ min-height:42px; padding:10px 17px; border-radius:12px; font-size:.74rem; }
+.atelier-modal-actions .btn-ghost{ background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.16); color:rgba(255,255,255,.78); }
+.atelier-modal-actions .btn-ghost:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.34); color:#fff; transform:translateY(-2px); }
+.atelier-modal-actions .btn-gold{ box-shadow:0 8px 22px rgba(190,242,100,.2); }
+.atelier-modal-actions .btn-gold:hover{ transform:translateY(-2px); }
+.bulk-draft-list{ display:grid; gap:8px; max-height:330px; overflow-y:auto; padding-right:4px; }
+.bulk-draft-option{ display:flex; align-items:center; gap:11px; padding:12px 13px; border:1px solid rgba(255,255,255,.12); border-radius:11px; background:rgba(255,255,255,.06); cursor:pointer; transition:transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease; }
+.bulk-draft-option:hover{ transform:translateX(3px); border-color:var(--gold-line); background:rgba(190,242,100,.08); box-shadow:0 8px 20px rgba(2,6,23,.16); }
+.bulk-draft-option:has(input:checked){ border-color:rgba(190,242,100,.55); background:rgba(190,242,100,.14); box-shadow:0 0 0 1px rgba(190,242,100,.12); }
+.bulk-draft-option input{ width:16px; height:16px; accent-color:var(--gold-deep); transition:transform .2s ease; }
+.bulk-draft-option input:checked{ transform:scale(1.12); }
+.bulk-draft-option strong{ display:block; font-size:.78rem; color:#fff; }
+.bulk-draft-option span{ display:block; margin-top:2px; font-size:.65rem; color:rgba(255,255,255,.55); }
+.bulk-select-all{ display:flex; align-items:center; gap:8px; margin-bottom:10px; color:rgba(255,255,255,.68); font-size:.7rem; font-weight:700; cursor:pointer; transition:color .2s ease; }
+.bulk-select-all:hover{ color:var(--gold-light); }
+.bulk-select-all input{ width:16px; height:16px; accent-color:var(--gold); transition:transform .2s ease; }
+.bulk-select-all input:checked{ transform:scale(1.12); }
+#bulkActionsButton{ transition:transform .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease; }
+#bulkActionsButton:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(11,17,33,.1); }
+@media (prefers-reduced-motion:reduce){
+    .bulk-draft-option, .bulk-draft-option input, .bulk-select-all, .bulk-select-all input, #bulkActionsButton{ transition:none; }
+}
+@media (max-width:640px){ .atelier-modal-grid{ grid-template-columns:1fr; } .atelier-modal-field.wide{ grid-column:auto; } .atelier-modal-card{ padding:22px; } }
 
 /* always-visible badge when hover actions hidden on touch */
 @media (hover: none){
@@ -1180,23 +1312,23 @@
          ==================================================== -->
     <header class="at-mast">
         <div class="at-mast-left">
-            <span class="am-kicker"><i class="bi bi-palette2"></i> Faculty Atelier · Level XII</span>
+            <span class="am-kicker"><i class="bi bi-palette2"></i> Faculty Atelier · Level I</span>
             <h1>Your <em>course workshop.</em></h1>
             <p class="am-sub">
-                <strong>6</strong> published
+                <strong>{{ published_count }}</strong> published
                 <span class="sep"></span>
-                <strong>3</strong> in draft
+                <strong>{{ draft_count }}</strong> in draft
                 <span class="sep"></span>
-                <strong>148</strong> students enrolled
+                <strong>{{ student_count }}</strong> students enrolled
                 <span class="sep"></span>
-                Avg rating <strong>4.85★</strong>
+                Avg rating <strong>0★</strong>
             </p>
         </div>
         <div class="at-mast-right">
-            <button class="btn-ghost" data-toast="Opening course templates…">
+            <button class="btn-ghost" data-toast="Opening course templates…"> <!-- work on this for me -->
                 <i class="bi bi-file-earmark-plus"></i> Templates
             </button>
-            <button class="btn-gold" data-toast="Opening course composer…">
+            <button class="btn-gold" type="button" data-tab="compose">
                 <i class="bi bi-plus-lg"></i> Compose course
             </button>
         </div>
@@ -1209,11 +1341,11 @@
     <div class="at-tabs" role="tablist" aria-label="Course workshop views">
         <button class="at-tab active" role="tab" aria-selected="true" data-tab="published">
             <i class="bi bi-broadcast"></i> Published
-            <span class="tab-count">6</span>
+            <span class="tab-count">{{ published_count }}</span>
         </button>
         <button class="at-tab" role="tab" aria-selected="false" data-tab="drafts">
             <i class="bi bi-pencil-square"></i> Drafts
-            <span class="tab-count">3</span>
+            <span class="tab-count">{{ draft_count }}</span>
         </button>
         <button class="at-tab compose" role="tab" aria-selected="false" data-tab="compose">
             <i class="bi bi-plus-circle"></i> Compose
@@ -1258,195 +1390,26 @@
          4 · TAB PANEL — PUBLISHED
          ==================================================== -->
     <section class="tab-panel active" id="panel-published" role="tabpanel" aria-labelledby="tab-published">
-
+        
         <div class="courses-grid">
-
-            <article class="course-card" data-toast="Opening Advanced React Patterns…">
-                <div class="cc-cover">
-                    <span class="cc-code">Course I</span>
-                    <span class="cc-status live"><span class="blip"></span> Live</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">42</span><span class="k">students</span></div>
-                        <div class="crs"><span class="v gold">4.9★</span><span class="k">rating</span></div>
+            {% for course in published_courses %}
+                <article class="course-card at-live-card published-course-card" data-title="{{ course.title|lower }} {{ course.course_id|lower }} {{ course.category|lower }}">
+                    <div class="cc-cover">
+                        <span class="cc-code">{{ course.course_id }}</span>
+                        <span class="cc-status live"><span class="blip"></span> Published</span>
+                        <div class="cc-cover-icon"><i class="bi {{ course.get_category_icon }}" title="{{ course.get_category_display }}"></i><i class="bi {{ course.get_level_icon }} level-icon" title="{{ course.get_level_display }}"></i></div>
+                        <div class="cc-cover-stats"><div class="crs"><span class="k">Students</span><span class="v">{{ course.enrollments.count }}</span></div><div class="crs"><span class="k">Category</span><span class="v gold">{{ course.get_category_display }}</span></div></div>
                     </div>
+                    <div class="cc-body"><h4 class="cc-title">{{ course.title }}</h4><p class="cc-desc">{{ course.description|truncatewords:22 }}</p><div class="cc-progress"><div class="prow"><span class="k">Level</span><span class="v"><i class="bi {{ course.get_level_icon }}"></i> {{ course.get_level_display }}</span></div></div></div>
+                    <div class="cc-foot"><span class="meta"><i class="bi bi-currency-exchange"></i> <strong>{{ course.price|floatformat:0|intcomma }}</strong> credits</span><div class="cc-actions"><a href="{% url 'student_find_courses' %}?q={{ course.title|urlencode }}" aria-label="Preview course"><i class="bi bi-eye"></i></a></div></div>
+                </article>
+            {% empty %}
+                <div class="panel published-empty-panel">
+                    <div class="empty-panel-icon"><i class="bi bi-stars"></i></div>
+                    <div class="empty-panel-copy"><h3>Your published shelf is ready.</h3><p>No courses are live yet. Shape your first course in Compose, choose its category and level, then publish it when it is ready for learners.</p></div>
+                    <button class="btn-gold" type="button" data-tab="compose"><i class="bi bi-plus-lg"></i> Compose course</button>
                 </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Advanced React Patterns</h4>
-                    <p class="cc-desc">Composition, state machines and the performance patterns senior teams actually ship.</p>
-
-                    <div class="cc-progress">
-                        <div class="prow">
-                            <span class="k">Cohort progress</span>
-                            <span class="v">68%</span>
-                        </div>
-                        <div class="pbar"><span data-value="68"></span></div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-collection"></i> <strong>12</strong> modules</span>
-                    <div class="cc-actions">
-                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
-                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card sky" data-toast="Opening UI/UX Design Systems…">
-                <div class="cc-cover">
-                    <span class="cc-code">Course II</span>
-                    <span class="cc-status live"><span class="blip"></span> Live</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">36</span><span class="k">students</span></div>
-                        <div class="crs"><span class="v gold">4.8★</span><span class="k">rating</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">UI/UX Design Systems</h4>
-                    <p class="cc-desc">Tokens, component APIs, documentation and the craft behind a scalable system.</p>
-
-                    <div class="cc-progress">
-                        <div class="prow">
-                            <span class="k">Cohort progress</span>
-                            <span class="v">54%</span>
-                        </div>
-                        <div class="pbar"><span data-value="54"></span></div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-collection"></i> <strong>16</strong> modules</span>
-                    <div class="cc-actions">
-                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
-                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card violet" data-toast="Opening Backend Fundamentals…">
-                <div class="cc-cover">
-                    <span class="cc-code">Course III</span>
-                    <span class="cc-status live"><span class="blip"></span> Live</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">28</span><span class="k">students</span></div>
-                        <div class="crs"><span class="v gold">4.7★</span><span class="k">rating</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Backend Fundamentals</h4>
-                    <p class="cc-desc">Models, auth, APIs and deployment — the full path from first endpoint to production.</p>
-
-                    <div class="cc-progress">
-                        <div class="prow">
-                            <span class="k">Cohort progress</span>
-                            <span class="v">47%</span>
-                        </div>
-                        <div class="pbar"><span data-value="47"></span></div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-collection"></i> <strong>14</strong> modules</span>
-                    <div class="cc-actions">
-                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
-                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card leaf" data-toast="Opening TypeScript for React…">
-                <div class="cc-cover">
-                    <span class="cc-code">Course IV</span>
-                    <span class="cc-status live"><span class="blip"></span> Live</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">22</span><span class="k">students</span></div>
-                        <div class="crs"><span class="v gold">4.9★</span><span class="k">rating</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">TypeScript for React</h4>
-                    <p class="cc-desc">Generics, discriminated unions and typed component APIs that catch bugs before users do.</p>
-
-                    <div class="cc-progress">
-                        <div class="prow">
-                            <span class="k">Cohort progress</span>
-                            <span class="v">61%</span>
-                        </div>
-                        <div class="pbar"><span data-value="61"></span></div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-collection"></i> <strong>10</strong> modules</span>
-                    <div class="cc-actions">
-                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
-                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card" data-toast="Opening Motion Design Basics…">
-                <div class="cc-cover">
-                    <span class="cc-code">Course V</span>
-                    <span class="cc-status review">In Review</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">18</span><span class="k">students</span></div>
-                        <div class="crs"><span class="v gold">4.6★</span><span class="k">rating</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Motion Design Basics</h4>
-                    <p class="cc-desc">Easing, timing and micro-interactions — the details that make interfaces feel alive.</p>
-
-                    <div class="cc-progress">
-                        <div class="prow">
-                            <span class="k">Cohort progress</span>
-                            <span class="v">34%</span>
-                        </div>
-                        <div class="pbar"><span data-value="34"></span></div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-collection"></i> <strong>8</strong> modules</span>
-                    <div class="cc-actions">
-                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
-                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card sky" data-toast="Opening Testing React Apps…">
-                <div class="cc-cover">
-                    <span class="cc-code">Course VI</span>
-                    <span class="cc-status review">In Review</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">12</span><span class="k">students</span></div>
-                        <div class="crs"><span class="v gold">4.7★</span><span class="k">rating</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Testing React Apps</h4>
-                    <p class="cc-desc">Vitest, React Testing Library and the habits that keep a growing codebase honest.</p>
-
-                    <div class="cc-progress">
-                        <div class="prow">
-                            <span class="k">Cohort progress</span>
-                            <span class="v">22%</span>
-                        </div>
-                        <div class="pbar"><span data-value="22"></span></div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-collection"></i> <strong>12</strong> modules</span>
-                    <div class="cc-actions">
-                        <button aria-label="Edit course" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Preview course" data-toast="Opening preview…"><i class="bi bi-eye"></i></button>
-                        <button aria-label="More options" data-toast="Opening menu…"><i class="bi bi-three-dots"></i></button>
-                    </div>
-                </div>
-            </article>
-
+            {% endfor %}
         </div>
 
         <div class="at-foot">
@@ -1467,105 +1430,28 @@
     <section class="tab-panel" id="panel-drafts" role="tabpanel" aria-labelledby="tab-drafts">
 
         <div class="courses-grid">
-
-            <article class="course-card is-draft" data-toast="Continuing Design Tokens…">
-                <div class="cc-cover">
-                    <span class="cc-code">Draft I</span>
-                    <span class="cc-status draft">Draft</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">62%</span><span class="k">complete</span></div>
+            {% for course in draft_courses %}
+                <article class="course-card is-draft at-live-card" data-title="{{ course.title|lower }} {{ course.course_id|lower }} {{ course.category|lower }}">
+                    <div class="cc-cover"><span class="cc-code">{{ course.course_id }}</span><span class="cc-status draft">Draft</span><div class="cc-cover-icon"><i class="bi {{ course.get_category_icon }}" title="{{ course.get_category_display }}"></i><i class="bi {{ course.get_level_icon }} level-icon" title="{{ course.get_level_display }}"></i></div><div class="cc-cover-stats"><div class="crs"><span class="v">{{ course.get_level_display }}</span><span class="k">level</span></div></div></div>
+                    <div class="cc-body"><h4 class="cc-title">{{ course.title }}</h4><p class="cc-desc">{{ course.description|truncatewords:22 }}</p><div class="draft-checklist"><div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details saved</div><div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Category and level selected</div><div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Ready to publish</div></div></div>
+                    <div class="cc-foot"><span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>{{ course.created_at|date:"M j, Y" }}</strong></span><div class="draft-actions"><button class="draft-action js-edit-draft" type="button" data-edit-url="{% url 'teacher_edit_course' course.course_id %}" data-course-id="{{ course.course_id }}" data-title="{{ course.title }}" data-category="{{ course.category }}" data-level="{{ course.level }}" data-price="{{ course.price }}" data-description="{{ course.description }}"><i class="bi bi-pencil"></i> Edit</button><form method="post" action="{% url 'teacher_edit_course' course.course_id %}">{% csrf_token %}<button class="draft-action publish" type="submit" name="action" value="publish"><i class="bi bi-broadcast"></i> Publish</button></form></div></div>
+                </article>
+            {% empty %}
+                <div class="panel published-empty-panel">
+                    <div class="empty-panel-icon"><i class="bi bi-stars"></i></div>
+                    <div class="empty-panel-copy">
+                        <h3>No drafts yet. Save a course here while you shape it.</h3>
+                        <p>No courses have been drafted yet. Shape your first course in Compose, choose its category and level, then draft so you can edit it later before it is ready for learners.</p>
                     </div>
+                    {% comment %} <button class="btn-gold" type="button" data-tab="compose"><i class="bi bi-plus-lg"></i> Compose course</button> {% endcomment %}
                 </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Design Tokens Masterclass</h4>
-                    <p class="cc-desc">Deep dive into tokens, semantic layers and multi-brand theming systems.</p>
-
-                    <div class="draft-checklist">
-                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details</div>
-                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Outline complete</div>
-                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Upload 4 remaining lessons</div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>2d ago</strong></span>
-                    <div class="cc-actions">
-                        <button aria-label="Continue editing" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Delete draft" data-toast="Opening delete…"><i class="bi bi-trash3"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card is-draft" data-toast="Continuing Advanced CSS Grid…">
-                <div class="cc-cover">
-                    <span class="cc-code">Draft II</span>
-                    <span class="cc-status draft">Draft</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">35%</span><span class="k">complete</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Advanced CSS Grid</h4>
-                    <p class="cc-desc">Modern layout patterns, subgrid, and the mental models behind resilient grids.</p>
-
-                    <div class="draft-checklist">
-                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details</div>
-                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Complete outline</div>
-                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Upload lessons</div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>5d ago</strong></span>
-                    <div class="cc-actions">
-                        <button aria-label="Continue editing" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Delete draft" data-toast="Opening delete…"><i class="bi bi-trash3"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="course-card is-draft" data-toast="Continuing Web Performance…">
-                <div class="cc-cover">
-                    <span class="cc-code">Draft III</span>
-                    <span class="cc-status draft">Draft</span>
-                    <div class="cc-cover-stats">
-                        <div class="crs"><span class="v">12%</span><span class="k">complete</span></div>
-                    </div>
-                </div>
-                <div class="cc-body">
-                    <h4 class="cc-title">Web Performance at Scale</h4>
-                    <p class="cc-desc">Core Web Vitals, profiling, bundle strategy and the discipline of shipping fast software.</p>
-
-                    <div class="draft-checklist">
-                        <div class="dc-item done"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Course details</div>
-                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Complete outline</div>
-                        <div class="dc-item"><span class="dc-check"><i class="bi bi-check-lg"></i></span> Upload lessons</div>
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <span class="meta"><i class="bi bi-clock-history"></i> Edited <strong>1w ago</strong></span>
-                    <div class="cc-actions">
-                        <button aria-label="Continue editing" data-toast="Opening editor…"><i class="bi bi-pencil"></i></button>
-                        <button aria-label="Delete draft" data-toast="Opening delete…"><i class="bi bi-trash3"></i></button>
-                    </div>
-                </div>
-            </article>
-
-            <!-- add new draft tile -->
-            <button class="pathway" data-toast="Opening blank course composer…" style="min-height:260px;align-items:center;justify-content:center;text-align:center;gap:14px;">
-                <div class="pathway-ic" style="width:56px;height:56px;border-radius:50%;">
-                    <i class="bi bi-plus-lg"></i>
-                </div>
-                <div>
-                    <h4 style="margin-bottom:6px;">Start a new draft</h4>
-                    <p style="max-width:220px;margin:0 auto;">Begin a fresh course from a blank canvas or a template.</p>
-                </div>
-            </button>
-
+            {% endfor %}
         </div>
 
         <div class="at-foot">
             <span>Showing <strong>3</strong> of <strong>3</strong> drafts · <strong>2</strong> ready for review</span>
             <div class="foot-actions">
-                <button class="btn-ghost" data-toast="Opening bulk actions…">
+                <button class="btn-ghost" id="bulkActionsButton" type="button">
                     <i class="bi bi-list-check"></i> Bulk actions
                 </button>
             </div>
@@ -1579,11 +1465,27 @@
          ==================================================== -->
     <section class="tab-panel" id="panel-compose" role="tabpanel" aria-labelledby="tab-compose">
 
+        <form class="at-compose-form" method="post">
+            {% csrf_token %}
+            {% if editing_course %}<input type="hidden" name="course_id" value="{{ editing_course.course_id }}">{% endif %}
+            <h3>{% if editing_course %}Edit your draft{% else %}Compose a course that feels like yours.{% endif %}</h3>
+            <p>Choose a category and level from the model catalogue. Save privately while you work, or publish when the course is ready.</p>
+            <div class="at-form-grid">
+                <div class="at-form-field"><label for="{{ form.title.id_for_label }}">Course title</label>{{ form.title }}{{ form.title.errors }}</div>
+                <div class="at-form-field"><label for="{{ form.price.id_for_label }}">Price in credits</label>{{ form.price }}{{ form.price.errors }}</div>
+                <div class="at-form-field"><label for="{{ form.category.id_for_label }}">Category</label><select name="category" id="{{ form.category.id_for_label }}">{% for option in category_options %}<option value="{{ option.value }}" data-icon="{{ option.icon }}" {% if form.category.value == option.value %}selected{% endif %}>{{ option.label }}</option>{% endfor %}</select>{{ form.category.errors }}</div>
+                <div class="at-form-field"><label for="{{ form.level.id_for_label }}">Level</label><select name="level" id="{{ form.level.id_for_label }}">{% for option in level_options %}<option value="{{ option.value }}" data-icon="{{ option.icon }}" {% if form.level.value == option.value %}selected{% endif %}>{{ option.label }}</option>{% endfor %}</select>{{ form.level.errors }}</div>
+                <div class="at-form-field wide"><label for="{{ form.description.id_for_label }}">Course promise</label>{{ form.description }}{{ form.description.errors }}</div>
+                <div class="at-form-field wide"><div class="at-icon-preview"><i id="atelierCategoryIcon" class="bi bi-book"></i><span id="atelierCategoryLabel">Category</span><span>·</span><i id="atelierLevelIcon" class="bi bi-signal"></i><span id="atelierLevelLabel">Level</span></div></div>
+            </div>
+            <div class="at-form-actions"><button class="btn-ghost" type="submit" name="action" value="draft"><i class="bi bi-save"></i> Save draft</button><button class="btn-gold" type="submit" name="action" value="publish"><i class="bi bi-broadcast"></i> Publish course</button></div>
+        </form>
+
         <!-- intro banner -->
         <div class="compose-intro">
             <div class="ci-body">
                 <div class="ci-text">
-                    <span class="eyebrow"><i class="bi bi-stars"></i> Compose · create · publish</span>
+                    <span class="eyebrow"><i class="bi bi-stars"></i> COMPOSE · CREATE · PUBLISH</span>
                     <h2>Start your next <em>signature course.</em></h2>
                     <p>
                         Choose how you'd like to begin. You can always switch paths later —
@@ -1714,6 +1616,49 @@
 
 </div>
 
+<div class="atelier-modal" id="draftEditModal" role="dialog" aria-modal="true" aria-labelledby="draftEditTitle" aria-hidden="true">
+    <div class="atelier-modal-card">
+        <div class="atelier-modal-head">
+            <div><span class="atelier-modal-kicker">Draft workshop</span><h3 id="draftEditTitle">Edit your course</h3></div>
+            <button class="atelier-modal-close" type="button" aria-label="Close edit dialog"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="post" id="draftEditForm">
+            {% csrf_token %}
+            <input type="hidden" name="course_id" id="draftEditCourseId">
+            <div class="atelier-modal-grid">
+                <div class="atelier-modal-field wide"><label for="draftEditCourseTitle">Course title</label><input id="draftEditCourseTitle" name="title" required></div>
+                <div class="atelier-modal-field"><label for="draftEditCategory">Category</label><select id="draftEditCategory" name="category" required>{% for option in category_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}</select></div>
+                <div class="atelier-modal-field"><label for="draftEditLevel">Level</label><select id="draftEditLevel" name="level" required>{% for option in level_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}</select></div>
+                <div class="atelier-modal-field"><label for="draftEditPrice">Price in credits</label><input id="draftEditPrice" name="price" type="number" min="0" step="0.01" required></div>
+                <div class="atelier-modal-field wide"><label for="draftEditDescription">Course promise</label><textarea id="draftEditDescription" name="description" required></textarea></div>
+            </div>
+            <div class="atelier-modal-actions"><button class="btn-ghost js-close-draft-modal" type="button">Cancel</button><button class="btn-gold" type="submit" name="action" value="draft"><i class="bi bi-check2"></i> Save changes</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="atelier-modal" id="bulkDraftModal" role="dialog" aria-modal="true" aria-labelledby="bulkDraftTitle" aria-hidden="true">
+    <div class="atelier-modal-card">
+        <div class="atelier-modal-head">
+            <div><span class="atelier-modal-kicker">Draft management</span><h3 id="bulkDraftTitle">Choose drafts to publish</h3></div>
+            <button class="atelier-modal-close" type="button" aria-label="Close bulk actions"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="post" action="{% url 'teacher_atelier' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="bulk_publish">
+            <label class="bulk-select-all"><input type="checkbox" id="bulkSelectAll"> Select all drafts</label>
+            <div class="bulk-draft-list">
+                {% for course in draft_courses %}
+                    <label class="bulk-draft-option"><input type="checkbox" name="course_ids" value="{{ course.course_id }}"><span><strong>{{ course.title }}</strong><span>{{ course.get_category_display }} · {{ course.get_level_display }}</span></span></label>
+                {% empty %}
+                    <p style="color:rgba(255,255,255,.65);font-size:.78rem;">There are no drafts to manage yet.</p>
+                {% endfor %}
+            </div>
+            <div class="atelier-modal-actions"><button class="btn-ghost js-close-bulk-modal" type="button">Cancel</button><button class="btn-gold" type="submit"><i class="bi bi-broadcast"></i> Publish selected</button></div>
+        </form>
+    </div>
+</div>
+
 
 <script>
 (function () {
@@ -1721,6 +1666,68 @@
 
     var root = document.querySelector('.atelier');
     if (!root) return;
+
+    var editModal = document.getElementById('draftEditModal');
+    var editForm = document.getElementById('draftEditForm');
+    var bulkModal = document.getElementById('bulkDraftModal');
+    var editFields = {
+        courseId: document.getElementById('draftEditCourseId'),
+        title: document.getElementById('draftEditCourseTitle'),
+        category: document.getElementById('draftEditCategory'),
+        level: document.getElementById('draftEditLevel'),
+        price: document.getElementById('draftEditPrice'),
+        description: document.getElementById('draftEditDescription')
+    };
+
+    function setModalState(modal, isOpen) {
+        if (!modal) return;
+        modal.classList.toggle('open', isOpen);
+        modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    root.querySelectorAll('.js-edit-draft').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (!editModal || !editForm) return;
+            editForm.action = button.dataset.editUrl;
+            editFields.courseId.value = button.dataset.courseId || '';
+            editFields.title.value = button.dataset.title || '';
+            editFields.category.value = button.dataset.category || '';
+            editFields.level.value = button.dataset.level || '';
+            editFields.price.value = button.dataset.price || '0';
+            editFields.description.value = button.dataset.description || '';
+            setModalState(editModal, true);
+            editFields.title.focus();
+        });
+    });
+
+    var bulkButton = document.getElementById('bulkActionsButton');
+    if (bulkButton) bulkButton.addEventListener('click', function () { setModalState(bulkModal, true); });
+
+    document.querySelectorAll('.atelier-modal').forEach(function (modal) {
+        var closeButton = modal.querySelector('.atelier-modal-close');
+        var cancelButton = modal.querySelector('.js-close-draft-modal, .js-close-bulk-modal');
+        if (closeButton) closeButton.addEventListener('click', function () { setModalState(modal, false); });
+        if (cancelButton) cancelButton.addEventListener('click', function () { setModalState(modal, false); });
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) setModalState(modal, false);
+        });
+    });
+
+    var bulkSelectAll = document.getElementById('bulkSelectAll');
+    if (bulkSelectAll) {
+        bulkSelectAll.addEventListener('change', function () {
+            bulkModal.querySelectorAll('input[name="course_ids"]').forEach(function (checkbox) {
+                checkbox.checked = bulkSelectAll.checked;
+            });
+        });
+    }
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            setModalState(editModal, false);
+            setModalState(bulkModal, false);
+        }
+    });
 
     /* ---------- tab switching ---------- */
     var tabs = root.querySelectorAll('.at-tab');
@@ -1745,6 +1752,21 @@
     tabs.forEach(function (tab) {
         tab.addEventListener('click', function () {
             activateTab(tab.dataset.tab);
+        });
+    });
+
+    var requestedTab = new URLSearchParams(window.location.search).get('tab');
+    {% if editing_course %}
+    activateTab('compose');
+    {% elif request.GET.tab %}
+    if (panels[requestedTab]) activateTab(requestedTab);
+    {% endif %}
+
+    root.querySelectorAll('[data-tab="compose"]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            activateTab('compose');
+            var composer = document.getElementById('panel-compose');
+            if (composer) composer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 
@@ -1798,6 +1820,32 @@
                 card.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
             });
         });
+    }
+
+    var categorySelect = document.getElementById('id_category');
+    var levelSelect = document.getElementById('id_level');
+    var categoryIcon = document.getElementById('atelierCategoryIcon');
+    var levelIcon = document.getElementById('atelierLevelIcon');
+    var categoryLabel = document.getElementById('atelierCategoryLabel');
+    var levelLabel = document.getElementById('atelierLevelLabel');
+
+    function updateCourseIcons() {
+        var categoryOption = categorySelect && categorySelect.options[categorySelect.selectedIndex];
+        var levelOption = levelSelect && levelSelect.options[levelSelect.selectedIndex];
+        if (categoryOption && categoryIcon) {
+            categoryIcon.className = 'bi ' + (categoryOption.dataset.icon || 'bi-book');
+            categoryLabel.textContent = categoryOption.textContent;
+        }
+        if (levelOption && levelIcon) {
+            levelIcon.className = 'bi ' + (levelOption.dataset.icon || 'bi-signal');
+            levelLabel.textContent = levelOption.textContent;
+        }
+    }
+
+    if (categorySelect && levelSelect) {
+        categorySelect.addEventListener('change', updateCourseIcons);
+        levelSelect.addEventListener('change', updateCourseIcons);
+        updateCourseIcons();
     }
 
 })();

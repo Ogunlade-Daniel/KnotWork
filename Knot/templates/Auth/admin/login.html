@@ -1,0 +1,1611 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#020617">
+    <title>KnotWork · Command | Secure Sign In</title>
+
+    <link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-web/fontawesome-free-6.7.2-web/css/all.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-icons-1.11.3/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           TOKENS — ADMIN COMMAND PALETTE (signature colors only)
+           ============================================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #0B1121;
+            --primary-light: #1E293B;
+            --primary-dark: #020617;
+            --primary-deep: #05070F;
+
+            --secondary: #BEF264;
+            --secondary-light: #D9F99D;
+            --secondary-deep: #7ED321;
+
+            --accent: #38BDF8;
+            --accent-strong: #0EA5E9;
+
+            --crown-1: #E2FF9D;
+            --crown-2: #BEF264;
+            --crown-3: #8B5CF6;
+            --crown-4: #6D28D9;
+
+            --admin-violet: #8B5CF6;
+            --admin-violet-light: #A78BFA;
+            --admin-violet-deep: #6D28D9;
+            --admin-violet-dim: rgba(139, 92, 246, 0.12);
+
+            --admin-crimson: #E11D48;
+            --admin-crimson-dim: rgba(225, 29, 72, 0.10);
+
+            --danger: #EF4444;
+            --green: #22C55E;
+            --amber: #F59E0B;
+
+            --cream: #F8FAFC;
+            --white: #FFFFFF;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-300: #CBD5E1;
+            --gray-400: #94A3B8;
+            --gray-600: #475569;
+            --gray-800: #1E293B;
+
+            --crown-gradient: linear-gradient(135deg,
+                              var(--secondary-light) 0%,
+                              var(--secondary) 42%,
+                              var(--admin-violet-light) 100%);
+
+            --shadow-sm: 0 4px 20px rgba(11, 17, 33, 0.08);
+            --shadow-md: 0 12px 48px rgba(11, 17, 33, 0.12);
+            --shadow-lg: 0 24px 72px rgba(11, 17, 33, 0.18);
+            --shadow-xl: 0 32px 90px rgba(2, 6, 23, 0.28);
+
+            --radius: 16px;
+            --transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --spring: all 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        html, body { height: 100%; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-deep);
+            color: var(--gray-800);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--crown-2) 0%, var(--crown-3) 100%);
+            border-radius: 10px;
+        }
+        ::selection { background: var(--crown-2); color: var(--primary-deep); }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button { font-family: inherit; }
+        img { max-width: 100%; display: block; }
+
+        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--crown-2);
+            outline-offset: 3px;
+            border-radius: 8px;
+        }
+
+        .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+        /* ============================================================
+           SHELL
+           ============================================================ */
+        .lg-shell {
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+            min-height: 100vh;
+            position: relative;
+        }
+        @media (max-width: 1080px) {
+            .lg-shell { grid-template-columns: 1fr; }
+        }
+
+        /* ============================================================
+           LEFT PANEL — VAULT STAGE
+           ============================================================ */
+        .lg-left {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            display: flex;
+            flex-direction: column;
+            padding: 44px 46px 34px;
+            background:
+                radial-gradient(circle at 82% 12%, rgba(139, 92, 246, 0.30), transparent 52%),
+                radial-gradient(circle at 8% 88%, rgba(190, 242, 100, 0.22), transparent 56%),
+                radial-gradient(circle at 48% -18%, rgba(56, 189, 248, 0.14), transparent 46%),
+                linear-gradient(155deg, #020617 0%, #0B1121 45%, #0E1729 100%);
+        }
+        .lg-left::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg,
+                        var(--secondary) 0%,
+                        var(--secondary) 42%,
+                        var(--admin-violet) 100%);
+            box-shadow: 0 0 26px rgba(190, 242, 100, 0.55);
+            z-index: 5;
+        }
+        .lg-left::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(rgba(255,255,255,0.032) 1px, transparent 1px),
+                radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px);
+            background-size: 26px 26px, 52px 52px;
+            background-position: 0 0, 13px 13px;
+            pointer-events: none;
+            mask-image: radial-gradient(circle at 40% 40%, #000 0%, transparent 82%);
+            -webkit-mask-image: radial-gradient(circle at 40% 40%, #000 0%, transparent 82%);
+            z-index: 1;
+        }
+
+        /* Vault rings — hero visual */
+        .lg-vault {
+            position: absolute;
+            top: 50%; right: -6%;
+            transform: translateY(-50%);
+            width: 620px; height: 620px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.75;
+        }
+        .lg-vault .ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            border-radius: 50%;
+            border: 1px solid rgba(190, 242, 100, 0.16);
+            transform: translate(-50%, -50%);
+        }
+        .lg-vault .ring:nth-child(1) { width: 200px;  height: 200px;  border-color: rgba(190, 242, 100, 0.24); }
+        .lg-vault .ring:nth-child(2) { width: 340px;  height: 340px;  border-color: rgba(190, 242, 100, 0.14); }
+        .lg-vault .ring:nth-child(3) { width: 480px;  height: 480px;  border-color: rgba(139, 92, 246, 0.18); }
+        .lg-vault .ring:nth-child(4) { width: 620px;  height: 620px;  border-color: rgba(56, 189, 248, 0.10); }
+        .lg-vault .ring.dashed {
+            border-style: dashed;
+            border-color: rgba(139, 92, 246, 0.32);
+            animation: lgSpin 60s linear infinite;
+        }
+        .lg-vault .ring.dashed.reverse {
+            border-color: rgba(190, 242, 100, 0.28);
+            animation-direction: reverse;
+            animation-duration: 44s;
+        }
+        @keyframes lgSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+        .lg-vault .ring .dot {
+            position: absolute;
+            top: -4px; left: 50%;
+            transform: translateX(-50%);
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+            box-shadow: 0 0 16px rgba(190, 242, 100, 0.85);
+        }
+        .lg-vault .ring.dashed.reverse .dot {
+            background: var(--admin-violet-light);
+            box-shadow: 0 0 16px rgba(139, 92, 246, 0.85);
+        }
+        .lg-vault .core {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, rgba(190, 242, 100, 0.30), transparent 68%);
+            filter: blur(4px);
+            animation: lgCorePulse 4s ease-in-out infinite;
+        }
+        @keyframes lgCorePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50%      { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+        }
+
+        /* Floating orbs */
+        .lg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .lg-orb.a {
+            width: 300px; height: 300px;
+            top: 12%; left: -6%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.42), transparent 68%);
+            animation: lgFloat 24s ease-in-out infinite;
+        }
+        .lg-orb.b {
+            width: 240px; height: 240px;
+            bottom: 8%; right: 12%;
+            background: radial-gradient(circle, rgba(190, 242, 100, 0.34), transparent 68%);
+            animation: lgFloat 28s ease-in-out infinite reverse;
+        }
+        @keyframes lgFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50%      { transform: translate(20px, -28px) scale(1.08); }
+        }
+
+        /* Brand row */
+        .lg-brand-row {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 42px;
+        }
+        .lg-brand {
+            display: flex; align-items: center; gap: 13px;
+            min-width: 0;
+        }
+        .lg-brand-shield {
+            position: relative;
+            width: 46px; height: 46px;
+            border-radius: 13px;
+            background: var(--crown-gradient);
+            display: grid; place-items: center;
+            box-shadow: 0 12px 28px rgba(190, 242, 100, 0.28),
+                        inset 0 1px 0 rgba(255,255,255,0.55);
+            flex-shrink: 0;
+        }
+        .lg-brand-shield::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 16px;
+            border: 1px dashed rgba(190, 242, 100, 0.38);
+            animation: lgSpin 16s linear infinite;
+        }
+        .lg-brand-shield svg { width: 26px; height: 26px; display: block; position: relative; z-index: 2; }
+        .lg-brand-words { min-width: 0; line-height: 1.15; }
+        .lg-brand-words b {
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.22rem; font-weight: 700;
+            color: var(--white); letter-spacing: -0.01em;
+        }
+        .lg-brand-words b i { color: var(--secondary); font-style: italic; }
+        .lg-brand-words small {
+            display: block;
+            font-size: 0.55rem; font-weight: 800;
+            letter-spacing: 0.20em; text-transform: uppercase;
+            color: var(--crown-2); margin-top: 3px;
+        }
+
+        .lg-sys-pill {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 6px 11px; border-radius: 50px;
+            background: rgba(34, 197, 94, 0.10);
+            border: 1px solid rgba(34, 197, 94, 0.32);
+            color: #86EFAC;
+            font-size: 0.58rem; font-weight: 800;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+        }
+        .lg-sys-pill .pulse {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+            animation: lgPulse 2s infinite;
+        }
+        @keyframes lgPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+            70%  { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* Hero */
+        .lg-hero {
+            position: relative;
+            z-index: 3;
+            max-width: 580px;
+            margin-bottom: 30px;
+        }
+        .lg-hero-badges {
+            display: flex; align-items: center;
+            gap: 9px; flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        /* THE ADMIN BADGE */
+        .lg-crown-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 16px 7px 10px;
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem; font-weight: 800;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--primary-deep);
+            background: var(--crown-gradient);
+            box-shadow: 0 10px 28px rgba(190, 242, 100, 0.42),
+                        0 6px 20px rgba(139, 92, 246, 0.26),
+                        inset 0 1px 0 rgba(255,255,255,0.6);
+            position: relative;
+            overflow: hidden;
+            animation: lgCrownFloat 4s ease-in-out infinite;
+        }
+        .lg-crown-badge::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(105deg,
+                        transparent 38%,
+                        rgba(255,255,255,0.75) 50%,
+                        transparent 62%);
+            transform: translateX(-130%);
+            animation: lgShine 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes lgShine {
+            0%, 55% { transform: translateX(-130%); }
+            85%, 100% { transform: translateX(130%); }
+        }
+        @keyframes lgCrownFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-3px); }
+        }
+        .lg-crown-badge i { font-size: 0.9rem; }
+
+        .lg-chip {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 7px 14px; border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.56rem; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.62);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+        .lg-chip i { font-size: 0.72rem; color: var(--crown-2); }
+        .lg-chip.violet { color: #C4B5FD; border-color: rgba(167, 139, 250, 0.36); background: rgba(139, 92, 246, 0.10); }
+        .lg-chip.violet i { color: var(--admin-violet-light); }
+        .lg-chip.accent { color: #7DD3FC; border-color: rgba(56, 189, 248, 0.34); background: rgba(56, 189, 248, 0.09); }
+        .lg-chip.accent i { color: var(--accent); }
+
+        .lg-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 3.6vw, 2.9rem);
+            font-weight: 700;
+            line-height: 1.08;
+            color: var(--white);
+            letter-spacing: -0.018em;
+            margin-bottom: 16px;
+        }
+        .lg-hero h1 em {
+            font-style: italic;
+            background: var(--crown-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .lg-hero p {
+            font-size: 0.94rem;
+            line-height: 1.72;
+            color: rgba(255, 255, 255, 0.58);
+            max-width: 520px;
+        }
+        .lg-hero p strong { color: rgba(255, 255, 255, 0.85); font-weight: 700; }
+
+        /* Feature list */
+        .lg-features {
+            position: relative;
+            z-index: 3;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 480px) { .lg-features { grid-template-columns: 1fr; } }
+        .lg-feature {
+            display: flex; align-items: flex-start; gap: 11px;
+            padding: 12px 14px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: var(--transition);
+        }
+        .lg-feature:hover {
+            background: rgba(190, 242, 100, 0.06);
+            border-color: rgba(190, 242, 100, 0.24);
+            transform: translateY(-2px);
+        }
+        .lg-feature .fic {
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            display: grid; place-items: center;
+            background: rgba(190, 242, 100, 0.12);
+            color: var(--secondary);
+            font-size: 0.82rem;
+            flex-shrink: 0;
+        }
+        .lg-feature .fic.violet {
+            background: rgba(139, 92, 246, 0.14);
+            color: var(--admin-violet-light);
+        }
+        .lg-feature .fic.accent {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent);
+        }
+        .lg-feature .fic.crimson {
+            background: rgba(225, 29, 72, 0.12);
+            color: #FCA5A5;
+        }
+        .lg-feature .ftxt { min-width: 0; }
+        .lg-feature strong {
+            display: block;
+            font-size: 0.8rem; font-weight: 700;
+            color: var(--white); line-height: 1.3;
+        }
+        .lg-feature small {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.68rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.5;
+        }
+
+        /* Left marquee */
+        .lg-marquee {
+            position: relative;
+            z-index: 3;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.032);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: auto;
+            margin-bottom: 22px;
+        }
+        .lg-marquee::before, .lg-marquee::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; width: 60px; z-index: 3;
+            pointer-events: none;
+        }
+        .lg-marquee::before {
+            left: 0;
+            background: linear-gradient(90deg, rgba(11,17,33,0.95), transparent);
+        }
+        .lg-marquee::after {
+            right: 0;
+            background: linear-gradient(270deg, rgba(11,17,33,0.95), transparent);
+        }
+        .lg-mq-track {
+            display: flex; align-items: center;
+            width: max-content;
+            animation: lgMq 42s linear infinite;
+        }
+        .lg-marquee:hover .lg-mq-track { animation-play-state: paused; }
+        @keyframes lgMq {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+        .lg-mq-item {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem; font-weight: 600;
+            letter-spacing: 0.04em;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .lg-mq-item b { color: rgba(255, 255, 255, 0.92); font-weight: 700; }
+        .lg-mq-item i { font-size: 0.72rem; color: var(--secondary); }
+        .lg-mq-item.violet i { color: var(--admin-violet-light); }
+        .lg-mq-item.accent i { color: var(--accent); }
+        .lg-mq-item.crimson i { color: #FCA5A5; }
+
+        /* Footer strip */
+        .lg-left-foot {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.38);
+            letter-spacing: 0.06em;
+        }
+        .lg-left-foot .dot-sep {
+            width: 3px; height: 3px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 8px;
+        }
+        .lg-left-foot a {
+            color: rgba(255, 255, 255, 0.6);
+            transition: var(--transition);
+            font-weight: 700;
+        }
+        .lg-left-foot a:hover { color: var(--crown-2); }
+
+        /* ============================================================
+           RIGHT PANEL — LOGIN STAGE
+           ============================================================ */
+        .lg-right {
+            position: relative;
+            background: var(--cream);
+            padding: 44px 56px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .lg-right::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg,
+                        var(--crown-2) 0%,
+                        var(--secondary) 35%,
+                        var(--admin-violet) 70%,
+                        transparent 100%);
+            opacity: 0.6;
+        }
+        @media (max-width: 1080px) {
+            .lg-right { padding: 34px 24px 40px; }
+            .lg-right { min-height: auto; }
+        }
+        @media (min-width: 1081px) {
+            .lg-right { min-height: 100vh; }
+        }
+
+        .lg-form-wrap {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Admin marker */
+        .lg-admin-marker {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 14px 7px 10px;
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.56rem; font-weight: 800;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--admin-violet-deep);
+            background: linear-gradient(135deg, rgba(190, 242, 100, 0.18), rgba(139, 92, 246, 0.14));
+            border: 1px solid rgba(139, 92, 246, 0.28);
+            margin-bottom: 20px;
+        }
+        .lg-admin-marker i {
+            font-size: 0.78rem;
+            color: var(--admin-violet-deep);
+        }
+
+        /* Heading */
+        .lg-form-head {
+            margin-bottom: 26px;
+        }
+        .lg-form-head h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.7rem, 2.8vw, 2.15rem);
+            font-weight: 700;
+            color: var(--primary-dark);
+            line-height: 1.12;
+            letter-spacing: -0.015em;
+            margin-bottom: 10px;
+        }
+        .lg-form-head h2 em {
+            color: var(--admin-violet-deep);
+            font-style: italic;
+        }
+        .lg-form-head p {
+            font-size: 0.86rem;
+            color: var(--gray-600);
+            line-height: 1.65;
+            max-width: 440px;
+        }
+
+        /* 2FA / vault mode toggle */
+        .lg-mode {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px;
+            border-radius: 50px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+        .lg-mode button {
+            flex: 1;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 7px;
+            padding: 9px 12px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .lg-mode button i { font-size: 0.85rem; }
+        .lg-mode button:hover { color: var(--primary-dark); }
+        .lg-mode button.active {
+            background: var(--crown-gradient);
+            color: var(--primary-deep);
+            box-shadow: 0 6px 16px rgba(190, 242, 100, 0.34);
+        }
+
+        /* Fields */
+        .lg-field {
+            display: flex; flex-direction: column;
+            gap: 7px;
+            margin-bottom: 16px;
+        }
+        .lg-field > label {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.68rem; font-weight: 800;
+            letter-spacing: 0.11em; text-transform: uppercase;
+            color: var(--gray-600);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .lg-field > label .req { color: var(--admin-crimson); }
+        .lg-field .hint {
+            font-size: 0.7rem;
+            color: var(--gray-400);
+            line-height: 1.55;
+        }
+
+        .lg-input, .lg-select {
+            width: 100%;
+            padding: 13px 15px;
+            border-radius: 12px;
+            border: 1.5px solid var(--gray-200);
+            background: var(--white);
+            font-family: inherit;
+            font-size: 0.88rem;
+            color: var(--primary-dark);
+            transition: var(--transition);
+            outline: none;
+        }
+        .lg-input:hover, .lg-select:hover { border-color: var(--gray-300); }
+        .lg-input:focus, .lg-select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.22);
+            background: var(--white);
+        }
+        .lg-input::placeholder { color: var(--gray-400); }
+        .lg-input.mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+        .lg-input.code {
+            text-transform: uppercase;
+            letter-spacing: 0.28em;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            text-align: center;
+            padding: 15px 15px;
+        }
+
+        .lg-input-group { position: relative; display: flex; align-items: center; }
+        .lg-input-group .suffix {
+            position: absolute; right: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem; font-weight: 700;
+            color: var(--gray-400);
+            pointer-events: none;
+            letter-spacing: 0.06em;
+        }
+        .lg-input-group .eye-btn {
+            position: absolute; right: 12px;
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            color: var(--gray-400);
+            cursor: pointer;
+            display: grid; place-items: center;
+            font-size: 0.86rem;
+            transition: var(--transition);
+        }
+        .lg-input-group .eye-btn:hover {
+            background: var(--gray-100);
+            color: var(--admin-violet-deep);
+        }
+
+        /* Remember + forgot */
+        .lg-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 18px 0 22px;
+        }
+        .lg-remember {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            color: var(--gray-600);
+            transition: var(--transition);
+        }
+        .lg-remember input { position: absolute; opacity: 0; pointer-events: none; }
+        .lg-remember .tick {
+            width: 18px; height: 18px;
+            border-radius: 5px;
+            border: 1.5px solid var(--gray-300);
+            background: var(--white);
+            display: grid; place-items: center;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .lg-remember .tick i {
+            font-size: 0.62rem;
+            color: #fff;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: var(--spring);
+        }
+        .lg-remember.checked .tick {
+            background: var(--crown-gradient);
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(190, 242, 100, 0.42);
+        }
+        .lg-remember.checked .tick i { opacity: 1; transform: scale(1); color: var(--primary-deep); }
+
+        .lg-forgot {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--admin-violet-deep);
+            border-bottom: 1px dashed rgba(109, 40, 217, 0.4);
+            transition: var(--transition);
+        }
+        .lg-forgot:hover { border-bottom-color: var(--admin-violet-deep); }
+
+        /* Submit */
+        .lg-submit {
+            position: relative;
+            width: 100%;
+            padding: 15px 24px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            background: var(--crown-gradient);
+            color: var(--primary-deep);
+            font-family: inherit;
+            font-size: 0.94rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 14px 34px rgba(190, 242, 100, 0.34),
+                        0 8px 22px rgba(139, 92, 246, 0.22),
+                        inset 0 1px 0 rgba(255,255,255,0.55);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+        .lg-submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg,
+                        transparent 40%,
+                        rgba(255,255,255,0.4) 50%,
+                        transparent 60%);
+            transform: translateX(-120%);
+            transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .lg-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 46px rgba(190, 242, 100, 0.42),
+                        0 12px 30px rgba(139, 92, 246, 0.28);
+        }
+        .lg-submit:hover::after { transform: translateX(120%); }
+        .lg-submit i { font-size: 1.05rem; }
+        .lg-submit.loading { pointer-events: none; }
+        .lg-submit.loading i { animation: lgSpin 1s linear infinite; }
+
+        /* Divider */
+        .lg-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 22px 0;
+            color: var(--gray-400);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.56rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .lg-divider::before, .lg-divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: var(--gray-200);
+        }
+
+        /* Alt methods */
+        .lg-alt {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+        }
+        .lg-alt-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 14px 8px;
+            border-radius: 12px;
+            border: 1.5px solid var(--gray-200);
+            background: var(--white);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            transition: var(--transition);
+            text-align: center;
+        }
+        .lg-alt-btn i {
+            font-size: 1.15rem;
+            color: var(--gray-600);
+            transition: var(--transition);
+        }
+        .lg-alt-btn:hover {
+            border-color: var(--crown-2);
+            color: var(--admin-violet-deep);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(190, 242, 100, 0.18);
+        }
+        .lg-alt-btn:hover i {
+            color: var(--admin-violet-deep);
+            transform: scale(1.15) rotate(-6deg);
+        }
+        .lg-alt-btn.ssoviolet:hover { border-color: var(--admin-violet); }
+        .lg-alt-btn.ssoviolet:hover i { color: var(--admin-violet-deep); }
+
+        /* Sub-foot */
+        .lg-sub-foot {
+            margin-top: 22px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .lg-sub-foot p {
+            font-size: 0.78rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+        .lg-sub-foot p a {
+            color: var(--admin-violet-deep);
+            font-weight: 700;
+            border-bottom: 1px dashed rgba(109, 40, 217, 0.4);
+            transition: var(--transition);
+        }
+        .lg-sub-foot p a:hover { border-bottom-color: var(--admin-violet-deep); }
+
+        /* Trust strip */
+        .lg-trust-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(139, 92, 246, 0.05));
+            border: 1px solid rgba(190, 242, 100, 0.20);
+        }
+        .lg-trust-strip .t {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.54rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--gray-600);
+            text-transform: uppercase;
+        }
+        .lg-trust-strip .t i { font-size: 0.72rem; color: var(--secondary-deep); }
+
+        /* Quick admin contact strip */
+        .lg-quick-strip {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            margin-top: 18px;
+            border-radius: 12px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+        }
+        .lg-quick-strip .qs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lg-quick-strip .qs .qs-ic {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            display: grid; place-items: center;
+            background: rgba(139, 92, 246, 0.10);
+            color: var(--admin-violet-deep);
+            font-size: 0.78rem;
+            flex-shrink: 0;
+        }
+        .lg-quick-strip .qs .qs-txt {
+            font-size: 0.68rem;
+            line-height: 1.3;
+            min-width: 0;
+        }
+        .lg-quick-strip .qs .qs-txt strong {
+            display: block;
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 0.72rem;
+        }
+        .lg-quick-strip .qs .qs-txt small {
+            display: block;
+            color: var(--gray-400);
+            font-size: 0.62rem;
+        }
+        .lg-quick-strip .divider {
+            width: 1px; height: 28px;
+            background: var(--gray-200);
+        }
+
+        /* ============================================================
+           TOASTS
+           ============================================================ */
+        .toast-stack {
+            position: fixed; top: 24px; right: 24px;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 12px;
+            pointer-events: none;
+        }
+        .knot-toast {
+            display: flex; align-items: flex-start; gap: 12px;
+            min-width: 320px; max-width: 440px;
+            padding: 14px 16px 14px 12px;
+            border-radius: 16px;
+            background: rgba(11, 17, 33, 0.96);
+            color: #edf5f1;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 18px 38px rgba(11, 17, 33, 0.35);
+            border-left: 4px solid var(--crown-2);
+            animation: knotToastIn 0.28s ease;
+            pointer-events: auto;
+            backdrop-filter: blur(12px);
+        }
+        .knot-toast.success { border-left-color: var(--secondary); }
+        .knot-toast.error { border-left-color: var(--admin-crimson); }
+        .knot-toast.warning { border-left-color: var(--crown-2); }
+        .knot-toast.info { border-left-color: var(--accent); }
+        .knot-toast.violet { border-left-color: var(--admin-violet); }
+        .knot-toast .icon-badge {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: grid; place-items: center;
+            background: rgba(255,255,255,0.08);
+            color: var(--crown-2); flex-shrink: 0;
+        }
+        .knot-toast.success .icon-badge { color: var(--secondary); }
+        .knot-toast.error .icon-badge { color: var(--admin-crimson); }
+        .knot-toast.warning .icon-badge { color: var(--crown-2); }
+        .knot-toast.info .icon-badge { color: var(--accent); }
+        .knot-toast.violet .icon-badge { color: var(--admin-violet-light); }
+        .knot-toast-copy { flex: 1; min-width: 0; }
+        .knot-toast-copy strong {
+            display: block; margin-bottom: 3px;
+            font-size: 0.72rem; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .knot-toast-copy span {
+            display: block; font-size: 0.82rem;
+            color: rgba(237,245,241,0.85); line-height: 1.5;
+        }
+        .knot-toast-close {
+            width: 28px; height: 28px; border: 0;
+            background: transparent; color: rgba(255,255,255,0.6);
+            border-radius: 8px; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .knot-toast-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        @keyframes knotToastIn {
+            from { opacity: 0; transform: translateX(20px) scale(0.97); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        /* Entrance */
+        .fade-in {
+            opacity: 0; transform: translateY(18px);
+            animation: fadeInUp 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .lg-orb, .lg-vault .ring.dashed, .lg-vault .core,
+            .lg-brand-shield::after, .lg-sys-pill .pulse,
+            .lg-crown-badge, .lg-crown-badge::after, .lg-mq-track,
+            .lg-submit::after, .fade-in, .lg-submit.loading i {
+                animation: none !important;
+                transition: none !important;
+            }
+            .fade-in { opacity: 1; transform: none; }
+        }
+
+        @media (max-width: 640px) {
+            .lg-left { padding: 32px 20px 26px; }
+            .lg-right { padding: 28px 18px 34px; }
+            .lg-brand-row { margin-bottom: 30px; }
+            .lg-hero { margin-bottom: 24px; }
+            .lg-features { gap: 10px; }
+            .lg-marquee { margin-bottom: 16px; }
+            .lg-vault { opacity: 0.4; right: -40%; }
+            .lg-quick-strip { grid-template-columns: 1fr; gap: 12px; }
+            .lg-quick-strip .divider { display: none; }
+            .toast-stack { top: 16px; right: 16px; left: 16px; }
+            .knot-toast { min-width: 0; width: 100%; }
+            .lg-alt { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====================================================
+         SHELL
+         ==================================================== -->
+    <div class="lg-shell">
+
+        <!-- ====================================================
+             LEFT PANEL — VAULT STAGE
+             ==================================================== -->
+        <section class="lg-left">
+
+            <span class="lg-orb a"></span>
+            <span class="lg-orb b"></span>
+
+            <!-- Vault rings -->
+            <div class="lg-vault" aria-hidden="true">
+                <span class="core"></span>
+                <span class="ring dashed"><span class="dot"></span></span>
+                <span class="ring dashed reverse"><span class="dot"></span></span>
+                <span class="ring"></span>
+                <span class="ring"></span>
+            </div>
+
+            <!-- Brand row -->
+            <div class="lg-brand-row fade-in" style="animation-delay:.05s;">
+                <a href="/" class="lg-brand">
+                    <span class="lg-brand-shield">
+                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M24 4C13 4 4 13 4 24s9 20 20 20 20-9 20-20S35 4 24 4z" stroke="#0B1121" stroke-width="2.6" opacity="0.35"/>
+                            <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8" stroke="#0B1121" stroke-width="2.6" stroke-linecap="round"/>
+                            <path d="M32 24c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8" stroke="#0B1121" stroke-width="2.6" stroke-linecap="round" opacity="0.55"/>
+                            <circle cx="24" cy="24" r="3" fill="#0B1121"/>
+                        </svg>
+                    </span>
+                    <span class="lg-brand-words">
+                        <b>Knot<i>work</i></b>
+                        <small>Command · Admin</small>
+                    </span>
+                </a>
+
+                <span class="lg-sys-pill" title="All systems operational">
+                    <span class="pulse"></span> Vault Online
+                </span>
+            </div>
+
+            <!-- Hero -->
+            <div class="lg-hero fade-in" style="animation-delay:.15s;">
+                <div class="lg-hero-badges">
+                    <!-- ADMIN BADGE -->
+                    <span class="lg-crown-badge">
+                        <i class="bi bi-crown-fill"></i> Root Access Only
+                    </span>
+                    <span class="lg-chip violet">
+                        <i class="bi bi-shield-lock-fill"></i> MFA Required
+                    </span>
+                </div>
+
+                <h1>
+                    Welcome back to <em>Command&nbsp;Center.</em>
+                </h1>
+                <p>
+                    This console controls <strong>12.4k members</strong>, <strong>₦48M+ in
+                    monthly payouts</strong>, and every moderation decision on Knotwork.
+                    Every sign-in is fingerprint-logged, device-bound, and audit-trailed.
+                </p>
+            </div>
+
+            <!-- Feature list -->
+            <div class="lg-features fade-in" style="animation-delay:.25s;">
+                <div class="lg-feature">
+                    <span class="fic"><i class="bi bi-fingerprint"></i></span>
+                    <span class="ftxt">
+                        <strong>Device-bound sessions</strong>
+                        <small>New device = email alert</small>
+                    </span>
+                </div>
+                <div class="lg-feature">
+                    <span class="fic violet"><i class="bi bi-shield-lock-fill"></i></span>
+                    <span class="ftxt">
+                        <strong>Hardware 2FA</strong>
+                        <small>YubiKey + TOTP enforced</small>
+                    </span>
+                </div>
+                <div class="lg-feature">
+                    <span class="fic accent"><i class="bi bi-geo-alt-fill"></i></span>
+                    <span class="ftxt">
+                        <strong>Geo-anomaly alerts</strong>
+                        <small>Blocked in real time</small>
+                    </span>
+                </div>
+                <div class="lg-feature">
+                    <span class="fic crimson"><i class="bi bi-clock-history"></i></span>
+                    <span class="ftxt">
+                        <strong>180-day audit trail</strong>
+                        <small>Every action, forever</small>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Marquee -->
+            <div class="lg-marquee fade-in" style="animation-delay:.35s;" aria-hidden="true">
+                <div class="lg-mq-track">
+                    <span class="lg-mq-item"><i class="bi bi-shield-check"></i> <b>99.98%</b> uptime SLA</span>
+                    <span class="lg-mq-item violet"><i class="bi bi-lock-fill"></i> AES-256 at rest · TLS 1.3 in transit</span>
+                    <span class="lg-mq-item"><i class="bi bi-people-fill"></i> <b>12.4k</b> members under protection</span>
+                    <span class="lg-mq-item accent"><i class="bi bi-globe2"></i> Serving <b>42</b> countries</span>
+                    <span class="lg-mq-item crimson"><i class="bi bi-shield-fill-exclamation"></i> <b>0</b> breaches in 3 years</span>
+                    <span class="lg-mq-item violet"><i class="bi bi-hourglass-split"></i> Session timeout <b>45 min</b></span>
+                    <span class="lg-mq-item"><i class="bi bi-patch-check-fill"></i> SOC 2 audit in progress</span>
+                    <span class="lg-mq-item accent"><i class="bi bi-graph-up-arrow"></i> <b>248</b> admin actions today</span>
+                    <!-- duplicate for seamless loop -->
+                    <span class="lg-mq-item"><i class="bi bi-shield-check"></i> <b>99.98%</b> uptime SLA</span>
+                    <span class="lg-mq-item violet"><i class="bi bi-lock-fill"></i> AES-256 at rest · TLS 1.3 in transit</span>
+                    <span class="lg-mq-item"><i class="bi bi-people-fill"></i> <b>12.4k</b> members under protection</span>
+                    <span class="lg-mq-item accent"><i class="bi bi-globe2"></i> Serving <b>42</b> countries</span>
+                    <span class="lg-mq-item crimson"><i class="bi bi-shield-fill-exclamation"></i> <b>0</b> breaches in 3 years</span>
+                    <span class="lg-mq-item violet"><i class="bi bi-hourglass-split"></i> Session timeout <b>45 min</b></span>
+                    <span class="lg-mq-item"><i class="bi bi-patch-check-fill"></i> SOC 2 audit in progress</span>
+                    <span class="lg-mq-item accent"><i class="bi bi-graph-up-arrow"></i> <b>248</b> admin actions today</span>
+                </div>
+            </div>
+
+            <!-- Footer strip -->
+            <div class="lg-left-foot fade-in" style="animation-delay:.45s;">
+                <span>
+                    v3.14.2
+                    <span class="dot-sep"></span>
+                    Lagos · London
+                    <span class="dot-sep"></span>
+                    <a href="/">knotwork.io</a>
+                </span>
+                <span>
+                    Need access? <a href="{% url 'admin_sign_up'|default:'#' %}">Request invite →</a>
+                </span>
+            </div>
+
+        </section>
+
+        <!-- ====================================================
+             RIGHT PANEL — LOGIN FORM
+             ==================================================== -->
+        <section class="lg-right">
+
+            <div class="lg-form-wrap">
+
+                <!-- Admin marker -->
+                <span class="lg-admin-marker fade-in" style="animation-delay:.05s;">
+                    <i class="bi bi-crown-fill"></i> Knotwork Command
+                </span>
+
+                <!-- Heading -->
+                <header class="lg-form-head fade-in" style="animation-delay:.12s;">
+                    <h2>Sign in to <em>Command</em></h2>
+                    <p>
+                        Use your admin credentials to unlock the console. New devices
+                        trigger a verification email — approve before continuing.
+                    </p>
+                </header>
+
+                <!-- Mode: password vs. passkey -->
+                <nav class="lg-mode fade-in" style="animation-delay:.18s;" aria-label="Sign in method">
+                    <button type="button" class="active" data-mode="password">
+                        <i class="bi bi-key-fill"></i> Password
+                    </button>
+                    <button type="button" data-mode="passkey">
+                        <i class="bi bi-fingerprint"></i> Passkey
+                    </button>
+                    <button type="button" data-mode="sso">
+                        <i class="bi bi-building-fill"></i> SSO
+                    </button>
+                </nav>
+
+                <!-- FORM -->
+                <form id="adminLoginForm" method="post" novalidate>
+
+                    <!-- Password mode -->
+                    <div id="modePassword">
+
+                        <div class="lg-field fade-in" style="animation-delay:.22s;">
+                            <label for="email">
+                                <i class="bi bi-envelope-at"></i> Admin email <span class="req">*</span>
+                            </label>
+                            <input type="email" id="email" name="email" class="lg-input"
+                                   placeholder="you@knotwork.io" autocomplete="email" required
+                                   value="adaeze@knotwork.io">
+                        </div>
+
+                        <div class="lg-field fade-in" style="animation-delay:.26s;">
+                            <label for="password">
+                                <i class="bi bi-shield-lock-fill"></i> Password <span class="req">*</span>
+                            </label>
+                            <div class="lg-input-group">
+                                <input type="password" id="password" name="password" class="lg-input"
+                                       placeholder="Enter your password" autocomplete="current-password" required>
+                                <button type="button" class="eye-btn" data-eye="password" aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="lg-row fade-in" style="animation-delay:.30s;">
+                            <label class="lg-remember" id="rememberRow">
+                                <input type="checkbox" name="remember" id="rememberMe" checked>
+                                <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                <span>Keep me signed in for 30 days</span>
+                            </label>
+                            <a href="#" class="lg-forgot" onclick="event.preventDefault();">Forgot password?</a>
+                        </div>
+
+                    </div>
+
+                    <!-- Passkey mode -->
+                    <div id="modePasskey" style="display:none;">
+
+                        <div class="lg-field fade-in" style="animation-delay:.22s;">
+                            <label for="passkeyEmail">
+                                <i class="bi bi-envelope-at"></i> Admin email <span class="req">*</span>
+                            </label>
+                            <input type="email" id="passkeyEmail" class="lg-input"
+                                   placeholder="you@knotwork.io" autocomplete="email"
+                                   value="adaeze@knotwork.io">
+                        </div>
+
+                        <div class="lg-feature fade-in" style="animation-delay:.26s; margin-bottom:18px; padding:18px; background: linear-gradient(135deg, rgba(190,242,100,.08), rgba(139,92,246,.06)); border-color: rgba(190,242,100,.28);">
+                            <span class="fic" style="width:44px; height:44px; font-size:1.2rem;"><i class="bi bi-fingerprint"></i></span>
+                            <span class="ftxt">
+                                <strong style="color:var(--primary-dark); font-size:.88rem;">Passkey sign-in</strong>
+                                <small style="color:var(--gray-600);">Use Touch ID, Windows Hello, or a hardware key. No password needed.</small>
+                            </span>
+                        </div>
+
+                        <button type="button" class="lg-submit fade-in" style="animation-delay:.30s;" id="passkeyBtn">
+                            <i class="bi bi-fingerprint"></i> Authenticate with passkey
+                        </button>
+
+                    </div>
+
+                    <!-- SSO mode -->
+                    <div id="modeSso" style="display:none;">
+
+                        <div class="lg-field fade-in" style="animation-delay:.22s;">
+                            <label for="ssoDomain">
+                                <i class="bi bi-building-fill"></i> Organization domain <span class="req">*</span>
+                            </label>
+                            <input type="text" id="ssoDomain" class="lg-input mono"
+                                   placeholder="acme.knotwork.io" autocomplete="off">
+                            <span class="hint">You'll be redirected to your identity provider.</span>
+                        </div>
+
+                        <button type="button" class="lg-submit fade-in" style="animation-delay:.26s;" id="ssoBtn">
+                            <i class="bi bi-box-arrow-up-right"></i> Continue with SSO
+                        </button>
+
+                    </div>
+
+                    <!-- Password submit (only shows in password mode) -->
+                    <div id="submitWrap">
+                        <button type="submit" class="lg-submit fade-in" id="loginBtn" style="animation-delay:.34s;">
+                            <i class="bi bi-shield-lock-fill"></i> Unlock Command Center
+                        </button>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="lg-divider fade-in" style="animation-delay:.38s;">Or continue with</div>
+
+                    <!-- Alt methods -->
+                    <div class="lg-alt fade-in" style="animation-delay:.42s;">
+                        <button type="button" class="lg-alt-btn" data-toast="Google SSO — enterprise accounts only" data-toast-type="info">
+                            <i class="bi bi-google"></i>
+                            Google
+                        </button>
+                        <button type="button" class="lg-alt-btn ssoviolet" data-toast="YubiKey detected — touch to authenticate" data-toast-type="violet">
+                            <i class="bi bi-usb-drive-fill"></i>
+                            YubiKey
+                        </button>
+                        <button type="button" class="lg-alt-btn" data-toast="Recovery code flow opened" data-toast-type="warning">
+                            <i class="bi bi-key-fill"></i>
+                            Recovery
+                        </button>
+                    </div>
+
+                    <!-- Sub foot -->
+                    <div class="lg-sub-foot fade-in" style="animation-delay:.46s;">
+                        <p>
+                            No admin account yet?
+                            <a href="{% url 'admin_sign_up'|default:'#' %}">Request an invite</a>
+                            · <a href="#" onclick="event.preventDefault();">Contact Root team</a>
+                        </p>
+                    </div>
+
+                    <!-- Trust strip -->
+                    <div class="lg-trust-strip fade-in" style="animation-delay:.50s;">
+                        <span class="t"><i class="bi bi-lock-fill"></i> TLS 1.3</span>
+                        <span class="t"><i class="bi bi-fingerprint"></i> Device-bound</span>
+                        <span class="t"><i class="bi bi-shield-fill-check"></i> MFA enforced</span>
+                        <span class="t"><i class="bi bi-journal-check"></i> Audit logged</span>
+                    </div>
+
+                </form>
+
+                <!-- Quick admin info strip -->
+                <div class="lg-quick-strip fade-in" style="animation-delay:.54s;">
+                    <div class="qs">
+                        <span class="qs-ic"><i class="bi bi-clock-history"></i></span>
+                        <span class="qs-txt">
+                            <strong>Session timeout</strong>
+                            <small>45 min inactivity</small>
+                        </span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="qs">
+                        <span class="qs-ic"><i class="bi bi-geo-alt-fill"></i></span>
+                        <span class="qs-txt">
+                            <strong>Your last sign-in</strong>
+                            <small>Lagos · 102.89.34.7</small>
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- Toast stack -->
+    <div class="toast-stack" id="knotToastStack" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            /* ============================================================
+               TOASTS
+               ============================================================ */
+            const toastContainer = document.getElementById('knotToastStack');
+            function toast(message, type) {
+                if (!toastContainer || !message) return;
+                const el = document.createElement('div');
+                el.className = 'knot-toast ' + (type || 'info');
+                const icons = {
+                    success: 'bi-check-circle-fill',
+                    error: 'bi-x-octagon-fill',
+                    warning: 'bi-exclamation-triangle-fill',
+                    info: 'bi-info-circle-fill',
+                    violet: 'bi-shield-lock-fill'
+                };
+                const labels = {
+                    success: 'Success',
+                    error: 'Critical',
+                    warning: 'Notice',
+                    info: 'Info',
+                    violet: 'Admin'
+                };
+                el.innerHTML = `
+                    <span class="icon-badge"><i class="bi ${icons[type] || icons.info}"></i></span>
+                    <div class="knot-toast-copy">
+                        <strong>${labels[type] || 'Info'}</strong>
+                        <span>${message}</span>
+                    </div>
+                    <button type="button" class="knot-toast-close" aria-label="Close notification"><i class="bi bi-x-lg"></i></button>
+                `;
+                el.querySelector('.knot-toast-close').addEventListener('click', () => el.remove());
+                toastContainer.appendChild(el);
+                setTimeout(() => el.remove(), 4800);
+            }
+            window.showKnotToast = toast;
+
+            /* ============================================================
+               EYE TOGGLES
+               ============================================================ */
+            document.querySelectorAll('.eye-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const t = document.getElementById(btn.dataset.eye);
+                    if (!t) return;
+                    const showing = t.type === 'text';
+                    t.type = showing ? 'password' : 'text';
+                    btn.querySelector('i').className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+                });
+            });
+
+            /* ============================================================
+               REMEMBER ME
+               ============================================================ */
+            const rememberRow = document.getElementById('rememberRow');
+            const rememberMe = document.getElementById('rememberMe');
+            if (rememberRow && rememberMe) {
+                rememberMe.addEventListener('change', () => {
+                    rememberRow.classList.toggle('checked', rememberMe.checked);
+                });
+                rememberRow.classList.toggle('checked', rememberMe.checked);
+            }
+
+            /* ============================================================
+               MODE SWITCHER
+               ============================================================ */
+            const modeBtns = Array.from(document.querySelectorAll('.lg-mode button'));
+            const modePassword = document.getElementById('modePassword');
+            const modePasskey = document.getElementById('modePasskey');
+            const modeSso = document.getElementById('modeSso');
+            const submitWrap = document.getElementById('submitWrap');
+
+            function setMode(mode) {
+                modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+                modePassword.style.display = (mode === 'password') ? '' : 'none';
+                modePasskey.style.display  = (mode === 'passkey')  ? '' : 'none';
+                modeSso.style.display      = (mode === 'sso')      ? '' : 'none';
+                submitWrap.style.display   = (mode === 'password') ? '' : 'none';
+
+                const label = mode === 'password' ? 'Password'
+                            : mode === 'passkey'  ? 'Passkey'
+                            : 'SSO';
+                toast('Sign-in method · ' + label, 'violet');
+            }
+
+            modeBtns.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+
+            /* ============================================================
+               FORM SUBMIT
+               ============================================================ */
+            const form = document.getElementById('adminLoginForm');
+            const loginBtn = document.getElementById('loginBtn');
+
+            form && form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    return toast('Please enter a valid admin email.', 'warning');
+                }
+                if (password.length < 6) {
+                    return toast('Password must be at least 6 characters.', 'warning');
+                }
+
+                loginBtn.classList.add('loading');
+                loginBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Verifying credentials…';
+
+                setTimeout(() => {
+                    loginBtn.innerHTML = '<i class="bi bi-shield-lock-fill"></i> Requesting 2FA…';
+                    toast('Credentials accepted · enter your 2FA code', 'violet');
+
+                    setTimeout(() => {
+                        loginBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Waiting for 2FA…';
+                        toast('Demo mode — no session was created', 'info');
+                        setTimeout(() => {
+                            loginBtn.classList.remove('loading');
+                            loginBtn.innerHTML = '<i class="bi bi-shield-lock-fill"></i> Unlock Command Center';
+                        }, 1800);
+                    }, 1400);
+                }, 1200);
+            });
+
+            /* ============================================================
+               PASSKEY AUTH
+               ============================================================ */
+            const passkeyBtn = document.getElementById('passkeyBtn');
+            passkeyBtn && passkeyBtn.addEventListener('click', () => {
+                passkeyBtn.classList.add('loading');
+                const original = passkeyBtn.innerHTML;
+                passkeyBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Waiting for device…';
+                setTimeout(() => {
+                    passkeyBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Touch your device';
+                    toast('Passkey prompt sent — authenticate on your device', 'violet');
+                    setTimeout(() => {
+                        passkeyBtn.classList.remove('loading');
+                        passkeyBtn.innerHTML = original;
+                        toast('Demo mode — no session was created', 'info');
+                    }, 2200);
+                }, 1000);
+            });
+
+            /* ============================================================
+               SSO AUTH
+               ============================================================ */
+            const ssoBtn = document.getElementById('ssoBtn');
+            ssoBtn && ssoBtn.addEventListener('click', () => {
+                const d = document.getElementById('ssoDomain').value.trim();
+                if (!d) return toast('Please enter your organization domain.', 'warning');
+                ssoBtn.classList.add('loading');
+                const original = ssoBtn.innerHTML;
+                ssoBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Redirecting to IdP…';
+                setTimeout(() => {
+                    ssoBtn.classList.remove('loading');
+                    ssoBtn.innerHTML = original;
+                    toast('Demo mode — SSO redirect would occur here', 'info');
+                }, 1400);
+            });
+
+            /* ============================================================
+               ALT BUTTON TOASTS
+               ============================================================ */
+            document.querySelectorAll('[data-toast]').forEach(el => {
+                el.addEventListener('click', function () {
+                    toast(this.dataset.toast, this.dataset.toastType || 'info');
+                });
+            });
+
+            /* ============================================================
+               KEYBOARD: CMD/Ctrl + K focuses email
+               ============================================================ */
+            document.addEventListener('keydown', e => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    const email = document.getElementById('email');
+                    email && email.focus();
+                }
+            });
+
+        })();
+    </script>
+
+    {% for message in messages %}
+        <input type="hidden" class="knot-message" value="{{ message }}" data-type="{{ message.tags|default:'info' }}">
+        <script>
+            (function () {
+                const el = document.currentScript.previousElementSibling;
+                if (el && el.value && window.showKnotToast) {
+                    window.showKnotToast(el.value, el.dataset.type || 'info');
+                }
+            })();
+        </script>
+    {% endfor %}
+
+</body>
+</html>

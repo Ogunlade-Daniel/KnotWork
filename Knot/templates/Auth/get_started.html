@@ -1,4 +1,5 @@
 {% load static %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,7 +10,6 @@
     <title>KnotWork | Get Started</title>
 
     <link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-web/fontawesome-free-6.7.2-web/css/all.css' %}">
-    <!-- <link rel="stylesheet" href="{% static 'fontawesome-free-7.1.0-web/fontawesome-free-7.1.0-web/css/all.css' %}"> -->
     <link rel="stylesheet" href="{% static 'bootstrap-icons-1.11.3/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'bootstrap-5.3.3-dist/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
 
@@ -18,7 +18,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --ink: #08111f;
@@ -30,9 +30,7 @@
             --line: #dbe1e5;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -41,10 +39,7 @@
             font-family: 'DM Sans', sans-serif;
         }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
+        a { color: inherit; text-decoration: none; }
 
         .start-shell {
             min-height: 100vh;
@@ -82,10 +77,7 @@
             transform: rotate(-8deg);
         }
 
-        .rail-middle {
-            margin: auto 0;
-            padding: 70px 0;
-        }
+        .rail-middle { margin: auto 0; padding: 70px 0; }
 
         .rail-kicker {
             color: var(--lime);
@@ -101,9 +93,7 @@
             letter-spacing: -.07em;
         }
 
-        .rail-middle h1 span {
-            color: var(--lime);
-        }
+        .rail-middle h1 span { color: var(--lime); }
 
         .rail-middle p {
             max-width: 270px;
@@ -125,9 +115,7 @@
             color: white;
         }
 
-        .start-main {
-            padding: 34px clamp(24px, 5vw, 86px) 52px;
-        }
+        .start-main { padding: 34px clamp(24px, 5vw, 86px) 52px; }
 
         .main-top {
             display: flex;
@@ -138,15 +126,9 @@
             font-size: .78rem;
         }
 
-        .main-top a {
-            color: var(--ink);
-            font-weight: 700;
-        }
+        .main-top a { color: var(--ink); font-weight: 700; }
 
-        .main-heading {
-            max-width: 750px;
-            margin: 72px 0 34px;
-        }
+        .main-heading { max-width: 750px; margin: 72px 0 34px; }
 
         .main-heading h2 {
             margin: 0 0 12px;
@@ -220,9 +202,7 @@
             font-size: .75rem;
         }
 
-        .role-option.active small {
-            color: #aab7c3;
-        }
+        .role-option.active small { color: #aab7c3; }
 
         .form-frame {
             max-width: 900px;
@@ -234,9 +214,206 @@
             box-shadow: 0 20px 55px rgba(8, 17, 31, .07);
         }
 
-        .role-form[hidden] {
-            display: none;
+        /* =========================================================
+           SOCIAL AUTH
+           ========================================================= */
+        .social-block {
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+            border-bottom: 1px dashed var(--line);
         }
+
+        .social-block-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .social-block-head i {
+            display: grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: rgba(200, 243, 106, .22);
+            color: #55761e;
+            font-size: .9rem;
+        }
+
+        .social-block-head .txt { flex: 1; min-width: 0; }
+        .social-block-head strong {
+            display: block;
+            font: 600 .92rem 'Space Grotesk', sans-serif;
+            color: var(--ink);
+            letter-spacing: -.02em;
+        }
+        .social-block-head small {
+            display: block;
+            color: var(--muted);
+            font-size: .72rem;
+            margin-top: 2px;
+        }
+        .social-block-head .role-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 11px;
+            border-radius: 50px;
+            background: var(--ink);
+            color: white;
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            transition: .25s ease;
+        }
+
+        .social-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            background: white;
+            color: var(--ink);
+            font: 700 .88rem 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: .22s ease;
+            position: relative;
+        }
+
+        .social-primary::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 12px;
+            background: linear-gradient(120deg, rgba(200,243,106,.55), rgba(115,214,245,.55));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity .3s ease;
+        }
+
+        .social-primary:hover {
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(8, 17, 31, .10);
+        }
+        .social-primary:hover::after { opacity: 1; }
+
+        .social-primary .social-mark {
+            display: grid;
+            place-items: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(8,17,31,.08);
+            flex-shrink: 0;
+        }
+
+        .social-primary .social-mark i {
+            font-size: 1rem;
+            background: linear-gradient(135deg, #4285F4 0%, #EA4335 45%, #FBBC05 75%, #34A853 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .social-primary .arrow {
+            color: var(--muted);
+            font-size: .88rem;
+            margin-left: auto;
+            transition: transform .25s ease;
+        }
+        .social-primary:hover .arrow {
+            color: var(--ink);
+            transform: translateX(3px);
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .social-alt {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: white;
+            color: var(--ink);
+            font: 600 .82rem 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: .22s ease;
+            white-space: nowrap;
+        }
+
+        .social-alt i {
+            font-size: 1rem;
+            color: var(--ink);
+        }
+
+        .social-alt:hover {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .social-alt:hover i { color: white; }
+
+        .social-alt.github:hover { border-color: #24292e; background: #24292e; }
+        .social-alt.linkedin:hover { border-color: #0A66C2; background: #0A66C2; }
+        .social-alt.apple:hover { border-color: #000; background: #000; }
+
+        .social-divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 22px 0 22px;
+            color: var(--muted);
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+        .social-divider::before,
+        .social-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--line);
+        }
+
+        .social-trust {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: .7rem;
+            line-height: 1.5;
+        }
+        .social-trust i {
+            color: #7a9d33;
+            font-size: .82rem;
+            flex-shrink: 0;
+        }
+
+        /* =========================================================
+           EXISTING FORM STYLES
+           ========================================================= */
+        .role-form[hidden] { display: none; }
 
         .form-heading {
             display: flex;
@@ -245,111 +422,6 @@
             gap: 20px;
             padding-bottom: 22px;
             border-bottom: 1px solid #e8eceb;
-        }
-
-        .toast-stack {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            pointer-events: none;
-        }
-
-        .knot-toast {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            min-width: 320px;
-            max-width: 420px;
-            padding: 14px 16px 14px 12px;
-            border-radius: 16px;
-            background: rgba(8, 17, 31, 0.96);
-            color: #edf5f1;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 18px 38px rgba(8, 17, 31, 0.25);
-            border-left: 4px solid var(--lime);
-            animation: knotToastIn 0.28s ease;
-            pointer-events: auto;
-        }
-
-        .knot-toast.success { border-left-color: #c8f36a; }
-        .knot-toast.error { border-left-color: #ff6b6b; }
-        .knot-toast.warning { border-left-color: #f9c74f; }
-        .knot-toast.info { border-left-color: #73d6f5; }
-
-        .knot-toast .icon-badge {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-            background: rgba(255,255,255,0.08);
-            color: var(--lime);
-            flex-shrink: 0;
-        }
-
-        .knot-toast-copy {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .knot-toast-copy strong {
-            display: block;
-            margin-bottom: 3px;
-            font-size: 0.8rem;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: #ffffff;
-        }
-
-        .knot-toast-copy span {
-            display: block;
-            font-size: 0.84rem;
-            color: rgba(237, 245, 241, 0.85);
-            line-height: 1.5;
-        }
-
-        .knot-toast-close {
-            width: 28px;
-            height: 28px;
-            border: 0;
-            background: transparent;
-            color: rgba(255,255,255,0.6);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .knot-toast-close:hover {
-            background: rgba(255,255,255,0.08);
-            color: #fff;
-        }
-
-        @keyframes knotToastIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px) scale(0.97);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        @media (max-width: 640px) {
-            .toast-stack {
-                top: 16px;
-                left: 16px;
-                right: 16px;
-            }
-
-            .knot-toast {
-                min-width: 0;
-                width: 100%;
-            }
         }
 
         .form-heading h3 {
@@ -384,10 +456,7 @@
             font-size: .8rem;
         }
 
-        .form-errors ul {
-            margin: 6px 0 0;
-            padding-left: 18px;
-        }
+        .form-errors ul { margin: 6px 0 0; padding-left: 18px; }
 
         .step-status {
             margin-top: 22px;
@@ -397,17 +466,9 @@
             letter-spacing: .08em;
             text-transform: uppercase;
         }
+        .step-status span { color: var(--ink); }
 
-        .step-status span {
-            color: var(--ink);
-        }
-
-        .step-progress {
-            display: flex;
-            gap: 7px;
-            margin-top: 14px;
-        }
-
+        .step-progress { display: flex; gap: 7px; margin-top: 14px; }
         .step-progress i {
             display: block;
             width: 42px;
@@ -416,38 +477,24 @@
             background: #e9eeee;
             transition: background .35s ease, transform .35s ease;
         }
-
         .step-progress i.active {
             background: var(--lime);
             transform: scaleY(1.35);
         }
 
-        .role-form.is-entering {
-            animation: formEnter .35s ease both;
-        }
-
+        .role-form.is-entering { animation: formEnter .35s ease both; }
         @keyframes formEnter {
             from { opacity: .35; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .step-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 23px;
-        }
-
-        .step-controls button {
-            flex: 1;
-            margin-top: 0;
-        }
-
+        .step-controls { display: flex; gap: 10px; margin-top: 23px; }
+        .step-controls button { flex: 1; margin-top: 0; }
         .step-controls .step-back {
             border: 1px solid var(--line);
             background: white;
             color: var(--ink);
         }
-
         .step-controls .step-back:hover {
             border-color: var(--sky);
             background: #f4fcff;
@@ -461,13 +508,8 @@
             margin-top: 22px;
         }
 
-        .field {
-            margin-top: 15px;
-        }
-
-        .form-grid .field {
-            margin-top: 0;
-        }
+        .field { margin-top: 15px; }
+        .form-grid .field { margin-top: 0; }
 
         .field label {
             display: block;
@@ -476,11 +518,7 @@
             font-size: .76rem;
             font-weight: 700;
         }
-
-        .field label span {
-            color: var(--muted);
-            font-weight: 400;
-        }
+        .field label span { color: var(--muted); font-weight: 400; }
 
         .field input,
         .field select,
@@ -494,11 +532,7 @@
             color: var(--ink);
             font: inherit;
         }
-
-        .field textarea {
-            min-height: 78px;
-            resize: vertical;
-        }
+        .field textarea { min-height: 78px; resize: vertical; }
 
         .field input:focus,
         .field select:focus,
@@ -509,9 +543,22 @@
 
         .password-wrap { position: relative; }
         .password-wrap input { padding-right: 46px; }
-        .password-toggle { position: absolute; top: 50%; right: 12px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; transform: translateY(-50%); }
+        .password-toggle {
+            position: absolute;
+            top: 50%; right: 12px;
+            display: grid; place-items: center;
+            width: 28px; height: 28px; padding: 0;
+            border: 0; background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transform: translateY(-50%);
+        }
         .password-toggle:hover { color: var(--ink); }
-        .check-stack { display: grid; gap: 10px; margin-top: 20px; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+
+        .check-stack {
+            display: grid; gap: 10px; margin-top: 20px;
+            color: var(--muted); font-size: .76rem; line-height: 1.5;
+        }
         .check-stack label { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; }
         .check-stack input { flex: 0 0 auto; margin-top: 3px; accent-color: #709e2d; }
         .check-stack a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
@@ -532,7 +579,6 @@
             font-weight: 700;
             transition: .25s ease;
         }
-
         .form-submit:hover {
             background: var(--ink-soft);
             transform: translateY(-2px);
@@ -544,67 +590,109 @@
             font-size: .78rem;
             text-align: center;
         }
+        .account-note a { color: var(--ink); font-weight: 700; }
 
-        .account-note a {
-            color: var(--ink);
-            font-weight: 700;
+        /* =========================================================
+           TOASTS
+           ========================================================= */
+        .toast-stack {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
         }
 
+        .knot-toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-width: 320px;
+            max-width: 420px;
+            padding: 14px 16px 14px 12px;
+            border-radius: 16px;
+            background: rgba(8, 17, 31, 0.96);
+            color: #edf5f1;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 18px 38px rgba(8, 17, 31, 0.25);
+            border-left: 4px solid var(--lime);
+            animation: knotToastIn 0.28s ease;
+            pointer-events: auto;
+        }
+
+        .knot-toast.success { border-left-color: #c8f36a; }
+        .knot-toast.error { border-left-color: #ff6b6b; }
+        .knot-toast.warning { border-left-color: #f9c74f; }
+        .knot-toast.info { border-left-color: #73d6f5; }
+
+        .knot-toast .icon-badge {
+            width: 34px; height: 34px; border-radius: 10px;
+            display: grid; place-items: center;
+            background: rgba(255,255,255,0.08);
+            color: var(--lime);
+            flex-shrink: 0;
+        }
+
+        .knot-toast-copy { flex: 1; min-width: 0; }
+        .knot-toast-copy strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+        .knot-toast-copy span {
+            display: block;
+            font-size: 0.84rem;
+            color: rgba(237, 245, 241, 0.85);
+            line-height: 1.5;
+        }
+        .knot-toast-close {
+            width: 28px; height: 28px;
+            border: 0; background: transparent;
+            color: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .knot-toast-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+        @keyframes knotToastIn {
+            from { opacity: 0; transform: translateX(20px) scale(0.97); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        /* =========================================================
+           RESPONSIVE
+           ========================================================= */
         @media (max-width:900px) {
-            .start-shell {
-                grid-template-columns: 1fr;
-            }
-
-            .start-rail {
-                min-height: 340px;
-                padding: 26px 24px 32px;
-            }
-
-            .rail-middle {
-                margin: auto 0 0;
-                padding: 56px 0 24px;
-            }
-
-            .rail-middle h1 {
-                font-size: clamp(2.8rem, 12vw, 5rem);
-            }
-
-            .rail-quote {
-                display: none;
-            }
-
-            .start-main {
-                padding: 30px 24px 60px;
-            }
-
-            .main-heading {
-                margin-top: 56px;
-            }
+            .start-shell { grid-template-columns: 1fr; }
+            .start-rail { min-height: 340px; padding: 26px 24px 32px; }
+            .rail-middle { margin: auto 0 0; padding: 56px 0 24px; }
+            .rail-middle h1 { font-size: clamp(2.8rem, 12vw, 5rem); }
+            .rail-quote { display: none; }
+            .start-main { padding: 30px 24px 60px; }
+            .main-heading { margin-top: 56px; }
         }
 
         @media (max-width:620px) {
-
             .role-picker,
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+            .form-grid { grid-template-columns: 1fr; }
+            .role-option { min-height: auto; }
+            .role-option i { margin-bottom: 14px; }
+            .form-frame { padding: 20px 16px; }
+            .form-heading { flex-direction: column; gap: 10px; }
+            .social-grid { grid-template-columns: 1fr; }
+            .social-block-head { flex-wrap: wrap; }
+        }
 
-            .role-option {
-                min-height: auto;
-            }
-
-            .role-option i {
-                margin-bottom: 14px;
-            }
-
-            .form-frame {
-                padding: 20px 16px;
-            }
-
-            .form-heading {
-                flex-direction: column;
-                gap: 10px;
-            }
+        @media (max-width:640px) {
+            .toast-stack { top: 16px; left: 16px; right: 16px; }
+            .knot-toast { min-width: 0; width: 100%; }
         }
     </style>
 </head>
@@ -613,38 +701,126 @@
     <main class="start-shell">
         <aside class="start-rail">
             <a class="brand" href="{% url 'home' %}"><span class="brand-mark">∞</span><span>KnotWork</span></a>
-            <div class="rail-middle"><span class="rail-kicker">Start your exchange</span>
+            <div class="rail-middle">
+                <span class="rail-kicker">Start your exchange</span>
                 <h1>Bring one skill. Leave with a <span>world</span> of them.</h1>
                 <p>There is no single way to belong here. Choose the role that feels right today and make it yours.</p>
             </div>
-            <div class="rail-quote"><strong>Built for mutual progress.</strong>Every role contributes to the same
-                learning network.</div>
+            <div class="rail-quote">
+                <strong>Built for mutual progress.</strong>
+                Every role contributes to the same learning network.
+            </div>
         </aside>
+
         <section class="start-main">
-            <div class="main-top"><span>Account setup / 01</span><a href="{% url 'login' %}">Already a member? Log in <i class="bi bi-arrow-up-right"></i></a></div>
+            <div class="main-top">
+                <span>Account setup / 01</span>
+                <a href="{% url 'login' %}">Already a member? Log in <i class="bi bi-arrow-up-right"></i></a>
+            </div>
+
             <div class="main-heading">
                 <h2>How will you join the knot?</h2>
                 <p>Choose a path. Your profile can grow with you, so there is no wrong answer.</p>
             </div>
+
             <div class="role-picker" role="tablist" aria-label="Choose signup role">
-                <button class="role-option active" type="button" role="tab" data-role="student" aria-selected="true"><i
-                        class="bi bi-mortarboard"></i><strong>Student</strong><small>Learn something
-                        new</small></button>
-                <button class="role-option" type="button" role="tab" data-role="teacher" aria-selected="false"><i
-                        class="bi bi-easel"></i><strong>Teacher</strong><small>Share your expertise</small></button>
-                <button class="role-option" type="button" role="tab" data-role="mentor" aria-selected="false"><i
-                        class="bi bi-compass"></i><strong>Mentor</strong><small>Guide and inspire</small></button>
+                <button class="role-option active" type="button" role="tab" data-role="student" aria-selected="true">
+                    <i class="bi bi-mortarboard"></i>
+                    <strong>Student</strong>
+                    <small>Learn something new</small>
+                </button>
+                <button class="role-option" type="button" role="tab" data-role="teacher" aria-selected="false">
+                    <i class="bi bi-easel"></i>
+                    <strong>Teacher</strong>
+                    <small>Share your expertise</small>
+                </button>
+                <button class="role-option" type="button" role="tab" data-role="mentor" aria-selected="false">
+                    <i class="bi bi-compass"></i>
+                    <strong>Mentor</strong>
+                    <small>Guide and inspire</small>
+                </button>
             </div>
+
             <div class="form-frame">
+
                 {% if form.errors %}
                 <div class="form-errors" role="alert">
                     <strong>Check the details below.</strong>
                     {{ form.errors }}
                 </div>
                 {% endif %}
+
+                <!-- =============================================
+                     SOCIAL AUTH — TOP OF FRAME, ROLE-AWARE
+                     ============================================= -->
+                <div class="social-block">
+                    <div class="social-block-head">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        <div class="txt">
+                            <strong>Fastest way in</strong>
+                            <small>Skip the form — we'll pre-fill everything.</small>
+                        </div>
+                        <span class="role-tag" id="social-role-tag">
+                            <i class="bi bi-mortarboard"></i> Student
+                        </span>
+                    </div>
+
+                    <!-- Primary: Google -->
+                    <a class="social-primary"
+                       href="/accounts/google/login/?role=student&next=/dashboard/"
+                       data-social-base="/accounts/google/login/"
+                       data-social-provider="google">
+                        <span class="social-mark"><i class="bi bi-google"></i></span>
+                        <span>Continue with Google</span>
+                        <i class="bi bi-arrow-right arrow"></i>
+                    </a>
+
+                    <!-- Secondary grid -->
+                    <div class="social-grid">
+                        <a class="social-alt github"
+                           href="/accounts/github/login/?role=student&next=/dashboard/"
+                           data-social-base="/accounts/github/login/"
+                           data-social-provider="github">
+                            <i class="bi bi-github"></i>
+                            <span>GitHub</span>
+                        </a>
+                        <a class="social-alt linkedin"
+                           href="/accounts/linkedin_oauth2/login/?role=student&next=/dashboard/"
+                           data-social-base="/accounts/linkedin_oauth2/login/"
+                           data-social-provider="linkedin">
+                            <i class="bi bi-linkedin"></i>
+                            <span>LinkedIn</span>
+                        </a>
+                        <a class="social-alt apple"
+                           href="/accounts/apple/login/?role=student&next=/dashboard/"
+                           data-social-base="/accounts/apple/login/"
+                           data-social-provider="apple">
+                            <i class="bi bi-apple"></i>
+                            <span>Apple</span>
+                        </a>
+                    </div>
+
+                    <p class="social-trust">
+                        <i class="bi bi-shield-check"></i>
+                        <span>We never see your password. Only your name and email are shared so we can create your KnotWork account.</span>
+                    </p>
+                </div>
+
+                <div class="social-divider">or sign up with email</div>
+
+                <!-- =============================================
+                     STUDENT FORM
+                     ============================================= -->
                 <form class="role-form" id="student-form" method="post" action="{% url 'get_started' %}">
-                    {% csrf_token %}<input type="hidden" name="role" value="student">
-                    <div class="form-heading"><div><h3>Student registration</h3><p>Start with the basics, then shape your learning path.</p></div><span class="form-tag">FREE ACCOUNT</span></div>
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="student">
+                    <div class="form-heading">
+                        <div>
+                            <h3>Student registration</h3>
+                            <p>Start with the basics, then shape your learning path.</p>
+                        </div>
+                        <span class="form-tag">FREE ACCOUNT</span>
+                    </div>
                     <div class="form-grid">
                         <div class="field" data-step="1"><label for="student-first-name">First name</label><input id="student-first-name" name="first_name" type="text" required placeholder="Alex"></div>
                         <div class="field" data-step="1"><label for="student-surname">Surname</label><input id="student-surname" name="surname" type="text" required placeholder="Johnson"></div>
@@ -653,49 +829,151 @@
                         <div class="field" data-step="1"><label for="student-password">Password</label><div class="password-wrap"><input id="student-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
                         <div class="field" data-step="1"><label for="student-confirm">Confirm password</label><div class="password-wrap"><input id="student-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
                     </div>
-                    <div class="form-grid"><div class="field" data-step="2"><label for="skill-level">Current level</label><select id="skill-level" name="skill_level" required><option value="" selected disabled>Choose your level</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div><div class="field" data-step="2"><label for="learning-goal">What do you want to learn?</label><input id="learning-goal" name="learning_goal" type="text" required placeholder="e.g. Photography, French, or Python"></div></div>
-                    <div class="form-grid"><div class="field" data-step="3"><label for="student-hear">How did you hear about us?</label><select id="student-hear" name="hear_about_us"><option value="">Choose an option</option><option>Friend or colleague</option><option>Social media</option><option>Search engine</option><option>Event or community</option><option>Other</option></select></div><div class="field" data-step="3"><label for="student-timezone">Timezone</label><input id="student-timezone" name="timezone" type="text" placeholder="e.g. Africa/Lagos"></div></div>
-                    <div class="check-stack" data-step="3"><label><input name="terms_accepted" type="checkbox" required> I agree to the <a href="{% url 'help' %}">Terms</a> and <a href="{% url 'help' %}">Privacy Policy</a>.</label><label><input name="email_marketing" type="checkbox"> Send me useful learning updates by email.</label></div>
+                    <div class="form-grid">
+                        <div class="field" data-step="2"><label for="skill-level">Current level</label><select id="skill-level" name="skill_level" required><option value="" selected disabled>Choose your level</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+                        <div class="field" data-step="2"><label for="learning-goal">What do you want to learn?</label><input id="learning-goal" name="learning_goal" type="text" required placeholder="e.g. Photography, French, or Python"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field" data-step="3"><label for="student-hear">How did you hear about us?</label><select id="student-hear" name="hear_about_us"><option value="">Choose an option</option><option>Friend or colleague</option><option>Social media</option><option>Search engine</option><option>Event or community</option><option>Other</option></select></div>
+                        <div class="field" data-step="3"><label for="student-timezone">Timezone</label><input id="student-timezone" name="timezone" type="text" placeholder="e.g. Africa/Lagos"></div>
+                    </div>
+                    <div class="check-stack" data-step="3">
+                        <label><input name="terms_accepted" type="checkbox" required> I agree to the <a href="{% url 'help' %}">Terms</a> and <a href="{% url 'help' %}">Privacy Policy</a>.</label>
+                        <label><input name="email_marketing" type="checkbox"> Send me useful learning updates by email.</label>
+                    </div>
                     <button class="form-submit" type="submit">Create student account <i class="bi bi-arrow-right"></i></button>
                 </form>
+
+                <!-- =============================================
+                     TEACHER FORM
+                     ============================================= -->
                 <form class="role-form" id="teacher-form" method="post" enctype="multipart/form-data" action="{% url 'get_started' %}" hidden>
-                    {% csrf_token %}<input type="hidden" name="role" value="teacher">
-                    <div class="form-heading"><div><h3>Teacher registration</h3><p>Share the skill you know best and how you teach it.</p></div><span class="form-tag">FREE ACCOUNT</span></div>
-                    <div class="form-grid">
-                    <div class="field" data-step="1"><label for="teacher-first-name">First name</label><input id="teacher-first-name" name="first_name" type="text" required placeholder="Jane"></div><div class="field" data-step="1"><label for="teacher-surname">Surname</label><input id="teacher-surname" name="surname" type="text" required placeholder="Cooper"></div>
-                    <div class="field" data-step="1"><label for="teacher-email">Email address</label><input id="teacher-email" name="email" type="email" required placeholder="jane@example.com"></div><div class="field" data-step="1"><label for="teacher-phone">Phone number</label><input id="teacher-phone" name="phone_number" type="tel" required placeholder="+234 800 000 0000"></div>
-                    <div class="field" data-step="1"><label for="teacher-password">Password</label><div class="password-wrap"><input id="teacher-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div><div class="field" data-step="1"><label for="teacher-confirm">Confirm password</label><div class="password-wrap"><input id="teacher-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="teacher">
+                    <div class="form-heading">
+                        <div>
+                            <h3>Teacher registration</h3>
+                            <p>Share the skill you know best and how you teach it.</p>
+                        </div>
+                        <span class="form-tag">FREE ACCOUNT</span>
                     </div>
-                    <div class="form-grid"><div class="field" data-step="2"><label for="teacher-years">Years of experience</label><input id="teacher-years" name="years_experience" type="number" min="0" required placeholder="5"></div><div class="field" data-step="2"><label for="teacher-title">Current job / title</label><input id="teacher-title" name="current_job_title" type="text" required placeholder="Product designer"></div><div class="field" data-step="2"><label for="teacher-portfolio">Portfolio link</label><input id="teacher-portfolio" name="portfolio_url" type="url" placeholder="https://..."></div><div class="field" data-step="2"><label for="teacher-linkedin">LinkedIn link</label><input id="teacher-linkedin" name="linkedin_url" type="url" placeholder="https://linkedin.com/in/..."></div><div class="field" data-step="2"><label for="teacher-github">GitHub link</label><input id="teacher-github" name="github_url" type="url" placeholder="https://github.com/..."></div></div><div class="field" data-step="2"><label for="teacher-bio">Short bio</label><textarea id="teacher-bio" name="short_bio" required placeholder="Tell learners what makes your approach useful."></textarea></div><div class="field" data-step="2"><label for="teacher-id">Upload ID or certificate <span>(optional)</span></label><input id="teacher-id" name="id_certificate" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
-                    <div class="form-grid"><div class="field" data-step="3"><label for="teacher-style">Teaching style</label><input id="teacher-style" name="teaching_style" required placeholder="Practical, collaborative..."></div><div class="field" data-step="3"><label for="teacher-languages">Languages spoken</label><input id="teacher-languages" name="languages_spoken" required placeholder="English, Yoruba"></div><div class="field" data-step="3"><label for="teacher-payment">Payment method</label><input id="teacher-payment" name="payment_method" required placeholder="Bank transfer, Paystack..."></div><div class="field" data-step="3"><label for="teacher-timezone">Timezone</label><input id="teacher-timezone" name="timezone" required placeholder="Africa/Lagos"></div><div class="field" data-step="3"><label for="teacher-availability">Availability</label><input id="teacher-availability" name="availability" required placeholder="Weekdays after 5pm"></div></div>
-                    <div class="check-stack" data-step="3"><label><input name="teacher_terms_accepted" type="checkbox" required> I agree to the <a href="{% url 'help' %}">Teacher Terms</a>.</label><label><input name="background_check_consent" type="checkbox" required> I consent to a background check.</label></div>
+                    <div class="form-grid">
+                        <div class="field" data-step="1"><label for="teacher-first-name">First name</label><input id="teacher-first-name" name="first_name" type="text" required placeholder="Jane"></div>
+                        <div class="field" data-step="1"><label for="teacher-surname">Surname</label><input id="teacher-surname" name="surname" type="text" required placeholder="Cooper"></div>
+                        <div class="field" data-step="1"><label for="teacher-email">Email address</label><input id="teacher-email" name="email" type="email" required placeholder="jane@example.com"></div>
+                        <div class="field" data-step="1"><label for="teacher-phone">Phone number</label><input id="teacher-phone" name="phone_number" type="tel" required placeholder="+234 800 000 0000"></div>
+                        <div class="field" data-step="1"><label for="teacher-password">Password</label><div class="password-wrap"><input id="teacher-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
+                        <div class="field" data-step="1"><label for="teacher-confirm">Confirm password</label><div class="password-wrap"><input id="teacher-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field" data-step="2"><label for="teacher-years">Years of experience</label><input id="teacher-years" name="years_experience" type="number" min="0" required placeholder="5"></div>
+                        <div class="field" data-step="2"><label for="teacher-title">Current job / title</label><input id="teacher-title" name="current_job_title" type="text" required placeholder="Product designer"></div>
+                        <div class="field" data-step="2"><label for="teacher-portfolio">Portfolio link</label><input id="teacher-portfolio" name="portfolio_url" type="url" placeholder="https://..."></div>
+                        <div class="field" data-step="2"><label for="teacher-linkedin">LinkedIn link</label><input id="teacher-linkedin" name="linkedin_url" type="url" placeholder="https://linkedin.com/in/..."></div>
+                        <div class="field" data-step="2"><label for="teacher-github">GitHub link</label><input id="teacher-github" name="github_url" type="url" placeholder="https://github.com/..."></div>
+                    </div>
+                    <div class="field" data-step="2"><label for="teacher-bio">Short bio</label><textarea id="teacher-bio" name="short_bio" required placeholder="Tell learners what makes your approach useful."></textarea></div>
+                    <div class="field" data-step="2"><label for="teacher-id">Upload ID or certificate <span>(optional)</span></label><input id="teacher-id" name="id_certificate" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+                    <div class="form-grid">
+                        <div class="field" data-step="3"><label for="teacher-style">Teaching style</label><input id="teacher-style" name="teaching_style" required placeholder="Practical, collaborative..."></div>
+                        <div class="field" data-step="3"><label for="teacher-languages">Languages spoken</label><input id="teacher-languages" name="languages_spoken" required placeholder="English, Yoruba"></div>
+                        <div class="field" data-step="3"><label for="teacher-payment">Payment method</label><input id="teacher-payment" name="payment_method" required placeholder="Bank transfer, Paystack..."></div>
+                        <div class="field" data-step="3"><label for="teacher-timezone">Timezone</label><input id="teacher-timezone" name="timezone" required placeholder="Africa/Lagos"></div>
+                        <div class="field" data-step="3"><label for="teacher-availability">Availability</label><input id="teacher-availability" name="availability" required placeholder="Weekdays after 5pm"></div>
+                    </div>
+                    <div class="check-stack" data-step="3">
+                        <label><input name="teacher_terms_accepted" type="checkbox" required> I agree to the <a href="{% url 'help' %}">Teacher Terms</a>.</label>
+                        <label><input name="background_check_consent" type="checkbox" required> I consent to a background check.</label>
+                    </div>
                     <button class="form-submit" type="submit">Create teacher account <i class="bi bi-arrow-right"></i></button>
                 </form>
+
+                <!-- =============================================
+                     MENTOR FORM
+                     ============================================= -->
                 <form class="role-form" id="mentor-form" method="post" enctype="multipart/form-data" action="{% url 'get_started' %}" hidden>
-                    {% csrf_token %}<input type="hidden" name="role" value="mentor">
-                    <div class="form-heading"><div><h3>Mentor registration</h3><p>Help someone take a meaningful next step.</p></div><span class="form-tag">FREE ACCOUNT</span></div>
-                    <div class="form-grid"><div class="field" data-step="1"><label for="mentor-first-name">First name</label><input id="mentor-first-name" name="first_name" type="text" required placeholder="Sam"></div><div class="field" data-step="1"><label for="mentor-surname">Surname</label><input id="mentor-surname" name="surname" type="text" required placeholder="Rivera"></div><div class="field" data-step="1"><label for="mentor-email">Email address</label><input id="mentor-email" name="email" type="email" required placeholder="sam@example.com"></div><div class="field" data-step="1"><label for="mentor-phone">Phone number</label><input id="mentor-phone" name="phone_number" type="tel" required placeholder="+234 800 000 0000"></div><div class="field" data-step="1"><label for="mentor-password">Password</label><div class="password-wrap"><input id="mentor-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div><div class="field" data-step="1"><label for="mentor-confirm">Confirm password</label><div class="password-wrap"><input id="mentor-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div></div>
-                    <div class="form-grid"><div class="field" data-step="2"><label for="mentor-areas">Areas you mentor in</label><input id="mentor-areas" name="mentorship_areas" required placeholder="Career growth, leadership..."></div><div class="field" data-step="2"><label for="mentor-industry">Industry / skills</label><input id="mentor-industry" name="industry_skills" required placeholder="Technology, design..."></div><div class="field" data-step="2"><label for="mentor-years">Years of experience</label><input id="mentor-years" name="years_experience" type="number" min="0" required placeholder="8"></div><div class="field" data-step="2"><label for="mentor-role">Current role + company</label><input id="mentor-role" name="current_role_company" required placeholder="Lead designer at Knot"></div><div class="field" data-step="2"><label for="mentor-links">LinkedIn / portfolio / GitHub</label><input id="mentor-links" name="mentor_links" placeholder="Share your professional links"></div></div><div class="field" data-step="2"><label for="mentor-bio">Short mentor bio</label><textarea id="mentor-bio" name="mentor_bio" required placeholder="What can people count on you for?"></textarea></div>
-                    <div class="form-grid"><div class="field" data-step="3"><label for="mentor-type">Mentorship type</label><select id="mentor-type" name="mentorship_type" required><option value="" selected disabled>Choose a format</option><option>1-on-1 calls</option><option>Resume review</option><option>Mock interviews</option><option>Project feedback</option></select></div><div class="field" data-step="3"><label for="mentor-rate">Session rate</label><select id="mentor-rate" name="session_rate" required><option>Free</option><option>NGN 5,000 per 30 min</option><option>NGN 10,000 per 30 min</option><option>Apply to see rate</option></select></div><div class="field" data-step="3"><label for="mentor-availability">Availability</label><input id="mentor-availability" name="availability" required placeholder="Weekends, evenings..."></div><div class="field" data-step="3"><label for="mentor-languages">Languages spoken</label><input id="mentor-languages" name="languages_spoken" required placeholder="English, Igbo"></div><div class="field" data-step="3"><label for="mentor-max">Max students per month</label><input id="mentor-max" name="max_students_per_month" type="number" min="1" required placeholder="10"></div></div>
-                    <div class="form-grid"><div class="field" data-step="3"><label for="mentor-id">Upload ID</label><input id="mentor-id" name="mentor_id" type="file" accept=".pdf,.jpg,.jpeg,.png"></div><div class="field" data-step="3"><label for="mentor-references">References</label><textarea id="mentor-references" name="references" placeholder="Names or links for two references"></textarea></div></div>
-                    <div class="check-stack" data-step="3"><label><input name="mentor_terms_accepted" type="checkbox" required> I agree to the <a href="{% url 'help' %}">Mentor Terms</a>.</label></div>
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="mentor">
+                    <div class="form-heading">
+                        <div>
+                            <h3>Mentor registration</h3>
+                            <p>Help someone take a meaningful next step.</p>
+                        </div>
+                        <span class="form-tag">FREE ACCOUNT</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field" data-step="1"><label for="mentor-first-name">First name</label><input id="mentor-first-name" name="first_name" type="text" required placeholder="Sam"></div>
+                        <div class="field" data-step="1"><label for="mentor-surname">Surname</label><input id="mentor-surname" name="surname" type="text" required placeholder="Rivera"></div>
+                        <div class="field" data-step="1"><label for="mentor-email">Email address</label><input id="mentor-email" name="email" type="email" required placeholder="sam@example.com"></div>
+                        <div class="field" data-step="1"><label for="mentor-phone">Phone number</label><input id="mentor-phone" name="phone_number" type="tel" required placeholder="+234 800 000 0000"></div>
+                        <div class="field" data-step="1"><label for="mentor-password">Password</label><div class="password-wrap"><input id="mentor-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
+                        <div class="field" data-step="1"><label for="mentor-confirm">Confirm password</label><div class="password-wrap"><input id="mentor-confirm" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat your password"><button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field" data-step="2"><label for="mentor-areas">Areas you mentor in</label><input id="mentor-areas" name="mentorship_areas" required placeholder="Career growth, leadership..."></div>
+                        <div class="field" data-step="2"><label for="mentor-industry">Industry / skills</label><input id="mentor-industry" name="industry_skills" required placeholder="Technology, design..."></div>
+                        <div class="field" data-step="2"><label for="mentor-years">Years of experience</label><input id="mentor-years" name="years_experience" type="number" min="0" required placeholder="8"></div>
+                        <div class="field" data-step="2"><label for="mentor-role">Current role + company</label><input id="mentor-role" name="current_role_company" required placeholder="Lead designer at Knot"></div>
+                        <div class="field" data-step="2"><label for="mentor-links">LinkedIn / portfolio / GitHub</label><input id="mentor-links" name="mentor_links" placeholder="Share your professional links"></div>
+                    </div>
+                    <div class="field" data-step="2"><label for="mentor-bio">Short mentor bio</label><textarea id="mentor-bio" name="mentor_bio" required placeholder="What can people count on you for?"></textarea></div>
+                    <div class="form-grid">
+                        <div class="field" data-step="3"><label for="mentor-type">Mentorship type</label><select id="mentor-type" name="mentorship_type" required><option value="" selected disabled>Choose a format</option><option>1-on-1 calls</option><option>Resume review</option><option>Mock interviews</option><option>Project feedback</option></select></div>
+                        <div class="field" data-step="3"><label for="mentor-rate">Session rate</label><select id="mentor-rate" name="session_rate" required><option>Free</option><option>NGN 5,000 per 30 min</option><option>NGN 10,000 per 30 min</option><option>Apply to see rate</option></select></div>
+                        <div class="field" data-step="3"><label for="mentor-availability">Availability</label><input id="mentor-availability" name="availability" required placeholder="Weekends, evenings..."></div>
+                        <div class="field" data-step="3"><label for="mentor-languages">Languages spoken</label><input id="mentor-languages" name="languages_spoken" required placeholder="English, Igbo"></div>
+                        <div class="field" data-step="3"><label for="mentor-max">Max students per month</label><input id="mentor-max" name="max_students_per_month" type="number" min="1" required placeholder="10"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field" data-step="3"><label for="mentor-id">Upload ID</label><input id="mentor-id" name="mentor_id" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+                        <div class="field" data-step="3"><label for="mentor-references">References</label><textarea id="mentor-references" name="references" placeholder="Names or links for two references"></textarea></div>
+                    </div>
+                    <div class="check-stack" data-step="3">
+                        <label><input name="mentor_terms_accepted" type="checkbox" required> I agree to the <a href="{% url 'help' %}">Mentor Terms</a>.</label>
+                    </div>
                     <button class="form-submit" type="submit">Create mentor account <i class="bi bi-arrow-right"></i></button>
                 </form>
-                <p class="account-note">No pressure, no paywall. <a href="{% url 'home' %}">Learn more about
-                        KnotWork</a></p>
+
+                <p class="account-note">No pressure, no paywall. <a href="{% url 'home' %}">Learn more about KnotWork</a></p>
             </div>
         </section>
     </main>
+
     <script>
         const roleOptions = document.querySelectorAll('.role-option');
         const roleForms = document.querySelectorAll('.role-form');
         const selectedRole = '{{ selected_role|default:"student"|escapejs }}';
 
+        /* ----- Role-aware social auth ----- */
+        const ROLE_META = {
+            student: { icon: 'bi-mortarboard', label: 'Student' },
+            teacher: { icon: 'bi-easel',      label: 'Teacher' },
+            mentor:  { icon: 'bi-compass',    label: 'Mentor'  }
+        };
+
+        function updateSocialLinks(role) {
+            const meta = ROLE_META[role] || ROLE_META.student;
+
+            /* Update the role tag pill */
+            const tag = document.getElementById('social-role-tag');
+            if (tag) {
+                tag.innerHTML = '<i class="bi ' + meta.icon + '"></i> ' + meta.label;
+            }
+
+            /* Update every social link's href to carry the role */
+            document.querySelectorAll('[data-social-base]').forEach(el => {
+                const base = el.dataset.socialBase;
+                el.href = base + '?role=' + encodeURIComponent(role) + '&next=/dashboard/';
+            });
+        }
+
+        /* ----- Form animation ----- */
         function animateForm(form) {
             form.classList.remove('is-entering');
             requestAnimationFrame(() => form.classList.add('is-entering'));
         }
 
+        /* ----- Role selection ----- */
         function selectRole(role) {
             roleOptions.forEach((option) => {
                 const isActive = option.dataset.role === role;
@@ -707,8 +985,10 @@
                 form.hidden = !isSelected;
                 if (isSelected) animateForm(form);
             });
+            updateSocialLinks(role);
         }
 
+        /* ----- Multi-step forms ----- */
         roleForms.forEach((form) => {
             const fields = Array.from(form.querySelectorAll('.field'));
             const groups = [1, 2, 3].map((step) => fields.filter((field) => field.dataset.step === String(step)));
@@ -758,6 +1038,7 @@
         roleOptions.forEach((option) => option.addEventListener('click', () => selectRole(option.dataset.role)));
         selectRole(selectedRole);
 
+        /* ----- Password visibility ----- */
         document.querySelectorAll('.password-toggle').forEach((toggle) => {
             toggle.addEventListener('click', () => {
                 const input = toggle.parentElement.querySelector('input');

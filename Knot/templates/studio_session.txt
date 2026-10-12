@@ -1,0 +1,869 @@
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
+
+# ============================================================
+# COURSE ENROLMENT (needed so teachers can "go live" for their students)
+# ============================================================
+class Enrollment(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name='enrollments')
+    course  = models.ForeignKey('Course', on_delete=models.CASCADE,
+                                related_name='enrollments')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [('student', 'course')]
+        indexes = [models.Index(fields=['course', 'student'])]
+
+    def __str__(self):
+        return f'{self.student} → {self.course}'
+
+
+# ============================================================
+# LIVE SESSIONS (shared by teacher studio + student sessions)
+# ============================================================
+class LiveSession(models.Model):
+
+    class Status(models.TextChoices):
+        SCHEDULED = 'scheduled', 'Scheduled'
+        LIVE      = 'live',      'Live'
+        COMPLETED = 'completed', 'Completed'
+        CANCELLED = 'cancelled', 'Cancelled'
+        NO_SHOW   = 'no_show',   'No show'
+
+    class SessionType(models.TextChoices):
+        ONE_TO_ONE = 'one_to_one', '1-on-1 Video call'
+        GROUP      = 'group',      'Group call'
+        COHORT     = 'cohort',     'Cohort class'
+
+    class CallKind(models.TextChoices):
+        VIDEO = 'video', 'Video call'
+        AUDIO = 'audio', 'Audio call'
+
+    teacher = models.ForeignKey('Profile', on_delete=models.CASCADE,
+                                related_name='sessions_taught')
+    # Primary student (for 1-on-1). Nullable for open group sessions.
+    student = models.ForeignKey('Profile', on_delete=models.SET_NULL,
+                                null=True, blank=True,
+                                related_name='sessions_attended')
+    # Extra attendees (group sessions / cohort classes).
+    students = models.ManyToManyField('Profile', blank=True,
+                                      related_name='group_sessions')
+
+    course = models.ForeignKey('Course', on_delete=models.SET_NULL,
+                               null=True, blank=True,
+                               related_name='live_sessions')
+
+    title            = models.CharField(max_length=160)
+    description      = models.TextField(blank=True)
+    session_type     = models.CharField(max_length=12, choices=SessionType.choices,
+                                        default=SessionType.ONE_TO_ONE, db_index=True)
+    call_kind        = models.CharField(max_length=8, choices=CallKind.choices,
+                                        default=CallKind.VIDEO)
+
+    starts_at        = models.DateTimeField(db_index=True)
+    duration_minutes = models.PositiveIntegerField(default=45)
+
+    status     = models.CharField(max_length=12, choices=Status.choices,
+                                  default=Status.SCHEDULED, db_index=True)
+    room_code  = models.CharField(max_length=24, blank=True)
+
+    # Real lifecycle timestamps
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at   = models.DateTimeField(null=True, blank=True)
+
+    # Helpful stats for the studio rail
+    attendance_rate   = models.PositiveSmallIntegerField(default=0)  # %
+    engagement_rate   = models.PositiveSmallIntegerField(default=0)  # %
+
+    # Reasons / notes
+    cancellation_reason = models.CharField(max_length=200, blank=True)
+    cancelled_by        = models.CharField(max_length=16, blank=True)   # 'student'|'teacher'|'system'
+    note                = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-starts_at']
+        indexes = [
+            models.Index(fields=['teacher', 'status', 'starts_at']),
+            models.Index(fields=['student', 'status', 'starts_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.title} · {self.starts_at:%Y-%m-%d %H:%M}'
+
+    # ---------- helpers used by templates / JS ----------
+    @property
+    def is_live(self):
+        return self.status == self.Status.LIVE
+
+    @property
+    def ends_at(self):
+        return self.starts_at + timezone.timedelta(minutes=self.duration_minutes)
+
+    def save(self, *args, **kwargs):
+        if not self.room_code:
+            import secrets
+            self.room_code = secrets.token_urlsafe(9)[:12]
+        super().save(*args, **kwargs)
+
+
+# ============================================================
+# RAISED HANDS
+# ============================================================
+class SessionHand(models.Model):
+    session  = models.ForeignKey(LiveSession, on_delete=models.CASCADE,
+                                 related_name='hands')
+    student  = models.ForeignKey('Profile', on_delete=models.CASCADE,
+                                 related_name='raised_hands')
+    raised_at   = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved    = models.BooleanField(default=False, db_index=True)
+    question    = models.CharField(max_length=240, blank=True)
+
+    class Meta:
+        ordering = ['-raised_at']
+        indexes = [models.Index(fields=['session', 'resolved'])]
+
+    def resolve(self):
+        self.resolved = True
+        self.resolved_at = timezone.now()
+        self.save(update_fields=['resolved', 'resolved_at'])
+
+
+# ============================================================
+# RECORDINGS (studio library)
+# ============================================================
+class Recording(models.Model):
+
+    class Status(models.TextChoices):
+        DRAFT      = 'draft',      'Draft'
+        PROCESSING = 'processing', 'Processing'
+        PUBLISHED  = 'published',  'Published'
+        ARCHIVED   = 'archived',   'Archived'
+
+    class Mode(models.TextChoices):
+        CAMERA = 'camera', 'Camera'
+        SCREEN = 'screen', 'Screen'
+        BOTH   = 'both',   'Camera + screen'
+
+    teacher = models.ForeignKey('Profile', on_delete=models.CASCADE,
+                                related_name='recordings')
+    course  = models.ForeignKey('Course', on_delete=models.SET_NULL,
+                                null=True, blank=True,
+                                related_name='recordings')
+    session = models.ForeignKey(LiveSession, on_delete=models.SET_NULL,
+                                null=True, blank=True,
+                                related_name='recordings')
+
+    title            = models.CharField(max_length=180)
+    description      = models.TextField(blank=True)
+    mode             = models.CharField(max_length=8, choices=Mode.choices,
+                                        default=Mode.CAMERA)
+    duration_seconds = models.PositiveIntegerField(default=0)
+    size_mb          = models.DecimalField(max_digits=10, decimal_places=1, default=0)
+    status           = models.CharField(max_length=12, choices=Status.choices,
+                                        default=Status.DRAFT, db_index=True)
+
+    media_url = models.URLField(blank=True)      # once transcoded
+    thumbnail = models.URLField(blank=True)
+
+    created_at   = models.DateTimeField(auto_now_add=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['teacher', 'status', '-created_at'])]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def duration_display(self):
+        m, s = divmod(self.duration_seconds, 60)
+        h, m = divmod(m, 60)
+        if h:
+            return f'{h}:{m:02d}:{s:02d}'
+        return f'{m:02d}:{s:02d}'
+
+    def publish(self):
+        self.status = self.Status.PUBLISHED
+        self.published_at = timezone.now()
+        self.save(update_fields=['status', 'published_at'])
+
+    def archive(self):
+        self.status = self.Status.ARCHIVED
+        self.save(update_fields=['status'])
+
+
+
+
+
+
+
+from django.contrib import admin
+from .models import (Enrollment, LiveSession, SessionHand, Recording)
+
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display  = ('student', 'course', 'enrolled_at')
+    list_filter   = ('course',)
+    search_fields = ('student__username', 'course__title')
+    autocomplete_fields = ('student', 'course')
+
+
+class SessionHandInline(admin.TabularInline):
+    model = SessionHand
+    extra = 0
+    readonly_fields = ('raised_at', 'resolved_at')
+
+
+@admin.register(LiveSession)
+class LiveSessionAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'teacher', 'session_type', 'starts_at',
+                     'duration_minutes', 'status')
+    list_filter   = ('status', 'session_type', 'call_kind')
+    search_fields = ('title', 'teacher__user__username',
+                     'teacher__user__first_name', 'teacher__user__last_name')
+    date_hierarchy = 'starts_at'
+    autocomplete_fields = ('teacher', 'student', 'course')
+    filter_horizontal = ('students',)
+    inlines = (SessionHandInline,)
+    readonly_fields = ('room_code', 'created_at', 'updated_at')
+
+
+@admin.register(Recording)
+class RecordingAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'teacher', 'status', 'duration_seconds',
+                     'size_mb', 'created_at')
+    list_filter   = ('status', 'mode')
+    search_fields = ('title', 'teacher__user__username')
+    autocomplete_fields = ('teacher', 'course', 'session')
+    readonly_fields = ('created_at', 'published_at')
+    actions = ('publish_selected', 'archive_selected')
+
+    @admin.action(description='Publish selected recordings')
+    def publish_selected(self, request, queryset):
+        for rec in queryset:
+            rec.publish()
+
+    @admin.action(description='Archive selected recordings')
+    def archive_selected(self, request, queryset):
+        for rec in queryset:
+            rec.archive()
+
+
+
+
+
+
+
+
+import json
+from datetime import datetime, timedelta
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST, require_http_methods
+
+from .models import (
+    Course, Enrollment, LiveSession, Profile, Recording, SessionHand,
+)
+
+
+# ============================================================
+# Small helpers
+# ============================================================
+def _profile(user):
+    """Return the user's Profile (create if missing)."""
+    profile, _ = Profile.objects.get_or_create(user=user)
+    return profile
+
+
+def _json_error(message, status=400):
+    return JsonResponse({'ok': False, 'error': message}, status=status)
+
+
+def _apply_session_action(session, action, actor_profile, payload=None):
+    """
+    Central state machine for a LiveSession. Called by both teacher
+    and student views. `actor_profile` tells us who is doing it.
+    Returns (ok, message).
+    """
+    now = timezone.now()
+
+    if action == 'start':
+        if session.status not in (LiveSession.Status.SCHEDULED,
+                                  LiveSession.Status.LIVE):
+            return False, 'Only scheduled sessions can be started.'
+        session.status = LiveSession.Status.LIVE
+        session.started_at = session.started_at or now
+        session.save(update_fields=['status', 'started_at'])
+        return True, 'Session is now live.'
+
+    if action == 'end':
+        if session.status != LiveSession.Status.LIVE:
+            return False, 'That session is not live.'
+        session.status = LiveSession.Status.COMPLETED
+        session.ended_at = now
+        session.save(update_fields=['status', 'ended_at'])
+        return True, 'Session ended and saved to history.'
+
+    if action == 'cancel':
+        if session.status in (LiveSession.Status.COMPLETED,
+                              LiveSession.Status.CANCELLED):
+            return False, 'This session can no longer be cancelled.'
+        session.status = LiveSession.Status.CANCELLED
+        session.cancelled_by = 'teacher' if actor_profile == session.teacher else 'student'
+        session.cancellation_reason = (payload or {}).get('reason', '')
+        session.save(update_fields=['status', 'cancelled_by', 'cancellation_reason'])
+        return True, 'Session cancelled.'
+
+    if action == 'join':
+        # Student marks themselves present (idempotent).
+        if session.status not in (LiveSession.Status.LIVE,
+                                  LiveSession.Status.SCHEDULED):
+            return False, 'This session is not open.'
+        if actor_profile != session.student:
+            session.students.add(actor_profile)
+        return True, 'Joined the room.'
+
+    if action == 'raise_hand':
+        hand, created = SessionHand.objects.get_or_create(
+            session=session, student=actor_profile, resolved=False,
+        )
+        if not created:
+            return True, 'Your hand is already raised.'
+        return True, 'Hand raised — the teacher can see you.'
+
+    if action == 'resolve_hand':
+        hand_id = (payload or {}).get('hand_id')
+        if not hand_id:
+            return False, 'Missing hand id.'
+        hand = SessionHand.objects.filter(pk=hand_id, session=session).first()
+        if not hand:
+            return False, 'Hand not found.'
+        hand.resolve()
+        return True, 'Question marked as answered.'
+
+    if action == 'rebook':
+        # Clone the session, one week later by default.
+        new = LiveSession.objects.create(
+            teacher=session.teacher,
+            student=session.student,
+            course=session.course,
+            title=session.title,
+            description=session.description,
+            session_type=session.session_type,
+            call_kind=session.call_kind,
+            starts_at=session.starts_at + timedelta(days=7),
+            duration_minutes=session.duration_minutes,
+            status=LiveSession.Status.SCHEDULED,
+        )
+        if session.students.exists():
+            new.students.set(session.students.all())
+        return True, 'Rebooked for the same time next week.'
+
+    return False, f'Unknown action: {action}'
+
+
+# ============================================================
+# TEACHER · STUDIO
+# ============================================================
+@login_required
+@require_http_methods(['GET'])
+def teacher_studio(request):
+    profile = _profile(request.user)
+    now = timezone.now()
+
+    active_session = (
+        LiveSession.objects
+        .filter(teacher=profile, status=LiveSession.Status.LIVE)
+        .select_related('course', 'student__user')
+        .prefetch_related('students__user', 'hands__student__user')
+        .first()
+    )
+
+    next_session = (
+        LiveSession.objects
+        .filter(teacher=profile,
+                status=LiveSession.Status.SCHEDULED,
+                starts_at__gte=now)
+        .select_related('course', 'student__user')
+        .order_by('starts_at')
+        .first()
+    )
+
+    upcoming_sessions = (
+        LiveSession.objects
+        .filter(teacher=profile,
+                status=LiveSession.Status.SCHEDULED,
+                starts_at__gte=now)
+        .select_related('course', 'student__user')
+        .prefetch_related('students__user')
+        .order_by('starts_at')[:8]
+    )
+
+    recordings = (
+        Recording.objects
+        .filter(teacher=profile)
+        .select_related('course')
+        .order_by('-created_at')[:20]
+    )
+
+    # Every student enrolled in any of this teacher's courses,
+    # returned as Profiles so the modal can use {{ student.user }}.
+    teacher_students = (
+        Profile.objects
+        .filter(user__enrollments__course__teacher=request.user)
+        .select_related('user')
+        .distinct()
+        .order_by('user__first_name', 'user__last_name')
+    )
+
+    teacher_courses = Course.objects.filter(teacher=request.user).order_by('title')
+
+    active_hands = []
+    if active_session:
+        active_hands = list(
+            SessionHand.objects
+            .filter(session=active_session, resolved=False)
+            .select_related('student__user')
+            .order_by('raised_at')
+        )
+
+    context = {
+        'active_session':   active_session,
+        'next_session':     next_session,
+        'upcoming_sessions': upcoming_sessions,
+        'recordings':       recordings,
+        'teacher_students': teacher_students,
+        'teacher_courses':  teacher_courses,
+        'active_hands':     active_hands,
+    }
+    return render(request, 'Knot_Teacher/studio.html', context)
+
+
+# ============================================================
+# TEACHER · START A SESSION (Go-live button, no pre-scheduled session)
+# ============================================================
+@login_required
+@require_POST
+def teacher_start_session(request):
+    profile = _profile(request.user)
+    title = (request.POST.get('title') or 'Live learning session').strip()[:160]
+    try:
+        duration = int(request.POST.get('duration_minutes') or 45)
+    except (TypeError, ValueError):
+        duration = 45
+
+    with transaction.atomic():
+        session = LiveSession.objects.create(
+            teacher=profile,
+            title=title,
+            session_type=LiveSession.SessionType.GROUP,
+            starts_at=timezone.now(),
+            duration_minutes=duration,
+            status=LiveSession.Status.LIVE,
+            started_at=timezone.now(),
+        )
+        # Auto-enrol every student in any of this teacher's courses.
+        student_ids = (
+            Enrollment.objects
+            .filter(course__teacher=request.user)
+            .values_list('student_id', flat=True)
+            .distinct()
+        )
+        for user_id in student_ids:
+            try:
+                p = Profile.objects.get(user_id=user_id)
+                session.students.add(p)
+            except Profile.DoesNotExist:
+                continue
+
+    return JsonResponse({
+        'ok': True,
+        'session_id': session.id,
+        'message': 'Group session created for enrolled students.',
+    })
+
+
+# ============================================================
+# TEACHER · SESSION ACTION (start / end / cancel / resolve_hand)
+# ============================================================
+@login_required
+@require_POST
+def teacher_session_action(request, session_id):
+    profile = _profile(request.user)
+    session = get_object_or_404(LiveSession, pk=session_id, teacher=profile)
+
+    action  = (request.POST.get('action') or '').strip()
+    payload = {k: v for k, v in request.POST.items() if k != 'action'}
+
+    ok, message = _apply_session_action(session, action, profile, payload)
+    if not ok:
+        return _json_error(message)
+
+    return JsonResponse({'ok': True, 'message': message,
+                         'status': session.status})
+
+
+# ============================================================
+# TEACHER · SCHEDULE A NEW SESSION (studio modal, classic form POST)
+# ============================================================
+@login_required
+@require_POST
+def teacher_schedule_session(request):
+    profile = _profile(request.user)
+
+    title       = (request.POST.get('title') or '').strip()
+    description = (request.POST.get('description') or '').strip()
+    course_id   = request.POST.get('course_id') or None
+    date_str    = request.POST.get('date')
+    time_str    = request.POST.get('time')
+    session_type = request.POST.get('session_type') or LiveSession.SessionType.ONE_TO_ONE
+    student_ids = request.POST.getlist('student_ids')
+
+    if not title or not date_str or not time_str:
+        messages.error(request, 'Title, date and time are required.')
+        return redirect('teacher_studio')
+
+    try:
+        starts_at = timezone.make_aware(
+            datetime.strptime(f'{date_str} {time_str}', '%Y-%m-%d %H:%M')
+        )
+    except ValueError:
+        messages.error(request, 'Invalid date/time format.')
+        return redirect('teacher_studio')
+
+    try:
+        duration = int(request.POST.get('duration_minutes') or 45)
+    except (TypeError, ValueError):
+        duration = 45
+
+    course = None
+    if course_id:
+        course = Course.objects.filter(pk=course_id, teacher=request.user).first()
+
+    session = LiveSession.objects.create(
+        teacher=profile,
+        course=course,
+        title=title,
+        description=description,
+        session_type=session_type,
+        starts_at=starts_at,
+        duration_minutes=duration,
+        status=LiveSession.Status.SCHEDULED,
+    )
+
+    if student_ids:
+        profiles = Profile.objects.filter(id__in=student_ids)
+        if session_type == LiveSession.SessionType.ONE_TO_ONE and profiles.count() == 1:
+            session.student = profiles.first()
+            session.save(update_fields=['student'])
+        else:
+            session.students.set(profiles)
+
+    messages.success(request, f'“{title}” scheduled · attendees will be notified.')
+    return redirect('teacher_studio')
+
+
+# ============================================================
+# TEACHER · RECORDING ACTIONS
+# ============================================================
+@login_required
+@require_POST
+def teacher_recording_action(request):
+    profile = _profile(request.user)
+    action  = (request.POST.get('action') or '').strip()
+
+    # ---- start -------------------------------------------------
+    if action == 'start':
+        mode = request.POST.get('mode') or Recording.Mode.CAMERA
+        recording = Recording.objects.create(
+            teacher=profile,
+            title=f'Studio recording · {timezone.now():%d %b %Y · %H:%M}',
+            mode=mode,
+            status=Recording.Status.PROCESSING,
+        )
+        return JsonResponse({
+            'ok': True,
+            'recording_id': recording.id,
+            'message': 'Recording started.',
+        })
+
+    # ---- stop / publish / archive / play -----------------------
+    recording_id = request.POST.get('recording_id')
+    if not recording_id:
+        return _json_error('Missing recording id.')
+
+    recording = Recording.objects.filter(pk=recording_id, teacher=profile).first()
+    if not recording:
+        return _json_error('Recording not found.', status=404)
+
+    if action == 'stop':
+        try:
+            duration = int(request.POST.get('duration_seconds') or 0)
+        except (TypeError, ValueError):
+            duration = 0
+        recording.duration_seconds = duration
+        # Rough size estimate: ~2 MB / second is fine for a demo.
+        recording.size_mb = round(duration * 0.35, 1)
+        recording.status  = Recording.Status.DRAFT
+        recording.save(update_fields=['duration_seconds', 'size_mb', 'status'])
+        return JsonResponse({
+            'ok': True,
+            'message': 'Recording saved to the library.',
+            'recording_id': recording.id,
+        })
+
+    if action == 'publish':
+        recording.publish()
+        return JsonResponse({'ok': True, 'message': 'Recording published.'})
+
+    if action == 'archive':
+        recording.archive()
+        return JsonResponse({'ok': True, 'message': 'Recording archived.'})
+
+    if action == 'play':
+        return JsonResponse({
+            'ok': True,
+            'media_url': recording.media_url or '',
+            'message': 'Playback ready.' if recording.media_url
+                       else 'Playback will open when the media URL is available.',
+        })
+
+    return _json_error(f'Unknown recording action: {action}')
+
+
+# ============================================================
+# STUDENT · SESSIONS PAGE
+# ============================================================
+@login_required
+@require_http_methods(['GET'])
+def student_sessions(request):
+    profile = _profile(request.user)
+    now = timezone.now()
+
+    base = (
+        LiveSession.objects
+        .filter(Q(student=profile) | Q(students=profile))
+        .select_related('course', 'teacher__user')
+        .prefetch_related('teacher__user')
+        .distinct()
+    )
+
+    upcoming_sessions = (
+        base.filter(status__in=[LiveSession.Status.SCHEDULED,
+                                LiveSession.Status.LIVE],
+                    starts_at__gte=now - timedelta(minutes=15))
+        .order_by('starts_at')
+    )
+
+    past_sessions = (
+        base.filter(status=LiveSession.Status.COMPLETED)
+        .order_by('-starts_at')[:30]
+    )
+
+    cancelled_sessions = (
+        base.filter(status__in=[LiveSession.Status.CANCELLED,
+                                LiveSession.Status.NO_SHOW])
+        .order_by('-starts_at')[:30]
+    )
+
+    context = {
+        'upcoming_sessions':  upcoming_sessions,
+        'past_sessions':      past_sessions,
+        'cancelled_sessions': cancelled_sessions,
+    }
+    return render(request, 'Knot_Student/sessions.html', context)
+
+
+# ============================================================
+# STUDENT · SESSION ACTION (join / raise_hand / cancel / rebook)
+# ============================================================
+@login_required
+@require_POST
+def student_session_action(request, session_id):
+    profile = _profile(request.user)
+
+    # Make sure the student actually belongs to this session.
+    session = get_object_or_404(
+        LiveSession.objects.filter(Q(student=profile) | Q(students=profile)).distinct(),
+        pk=session_id,
+    )
+
+    action  = (request.POST.get('action') or '').strip()
+    payload = {k: v for k, v in request.POST.items() if k != 'action'}
+
+    ok, message = _apply_session_action(session, action, profile, payload)
+    if not ok:
+        messages.error(request, message)
+    else:
+        messages.success(request, message)
+
+    # For AJAX posts, return JSON; for classic form posts, redirect.
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': ok, 'message': message})
+
+    return redirect('student_sessions')
+
+
+
+
+
+
+
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # ... your existing routes ...
+
+    # ---- Teacher studio ----
+    path('teacher/studio',                     views.teacher_studio,          name='teacher_studio'),
+    path('teacher/session/start',              views.teacher_start_session,   name='teacher_start_session'),
+    path('teacher/session/<int:session_id>/action', views.teacher_session_action, name='teacher_session_action'),
+    path('teacher/session/schedule',           views.teacher_schedule_session, name='teacher_schedule_session'),
+    path('teacher/recording/action',           views.teacher_recording_action, name='teacher_recording_action'),
+
+    # ---- Student sessions ----
+    path('student/sessions',                   views.student_sessions,        name='student_sessions'),
+    path('student/session/<int:session_id>/action', views.student_session_action, name='student_session_action'),
+]
+
+
+
+
+
+from datetime import timedelta
+
+from django.contrib.auth.hashers import make_password
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+
+from Knot_Student.models import (
+    Course, Enrollment, LiveSession, Profile, Recording, User,
+)
+
+
+class Command(BaseCommand):
+    help = 'Seed the teacher studio + student sessions dashboards.'
+
+    def handle(self, *args, **opts):
+        # -------- teacher + student users -----------------------
+        teacher, _ = User.objects.get_or_create(
+            username='d.okafor',
+            defaults={
+                'first_name': 'Daniel', 'last_name': 'Okafor',
+                'email': 'daniel@knotwork.dev', 'role': User.Role.TEACHER,
+                'password': make_password('demo1234'),
+            },
+        )
+        student, _ = User.objects.get_or_create(
+            username='a.okoye',
+            defaults={
+                'first_name': 'Amara', 'last_name': 'Okoye',
+                'email': 'amara@knotwork.dev', 'role': User.Role.STUDENT,
+                'password': make_password('demo1234'),
+            },
+        )
+
+        t_profile = Profile.objects.get_or_create(user=teacher)[0]
+        s_profile = Profile.objects.get_or_create(user=student)[0]
+
+        # -------- a course + enrolment --------------------------
+        course, _ = Course.objects.get_or_create(
+            teacher=teacher, title='Advanced React Patterns',
+        )
+        Enrollment.objects.get_or_create(student=student, course=course)
+
+        # -------- live session (studio) -------------------------
+        now = timezone.now()
+        LiveSession.objects.create(
+            teacher=t_profile, student=s_profile, course=course,
+            title='React Hooks Deep Dive',
+            session_type=LiveSession.SessionType.ONE_TO_ONE,
+            starts_at=now - timedelta(minutes=12),
+            started_at=now - timedelta(minutes=12),
+            duration_minutes=45,
+            status=LiveSession.Status.LIVE,
+            attendance_rate=92, engagement_rate=92,
+        )
+
+        # -------- next scheduled session ------------------------
+        LiveSession.objects.create(
+            teacher=t_profile, student=s_profile, course=course,
+            title='Design Critique Circle',
+            session_type=LiveSession.SessionType.GROUP,
+            starts_at=now + timedelta(days=1, hours=2),
+            duration_minutes=60,
+            status=LiveSession.Status.SCHEDULED,
+        )
+
+        # -------- past sessions for student view ----------------
+        for i in range(3):
+            LiveSession.objects.create(
+                teacher=t_profile, student=s_profile, course=course,
+                title=f'Advanced React Patterns · Session {7 - i}',
+                starts_at=now - timedelta(days=i + 1),
+                duration_minutes=45,
+                status=LiveSession.Status.COMPLETED,
+            )
+
+        # -------- a cancelled session ---------------------------
+        LiveSession.objects.create(
+            teacher=t_profile, student=s_profile, course=course,
+            title='TypeScript Fundamentals',
+            starts_at=now - timedelta(days=5),
+            duration_minutes=60,
+            status=LiveSession.Status.CANCELLED,
+            cancelled_by='student',
+            cancellation_reason='Schedule conflict',
+        )
+
+        # -------- studio library --------------------------------
+        demo = [
+            ('React Hooks Deep Dive · Session 8', 2712, 842, Recording.Status.PUBLISHED),
+            ('Design Systems Deep Dive · Session 4', 2327, 624, Recording.Status.PUBLISHED),
+            ('API Design Workshop · Group Session', 3128, 1120, Recording.Status.DRAFT),
+            ('TypeScript Office Hours · Q&A', 1882, 488, Recording.Status.PROCESSING),
+            ('Advanced Patterns · Mentor Circle', 3514, 1210, Recording.Status.ARCHIVED),
+        ]
+        for title, secs, mb, status in demo:
+            Recording.objects.get_or_create(
+                teacher=t_profile, title=title,
+                defaults={
+                    'course': course,
+                    'duration_seconds': secs,
+                    'size_mb': mb,
+                    'status': status,
+                },
+            )
+
+        self.stdout.write(self.style.SUCCESS(
+            'Seeded studio + sessions (login: d.okafor / a.okoye, pw: demo1234)'
+        ))
+
+
+
+
+
+
+
+
+
+python manage.py makemigrations Knot_Student
+python manage.py migrate
+python manage.py seed_studio

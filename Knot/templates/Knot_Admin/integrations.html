@@ -1,0 +1,2805 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Integrations{% endblock %}
+{% block page_title %}Integrations{% endblock %}
+{% block breadcrumb %}System · Connections{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   INTEGRATIONS — CONNECTION CONTROL CENTER
+   Improvised palette: link-teal + api-violet + relay-amber
+   ============================================================ */
+
+:root {
+    --in-teal: #14B8A6;
+    --in-teal-deep: #0F766E;
+    --in-teal-dim: rgba(20, 184, 166, 0.12);
+    --in-teal-glow: rgba(20, 184, 166, 0.42);
+
+    --in-violet: #8B5CF6;
+    --in-violet-deep: #6D28D9;
+    --in-violet-dim: rgba(139, 92, 246, 0.12);
+    --in-violet-glow: rgba(139, 92, 246, 0.42);
+
+    --in-amber: #F59E0B;
+    --in-amber-deep: #B45309;
+    --in-amber-dim: rgba(245, 158, 11, 0.12);
+    --in-amber-glow: rgba(245, 158, 11, 0.42);
+
+    --in-blue: #3B82F6;
+    --in-blue-deep: #1D4ED8;
+    --in-blue-dim: rgba(59, 130, 246, 0.12);
+    --in-blue-glow: rgba(59, 130, 246, 0.42);
+
+    --in-rose: #F43F5E;
+    --in-rose-deep: #BE123C;
+    --in-rose-dim: rgba(244, 63, 94, 0.12);
+    --in-rose-glow: rgba(244, 63, 94, 0.42);
+
+    --in-emerald: #10B981;
+    --in-emerald-deep: #047857;
+    --in-emerald-dim: rgba(16, 185, 129, 0.12);
+    --in-emerald-glow: rgba(16, 185, 129, 0.42);
+
+    --in-mesh-1: radial-gradient(circle at 12% 20%, rgba(20, 184, 166, 0.14), transparent 42%);
+    --in-mesh-2: radial-gradient(circle at 88% 78%, rgba(139, 92, 246, 0.16), transparent 44%);
+    --in-mesh-3: radial-gradient(circle at 62% 12%, rgba(245, 158, 11, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   INTEGRATIONS WIRE — MARQUEE
+   ============================================================ */
+.in-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(20, 184, 166, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(139, 92, 246, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(20, 184, 166, 0.26);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.in-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--in-teal), var(--in-violet), var(--in-amber), var(--crown-2));
+    box-shadow: 0 0 22px rgba(20, 184, 166, 0.5);
+    z-index: 5;
+}
+.in-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.in-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.in-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.in-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.in-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--in-teal);
+    pointer-events: none;
+}
+.in-wire-label .in-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--in-teal);
+    box-shadow: 0 0 0 0 var(--in-teal-glow);
+    animation: inPulse 1.6s infinite;
+}
+@keyframes inPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+}
+.in-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 180px;
+    animation: inWireRoll 55s linear infinite;
+}
+.in-wire:hover .in-wire-track { animation-play-state: paused; }
+@keyframes inWireRoll { to { transform: translateX(-50%); } }
+
+.in-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.in-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--in-teal);
+    box-shadow: 0 0 8px var(--in-teal-glow);
+    flex-shrink: 0;
+    animation: inSpark 1.8s ease-in-out infinite;
+}
+.in-wire-item.teal    .wdot { background: var(--in-teal);    box-shadow: 0 0 8px var(--in-teal-glow); }
+.in-wire-item.violet  .wdot { background: var(--in-violet);  box-shadow: 0 0 8px var(--in-violet-glow); }
+.in-wire-item.amber   .wdot { background: var(--in-amber);   box-shadow: 0 0 8px var(--in-amber-glow); }
+.in-wire-item.blue    .wdot { background: var(--in-blue);    box-shadow: 0 0 8px var(--in-blue-glow); }
+.in-wire-item.rose    .wdot { background: var(--in-rose);    box-shadow: 0 0 8px var(--in-rose-glow); }
+.in-wire-item.emerald .wdot { background: var(--in-emerald); box-shadow: 0 0 8px var(--in-emerald-glow); }
+@keyframes inSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.in-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.in-wire-item em {
+    font-style: normal;
+    color: var(--in-teal);
+    font-weight: 700;
+}
+
+/* ============================================================
+   INTEGRATIONS HERO
+   ============================================================ */
+.in-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--in-mesh-1), var(--in-mesh-2), var(--in-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(20, 184, 166, 0.20);
+}
+.in-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--in-teal), var(--in-violet) 40%, var(--in-amber) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(20, 184, 166, 0.5);
+    z-index: 5;
+}
+.in-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.in-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.in-hero-left { min-width: 0; flex: 1 1 520px; }
+.in-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.42);
+    color: var(--in-teal);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.in-hero-kicker i { font-size: 0.7rem; }
+.in-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.in-hero-title em { color: var(--in-teal); font-style: italic; }
+.in-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 640px;
+    line-height: 1.62;
+}
+.in-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.in-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.in-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.in-hero-meta .hm:hover {
+    background: rgba(20, 184, 166, 0.10);
+    border-color: rgba(20, 184, 166, 0.42);
+    color: var(--in-teal);
+    transform: translateY(-2px);
+}
+.in-hero-meta .hm i { color: var(--in-teal); font-size: 0.78rem; }
+.in-hero-meta .hm.warn {
+    background: rgba(244, 63, 94, 0.10);
+    border-color: rgba(244, 63, 94, 0.42);
+    color: var(--in-rose);
+}
+.in-hero-meta .hm.warn i { color: var(--in-rose); }
+
+.in-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(20, 184, 166, 0.16), rgba(139, 92, 246, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(20, 184, 166, 0.42);
+    box-shadow:
+        0 18px 44px rgba(20, 184, 166, 0.18),
+        0 0 0 1px rgba(20, 184, 166, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--in-teal) 120deg,
+                var(--in-violet) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(20, 184, 166, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--in-teal);
+    display: grid;
+    place-items: center;
+    color: var(--in-teal);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(20, 184, 166, 0.55), 0 0 0 3px rgba(20, 184, 166, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--in-teal), var(--in-violet));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(20, 184, 166, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.in-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.in-tabs::-webkit-scrollbar { display: none; }
+
+.in-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.in-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.in-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.in-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.in-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.in-tab .tab-badge.glow {
+    background: var(--in-teal-dim);
+    color: var(--in-teal-deep);
+    border: 1px solid rgba(20, 184, 166, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(20, 184, 166, 0); }
+}
+.in-tab .tab-badge.alert {
+    background: var(--in-rose-dim);
+    color: var(--in-rose-deep);
+    border: 1px solid rgba(244, 63, 94, 0.32);
+}
+
+.in-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.in-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.in-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.in-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.in-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.in-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.in-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.in-panels { position: relative; }
+.in-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: inPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.in-panel.active { display: flex; }
+@keyframes inPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.in-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.in-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.in-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--is-accent, linear-gradient(90deg, var(--in-teal), var(--in-teal-deep)));
+}
+.in-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.in-stat.teal    { --is-accent: linear-gradient(90deg, #14B8A6, #0F766E); }
+.in-stat.violet  { --is-accent: linear-gradient(90deg, #8B5CF6, #6D28D9); }
+.in-stat.amber   { --is-accent: linear-gradient(90deg, #F59E0B, #B45309); }
+.in-stat.blue    { --is-accent: linear-gradient(90deg, #3B82F6, #1D4ED8); }
+.in-stat.rose    { --is-accent: linear-gradient(90deg, #F43F5E, #BE123C); }
+.in-stat.emerald { --is-accent: linear-gradient(90deg, #10B981, #047857); }
+
+.in-stat .is-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.in-stat .is-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.in-stat.teal    .is-ic { background: var(--in-teal-dim);    color: var(--in-teal-deep); }
+.in-stat.violet  .is-ic { background: var(--in-violet-dim);  color: var(--in-violet-deep); }
+.in-stat.amber   .is-ic { background: var(--in-amber-dim);   color: var(--in-amber-deep); }
+.in-stat.blue    .is-ic { background: var(--in-blue-dim);    color: var(--in-blue-deep); }
+.in-stat.rose    .is-ic { background: var(--in-rose-dim);    color: var(--in-rose-deep); }
+.in-stat.emerald .is-ic { background: var(--in-emerald-dim); color: var(--in-emerald-deep); }
+
+.in-stat .is-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.in-stat .is-trend.warn { background: var(--in-amber-dim); color: var(--in-amber-deep); }
+.in-stat .is-trend.down { background: var(--in-rose-dim); color: var(--in-rose-deep); }
+.in-stat .is-trend.info { background: var(--in-teal-dim); color: var(--in-teal-deep); }
+
+.in-stat .is-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.in-stat .is-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.in-stat .is-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.in-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.in-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.in-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.in-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.in-search:focus-within i { color: var(--tab-accent-deep); }
+.in-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.in-search input::placeholder { color: var(--gray-400); }
+.in-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.in-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.in-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.in-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.in-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+.in-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   INTEGRATION CARDS GRID
+   ============================================================ */
+.in-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.in-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    padding: 24px 24px 20px;
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+}
+.in-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: var(--ic-accent, linear-gradient(90deg, var(--in-teal), var(--in-teal-deep)));
+    z-index: 2;
+}
+.in-card::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: var(--ic-aura, radial-gradient(circle, rgba(20, 184, 166, 0.10), transparent 70%));
+    pointer-events: none;
+    z-index: -1;
+    transition: var(--transition);
+}
+.in-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 48px rgba(11, 17, 33, 0.12);
+    border-color: var(--ic-accent-border, rgba(20, 184, 166, 0.4));
+}
+.in-card:hover::after { transform: scale(1.15); }
+
+.in-card.teal    { --ic-accent: linear-gradient(90deg, #14B8A6, #0F766E); --ic-aura: radial-gradient(circle, rgba(20, 184, 166, 0.14), transparent 70%); --ic-accent-border: rgba(20, 184, 166, 0.4); }
+.in-card.violet  { --ic-accent: linear-gradient(90deg, #8B5CF6, #6D28D9); --ic-aura: radial-gradient(circle, rgba(139, 92, 246, 0.14), transparent 70%); --ic-accent-border: rgba(139, 92, 246, 0.4); }
+.in-card.amber   { --ic-accent: linear-gradient(90deg, #F59E0B, #B45309); --ic-aura: radial-gradient(circle, rgba(245, 158, 11, 0.14), transparent 70%); --ic-accent-border: rgba(245, 158, 11, 0.4); }
+.in-card.blue    { --ic-accent: linear-gradient(90deg, #3B82F6, #1D4ED8); --ic-aura: radial-gradient(circle, rgba(59, 130, 246, 0.14), transparent 70%); --ic-accent-border: rgba(59, 130, 246, 0.4); }
+.in-card.rose    { --ic-accent: linear-gradient(90deg, #F43F5E, #BE123C); --ic-aura: radial-gradient(circle, rgba(244, 63, 94, 0.14), transparent 70%); --ic-accent-border: rgba(244, 63, 94, 0.4); }
+.in-card.emerald { --ic-accent: linear-gradient(90deg, #10B981, #047857); --ic-aura: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 70%); --ic-accent-border: rgba(16, 185, 129, 0.4); }
+.in-card.crown   { --ic-accent: var(--crown-gradient); --ic-aura: radial-gradient(circle, rgba(190, 242, 100, 0.14), transparent 70%); --ic-accent-border: rgba(190, 242, 100, 0.4); }
+
+/* Card head */
+.in-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.in-logo {
+    position: relative;
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    color: #fff;
+    flex-shrink: 0;
+    background: var(--ic-accent, linear-gradient(135deg, var(--in-teal), var(--in-teal-deep)));
+    box-shadow: 0 10px 22px rgba(11, 17, 33, 0.14), inset 0 1px 0 rgba(255,255,255,0.25);
+    transition: var(--transition);
+}
+.in-logo.teal    { background: linear-gradient(135deg, #14B8A6, #0F766E); }
+.in-logo.violet  { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
+.in-logo.amber   { background: linear-gradient(135deg, #F59E0B, #B45309); color: var(--primary-deep); }
+.in-logo.blue    { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+.in-logo.rose    { background: linear-gradient(135deg, #F43F5E, #BE123C); }
+.in-logo.emerald { background: linear-gradient(135deg, #10B981, #047857); }
+.in-logo.crown   { background: var(--crown-gradient); color: var(--primary-deep); }
+
+.in-card:hover .in-logo { transform: rotate(-8deg) scale(1.05); }
+
+.in-card-title { min-width: 0; flex: 1; }
+.in-card-title h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.2;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.in-card-title p {
+    font-size: 0.74rem;
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+}
+
+/* Status pill */
+.in-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.in-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+}
+.in-status.connected    { background: var(--in-emerald-dim); color: var(--in-emerald-deep); border: 1px solid rgba(16, 185, 129, 0.32); }
+.in-status.connected .dot { animation: inSpark 1.8s infinite; background: var(--in-emerald); }
+.in-status.warning      { background: var(--in-amber-dim); color: var(--in-amber-deep); border: 1px solid rgba(245, 158, 11, 0.32); }
+.in-status.warning .dot { animation: inSpark 1.6s infinite; background: var(--in-amber); }
+.in-status.error        { background: var(--in-rose-dim); color: var(--in-rose-deep); border: 1px solid rgba(244, 63, 94, 0.32); }
+.in-status.error .dot   { background: var(--in-rose); animation: inSpark 1.4s infinite; }
+.in-status.not-connected{ background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+
+/* Card meta rows */
+.in-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0;
+    border-top: 1px dashed var(--gray-200);
+    border-bottom: 1px dashed var(--gray-200);
+    margin-bottom: 16px;
+}
+.in-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.72rem;
+}
+.in-meta-row .meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    flex-shrink: 0;
+}
+.in-meta-row .meta-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
+}
+.in-meta-row .meta-value.ok      { color: var(--in-emerald-deep); }
+.in-meta-row .meta-value.warn    { color: var(--in-amber-deep); }
+.in-meta-row .meta-value.bad     { color: var(--in-rose-deep); }
+.in-meta-row .meta-value.mono-sm {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--gray-100);
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 0.66rem;
+}
+
+/* API key display */
+.in-key {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px 12px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.in-key .key-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--gray-600);
+}
+.in-key .key-actions { display: flex; gap: 3px; flex-shrink: 0; }
+.in-key .key-btn {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    display: grid;
+    place-items: center;
+    font-size: 0.66rem;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+.in-key .key-btn:hover {
+    border-color: var(--tab-accent);
+    color: var(--tab-accent-deep);
+    background: var(--tab-accent-dim);
+}
+
+/* Card actions */
+.in-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.in-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.in-btn.primary {
+    background: linear-gradient(135deg, var(--in-teal), var(--in-teal-deep));
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(20, 184, 166, 0.28);
+    flex: 1;
+}
+.in-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(20, 184, 166, 0.4);
+}
+.in-btn.ghost {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.in-btn.ghost:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.in-btn.danger {
+    background: var(--white);
+    color: var(--in-rose-deep);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+}
+.in-btn.danger:hover {
+    background: var(--in-rose-dim);
+    border-color: var(--in-rose);
+    transform: translateY(-2px);
+}
+.in-btn.warn {
+    background: var(--white);
+    color: var(--in-amber-deep);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.in-btn.warn:hover {
+    background: var(--in-amber-dim);
+    border-color: var(--in-amber);
+    transform: translateY(-2px);
+}
+.in-btn.sm {
+    padding: 8px 12px;
+    font-size: 0.68rem;
+    border-radius: 8px;
+}
+
+/* ============================================================
+   API KEYS LIST
+   ============================================================ */
+.in-keys-panel {
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow: hidden;
+}
+.in-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 26px;
+    border-bottom: 1px solid var(--gray-100);
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, rgba(248,250,252,0.6), var(--white));
+}
+.in-panel-head h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.in-panel-head h3 i { color: var(--tab-accent-deep); font-size: 0.92rem; }
+.in-panel-head .in-panel-sub {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 4px;
+}
+
+.in-key-list {
+    display: flex;
+    flex-direction: column;
+}
+.in-key-row {
+    display: grid;
+    grid-template-columns: 240px 1fr 120px 140px auto;
+    gap: 18px;
+    padding: 18px 26px;
+    border-bottom: 1px solid var(--gray-100);
+    align-items: center;
+    transition: var(--transition);
+    position: relative;
+}
+.in-key-row:hover {
+    background: var(--cream);
+}
+.in-key-row:last-child { border-bottom: none; }
+
+.in-key-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.in-key-name .in-key-ic {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--tab-accent-dim);
+    color: var(--tab-accent-deep);
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    flex-shrink: 0;
+}
+.in-key-name .in-key-info { min-width: 0; line-height: 1.2; }
+.in-key-name .in-key-info strong {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.in-key-name .in-key-info span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
+
+.in-key-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    letter-spacing: 0.02em;
+    min-width: 0;
+}
+.in-key-value .key-mask {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.in-key-scope {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.in-scope {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-200);
+}
+.in-scope.read  { background: var(--in-teal-dim); color: var(--in-teal-deep); border-color: rgba(20, 184, 166, 0.3); }
+.in-scope.write { background: var(--in-blue-dim); color: var(--in-blue-deep); border-color: rgba(59, 130, 246, 0.3); }
+.in-scope.admin { background: var(--in-rose-dim); color: var(--in-rose-deep); border-color: rgba(244, 63, 94, 0.3); }
+
+.in-key-expiry {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gray-600);
+    text-align: right;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+.in-key-expiry small { display: block; font-size: 0.56rem; color: var(--gray-400); margin-top: 2px; }
+.in-key-expiry.ok   { color: var(--in-emerald-deep); }
+.in-key-expiry.warn { color: var(--in-amber-deep); }
+.in-key-expiry.bad  { color: var(--in-rose-deep); }
+
+.in-key-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   WEBHOOKS LIST
+   ============================================================ */
+.in-webhook-row {
+    display: grid;
+    grid-template-columns: 240px 1fr 120px 140px auto;
+    gap: 18px;
+    padding: 18px 26px;
+    border-bottom: 1px solid var(--gray-100);
+    align-items: center;
+    transition: var(--transition);
+}
+.in-webhook-row:hover { background: var(--cream); }
+.in-webhook-row:last-child { border-bottom: none; }
+
+.in-webhook-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--primary-dark);
+    font-weight: 700;
+    background: var(--gray-100);
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.in-webhook-events {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.in-event {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: var(--in-violet-dim);
+    color: var(--in-violet-deep);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    text-transform: uppercase;
+}
+.in-event.reference { background: var(--gray-100); color: var(--gray-600); border-color: var(--gray-200); }
+
+/* ============================================================
+   LOGS LIST
+   ============================================================ */
+.in-log-row {
+    display: grid;
+    grid-template-columns: 90px 130px 1fr 100px 80px 100px;
+    gap: 14px;
+    padding: 12px 26px;
+    border-bottom: 1px solid var(--gray-100);
+    align-items: center;
+    font-size: 0.76rem;
+    transition: var(--transition);
+}
+.in-log-row:hover { background: var(--cream); }
+.in-log-row:last-child { border-bottom: none; }
+
+.in-log-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.in-log-method {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    width: fit-content;
+}
+.in-log-method.get    { background: var(--in-teal-dim); color: var(--in-teal-deep); }
+.in-log-method.post   { background: var(--in-blue-dim); color: var(--in-blue-deep); }
+.in-log-method.put    { background: var(--in-amber-dim); color: var(--in-amber-deep); }
+.in-log-method.delete { background: var(--in-rose-dim); color: var(--in-rose-deep); }
+
+.in-log-endpoint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.01em;
+}
+.in-log-provider {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+.in-log-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    width: fit-content;
+}
+.in-log-status.ok  { background: var(--in-emerald-dim); color: var(--in-emerald-deep); }
+.in-log-status.warn{ background: var(--in-amber-dim);   color: var(--in-amber-deep); }
+.in-log-status.err { background: var(--in-rose-dim);    color: var(--in-rose-deep); }
+.in-log-latency {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    text-align: right;
+    letter-spacing: 0.02em;
+}
+.in-log-latency.fast { color: var(--in-emerald-deep); }
+.in-log-latency.slow { color: var(--in-amber-deep); }
+.in-log-latency.bad  { color: var(--in-rose-deep); }
+
+/* ============================================================
+   ADMIN EXCLUSIVE — INTEGRATIONS CONSOLE
+   ============================================================ */
+.integrations-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(20, 184, 166, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(139, 92, 246, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(20, 184, 166, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.integrations-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--in-teal), var(--in-violet) 50%, var(--in-amber) 100%);
+    box-shadow: 0 0 22px rgba(20, 184, 166, 0.5);
+}
+.integrations-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.ic-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.ic-head .ic-h-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--in-teal), var(--in-violet));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(20, 184, 166, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.ic-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.ic-head h2 em { color: var(--in-teal); font-style: italic; }
+.ic-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.ic-head .ic-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.42);
+    color: var(--in-teal);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.ic-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.ic-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.ic-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.ic-tool:hover {
+    background: rgba(20, 184, 166, 0.10);
+    border-color: rgba(20, 184, 166, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(20, 184, 166, 0.18);
+}
+.ic-tool:hover::before { transform: translateX(120%); }
+.ic-tool .ic-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--in-teal);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.ic-tool:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--in-teal), var(--in-violet));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.42);
+}
+.ic-tool.danger .ic-t-ic { color: var(--in-rose); }
+.ic-tool.danger:hover {
+    background: rgba(244, 63, 94, 0.10);
+    border-color: rgba(244, 63, 94, 0.42);
+}
+.ic-tool.danger:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--in-rose), var(--in-rose-deep));
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.42);
+}
+.ic-tool.gold .ic-t-ic { color: var(--in-amber); }
+.ic-tool.gold:hover { background: rgba(245, 158, 11, 0.10); border-color: rgba(245, 158, 11, 0.42); }
+.ic-tool.gold:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--in-amber), var(--in-amber-deep));
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.42);
+}
+.ic-tool.emerald .ic-t-ic { color: var(--in-emerald); }
+.ic-tool.emerald:hover { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.42); }
+.ic-tool.emerald:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--in-emerald), var(--in-emerald-deep));
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.42);
+}
+.ic-tool .ic-t-body { flex: 1; min-width: 0; }
+.ic-tool .ic-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.ic-tool .ic-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.ic-tool .ic-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.ic-tool:hover .ic-t-arrow { color: var(--in-teal); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .in-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .in-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+@media (max-width: 1180px) {
+    .in-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .in-key-row { grid-template-columns: 200px 1fr 100px 90px; gap: 14px; }
+    .in-key-row .in-key-scope { display: none; }
+    .in-webhook-row { grid-template-columns: 200px 1fr 100px 90px; gap: 14px; }
+    .in-webhook-row .in-webhook-events { display: none; }
+    .in-log-row { grid-template-columns: 80px 100px 1fr 80px; gap: 12px; }
+    .in-log-row .in-log-provider,
+    .in-log-row .in-log-latency { display: none; }
+}
+@media (max-width: 900px) {
+    .in-hero { padding: 24px 20px; }
+    .in-hero-title { font-size: 1.55rem; }
+    .in-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .in-tab .tab-label small { display: none; }
+    .in-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+@media (max-width: 720px) {
+    .in-stat-strip { grid-template-columns: 1fr; }
+    .in-hero { padding: 22px 18px; }
+    .in-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .in-toolbar { padding: 12px 14px; }
+    .in-search { min-width: 100%; }
+    .in-grid { grid-template-columns: 1fr; }
+    .in-key-row { grid-template-columns: 1fr; gap: 12px; padding: 16px 20px; }
+    .in-key-row .in-key-actions { justify-content: flex-start; }
+    .in-webhook-row { grid-template-columns: 1fr; gap: 12px; padding: 16px 20px; }
+    .in-webhook-row .in-key-actions { justify-content: flex-start; }
+    .in-log-row { grid-template-columns: 80px 1fr 80px; gap: 10px; padding: 12px 20px; }
+}
+@media (max-width: 560px) {
+    .in-tabs { padding: 6px; gap: 3px; }
+    .in-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .in-tab .tab-badge { display: none; }
+    .in-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .in-wire-label { display: none; }
+    .in-wire-track { padding-left: 24px; }
+    .in-card { padding: 20px; }
+    .in-key-row .in-key-expiry { display: none; }
+    .in-log-row { grid-template-columns: 70px 1fr 70px; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .in-wire-track, .acb-avatar::before, .in-wire-label .in-dot,
+    .in-wire-item .wdot, .admin-crown-badge::before, .in-tab .tab-badge.glow,
+    .in-status.connected .dot, .in-status.warning .dot, .in-status.error .dot {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     INTEGRATIONS WIRE — MARQUEE
+     ============================================================ -->
+<div class="in-wire" aria-label="Integrations pulse">
+    <span class="in-wire-edge left"></span>
+    <span class="in-wire-edge right"></span>
+    <div class="in-wire-label"><span class="in-dot"></span> Integrations Wire</div>
+    <div class="in-wire-track">
+        <!-- Set A -->
+        <span class="in-wire-item.teal"><span class="wdot"></span><strong>8</strong> integrations connected · <em>2 healthy · 1 degraded</em></span>
+        <span class="in-wire-item.emerald"><span class="wdot"></span>Paystack API <strong>142ms</strong> · success 99.94%</span>
+        <span class="in-wire-item.violet"><span class="wdot"></span>Cloudinary uploads <strong>2,148 today</strong> · 4.2 TB stored</span>
+        <span class="in-wire-item.amber"><span class="wdot"></span>Zoom API <strong>slower than usual</strong> · 480ms avg</span>
+        <span class="in-wire-item.rose"><span class="wdot"></span>SMTP bounce rate <strong>0.42%</strong> · within threshold</span>
+        <span class="in-wire-item.blue"><span class="wdot"></span><strong>6</strong> API keys active · 1 expiring in 7d</span>
+        <span class="in-wire-item.teal"><span class="wdot"></span><strong>4</strong> webhooks receiving · 2,148 events today</span>
+        <span class="in-wire-item.emerald"><span class="wdot"></span>All systems nominal · <strong>99.98%</strong> uptime</span>
+        <span class="in-wire-item.violet"><span class="wdot"></span>New event <strong>payment.completed</strong> received 42x</span>
+        <span class="in-wire-item.amber"><span class="wdot"></span><strong>7</strong> failed requests today · retrying</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="in-wire-item.teal"><span class="wdot"></span><strong>8</strong> integrations connected · <em>2 healthy · 1 degraded</em></span>
+        <span class="in-wire-item.emerald"><span class="wdot"></span>Paystack API <strong>142ms</strong> · success 99.94%</span>
+        <span class="in-wire-item.violet"><span class="wdot"></span>Cloudinary uploads <strong>2,148 today</strong> · 4.2 TB stored</span>
+        <span class="in-wire-item.amber"><span class="wdot"></span>Zoom API <strong>slower than usual</strong> · 480ms avg</span>
+        <span class="in-wire-item.rose"><span class="wdot"></span>SMTP bounce rate <strong>0.42%</strong> · within threshold</span>
+        <span class="in-wire-item.blue"><span class="wdot"></span><strong>6</strong> API keys active · 1 expiring in 7d</span>
+        <span class="in-wire-item.teal"><span class="wdot"></span><strong>4</strong> webhooks receiving · 2,148 events today</span>
+        <span class="in-wire-item.emerald"><span class="wdot"></span>All systems nominal · <strong>99.98%</strong> uptime</span>
+        <span class="in-wire-item.violet"><span class="wdot"></span>New event <strong>payment.completed</strong> received 42x</span>
+        <span class="in-wire-item.amber"><span class="wdot"></span><strong>7</strong> failed requests today · retrying</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     INTEGRATIONS HERO
+     ============================================================ -->
+<section class="in-hero fade-up">
+    <div class="in-hero-inner">
+        <div class="in-hero-left">
+            <span class="in-hero-kicker">
+                <i class="bi bi-plug-fill"></i>
+                Connection Control · Root Access
+            </span>
+            <h1 class="in-hero-title">
+                Every wire, <em>monitored</em>.
+            </h1>
+            <p class="in-hero-sub">
+                All third-party connections, API keys, and webhooks in one control plane. Paystack for payments, Cloudinary for media, Zoom for live sessions, SMTP for email. <strong>8 connected</strong>, <strong>6 API keys</strong>, <strong>4 webhooks</strong> receiving <strong>2,148 events</strong> today.
+            </p>
+            <div class="in-hero-meta">
+                <span class="hm"><i class="bi bi-plug-fill"></i> 8 connected</span>
+                <span class="hm"><i class="bi bi-key-fill"></i> 6 API keys</span>
+                <span class="hm"><i class="bi bi-broadcast-pin"></i> 4 webhooks</span>
+                <span class="hm warn"><i class="bi bi-exclamation-triangle-fill"></i> 1 degraded</span>
+            </div>
+        </div>
+
+        <div class="in-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · INTEGRATIONS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="in-tabs" role="tablist" aria-label="Integrations sections">
+    <button class="in-tab active" data-tab="services" role="tab" style="--tab-accent: #14B8A6; --tab-accent-deep: #0F766E; --tab-accent-dim: rgba(20,184,166,0.10); --tab-accent-glow: rgba(20,184,166,0.42);">
+        <span class="tab-ic"><i class="bi bi-plug-fill"></i></span>
+        <span class="tab-label">
+            Services
+            <small>Connections</small>
+        </span>
+        <span class="tab-badge">8</span>
+    </button>
+    <button class="in-tab" data-tab="keys" role="tab" style="--tab-accent: #8B5CF6; --tab-accent-deep: #6D28D9; --tab-accent-dim: rgba(139,92,246,0.10); --tab-accent-glow: rgba(139,92,246,0.42);">
+        <span class="tab-ic"><i class="bi bi-key-fill"></i></span>
+        <span class="tab-label">
+            API Keys
+            <small>Access keys</small>
+        </span>
+        <span class="tab-badge">6</span>
+    </button>
+    <button class="in-tab" data-tab="webhooks" role="tab" style="--tab-accent: #3B82F6; --tab-accent-deep: #1D4ED8; --tab-accent-dim: rgba(59,130,246,0.10); --tab-accent-glow: rgba(59,130,246,0.42);">
+        <span class="tab-ic"><i class="bi bi-broadcast-pin"></i></span>
+        <span class="tab-label">
+            Webhooks
+            <small>Events out</small>
+        </span>
+        <span class="tab-badge">4</span>
+    </button>
+    <button class="in-tab" data-tab="logs" role="tab" style="--tab-accent: #F59E0B; --tab-accent-deep: #B45309; --tab-accent-dim: rgba(245,158,11,0.10); --tab-accent-glow: rgba(245,158,11,0.42);">
+        <span class="tab-ic"><i class="bi bi-list-columns-reverse"></i></span>
+        <span class="tab-label">
+            Request Logs
+            <small>Outbound</small>
+        </span>
+        <span class="tab-badge">2.1k</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="in-panels">
+
+    <!-- =================================================
+         PANEL 1 — SERVICES
+         ================================================= -->
+    <div class="in-panel active" id="panel-services" role="tabpanel">
+
+        <div class="in-stat-strip">
+            <div class="in-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-plug-fill"></i></span><span class="is-trend"><i class="bi bi-check"></i> 8 live</span></div>
+                <span class="is-label">Connected Services</span>
+                <div class="is-value"><span data-count="8">0</span></div>
+            </div>
+            <div class="in-stat emerald fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-check2-circle"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> healthy</span></div>
+                <span class="is-label">Healthy Services</span>
+                <div class="is-value"><span data-count="7">0</span></div>
+            </div>
+            <div class="in-stat amber fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-exclamation-triangle-fill"></i></span><span class="is-trend warn"><i class="bi bi-dash"></i> degraded</span></div>
+                <span class="is-label">Degraded</span>
+                <div class="is-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="in-stat violet fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-lightning-charge-fill"></i></span><span class="is-trend info">99.98%</span></div>
+                <span class="is-label">Overall Uptime</span>
+                <div class="is-value">99<small>.98%</small></div>
+            </div>
+        </div>
+
+        <div class="in-toolbar">
+            <div class="in-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search integrations by name or category…" aria-label="Search integrations">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="in-select" data-toast="Category filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>All Categories</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="in-select" data-toast="Status filter opened" data-toast-type="info">
+                <i class="bi bi-toggle-on"></i>
+                <span>Any Status</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="in-toolbar-right">
+                <button class="btn-sm solid" data-toast="Integration marketplace opened · 42 available" data-toast-type="success"><i class="bi bi-plus-lg"></i> Add Integration</button>
+            </div>
+        </div>
+
+        <div class="in-grid">
+
+            <!-- Paystack -->
+            <article class="in-card emerald fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo emerald"><i class="bi bi-credit-card-2-front-fill"></i></span>
+                    <div class="in-card-title">
+                        <h4>Paystack</h4>
+                        <p>PAYMENTS · CARDS, BANK, USSD</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Mode</span>
+                        <span class="meta-value mono-sm">Live</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Public Key</span>
+                        <span class="meta-value">pk_live_***4f2a</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Latency</span>
+                        <span class="meta-value ok">142ms avg</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">24h Success</span>
+                        <span class="meta-value ok">99.94%</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening Paystack dashboard" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Running connection test" data-toast-type="info"><i class="bi bi-plug-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing Paystack logs" data-toast-type="info"><i class="bi bi-list-columns-reverse"></i></button>
+                </div>
+            </article>
+
+            <!-- Cloudinary -->
+            <article class="in-card violet fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo violet"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+                    <div class="in-card-title">
+                        <h4>Cloudinary</h4>
+                        <p>MEDIA · IMAGES, VIDEO</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Cloud</span>
+                        <span class="meta-value mono-sm">knotwork-prod</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Storage</span>
+                        <span class="meta-value">4.2 TB / 10 TB</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Uploads 24h</span>
+                        <span class="meta-value ok">2,148</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Bandwidth</span>
+                        <span class="meta-value">842 GB / 2 TB</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening Cloudinary settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Running connection test" data-toast-type="info"><i class="bi bi-plug-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing storage analytics" data-toast-type="info"><i class="bi bi-graph-up"></i></button>
+                </div>
+            </article>
+
+            <!-- Zoom -->
+            <article class="in-card amber fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo amber"><i class="bi bi-camera-video-fill"></i></span>
+                    <div class="in-card-title">
+                        <h4>Zoom <i class="bi bi-exclamation-triangle-fill" style="color:var(--in-amber-deep);font-size:0.78rem;"></i></h4>
+                        <p>LIVE SESSIONS · VIDEO</p>
+                    </div>
+                    <span class="in-status warning"><span class="dot"></span> Degraded</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Account</span>
+                        <span class="meta-value">knotwork@zoom.us</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Latency</span>
+                        <span class="meta-value warn">480ms · slower</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Sessions 24h</span>
+                        <span class="meta-value">248</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">API Status</span>
+                        <span class="meta-value warn">Elevated latency</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening Zoom settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn warn sm" data-toast="Retrying Zoom connection" data-toast-type="warning"><i class="bi bi-arrow-repeat"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing Zoom status page" data-toast-type="info"><i class="bi bi-exclamation-triangle"></i></button>
+                </div>
+            </article>
+
+            <!-- SMTP -->
+            <article class="in-card teal fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo teal"><i class="bi bi-envelope-paper-fill"></i></span>
+                    <div class="in-card-title">
+                        <h4>Email · SMTP</h4>
+                        <p>TRANSACTIONAL · SES</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Provider</span>
+                        <span class="meta-value mono-sm">Amazon SES</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Sender</span>
+                        <span class="meta-value">no-reply@knotwork.io</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">24h Sent</span>
+                        <span class="meta-value ok">18,428</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Bounce Rate</span>
+                        <span class="meta-value ok">0.42%</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening SMTP settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Running SMTP test" data-toast-type="info"><i class="bi bi-plug-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing delivery logs" data-toast-type="info"><i class="bi bi-envelope-fill"></i></button>
+                </div>
+            </article>
+
+            <!-- Slack -->
+            <article class="in-card violet fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo violet"><i class="bi bi-slack"></i></span>
+                    <div class="in-card-title">
+                        <h4>Slack</h4>
+                        <p>NOTIFICATIONS · OPS ALERTS</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Workspace</span>
+                        <span class="meta-value mono-sm">knotwork-ops</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Channels</span>
+                        <span class="meta-value">#alerts, #security</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">24h Messages</span>
+                        <span class="meta-value ok">142</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Rate Limit</span>
+                        <span class="meta-value ok">42 / 100 per min</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening Slack settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Sending test message" data-toast-type="info"><i class="bi bi-send-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing channels" data-toast-type="info"><i class="bi bi-chat-dots-fill"></i></button>
+                </div>
+            </article>
+
+            <!-- Firebase -->
+            <article class="in-card amber fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo amber"><i class="bi bi-fire"></i></span>
+                    <div class="in-card-title">
+                        <h4>Firebase Cloud Messaging</h4>
+                        <p>PUSH NOTIFICATIONS</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Project</span>
+                        <span class="meta-value mono-sm">knotwork-prod</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Devices</span>
+                        <span class="meta-value">24,818 registered</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">24h Pushed</span>
+                        <span class="meta-value ok">8,412</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Delivery</span>
+                        <span class="meta-value ok">97.8%</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening Firebase settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Sending test push" data-toast-type="info"><i class="bi bi-send-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing delivery stats" data-toast-type="info"><i class="bi bi-graph-up"></i></button>
+                </div>
+            </article>
+
+            <!-- Google Analytics -->
+            <article class="in-card teal fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo teal"><i class="bi bi-graph-up-arrow"></i></span>
+                    <div class="in-card-title">
+                        <h4>Google Analytics 4</h4>
+                        <p>PRODUCT · ANALYTICS</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Property</span>
+                        <span class="meta-value mono-sm">GA4-4289</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Streams</span>
+                        <span class="meta-value">Web + iOS + Android</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">24h Events</span>
+                        <span class="meta-value ok">482K</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Sync</span>
+                        <span class="meta-value ok">2 min ago</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening GA settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Testing GA connection" data-toast-type="info"><i class="bi bi-plug-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Opening GA dashboard" data-toast-type="info"><i class="bi bi-box-arrow-up-right"></i></button>
+                </div>
+            </article>
+
+            <!-- OpenAI -->
+            <article class="in-card violet fade-up">
+                <div class="in-card-head">
+                    <span class="in-logo violet"><i class="bi bi-stars"></i></span>
+                    <div class="in-card-title">
+                        <h4>OpenAI</h4>
+                        <p>AI · GPT-4 TUTOR</p>
+                    </div>
+                    <span class="in-status connected"><span class="dot"></span> Connected</span>
+                </div>
+
+                <div class="in-card-meta">
+                    <div class="in-meta-row">
+                        <span class="meta-label">Model</span>
+                        <span class="meta-value mono-sm">gpt-4o</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Org</span>
+                        <span class="meta-value mono-sm">org-knotwork</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">24h Tokens</span>
+                        <span class="meta-value">4.8M / 10M</span>
+                    </div>
+                    <div class="in-meta-row">
+                        <span class="meta-label">Rate Limit</span>
+                        <span class="meta-value ok">42%</span>
+                    </div>
+                </div>
+
+                <div class="in-card-actions">
+                    <button class="in-btn primary" data-toast="Opening OpenAI settings" data-toast-type="info"><i class="bi bi-gear-fill"></i> Configure</button>
+                    <button class="in-btn ghost sm" data-toast="Testing OpenAI connection" data-toast-type="info"><i class="bi bi-plug-fill"></i></button>
+                    <button class="in-btn ghost sm" data-toast="Viewing usage" data-toast-type="info"><i class="bi bi-graph-up"></i></button>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — API KEYS
+         ================================================= -->
+    <div class="in-panel" id="panel-keys" role="tabpanel">
+
+        <div class="in-stat-strip">
+            <div class="in-stat violet fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-key-fill"></i></span><span class="is-trend info">active</span></div>
+                <span class="is-label">Active API Keys</span>
+                <div class="is-value"><span data-count="6">0</span></div>
+            </div>
+            <div class="in-stat amber fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-hourglass-split"></i></span><span class="is-trend warn"><i class="bi bi-dash"></i> soon</span></div>
+                <span class="is-label">Expiring &lt; 30d</span>
+                <div class="is-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="in-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-activity"></i></span><span class="is-trend info">24h</span></div>
+                <span class="is-label">Requests Today</span>
+                <div class="is-value"><span data-count="18420">0</span></div>
+            </div>
+            <div class="in-stat rose fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-shield-exclamation"></i></span><span class="is-trend down"><i class="bi bi-dash"></i> 0</span></div>
+                <span class="is-label">Revoked (7d)</span>
+                <div class="is-value"><span data-count="0">0</span></div>
+            </div>
+        </div>
+
+        <div class="in-toolbar">
+            <div class="in-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search API keys by name, scope, or creator…" aria-label="Search keys">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="in-select" data-toast="Scope filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Scope</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="in-select" data-toast="Sort by: Recently used" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Recently Used</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="in-toolbar-right">
+                <button class="btn-sm solid" data-toast="Creating new API key…" data-toast-type="success"><i class="bi bi-plus-lg"></i> New API Key</button>
+            </div>
+        </div>
+
+        <div class="in-keys-panel fade-up">
+            <div class="in-panel-head">
+                <div>
+                    <h3><i class="bi bi-key-fill"></i> API Keys</h3>
+                    <span class="in-panel-sub">IMMUTABLE SECRETS · SCOPED · AUDIT-LOGGED</span>
+                </div>
+                <div class="in-toolbar-right">
+                    <button class="btn-sm line" data-toast="Rotating all keys — will notify owners" data-toast-type="warning"><i class="bi bi-arrow-repeat"></i> Rotate All</button>
+                </div>
+            </div>
+
+            <div class="in-key-list">
+
+                <div class="in-key-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-credit-card-2-front-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>Paystack · Live</strong>
+                            <span>Created Mar 12, 2024</span>
+                        </div>
+                    </div>
+                    <div class="in-key-value">
+                        <span class="key-mask">sk_live_51H4f2a***8b2c***4a1e</span>
+                    </div>
+                    <div class="in-key-scope">
+                        <span class="in-scope write">Write</span>
+                        <span class="in-scope read">Read</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Never
+                        <small>No expiry</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Copied to clipboard" data-toast-type="success"><i class="bi bi-clipboard"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Editing API key" data-toast-type="info"><i class="bi bi-pencil"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Revoking key requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-key-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>Cloudinary · Upload</strong>
+                            <span>Created Aug 08, 2024</span>
+                        </div>
+                    </div>
+                    <div class="in-key-value">
+                        <span class="key-mask">cl_api_8821***4f2c***a12b</span>
+                    </div>
+                    <div class="in-key-scope">
+                        <span class="in-scope write">Write</span>
+                    </div>
+                    <div class="in-key-expiry warn">
+                        7 days
+                        <small>Expires Apr 16</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Copied to clipboard" data-toast-type="success"><i class="bi bi-clipboard"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Editing API key" data-toast-type="info"><i class="bi bi-pencil"></i></button>
+                        <button class="in-btn warn sm" data-toast="Rotating Cloudinary key" data-toast-type="warning"><i class="bi bi-arrow-repeat"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-key-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-camera-video-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>Zoom · SDK</strong>
+                            <span>Created Nov 22, 2024</span>
+                        </div>
+                    </div>
+                    <div class="in-key-value">
+                        <span class="key-mask">zm_sdk_18a2***2c4e***9f8a</span>
+                    </div>
+                    <div class="in-key-scope">
+                        <span class="in-scope read">Read</span>
+                        <span class="in-scope write">Write</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Never
+                        <small>No expiry</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Copied to clipboard" data-toast-type="success"><i class="bi bi-clipboard"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Editing API key" data-toast-type="info"><i class="bi bi-pencil"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Revoking key requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-key-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-server"></i></span>
+                        <div class="in-key-info">
+                            <strong>Internal API · Mobile App</strong>
+                            <span>Created Jan 15, 2025</span>
+                        </div>
+                    </div>
+                    <div class="in-key-value">
+                        <span class="key-mask">kw_api_a4b2***e2f1***c8a9</span>
+                    </div>
+                    <div class="in-key-scope">
+                        <span class="in-scope read">Read</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Never
+                        <small>No expiry</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Copied to clipboard" data-toast-type="success"><i class="bi bi-clipboard"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Editing API key" data-toast-type="info"><i class="bi bi-pencil"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Revoking key requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-key-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-stars"></i></span>
+                        <div class="in-key-info">
+                            <strong>OpenAI · AI Tutor</strong>
+                            <span>Created Feb 14, 2025</span>
+                        </div>
+                    </div>
+                    <div class="in-key-value">
+                        <span class="key-mask">sk-proj_9a2c***7b4e***d1f2</span>
+                    </div>
+                    <div class="in-key-scope">
+                        <span class="in-scope write">Write</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Never
+                        <small>No expiry</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Copied to clipboard" data-toast-type="success"><i class="bi bi-clipboard"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Editing API key" data-toast-type="info"><i class="bi bi-pencil"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Revoking key requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-key-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-terminal-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>Developer Sandbox · Test</strong>
+                            <span>Created Mar 02, 2025</span>
+                        </div>
+                    </div>
+                    <div class="in-key-value">
+                        <span class="key-mask">kw_test_b8d1***3e2f***4c9a</span>
+                    </div>
+                    <div class="in-key-scope">
+                        <span class="in-scope read">Read</span>
+                        <span class="in-scope write">Write</span>
+                        <span class="in-scope admin">Admin</span>
+                    </div>
+                    <div class="in-key-expiry bad">
+                        Expired
+                        <small>Apr 02</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Copied to clipboard" data-toast-type="success"><i class="bi bi-clipboard"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Editing API key" data-toast-type="info"><i class="bi bi-pencil"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Revoking key requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — WEBHOOKS
+         ================================================= -->
+    <div class="in-panel" id="panel-webhooks" role="tabpanel">
+
+        <div class="in-stat-strip">
+            <div class="in-stat blue fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-broadcast-pin"></i></span><span class="is-trend info">live</span></div>
+                <span class="is-label">Active Webhooks</span>
+                <div class="is-value"><span data-count="4">0</span></div>
+            </div>
+            <div class="in-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-arrow-down-left-circle"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> 12%</span></div>
+                <span class="is-label">Events Today</span>
+                <div class="is-value"><span data-count="2148">0</span></div>
+            </div>
+            <div class="in-stat emerald fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-check2-circle"></i></span><span class="is-trend">99.8%</span></div>
+                <span class="is-label">Delivery Rate</span>
+                <div class="is-value">99<small>.8%</small></div>
+            </div>
+            <div class="in-stat amber fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-arrow-repeat"></i></span><span class="is-trend warn"><i class="bi bi-dash"></i> retry</span></div>
+                <span class="is-label">Failed Deliveries</span>
+                <div class="is-value"><span data-count="7">0</span></div>
+            </div>
+        </div>
+
+        <div class="in-toolbar">
+            <div class="in-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search webhooks by URL or event…" aria-label="Search webhooks">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="in-select" data-toast="Event filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Event</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="in-toolbar-right">
+                <button class="btn-sm solid" data-toast="Creating webhook subscription…" data-toast-type="success"><i class="bi bi-plus-lg"></i> Add Webhook</button>
+            </div>
+        </div>
+
+        <div class="in-keys-panel fade-up">
+            <div class="in-panel-head">
+                <div>
+                    <h3><i class="bi bi-broadcast-pin"></i> Webhook Subscriptions</h3>
+                    <span class="in-panel-sub">OUTBOUND EVENTS · SIGNED WITH HMAC</span>
+                </div>
+            </div>
+
+            <div class="in-key-list">
+
+                <div class="in-webhook-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-server"></i></span>
+                        <div class="in-key-info">
+                            <strong>Zapier · Notifications</strong>
+                            <span>Added Feb 14, 2025</span>
+                        </div>
+                    </div>
+                    <div class="in-webhook-url">https://hooks.zapier.com/hooks/catch/****/knotwork-payments</div>
+                    <div class="in-webhook-events">
+                        <span class="in-event">payment.completed</span>
+                        <span class="in-event">payout.sent</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Active
+                        <small>2,148 delivered</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Opening webhook details" data-toast-type="info"><i class="bi bi-eye"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Testing webhook delivery" data-toast-type="info"><i class="bi bi-send-fill"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Deleting webhook requires confirmation" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-webhook-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-shield-lock-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>SIEM · Security Events</strong>
+                            <span>Added Nov 22, 2024</span>
+                        </div>
+                    </div>
+                    <div class="in-webhook-url">https://siem.knotwork.io/ingest/audit-stream</div>
+                    <div class="in-webhook-events">
+                        <span class="in-event">user.banned</span>
+                        <span class="in-event">role.changed</span>
+                        <span class="in-event">key.rotated</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Active
+                        <small>142 delivered</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Opening webhook details" data-toast-type="info"><i class="bi bi-eye"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Testing webhook" data-toast-type="info"><i class="bi bi-send-fill"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Deleting requires confirmation" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-webhook-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-chat-dots-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>Slack · Course Events</strong>
+                            <span>Added Oct 04, 2024</span>
+                        </div>
+                    </div>
+                    <div class="in-webhook-url">https://hooks.slack.com/services/T***/B***/XXXX</div>
+                    <div class="in-webhook-events">
+                        <span class="in-event">course.published</span>
+                        <span class="in-event">course.flagged</span>
+                    </div>
+                    <div class="in-key-expiry ok">
+                        Active
+                        <small>84 delivered</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Opening webhook details" data-toast-type="info"><i class="bi bi-eye"></i></button>
+                        <button class="in-btn ghost sm" data-toast="Testing webhook" data-toast-type="info"><i class="bi bi-send-fill"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Deleting requires confirmation" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+                <div class="in-webhook-row">
+                    <div class="in-key-name">
+                        <span class="in-key-ic"><i class="bi bi-database-fill"></i></span>
+                        <div class="in-key-info">
+                            <strong>Warehouse · All Events</strong>
+                            <span>Added Mar 12, 2024</span>
+                        </div>
+                    </div>
+                    <div class="in-webhook-url">https://ingest.snowflake.com/v1/knotwork-stream</div>
+                    <div class="in-webhook-events">
+                        <span class="in-event reference">all.events</span>
+                    </div>
+                    <div class="in-key-expiry warn">
+                        Slow
+                        <small>7 retrying</small>
+                    </div>
+                    <div class="in-key-actions">
+                        <button class="in-btn ghost sm" data-toast="Opening webhook details" data-toast-type="info"><i class="bi bi-eye"></i></button>
+                        <button class="in-btn warn sm" data-toast="Retrying failed deliveries" data-toast-type="warning"><i class="bi bi-arrow-repeat"></i></button>
+                        <button class="in-btn danger sm" data-toast="⚠ Deleting requires confirmation" data-toast-type="error"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 4 — REQUEST LOGS
+         ================================================= -->
+    <div class="in-panel" id="panel-logs" role="tabpanel">
+
+        <div class="in-stat-strip">
+            <div class="in-stat amber fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-list-columns-reverse"></i></span><span class="is-trend info">24h</span></div>
+                <span class="is-label">Total Requests</span>
+                <div class="is-value"><span data-count="18420">0</span></div>
+            </div>
+            <div class="in-stat emerald fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-check2-circle"></i></span><span class="is-trend">99.94%</span></div>
+                <span class="is-label">Success Rate</span>
+                <div class="is-value">99<small>.94%</small></div>
+            </div>
+            <div class="in-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-lightning-charge-fill"></i></span><span class="is-trend"><i class="bi bi-arrow-down-short"></i> fast</span></div>
+                <span class="is-label">Avg Latency</span>
+                <div class="is-value">142<small>ms</small></div>
+            </div>
+            <div class="in-stat rose fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-x-octagon-fill"></i></span><span class="is-trend down"><i class="bi bi-dash"></i> errors</span></div>
+                <span class="is-label">Failed Requests</span>
+                <div class="is-value"><span data-count="11">0</span></div>
+            </div>
+        </div>
+
+        <div class="in-toolbar">
+            <div class="in-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search by endpoint, provider, or status…" aria-label="Search logs">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="in-select" data-toast="Method filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Method</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="in-select" data-toast="Provider filter opened" data-toast-type="info">
+                <i class="bi bi-plug-fill"></i>
+                <span>Any Provider</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="in-select" data-toast="Status filter opened" data-toast-type="info">
+                <i class="bi bi-toggle-on"></i>
+                <span>Any Status</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="in-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued · last 1000 logs" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="in-keys-panel fade-up">
+            <div class="in-panel-head">
+                <div>
+                    <h3><i class="bi bi-list-columns-reverse"></i> Outbound Request Log</h3>
+                    <span class="in-panel-sub">LAST 24H · LIVE TAIL · SIGNED LOGS</span>
+                </div>
+                <div class="in-toolbar-right">
+                    <button class="btn-sm line" data-toast="Live tail enabled" data-toast-type="success"><i class="bi bi-broadcast-pin"></i> Live Tail</button>
+                </div>
+            </div>
+
+            <div class="in-key-list">
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:25:42</div>
+                    <span class="in-log-method post">POST</span>
+                    <span class="in-log-endpoint">/charge — payment intent · ₦85,000</span>
+                    <span class="in-log-provider">Paystack</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency fast">142ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:25:18</div>
+                    <span class="in-log-method get">GET</span>
+                    <span class="in-log-endpoint">/v1_1/knotwork-prod/image/upload/sample.jpg</span>
+                    <span class="in-log-provider">Cloudinary</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency fast">88ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:24:54</div>
+                    <span class="in-log-method post">POST</span>
+                    <span class="in-log-endpoint">/meetings — create session</span>
+                    <span class="in-log-provider">Zoom</span>
+                    <span class="in-log-status warn">429 Retry</span>
+                    <span class="in-log-latency slow">482ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:24:31</div>
+                    <span class="in-log-method post">POST</span>
+                    <span class="in-log-endpoint">/v1/messages — welcome email</span>
+                    <span class="in-log-provider">SES</span>
+                    <span class="in-log-status ok">202 Queued</span>
+                    <span class="in-log-latency fast">112ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:24:08</div>
+                    <span class="in-log-method post">POST</span>
+                    <span class="in-log-endpoint">/v1/chat/completions — AI tutor</span>
+                    <span class="in-log-provider">OpenAI</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency">248ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:23:42</div>
+                    <span class="in-log-method post">POST</span>
+                    <span class="in-log-endpoint">/services/T***/B***/XXXX — course alert</span>
+                    <span class="in-log-provider">Slack</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency fast">74ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:23:16</div>
+                    <span class="in-log-method get">GET</span>
+                    <span class="in-log-endpoint">/v1/transaction/verify/***8f2a</span>
+                    <span class="in-log-provider">Paystack</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency fast">128ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:22:52</div>
+                    <span class="in-log-method put">PUT</span>
+                    <span class="in-log-endpoint">/v1_1/knotwork-prod/resources/video/thumbnail</span>
+                    <span class="in-log-provider">Cloudinary</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency fast">164ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:22:08</div>
+                    <span class="in-log-method post">POST</span>
+                    <span class="in-log-endpoint">/fcm/send — push notification batch</span>
+                    <span class="in-log-provider">FCM</span>
+                    <span class="in-log-status ok">200 OK</span>
+                    <span class="in-log-latency">214ms</span>
+                </div>
+
+                <div class="in-log-row">
+                    <div class="in-log-time">16:21:42</div>
+                    <span class="in-log-method get">GET</span>
+                    <span class="in-log-endpoint">/meetings/***/recordings</span>
+                    <span class="in-log-provider">Zoom</span>
+                    <span class="in-log-status bad">503 Error</span>
+                    <span class="in-log-latency bad">1,240ms</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — INTEGRATIONS CONSOLE
+     ============================================================ -->
+<div class="integrations-console fade-up">
+    <div class="ic-head">
+        <span class="ic-h-ic"><i class="bi bi-plug-fill"></i></span>
+        <div>
+            <h2>Integrations <em>Console</em></h2>
+            <p>ROOT-ONLY · SECRETS VAULT · KEY ROTATION · AUDIT-LOGGED</p>
+        </div>
+        <span class="ic-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="ic-grid">
+        <button class="ic-tool" data-toast="Integration marketplace opened — 42 available" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-shop"></i></span>
+            <div class="ic-t-body">
+                <strong>Integration Marketplace</strong>
+                <p>Browse 42+ available integrations: Stripe, Twilio, Intercom, and more.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool" data-toast="Secrets vault opened — encrypted, audit-logged" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-safe-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Secrets Vault</strong>
+                <p>Encrypted at rest with AES-256. All access is logged and requires MFA.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool gold" data-toast="Key rotation scheduled for all integrations" data-toast-type="warning">
+            <span class="ic-t-ic"><i class="bi bi-arrow-repeat"></i></span>
+            <div class="ic-t-body">
+                <strong>Rotate All Keys</strong>
+                <p>Rotate API keys across all providers. Owners will be notified with new keys.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool emerald" data-toast="Health check started — checking all 8 integrations" data-toast-type="success">
+            <span class="ic-t-ic"><i class="bi bi-heart-pulse-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Run Health Check</strong>
+                <p>Test all connected integrations and report any failures or latency spikes.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool" data-toast="Rate limit monitor opened" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-speedometer2"></i></span>
+            <div class="ic-t-body">
+                <strong>Rate Limits</strong>
+                <p>Monitor per-provider rate limits and configure throttling backoff rules.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool" data-toast="Webhook replay tool opened — pick a delivery to replay" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-arrow-counterclockwise"></i></span>
+            <div class="ic-t-body">
+                <strong>Replay Webhooks</strong>
+                <p>Replay any failed webhook delivery to any subscribed endpoint.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool danger" data-toast="⚠ Freeze all integrations — no outbound calls will be sent" data-toast-type="error">
+            <span class="ic-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="ic-t-body">
+                <strong>Freeze Outbound</strong>
+                <p>Emergency stop all outbound API calls during incidents or maintenance.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool danger" data-toast="⚠ Revoke all API keys requires MFA + 2 approvals" data-toast-type="error">
+            <span class="ic-t-ic"><i class="bi bi-slash-circle-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Revoke All Keys</strong>
+                <p>Emergency revoke every API key. Use during a security breach.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.in-tab');
+    const panels = document.querySelectorAll('.in-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       COPY API KEY
+       ============================================================ */
+    document.querySelectorAll('.key-btn, .in-btn.ghost.sm').forEach(btn => {
+        const icon = btn.querySelector('i');
+        if (icon && (icon.classList.contains('bi-clipboard'))) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const row = this.closest('.in-key-row');
+                const keyText = row?.querySelector('.key-mask')?.textContent?.trim() || '';
+                if (navigator.clipboard && keyText) {
+                    navigator.clipboard.writeText(keyText).catch(() => {});
+                }
+                if (typeof window.showKnotToast === 'function') {
+                    window.showKnotToast('Copied to clipboard', 'success');
+                }
+            });
+        }
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.ic-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       LIVE LOG TAIL SIMULATION
+       ============================================================ */
+    const logList = document.querySelector('.in-panel#panel-logs .in-key-list');
+    if (logList) {
+        const sampleEndpoints = [
+            { method: 'post', endpoint: '/charge — payment intent · ₦42,000', provider: 'Paystack', status: 'ok', statusText: '200 OK', latency: 'fast', latencyText: '128ms' },
+            { method: 'get', endpoint: '/v1_1/knotwork-prod/image/upload/lesson.jpg', provider: 'Cloudinary', status: 'ok', statusText: '200 OK', latency: 'fast', latencyText: '96ms' },
+            { method: 'post', endpoint: '/v1/chat/completions — AI tutor query', provider: 'OpenAI', status: 'ok', statusText: '200 OK', latency: '', latencyText: '284ms' },
+            { method: 'post', endpoint: '/fcm/send — lesson reminder', provider: 'FCM', status: 'ok', statusText: '200 OK', latency: '', latencyText: '218ms' },
+            { method: 'post', endpoint: '/v1/messages — password reset', provider: 'SES', status: 'ok', statusText: '202 Queued', latency: 'fast', latencyText: '108ms' }
+        ];
+        let idx = 0;
+        setInterval(() => {
+            const s = sampleEndpoints[idx % sampleEndpoints.length];
+            idx++;
+            const now = new Date();
+            const p = n => String(n).padStart(2, '0');
+            const time = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+            const row = document.createElement('div');
+            row.className = 'in-log-row';
+            row.innerHTML = `
+                <div class="in-log-time">${time}</div>
+                <span class="in-log-method ${s.method}">${s.method.toUpperCase()}</span>
+                <span class="in-log-endpoint">${s.endpoint}</span>
+                <span class="in-log-provider">${s.provider}</span>
+                <span class="in-log-status ${s.status}">${s.statusText}</span>
+                <span class="in-log-latency ${s.latency}">${s.latencyText}</span>
+            `;
+            logList.insertBefore(row, logList.firstChild);
+            while (logList.children.length > 12) {
+                logList.removeChild(logList.lastChild);
+            }
+        }, 4200);
+    }
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

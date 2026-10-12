@@ -1,0 +1,1450 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Mentees{% endblock %}
+{% block breadcrumb %}Mentees{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       MENTEES OVERVIEW STRIP
+       ============================================================ */
+    .mentee-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .mo-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .mo-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .mo-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .mo-card:hover::before { opacity: 1; }
+    .mo-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .mo-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .mo-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .mo-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .mo-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .mo-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .mo-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .mo-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .mo-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .mo-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR (search + filters)
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    .tool-view {
+        display: inline-flex;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        overflow: hidden;
+        background: var(--white);
+        height: 42px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .tool-view button {
+        width: 36px;
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        display: grid; place-items: center;
+    }
+    .tool-view button:hover { color: var(--primary-dark); }
+    .tool-view button.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 14px rgba(190, 242, 100, 0.3);
+    }
+
+    /* ============================================================
+       MENTEE CARD (list view)
+       ============================================================ */
+    .mentee-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .mentee-card {
+        display: grid;
+        grid-template-columns: 56px minmax(0, 1.4fr) minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+    }
+    .mentee-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 20px; bottom: 20px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .mentee-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .mentee-card:hover::before { opacity: 1; }
+
+    /* Avatar with online dot */
+    .mc-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .mc-avatar-wrap .avatar {
+        width: 56px; height: 56px;
+        font-size: 1rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .mc-online {
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 13px; height: 13px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.16);
+    }
+    .mc-online.away { background: var(--amber); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16); }
+    .mc-online.offline { background: var(--gray-300); box-shadow: none; }
+
+    /* Identity block */
+    .mc-id { min-width: 0; }
+    .mc-name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 3px;
+    }
+    .mc-name-row h4 {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .mc-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #0369A1;
+        background: rgba(56, 189, 248, 0.14);
+        padding: 2px 8px;
+        border-radius: 50px;
+    }
+    .mc-meta {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+    .mc-meta .dot-sep {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--gray-300);
+    }
+    .mc-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* Progress block */
+    .mc-progress {
+        min-width: 0;
+    }
+    .mc-track-name {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    .mc-track-name span {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .mc-track-name strong {
+        font-size: 0.82rem;
+        color: var(--primary-dark);
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+    .mc-stats {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 8px;
+    }
+    .mc-stats span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .mc-stats i { color: var(--secondary-deep); font-size: 0.78rem; }
+    .mc-stats i.accent { color: var(--accent); }
+
+    /* Actions column */
+    .mc-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .mc-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 13px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .mc-action-btn i { font-size: 0.8rem; }
+    .mc-action-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .mc-action-btn.primary {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+    }
+    .mc-action-btn.primary:hover {
+        background: var(--secondary-light);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.4);
+    }
+
+    /* Grid view (alternate) */
+    .mentee-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+    }
+    .mg-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 22px 22px 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .mg-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .mg-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .mg-card:hover::before { opacity: 1; }
+
+    .mg-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .mg-head .avatar-wrap { position: relative; flex-shrink: 0; }
+    .mg-head .avatar {
+        width: 52px; height: 52px;
+        font-size: 0.95rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .mg-head .mc-online {
+        width: 12px; height: 12px;
+        bottom: 1px; right: 1px;
+    }
+    .mg-head-info { min-width: 0; flex: 1; }
+    .mg-head-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .mg-head-info span {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+    }
+
+    .mg-track {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .mg-track strong { color: var(--primary-dark); font-weight: 800; }
+
+    .mg-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin: 12px 0 14px;
+    }
+
+    .mg-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 12px 0;
+        border-top: 1px solid var(--gray-100);
+        border-bottom: 1px solid var(--gray-100);
+        margin-bottom: 14px;
+    }
+    .mg-stats div { text-align: center; }
+    .mg-stats strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .mg-stats span {
+        font-size: 0.56rem;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+    }
+    .mg-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: auto;
+    }
+    .mg-actions .mc-action-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 8px;
+        font-size: 0.68rem;
+    }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+    }
+    .empty-state .em-ic {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        margin: 0 auto 18px;
+        display: grid; place-items: center;
+        background: rgba(190, 242, 100, 0.14);
+        color: var(--secondary-deep);
+        font-size: 1.8rem;
+    }
+    .empty-state h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .empty-state p {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        max-width: 400px;
+        margin: 0 auto 20px;
+        line-height: 1.65;
+    }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .pg-btn {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    /* ============================================================
+       HERO TWEAKS FOR THIS PAGE
+       ============================================================ */
+    .mentee-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 30px 34px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 30px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .mentee-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .mentee-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .mh-text { position: relative; z-index: 2; max-width: 640px; }
+    .mh-text .hero-badge { margin-bottom: 14px; }
+    .mh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.7rem, 3vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 10px;
+    }
+    .mh-text h1 span { color: var(--secondary); font-style: italic; }
+    .mh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.94rem;
+        line-height: 1.7;
+        max-width: 520px;
+    }
+    .mh-text p strong { color: var(--white); font-weight: 600; }
+
+    .mh-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .mh-metric { text-align: center; }
+    .mh-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.9rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .mh-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.2rem; }
+    .mh-metric span {
+        display: block;
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 6px;
+    }
+    .mh-sep {
+        width: 1px;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .mentee-card {
+            grid-template-columns: 56px minmax(0, 1.6fr) minmax(0, 1fr);
+        }
+        .mc-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-end;
+            padding-top: 12px;
+            border-top: 1px dashed var(--gray-100);
+            margin-top: 4px;
+        }
+        .mh-metrics { gap: 18px; }
+        .mh-metric strong { font-size: 1.6rem; }
+    }
+    @media (max-width: 900px) {
+        .mentee-overview { grid-template-columns: repeat(2, 1fr); }
+        .mentee-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .mh-metrics { width: 100%; justify-content: space-between; }
+        .mentee-card {
+            grid-template-columns: 56px minmax(0, 1fr);
+        }
+        .mc-progress {
+            grid-column: 1 / -1;
+            padding-top: 10px;
+            border-top: 1px dashed var(--gray-100);
+        }
+    }
+    @media (max-width: 640px) {
+        .mentee-overview { grid-template-columns: 1fr; }
+        .mh-metrics { flex-wrap: wrap; gap: 14px; }
+        .mh-sep { display: none; }
+        .mh-metric { flex: 1; min-width: 80px; }
+        .mentee-card { padding: 16px 16px; gap: 14px; }
+        .mc-actions { flex-wrap: wrap; }
+        .mc-action-btn { flex: 1; justify-content: center; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO — MENTEES OVERVIEW
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="mentee-hero fade-up">
+    <div class="mh-text">
+        <span class="hero-badge">
+            <i class="bi bi-people-fill"></i> Cohort Overview · 24 active relationships
+        </span>
+        <h1>Your <span>Mentees</span></h1>
+        <p>
+            You are currently guiding <strong>24 mentees</strong> across 8 tracks.
+            <strong>6 mentees</strong> completed their programmes, and
+            <strong>3</strong> are archived. Every relationship is tracked with
+            goals, sessions and progress.
+        </p>
+    </div>
+
+    <div class="mh-metrics">
+        <div class="mh-metric">
+            <strong data-count="24">24</strong>
+            <span>Active</span>
+        </div>
+        <div class="mh-sep"></div>
+        <div class="mh-metric">
+            <strong data-count="6">6</strong>
+            <span>Completed</span>
+        </div>
+        <div class="mh-sep"></div>
+        <div class="mh-metric">
+            <strong>4.9<em>/5</em></strong>
+            <span>Avg Rating</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="mentee-overview fade-up">
+
+    <div class="mo-card">
+        <div class="mo-top">
+            <span class="mo-ic"><i class="bi bi-people-fill"></i></span>
+            <span class="mo-trend"><i class="bi bi-arrow-up-short"></i> +3</span>
+        </div>
+        <div class="mo-value" data-count="24">24</div>
+        <div class="mo-label">Active mentees</div>
+    </div>
+
+    <div class="mo-card">
+        <div class="mo-top">
+            <span class="mo-ic accent"><i class="bi bi-check-circle-fill"></i></span>
+            <span class="mo-trend"><i class="bi bi-arrow-up-short"></i> +2</span>
+        </div>
+        <div class="mo-value" data-count="6">6</div>
+        <div class="mo-label">Completed programmes</div>
+    </div>
+
+    <div class="mo-card">
+        <div class="mo-top">
+            <span class="mo-ic violet"><i class="bi bi-graph-up-arrow"></i></span>
+            <span class="mo-trend"><i class="bi bi-arrow-up-short"></i> +4%</span>
+        </div>
+        <div class="mo-value">72<span>%</span></div>
+        <div class="mo-label">Avg track progress</div>
+    </div>
+
+    <div class="mo-card">
+        <div class="mo-top">
+            <span class="mo-ic amber"><i class="bi bi-star-fill"></i></span>
+            <span class="mo-trend"><i class="bi bi-arrow-up-short"></i> 0.1</span>
+        </div>
+        <div class="mo-value">4.9<span>/5</span></div>
+        <div class="mo-label">Average mentee rating</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="menteeSearch" placeholder="Search by name, track, or email…" aria-label="Search mentees">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> Filters
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Last active" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Last active
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <div class="tool-view" role="tablist" aria-label="View mode">
+        <button type="button" class="active" id="viewList" aria-label="List view" title="List view">
+            <i class="bi bi-list-ul"></i>
+        </button>
+        <button type="button" id="viewGrid" aria-label="Grid view" title="Grid view">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TABS + LIST
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="card tabs-card fade-up" style="padding: 0;">
+    <div class="tabs-head">
+        <h3><i class="bi bi-people-fill"></i> All Mentees</h3>
+        <a href="#" class="link">Export list <i class="bi bi-download"></i></a>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="active">
+            Active <span class="count">24</span>
+        </button>
+        <button class="tab" data-tab="completed">
+            Completed <span class="count">6</span>
+        </button>
+        <button class="tab" data-tab="archived">
+            Archived <span class="count">3</span>
+        </button>
+    </div>
+
+    <div class="tab-panels">
+
+        <!-- ───────────── ACTIVE ───────────── -->
+        <div class="tab-panel active" id="tab-active">
+            <div class="mentee-list">
+
+                <!-- Mentee 1 -->
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar sky">SK</span>
+                        <span class="mc-online" title="Online"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Sara Kim</h4>
+                            <span class="mc-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>sara.kim@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Mentee since Feb 2025</span>
+                            <span class="dot-sep"></span>
+                            <span>Last active 2h ago</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">React</span>
+                            <span class="tag learn">System Design</span>
+                            <span class="tag violet">TypeScript</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Advanced React Patterns</span>
+                            <strong>72%</strong>
+                        </div>
+                        <div class="bar"><span data-value="72"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 18 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 5.0</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Sara…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Sara's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Sessions with Sara" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Mentee 2 -->
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar">TK</span>
+                        <span class="mc-online away" title="Away"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Tunde Kayode</h4>
+                            <span class="mc-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>tunde.k@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Mentee since Jan 2025</span>
+                            <span class="dot-sep"></span>
+                            <span>Last active 1d ago</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag learn">Node.js</span>
+                            <span class="tag teach">PostgreSQL</span>
+                            <span class="tag amber">AWS</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Full-Stack Track</span>
+                            <strong>54%</strong>
+                        </div>
+                        <div class="bar accent"><span data-value="54"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 12 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 4.8</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Tunde…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Tunde's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Sessions with Tunde" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Mentee 3 -->
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar violet">MR</span>
+                        <span class="mc-online" title="Online"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Maya Rahman</h4>
+                            <span class="mc-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>maya.r@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Mentee since Nov 2024</span>
+                            <span class="dot-sep"></span>
+                            <span>Last active 30m ago</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">React</span>
+                            <span class="tag learn">UI/UX</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Design → Dev Bridge</span>
+                            <strong>91%</strong>
+                        </div>
+                        <div class="bar"><span data-value="91"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 28 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 5.0</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Maya…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Maya's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Sessions with Maya" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Mentee 4 -->
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar amber">AO</span>
+                        <span class="mc-online offline" title="Offline"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Amara Okoye</h4>
+                        </div>
+                        <div class="mc-meta">
+                            <span>amara.o@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Mentee since Mar 2025</span>
+                            <span class="dot-sep"></span>
+                            <span>Last active 4d ago</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag learn">Frontend</span>
+                            <span class="tag">JavaScript</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Frontend Foundations</span>
+                            <strong>38%</strong>
+                        </div>
+                        <div class="bar violet"><span data-value="38"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 6 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 4.5</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Amara…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Amara's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Sessions with Amara" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Mentee 5 -->
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar">JO</span>
+                        <span class="mc-online" title="Online"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>James Oduya</h4>
+                            <span class="mc-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>james.o@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Mentee since Dec 2024</span>
+                            <span class="dot-sep"></span>
+                            <span>Last active 1h ago</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">Python</span>
+                            <span class="tag learn">Machine Learning</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>ML Foundations</span>
+                            <strong>65%</strong>
+                        </div>
+                        <div class="bar"><span data-value="65"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 22 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 4.9</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to James…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening James's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Sessions with James" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── COMPLETED ───────────── -->
+        <div class="tab-panel" id="tab-completed">
+            <div class="mentee-list">
+
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar sky">NB</span>
+                        <span class="mc-online offline"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Nadia Bello</h4>
+                            <span class="mc-verified" style="background: rgba(190, 242, 100, 0.18); color: #4D7C0F;">
+                                <i class="bi bi-trophy-fill"></i> Programme Complete
+                            </span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>nadia.b@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Completed Mar 2025</span>
+                            <span class="dot-sep"></span>
+                            <span>Duration: 14 weeks</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">React</span>
+                            <span class="tag learn">TypeScript</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Advanced React Patterns</span>
+                            <strong>100%</strong>
+                        </div>
+                        <div class="bar gold"><span data-value="100"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 24 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 5.0</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Nadia…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Nadia's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Viewing archive" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar violet">RK</span>
+                        <span class="mc-online offline"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Rahul Kapoor</h4>
+                            <span class="mc-verified" style="background: rgba(190, 242, 100, 0.18); color: #4D7C0F;">
+                                <i class="bi bi-trophy-fill"></i> Programme Complete
+                            </span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>rahul.k@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Completed Feb 2025</span>
+                            <span class="dot-sep"></span>
+                            <span>Duration: 10 weeks</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">System Design</span>
+                            <span class="tag learn">AWS</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>System Design Mastery</span>
+                            <strong>100%</strong>
+                        </div>
+                        <div class="bar gold"><span data-value="100"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 18 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 4.9</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Rahul…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Rahul's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Viewing archive" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+                <article class="mentee-card">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar amber">LB</span>
+                        <span class="mc-online offline"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Laura Bennett</h4>
+                            <span class="mc-verified" style="background: rgba(190, 242, 100, 0.18); color: #4D7C0F;">
+                                <i class="bi bi-trophy-fill"></i> Programme Complete
+                            </span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>laura.b@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Completed Jan 2025</span>
+                            <span class="dot-sep"></span>
+                            <span>Duration: 12 weeks</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">React</span>
+                            <span class="tag learn">Testing</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Frontend Mastery</span>
+                            <strong>100%</strong>
+                        </div>
+                        <div class="bar gold"><span data-value="100"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 20 sessions</span>
+                            <span><i class="bi bi-star-fill accent"></i> 5.0</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Laura…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Laura's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn primary" data-toast="Viewing archive" data-toast-type="success">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── ARCHIVED ───────────── -->
+        <div class="tab-panel" id="tab-archived">
+            <div class="mentee-list">
+
+                <article class="mentee-card" style="opacity: 0.78;">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar" style="background: var(--gray-200); color: var(--gray-600);">PC</span>
+                        <span class="mc-online offline"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Priya Chandra</h4>
+                            <span class="mc-verified" style="background: var(--gray-100); color: var(--gray-600);">
+                                <i class="bi bi-archive-fill"></i> Archived
+                            </span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>priya.c@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Archived Dec 2024</span>
+                            <span class="dot-sep"></span>
+                            <span>Reason: Career change</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag learn">Python</span>
+                            <span class="tag">Data Science</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Data Science Foundations</span>
+                            <strong>42%</strong>
+                        </div>
+                        <div class="bar" style="background: var(--gray-200);"><span data-value="42" style="background: var(--gray-300);"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 8 sessions</span>
+                            <span><i class="bi bi-star-fill" style="color: var(--gray-300);"></i> 4.5</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Priya…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Priya's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Restoring Priya…" data-toast-type="success">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                        </button>
+                    </div>
+                </article>
+
+                <article class="mentee-card" style="opacity: 0.78;">
+                    <div class="mc-avatar-wrap">
+                        <span class="avatar" style="background: var(--gray-200); color: var(--gray-600);">HN</span>
+                        <span class="mc-online offline"></span>
+                    </div>
+                    <div class="mc-id">
+                        <div class="mc-name-row">
+                            <h4>Hassan Nasser</h4>
+                            <span class="mc-verified" style="background: var(--gray-100); color: var(--gray-600);">
+                                <i class="bi bi-archive-fill"></i> Archived
+                            </span>
+                        </div>
+                        <div class="mc-meta">
+                            <span>hassan.n@knotwork.io</span>
+                            <span class="dot-sep"></span>
+                            <span>Archived Oct 2024</span>
+                            <span class="dot-sep"></span>
+                            <span>Reason: Paused programme</span>
+                        </div>
+                        <div class="mc-tags">
+                            <span class="tag teach">Flutter</span>
+                            <span class="tag learn">Mobile UI</span>
+                        </div>
+                    </div>
+                    <div class="mc-progress">
+                        <div class="mc-track-name">
+                            <span>Mobile Development</span>
+                            <strong>28%</strong>
+                        </div>
+                        <div class="bar" style="background: var(--gray-200);"><span data-value="28" style="background: var(--gray-300);"></span></div>
+                        <div class="mc-stats">
+                            <span><i class="bi bi-calendar-check"></i> 5 sessions</span>
+                            <span><i class="bi bi-star-fill" style="color: var(--gray-300);"></i> 4.7</span>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <button type="button" class="mc-action-btn" data-toast="Opening message to Hassan…" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Opening Hassan's plan" data-toast-type="info">
+                            <i class="bi bi-map"></i> View Plan
+                        </button>
+                        <button type="button" class="mc-action-btn" data-toast="Restoring Hassan…" data-toast-type="success">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PAGINATION
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="pagination fade-up">
+    <div class="pg-info">
+        Showing <strong>1–5</strong> of <strong>24</strong> active mentees
+    </div>
+
+    <div class="pg-controls">
+        <button type="button" class="pg-btn" disabled>
+            <i class="bi bi-chevron-left"></i> Prev
+        </button>
+        <button type="button" class="pg-btn active">1</button>
+        <button type="button" class="pg-btn">2</button>
+        <button type="button" class="pg-btn">3</button>
+        <button type="button" class="pg-btn">4</button>
+        <button type="button" class="pg-btn">5</button>
+        <button type="button" class="pg-btn">
+            Next <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           VIEW MODE TOGGLE (list / grid)
+           ====================================================== */
+        const viewList = document.getElementById('viewList');
+        const viewGrid = document.getElementById('viewGrid');
+        const listContainers = document.querySelectorAll('.mentee-list');
+
+        function applyView(mode) {
+            if (mode === 'grid') {
+                viewGrid.classList.add('active');
+                viewList.classList.remove('active');
+                listContainers.forEach(function (el) {
+                    el.classList.remove('mentee-list');
+                    el.classList.add('mentee-grid');
+                });
+            } else {
+                viewList.classList.add('active');
+                viewGrid.classList.remove('active');
+                listContainers.forEach(function (el) {
+                    el.classList.remove('mentee-grid');
+                    el.classList.add('mentee-list');
+                });
+            }
+        }
+
+        if (viewList) viewList.addEventListener('click', function () { applyView('list'); });
+        if (viewGrid) viewGrid.addEventListener('click', function () { applyView('grid'); });
+
+        /* ======================================================
+           LIVE SEARCH (simple filter on mentee name)
+           ====================================================== */
+        const search = document.getElementById('menteeSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.mentee-card, .mg-card').forEach(function (card) {
+                    const text = card.textContent.toLowerCase();
+                    card.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           PAGINATION (visual only)
+           ====================================================== */
+        document.querySelectorAll('.pg-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.disabled || this.classList.contains('active')) return;
+                if (this.textContent.trim().toLowerCase().startsWith('prev') ||
+                    this.textContent.trim().toLowerCase().startsWith('next')) return;
+
+                document.querySelectorAll('.pg-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+                toast('Loading page ' + this.textContent.trim() + '…', 'info');
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

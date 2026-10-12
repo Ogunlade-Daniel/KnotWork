@@ -1,0 +1,2066 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Earnings{% endblock %}
+{% block breadcrumb %}Earnings{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .earn-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .earn-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .earn-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .eh-text { position: relative; z-index: 2; max-width: 640px; }
+    .eh-text .hero-badge { margin-bottom: 14px; }
+    .eh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700; line-height: 1.15; margin-bottom: 12px;
+    }
+    .eh-text h1 span { color: var(--secondary); font-style: italic; }
+    .eh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem; line-height: 1.75;
+        margin-bottom: 22px; max-width: 540px;
+    }
+    .eh-text p strong { color: var(--white); font-weight: 600; }
+    .eh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    /* Wallet panel */
+    .wallet-panel {
+        position: relative;
+        z-index: 2;
+        flex-shrink: 0;
+        width: 320px;
+        padding: 22px 22px 20px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
+        position: relative;
+        overflow: hidden;
+    }
+    .wallet-panel::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: var(--gold);
+    }
+    .wallet-panel::after {
+        content: '';
+        position: absolute; top: -50%; right: -30%;
+        width: 80%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.16), transparent 62%);
+        pointer-events: none;
+    }
+    .wp-label {
+        position: relative;
+        z-index: 2;
+        font-size: 0.6rem; font-weight: 800;
+        letter-spacing: 0.2em; text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 8px;
+    }
+    .wp-balance {
+        position: relative;
+        z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+    }
+    .wp-balance span {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 600;
+        margin-left: 4px;
+    }
+    .wp-sub {
+        position: relative;
+        z-index: 2;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 18px;
+    }
+    .wp-sub strong { color: var(--secondary); font-weight: 700; }
+
+    .wp-stats {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+        margin-bottom: 16px;
+    }
+    .wp-stat div:first-child {
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 3px;
+    }
+    .wp-stat strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+    }
+    .wp-stat strong em {
+        font-style: normal;
+        font-size: 0.7rem;
+        color: var(--secondary);
+        margin-left: 3px;
+        font-weight: 700;
+    }
+
+    .wp-actions {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 8px;
+    }
+    .wp-actions .btn { flex: 1; padding: 10px 14px; font-size: 0.76rem; }
+
+    /* ============================================================
+       AUTHORITY STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .earn-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .eo-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .eo-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .eo-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .eo-card:hover::before { opacity: 1; }
+    .eo-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .eo-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .eo-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .eo-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .eo-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .eo-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .eo-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .eo-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .eo-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .eo-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .eo-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+
+    .tab-panels { padding: 22px 26px 26px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       OVERVIEW TAB — earnings chart
+       ============================================================ */
+    .earn-chart-card {
+        padding: 0;
+    }
+    .earn-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        height: 220px;
+        padding: 16px 0 0;
+    }
+    .earn-chart .col {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .earn-chart .track {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        position: relative;
+    }
+    .earn-chart .bar-v {
+        width: 100%;
+        max-width: 44px;
+        height: 0;
+        border-radius: 10px 10px 5px 5px;
+        background: linear-gradient(180deg, var(--secondary), #7ED321);
+        transition: height 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        position: relative;
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.22);
+    }
+    .earn-chart .col.dim .bar-v {
+        background: linear-gradient(180deg, #E2E8F0, #CBD5E1);
+        box-shadow: none;
+    }
+    .earn-chart .col.current .bar-v {
+        background: linear-gradient(180deg, var(--accent), #0284C7);
+        box-shadow: 0 6px 18px rgba(56, 189, 248, 0.32);
+    }
+    .earn-chart .bar-v::after {
+        content: attr(data-val);
+        position: absolute;
+        top: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--primary-dark);
+        opacity: 0;
+        transition: var(--transition);
+        white-space: nowrap;
+        padding: 3px 8px;
+        background: var(--white);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(11, 17, 33, 0.10);
+    }
+    .earn-chart .col:hover .bar-v::after { opacity: 1; }
+    .earn-chart .col.current .bar-v::after { opacity: 1; }
+    .earn-chart .day {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+    }
+    .earn-chart .col.current .day { color: var(--accent); }
+
+    /* ============================================================
+       LEDGER TAB — table
+       ============================================================ */
+    .ledger-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+    .ledger-search {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .ledger-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .ledger-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .ledger-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .ledger-search input::placeholder { color: var(--gray-300); }
+
+    .ledger-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .ledger-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .ledger-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .ledger-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 18px;
+        border-radius: 50px;
+        background: var(--white);
+        color: var(--primary-dark);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border: 1px solid var(--gray-200);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        margin-left: auto;
+    }
+    .ledger-export:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        transform: translateY(-2px);
+    }
+
+    /* Ledger table */
+    .ledger-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+    .ledger-table thead th {
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        text-align: left;
+        padding: 0 14px 8px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .ledger-table thead th.right { text-align: right; }
+
+    .ledger-table tbody tr {
+        background: var(--white);
+        transition: var(--transition);
+    }
+    .ledger-table tbody tr:hover {
+        background: var(--cream);
+        transform: translateX(2px);
+    }
+    .ledger-table tbody tr td {
+        padding: 14px;
+        font-size: 0.84rem;
+        color: var(--gray-800);
+        vertical-align: middle;
+        border-top: 1px solid rgba(11, 17, 33, 0.04);
+        border-bottom: 1px solid rgba(11, 17, 33, 0.04);
+    }
+    .ledger-table tbody tr td:first-child {
+        border-left: 1px solid rgba(11, 17, 33, 0.04);
+        border-radius: 12px 0 0 12px;
+    }
+    .ledger-table tbody tr td:last-child {
+        border-right: 1px solid rgba(11, 17, 33, 0.04);
+        border-radius: 0 12px 12px 0;
+        text-align: right;
+    }
+
+    /* Ledger row cells */
+    .lr-type {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+    .lr-ic {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        display: grid; place-items: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    .lr-ic.credit { background: rgba(190, 242, 100, 0.18); color: #4D7C0F; }
+    .lr-ic.debit { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .lr-ic.payout { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .lr-ic.refund { background: rgba(239, 68, 68, 0.10); color: #DC2626; }
+
+    .lr-type-body {
+        min-width: 0;
+        line-height: 1.3;
+    }
+    .lr-type-body strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .lr-type-body span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .lr-ref {
+        font-family: 'Inter', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        letter-spacing: 0.02em;
+    }
+    .lr-date {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+    }
+    .lr-date strong {
+        display: block;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .lr-date span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-300);
+    }
+
+    .lr-amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+    }
+    .lr-amount.credit { color: #4D7C0F; }
+    .lr-amount.debit { color: var(--gray-800); }
+    .lr-amount.payout { color: #6D28D9; }
+    .lr-amount.refund { color: #DC2626; }
+    .lr-amount em {
+        display: block;
+        font-style: normal;
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--gray-300);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       PAYOUTS TAB
+       ============================================================ */
+    .payout-balance-card {
+        padding: 24px 26px;
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        color: var(--white);
+        border-radius: var(--radius);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 20px;
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.24);
+    }
+    .payout-balance-card::before {
+        content: '';
+        position: absolute; top: -50%; right: -10%;
+        width: 55%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 60%);
+        pointer-events: none;
+    }
+    .payout-balance-card::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 22px 22px;
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
+    .pbc-row {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+    .pbc-main {
+        min-width: 0;
+    }
+    .pbc-main .label {
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 8px;
+    }
+    .pbc-main .amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+    }
+    .pbc-main .sub {
+        font-size: 0.74rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    .pbc-main .sub strong { color: var(--secondary); font-weight: 700; }
+
+    .pbc-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        position: relative;
+        z-index: 2;
+    }
+    .pbc-stat div:first-child {
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 3px;
+    }
+    .pbc-stat strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+    }
+    .pbc-stat strong em {
+        font-style: normal;
+        font-size: 0.72rem;
+        color: var(--secondary);
+        margin-left: 3px;
+        font-weight: 700;
+    }
+
+    /* Withdraw panel */
+    .withdraw-panel {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+    }
+    .withdraw-panel h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .withdraw-panel .wp-desc {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        margin-bottom: 16px;
+        line-height: 1.55;
+    }
+    .withdraw-panel .wp-desc strong { color: var(--primary-dark); font-weight: 700; }
+
+    .amount-input-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    .amount-field {
+        flex: 1;
+        min-width: 160px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 48px;
+        padding: 0 18px 0 22px;
+        transition: var(--transition);
+    }
+    .amount-field:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .amount-field .prefix {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        flex-shrink: 0;
+    }
+    .amount-field input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .amount-field .max-btn {
+        padding: 5px 11px;
+        border-radius: 50px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        font-family: inherit;
+        font-size: 0.66rem;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+    .amount-field .max-btn:hover { transform: translateY(-1px); }
+
+    .amount-quick {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .amount-quick button {
+        padding: 7px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .amount-quick button:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.10);
+    }
+
+    .method-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        background: var(--cream);
+        margin-bottom: 10px;
+        gap: 12px;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .method-row:hover { border-color: var(--secondary); background: rgba(190, 242, 100, 0.05); }
+    .method-row.active {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.14);
+    }
+    .method-row .mr-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+    .method-row .mr-ic {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .method-row .mr-ic.bank { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; }
+    .method-row .mr-body { min-width: 0; }
+    .method-row .mr-body strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .method-row .mr-body span {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--gray-600);
+    }
+    .method-row .mr-check {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--gray-300);
+        display: grid; place-items: center;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .method-row.active .mr-check {
+        border-color: var(--secondary);
+        background: var(--secondary);
+        color: var(--primary-dark);
+    }
+    .method-row .mr-check i { font-size: 0.7rem; opacity: 0; transition: var(--transition); }
+    .method-row.active .mr-check i { opacity: 1; }
+
+    .payout-submit {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+    }
+    .payout-submit .btn-gold { padding: 12px 26px; }
+    .payout-submit .payout-note {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .payout-submit .payout-note i { color: var(--secondary-deep); flex-shrink: 0; font-size: 0.9rem; }
+    .payout-submit .payout-note strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Payout history */
+    .payout-history {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+    .payout-history-head {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .payout-history-head h4 {
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .payout-history-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .payout-history-head .link {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .payout-history-head .link:hover { color: var(--primary-dark); }
+
+    .payout-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    .payout-row:last-child { border-bottom: none; }
+    .payout-row:hover { background: var(--cream); }
+
+    .payout-status {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    .payout-status.done { background: rgba(190, 242, 100, 0.20); color: #4D7C0F; }
+    .payout-status.pending { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .payout-status.failed { background: rgba(239, 68, 68, 0.10); color: #DC2626; }
+
+    .payout-body { flex: 1; min-width: 0; line-height: 1.3; }
+    .payout-body strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .payout-body span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+    }
+
+    .payout-amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        white-space: nowrap;
+        color: var(--primary-dark);
+        letter-spacing: -0.01em;
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .payout-amount em {
+        display: block;
+        font-style: normal;
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--gray-300);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       RIGHT RAIL
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Payout method */
+    .bank-card {
+        padding: 16px 18px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.06), rgba(190, 242, 100, 0.05));
+        border: 1px solid rgba(56, 189, 248, 0.20);
+        margin-bottom: 12px;
+    }
+    .bank-card .row1 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .bank-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), #0EA5E9);
+        color: #fff;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .bank-info { flex: 1; min-width: 0; line-height: 1.3; }
+    .bank-info strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .bank-info span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+    }
+    .bank-info .verified-mini {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #15803D;
+        margin-left: 6px;
+    }
+
+    /* Upcoming payout */
+    .next-payout {
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(190, 242, 100, 0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        margin-bottom: 12px;
+    }
+    .next-payout .np-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+        margin-bottom: 8px;
+    }
+    .next-payout .np-amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .next-payout .np-when {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+    }
+    .next-payout .np-when strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Tax summary */
+    .tax-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 0.8rem;
+        border-bottom: 1px dashed var(--gray-100);
+    }
+    .tax-row:last-child { border-bottom: none; }
+    .tax-row span { color: var(--gray-600); }
+    .tax-row strong { color: var(--primary-dark); font-weight: 700; }
+    .tax-row.total {
+        padding-top: 14px;
+        margin-top: 6px;
+        border-top: 1px solid var(--gray-200);
+        border-bottom: none;
+    }
+    .tax-row.total strong {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+    }
+
+    /* Guidelines */
+    .guide-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .guide-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .guide-item i {
+        flex-shrink: 0;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.6rem;
+        margin-top: 2px;
+    }
+    .guide-item strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .earn-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .wallet-panel { width: 290px; }
+    }
+    @media (max-width: 900px) {
+        .earn-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .wallet-panel { width: 100%; }
+        .earn-chart { height: 180px; }
+    }
+    @media (max-width: 640px) {
+        .earn-overview { grid-template-columns: 1fr; }
+        .tabs-head { padding: 18px 20px 0; }
+        .tab-panels { padding: 18px 20px 22px; }
+        .tabs { padding: 12px 16px 0; }
+        .earn-chart { gap: 8px; height: 150px; }
+        .ledger-toolbar { gap: 8px; }
+        .ledger-filter, .ledger-export { flex: 1; justify-content: center; margin-left: 0; }
+        .ledger-table thead { display: none; }
+        .ledger-table tbody tr { display: block; margin-bottom: 12px; }
+        .ledger-table tbody tr td {
+            display: block;
+            border: 1px solid rgba(11, 17, 33, 0.04);
+            border-radius: 0;
+            padding: 8px 14px;
+            border-top: none;
+        }
+        .ledger-table tbody tr td:first-child { border-radius: 12px 12px 0 0; border-top: 1px solid rgba(11, 17, 33, 0.04); }
+        .ledger-table tbody tr td:last-child { border-radius: 0 0 12px 12px; text-align: left; }
+        .lr-amount { font-size: 1rem; }
+        .payout-row { flex-wrap: wrap; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 420px) {
+        .earn-overview { grid-template-columns: 1fr; }
+        .wp-stats { grid-template-columns: 1fr; }
+        .pbc-stats { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="earn-hero fade-up">
+    <div class="eh-text">
+        <span class="hero-badge">
+            <i class="bi bi-shield-check"></i> Verified earnings · Secured payouts
+        </span>
+        <h1>Your <span>Earnings</span></h1>
+        <p>
+            You have earned <strong>$5,280 in the last 90 days</strong> with a
+            pending balance of <strong>$1,840 this month</strong>. Every figure
+            is derived from <strong>confirmed payouts</strong> and
+            <strong>verified session completions</strong>.
+        </p>
+        <div class="eh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening withdrawal panel…" data-toast-type="info">
+                <i class="bi bi-cash-coin"></i> Withdraw now
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening statement export…" data-toast-type="info">
+                <i class="bi bi-file-earmark-text"></i> Download statement
+            </button>
+        </div>
+    </div>
+
+    <!-- Wallet panel -->
+    <aside class="wallet-panel" aria-label="Wallet summary">
+        <div class="wp-label">Available balance</div>
+        <div class="wp-balance">$2,480<span>USD</span></div>
+        <div class="wp-sub">
+            Next payout <strong>1 Nov 2025</strong> · auto-deposit enabled
+        </div>
+
+        <div class="wp-stats">
+            <div class="wp-stat">
+                <div>This month</div>
+                <strong>$1,840<em>+12%</em></strong>
+            </div>
+            <div class="wp-stat">
+                <div>Last 90d</div>
+                <strong>$5,280</strong>
+            </div>
+        </div>
+
+        <div class="wp-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening withdraw flow…" data-toast-type="success">
+                <i class="bi bi-arrow-down-circle"></i> Withdraw
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening ledger…" data-toast-type="info">
+                <i class="bi bi-list-ul"></i> Ledger
+            </button>
+        </div>
+    </aside>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-shield-check"></i></span>
+    <div class="as-body">
+        <strong>Every dollar is traceable to a session</strong>
+        <p>
+            Earnings are only credited after a mentee's session is
+            <strong>marked complete by both parties</strong>. Each ledger
+            entry links to the session, mentee, and plan behind it — no
+            hidden fees, no unexplained credits.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening payout policy…" data-toast-type="info">
+            <i class="bi bi-file-earmark-text"></i> Payout policy
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="earn-overview fade-up">
+
+    <div class="eo-card">
+        <div class="eo-top">
+            <span class="eo-ic"><i class="bi bi-cash-coin"></i></span>
+            <span class="eo-trend"><i class="bi bi-arrow-up-short"></i> 12%</span>
+        </div>
+        <div class="eo-value">$1,840</div>
+        <div class="eo-label">Earnings · this month</div>
+    </div>
+
+    <div class="eo-card">
+        <div class="eo-top">
+            <span class="eo-ic accent"><i class="bi bi-graph-up-arrow"></i></span>
+            <span class="eo-trend"><i class="bi bi-arrow-up-short"></i> +18%</span>
+        </div>
+        <div class="eo-value">$5,280</div>
+        <div class="eo-label">Last 90 days</div>
+    </div>
+
+    <div class="eo-card">
+        <div class="eo-top">
+            <span class="eo-ic violet"><i class="bi bi-wallet2"></i></span>
+            <span class="eo-trend warn"><i class="bi bi-clock-history"></i> 1 Nov</span>
+        </div>
+        <div class="eo-value">$2,480</div>
+        <div class="eo-label">Available balance</div>
+    </div>
+
+    <div class="eo-card">
+        <div class="eo-top">
+            <span class="eo-ic amber"><i class="bi bi-percent"></i></span>
+            <span class="eo-trend"><i class="bi bi-shield-check"></i> Fixed</span>
+        </div>
+        <div class="eo-value">15<span>%</span></div>
+        <div class="eo-label">Platform fee · transparent</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Payouts are protected and reversible only by you</strong>
+        <p>
+            Bank details are <strong>encrypted at rest</strong> and payouts are
+            processed through a regulated partner. If a mentee disputes a
+            session, funds are held in escrow until both sides agree —
+            <strong>you cannot lose money you've already earned</strong>.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     EARNINGS GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="grid-2">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-wallet2"></i> Financial Overview</h3>
+                <a href="#" class="link">Full statement <i class="bi bi-download"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="overview">
+                    Overview
+                </button>
+                <button class="tab" data-tab="ledger">
+                    Ledger <span class="count">128</span>
+                </button>
+                <button class="tab" data-tab="payouts">
+                    Payouts <span class="count">6</span>
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ═══════════════ OVERVIEW ═══════════════ -->
+                <div class="tab-panel active" id="tab-overview">
+
+                    <!-- Earnings chart -->
+                    <div class="earn-chart">
+                        <div class="col">
+                            <div class="track"><div class="bar-v" data-h="42" data-val="$620"></div></div>
+                            <span class="day">May</span>
+                        </div>
+                        <div class="col">
+                            <div class="track"><div class="bar-v" data-h="56" data-val="$840"></div></div>
+                            <span class="day">Jun</span>
+                        </div>
+                        <div class="col">
+                            <div class="track"><div class="bar-v" data-h="48" data-val="$720"></div></div>
+                            <span class="day">Jul</span>
+                        </div>
+                        <div class="col">
+                            <div class="track"><div class="bar-v" data-h="72" data-val="$1,080"></div></div>
+                            <span class="day">Aug</span>
+                        </div>
+                        <div class="col">
+                            <div class="track"><div class="bar-v" data-h="88" data-val="$1,640"></div></div>
+                            <span class="day">Sep</span>
+                        </div>
+                        <div class="col current">
+                            <div class="track"><div class="bar-v" data-h="94" data-val="$1,840"></div></div>
+                            <span class="day">Oct</span>
+                        </div>
+                        <div class="col dim">
+                            <div class="track"><div class="bar-v" data-h="22" data-val="$380"></div></div>
+                            <span class="day">Nov</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-legend" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-100);">
+                        <span class="item" style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--gray-600);">
+                            <span class="swatch" style="width:10px;height:10px;border-radius:3px;background:linear-gradient(180deg, var(--secondary), #7ED321);"></span>
+                            Completed months
+                        </span>
+                        <span class="item" style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--gray-600);">
+                            <span class="swatch blue" style="width:10px;height:10px;border-radius:3px;background:linear-gradient(180deg, var(--accent), #0284C7);"></span>
+                            Current month
+                        </span>
+                        <span class="item" style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--gray-600);">
+                            <span class="swatch" style="width:10px;height:10px;border-radius:3px;background:var(--gray-200);"></span>
+                            Projected
+                        </span>
+                    </div>
+
+                    <div class="earnings-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding-top:20px;margin-top:20px;border-top:1px solid var(--gray-100);">
+                        <div>
+                            <strong style="display:block;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--primary-dark);">$1,840</strong>
+                            <span style="display:block;font-size:0.6rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-top:3px;">Best month</span>
+                        </div>
+                        <div style="padding-left:14px;border-left:1px solid var(--gray-100);">
+                            <strong style="display:block;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--primary-dark);">$1,180</strong>
+                            <span style="display:block;font-size:0.6rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-top:3px;">Average / month</span>
+                        </div>
+                        <div style="padding-left:14px;border-left:1px solid var(--gray-100);">
+                            <strong style="display:block;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--primary-dark);">+195<em style="color:var(--secondary-deep);font-style:normal;font-size:0.8rem;">%</em></strong>
+                            <span style="display:block;font-size:0.6rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-top:3px;">Growth · 6 months</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════ LEDGER ═══════════════ -->
+                <div class="tab-panel" id="tab-ledger">
+
+                    <div class="ledger-toolbar">
+                        <div class="ledger-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="ledgerSearch" placeholder="Search transactions by mentee, plan, or ref…" aria-label="Search transactions">
+                        </div>
+                        <button type="button" class="ledger-filter" data-toast="Filter panel opened" data-toast-type="info">
+                            <i class="bi bi-funnel-fill"></i> All types
+                            <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                        </button>
+                        <button type="button" class="ledger-export" data-toast="Preparing CSV export…" data-toast-type="success">
+                            <i class="bi bi-download"></i> Export CSV
+                        </button>
+                    </div>
+
+                    <table class="ledger-table" role="table">
+                        <thead>
+                            <tr>
+                                <th style="width:45%;">Transaction</th>
+                                <th style="width:18%;">Date</th>
+                                <th style="width:22%;">Reference</th>
+                                <th class="right" style="width:15%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr data-searchable="session sara kim react hooks credit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic credit"><i class="bi bi-arrow-down-left"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Session completed · React Hooks Deep Dive</strong>
+                                            <span>Mentee · Sara Kim · Advanced React Patterns</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Oct 12</strong>
+                                        <span>18:30 · 60 min</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">KN-4A-8213</span></td>
+                                <td>
+                                    <div class="lr-amount credit">
+                                        +$84.00
+                                        <em>Credit</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-searchable="session tunde kayode system design credit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic credit"><i class="bi bi-arrow-down-left"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Session completed · PostgreSQL Indexing Review</strong>
+                                            <span>Mentee · Tunde Kayode · Backend Mastery</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Oct 11</strong>
+                                        <span>10:00 · 45 min</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">KN-4A-8207</span></td>
+                                <td>
+                                    <div class="lr-amount credit">
+                                        +$63.00
+                                        <em>Credit</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-searchable="payout bank transfer debit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic payout"><i class="bi bi-bank"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Payout · Chase ··4291</strong>
+                                            <span>Auto payout to verified bank</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Oct 1</strong>
+                                        <span>Auto scheduled</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">PO-30-1194</span></td>
+                                <td>
+                                    <div class="lr-amount payout">
+                                        −$1,240.00
+                                        <em>Payout</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-searchable="session maya rahman portfolio credit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic credit"><i class="bi bi-arrow-down-left"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Session completed · Portfolio Review v2</strong>
+                                            <span>Mentee · Maya Rahman · Design → Dev Bridge</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Sep 28</strong>
+                                        <span>14:15 · 30 min</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">KN-3X-7941</span></td>
+                                <td>
+                                    <div class="lr-amount credit">
+                                        +$42.00
+                                        <em>Credit</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-searchable="session james oduya ml credit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic credit"><i class="bi bi-arrow-down-left"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Session completed · ML model review</strong>
+                                            <span>Mentee · James Oduya · ML Foundations</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Sep 26</strong>
+                                        <span>09:00 · 45 min</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">KN-3X-7923</span></td>
+                                <td>
+                                    <div class="lr-amount credit">
+                                        +$63.00
+                                        <em>Credit</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-searchable="refund amara okoye cancellation debit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic refund"><i class="bi bi-arrow-up-right"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Refund · Late cancellation</strong>
+                                            <span>Mentee · Amara Okoye · 24h notice</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Sep 22</strong>
+                                        <span>Session cancelled</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">RF-3X-4410</span></td>
+                                <td>
+                                    <div class="lr-amount refund">
+                                        −$42.00
+                                        <em>Refund</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-searchable="session nadia bello react testing credit">
+                                <td>
+                                    <div class="lr-type">
+                                        <span class="lr-ic credit"><i class="bi bi-arrow-down-left"></i></span>
+                                        <div class="lr-type-body">
+                                            <strong>Session completed · React testing patterns</strong>
+                                            <span>Mentee · Nadia Bello · Advanced React</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lr-date">
+                                        <strong>Sep 20</strong>
+                                        <span>16:00 · 45 min</span>
+                                    </div>
+                                </td>
+                                <td><span class="lr-ref">KN-3X-7815</span></td>
+                                <td>
+                                    <div class="lr-amount credit">
+                                        +$63.00
+                                        <em>Credit</em>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ═══════════════ PAYOUTS ═══════════════ -->
+                <div class="tab-panel" id="tab-payouts">
+
+                    <!-- Balance card -->
+                    <div class="payout-balance-card">
+                        <div class="pbc-row">
+                            <div class="pbc-main">
+                                <div class="label">Available to withdraw</div>
+                                <div class="amount">$2,480.00</div>
+                                <div class="sub">
+                                    Cleared <strong>Oct 20</strong> · no fees to transfer
+                                </div>
+                            </div>
+                            <div class="pbc-stats">
+                                <div class="pbc-stat">
+                                    <div>Pending</div>
+                                    <strong>$380<em>1 Nov</em></strong>
+                                </div>
+                                <div class="pbc-stat">
+                                    <div>YTD paid out</div>
+                                    <strong>$9,420</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Withdraw panel -->
+                    <div class="withdraw-panel">
+                        <h4>Withdraw funds</h4>
+                        <p class="wp-desc">
+                            Transfers to your verified bank arrive in
+                            <strong>1–3 business days</strong> with no fees.
+                        </p>
+
+                        <div class="amount-input-row">
+                            <label class="amount-field" aria-label="Withdrawal amount">
+                                <span class="prefix">$</span>
+                                <input type="text" id="withdrawAmount" value="2480" inputmode="decimal">
+                                <button type="button" class="max-btn"
+                                        data-toast="Max amount set to $2,480.00" data-toast-type="info">
+                                    Max
+                                </button>
+                            </label>
+                        </div>
+
+                        <div class="amount-quick">
+                            <button type="button" data-toast="Quick set: $250" data-toast-type="info">$250</button>
+                            <button type="button" data-toast="Quick set: $500" data-toast-type="info">$500</button>
+                            <button type="button" data-toast="Quick set: $1,000" data-toast-type="info">$1,000</button>
+                            <button type="button" data-toast="Quick set: $2,000" data-toast-type="info">$2,000</button>
+                        </div>
+
+                        <div class="method-row active"
+                             data-toast="Selected: Chase ··4291" data-toast-type="info">
+                            <div class="mr-left">
+                                <span class="mr-ic bank"><i class="bi bi-bank"></i></span>
+                                <div class="mr-body">
+                                    <strong>Chase ··4291</strong>
+                                    <span>ACH · Free · 1–3 business days</span>
+                                </div>
+                            </div>
+                            <span class="mr-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                        </div>
+
+                        <div class="method-row"
+                             data-toast="Selected: PayPal" data-toast-type="info">
+                            <div class="mr-left">
+                                <span class="mr-ic"><i class="bi bi-paypal"></i></span>
+                                <div class="mr-body">
+                                    <strong>PayPal · d***@knotwork.io</strong>
+                                    <span>Instant · 1.5% fee · 24 hours</span>
+                                </div>
+                            </div>
+                            <span class="mr-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                        </div>
+
+                        <div class="payout-submit">
+                            <button type="button" class="btn btn-gold"
+                                    data-toast="Withdrawal of $2,480.00 submitted" data-toast-type="success">
+                                <i class="bi bi-arrow-down-circle"></i> Withdraw $2,480.00
+                            </button>
+                            <div class="payout-note">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Funds held in escrow until this confirmation. You can cancel within <strong>15 minutes</strong>.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payout history -->
+                    <div class="payout-history">
+                        <div class="payout-history-head">
+                            <h4><i class="bi bi-clock-history"></i> Recent payouts</h4>
+                            <a href="#" class="link">All payouts <i class="bi bi-arrow-right"></i></a>
+                        </div>
+
+                        <div class="payout-row">
+                            <span class="payout-status done"><i class="bi bi-check-lg"></i></span>
+                            <div class="payout-body">
+                                <strong>Chase ··4291</strong>
+                                <span>Oct 1 · Completed · ACH</span>
+                            </div>
+                            <div class="payout-amount">
+                                $1,240.00
+                                <em>Paid</em>
+                            </div>
+                        </div>
+
+                        <div class="payout-row">
+                            <span class="payout-status done"><i class="bi bi-check-lg"></i></span>
+                            <div class="payout-body">
+                                <strong>Chase ··4291</strong>
+                                <span>Sep 1 · Completed · ACH</span>
+                            </div>
+                            <div class="payout-amount">
+                                $1,080.00
+                                <em>Paid</em>
+                            </div>
+                        </div>
+
+                        <div class="payout-row">
+                            <span class="payout-status done"><i class="bi bi-check-lg"></i></span>
+                            <div class="payout-body">
+                                <strong>Chase ··4291</strong>
+                                <span>Aug 1 · Completed · ACH</span>
+                            </div>
+                            <div class="payout-amount">
+                                $860.00
+                                <em>Paid</em>
+                            </div>
+                        </div>
+
+                        <div class="payout-row">
+                            <span class="payout-status pending"><i class="bi bi-hourglass-split"></i></span>
+                            <div class="payout-body">
+                                <strong>Chase ··4291 · Auto</strong>
+                                <span>Nov 1 · Scheduled</span>
+                            </div>
+                            <div class="payout-amount">
+                                $380.00
+                                <em>Scheduled</em>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- PAYOUT METHOD -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-bank"></i> Payout Method</h4>
+                <a href="#" class="link">Manage <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="bank-card">
+                <div class="row1">
+                    <span class="bank-ic"><i class="bi bi-bank"></i></span>
+                    <div class="bank-info">
+                        <strong>Chase ··4291</strong>
+                        <span>ACH · Free · 1–3 business days
+                            <span class="verified-mini"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-ghost" style="width:100%;justify-content:center;padding:11px 18px;font-size:0.8rem;"
+                    data-toast="Opening add bank flow…" data-toast-type="info">
+                <i class="bi bi-plus-lg"></i> Add another method
+            </button>
+        </div>
+
+        <!-- NEXT PAYOUT -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-calendar-check"></i> Next Payout</h4>
+                <a href="#" class="link">History <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="next-payout">
+                <div class="np-label">
+                    <i class="bi bi-clock-history"></i> Scheduled · Nov 1
+                </div>
+                <div class="np-amount">$380.00</div>
+                <div class="np-when">
+                    Auto-deposit to <strong>Chase ··4291</strong>
+                </div>
+            </div>
+
+            <button type="button" class="btn-ghost" style="width:100%;justify-content:center;padding:11px 18px;font-size:0.8rem;"
+                    data-toast="Opening schedule editor…" data-toast-type="info">
+                <i class="bi bi-calendar-week"></i> Change schedule
+            </button>
+        </div>
+
+        <!-- TAX SUMMARY -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-receipt"></i> Tax Summary · 2025</h4>
+                <a href="#" class="link">Download <i class="bi bi-download"></i></a>
+            </div>
+
+            <div class="tax-row">
+                <span>Gross earnings</span>
+                <strong>$12,460.00</strong>
+            </div>
+            <div class="tax-row">
+                <span>Platform fee (15%)</span>
+                <strong>−$1,869.00</strong>
+            </div>
+            <div class="tax-row">
+                <span>Refunds issued</span>
+                <strong>−$168.00</strong>
+            </div>
+            <div class="tax-row">
+                <span>Withholding (0%)</span>
+                <strong>$0.00</strong>
+            </div>
+            <div class="tax-row total">
+                <span>Net YTD</span>
+                <strong>$10,423.00</strong>
+            </div>
+        </div>
+
+        <!-- GUIDELINES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-shield-check"></i> Earnings Guidelines</h4>
+            </div>
+
+            <div class="guide-list">
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Complete sessions only</strong> — funds clear after both sides confirm.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Refunds are rare</strong> — only valid cancellations trigger them.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>No hidden fees</strong> — 15% flat is the only deduction.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Escrow protects you</strong> — disputes do not affect cleared earnings.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           EARNINGS CHART — animate bar heights
+           ====================================================== */
+        window.addEventListener('load', function () {
+            document.querySelectorAll('.earn-chart .bar-v[data-h]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.height = el.dataset.h + '%';
+                }, 340);
+            });
+        });
+
+        /* ======================================================
+           LEDGER — LIVE SEARCH
+           ====================================================== */
+        const ledgerSearch = document.getElementById('ledgerSearch');
+        if (ledgerSearch) {
+            ledgerSearch.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.ledger-table tbody tr').forEach(function (row) {
+                    const haystack = (row.dataset.searchable || row.textContent || '').toLowerCase();
+                    row.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           PAYOUT METHOD SELECTION
+           ====================================================== */
+        document.querySelectorAll('.method-row').forEach(function (row) {
+            row.addEventListener('click', function () {
+                document.querySelectorAll('.method-row').forEach(function (r) {
+                    r.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        /* ======================================================
+           MAX BUTTON — set amount to available balance
+           ====================================================== */
+        document.querySelectorAll('.amount-field .max-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const input = this.closest('.amount-field').querySelector('input');
+                if (input) input.value = '2480';
+                if (window.showKnotToast) {
+                    window.showKnotToast('Set to available balance · $2,480.00', 'info');
+                }
+            });
+        });
+
+        /* ======================================================
+           QUICK AMOUNTS
+           ====================================================== */
+        document.querySelectorAll('.amount-quick button').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const value = this.textContent.trim().replace(/[$,]/g, '');
+                const input = document.getElementById('withdrawAmount');
+                if (input) input.value = value;
+            });
+        });
+
+        /* ======================================================
+           PAGINATION (visual only, if present)
+           ====================================================== */
+        document.querySelectorAll('.pg-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.disabled || this.classList.contains('active')) return;
+                const label = this.textContent.trim().toLowerCase();
+                if (label.startsWith('prev') || label.startsWith('next')) return;
+
+                document.querySelectorAll('.pg-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (window.showKnotToast) {
+                    window.showKnotToast('Loading page ' + this.textContent.trim() + '…', 'info');
+                }
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

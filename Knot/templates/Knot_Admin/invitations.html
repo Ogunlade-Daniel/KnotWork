@@ -1,0 +1,2575 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Invitations{% endblock %}
+{% block page_title %}Invitations{% endblock %}
+{% block breadcrumb %}People · Invite System{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   INVITATIONS — INVITE LIFECYCLE COMMAND
+   Improvised palette: honey-amber + creative-fuchsia + trust-teal
+   ============================================================ */
+
+:root {
+    --iv-honey: #F59E0B;
+    --iv-honey-deep: #B45309;
+    --iv-honey-dim: rgba(245, 158, 11, 0.12);
+    --iv-honey-glow: rgba(245, 158, 11, 0.42);
+
+    --iv-fuchsia: #D946EF;
+    --iv-fuchsia-deep: #A21CAF;
+    --iv-fuchsia-dim: rgba(217, 70, 239, 0.12);
+    --iv-fuchsia-glow: rgba(217, 70, 239, 0.42);
+
+    --iv-teal: #14B8A6;
+    --iv-teal-deep: #0F766E;
+    --iv-teal-dim: rgba(20, 184, 166, 0.12);
+    --iv-teal-glow: rgba(20, 184, 166, 0.42);
+
+    --iv-rose: #FB7185;
+    --iv-rose-deep: #BE123C;
+    --iv-rose-dim: rgba(251, 113, 133, 0.12);
+    --iv-rose-glow: rgba(251, 113, 133, 0.42);
+
+    --iv-emerald: #10B981;
+    --iv-emerald-deep: #047857;
+    --iv-emerald-dim: rgba(16, 185, 129, 0.12);
+
+    --iv-mesh-1: radial-gradient(circle at 12% 20%, rgba(245, 158, 11, 0.14), transparent 42%);
+    --iv-mesh-2: radial-gradient(circle at 88% 78%, rgba(217, 70, 239, 0.14), transparent 44%);
+    --iv-mesh-3: radial-gradient(circle at 62% 12%, rgba(20, 184, 166, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   INVITATIONS WIRE — MARQUEE
+   ============================================================ */
+.iv-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(245, 158, 11, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(217, 70, 239, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(245, 158, 11, 0.26);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.iv-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--iv-honey), var(--iv-fuchsia), var(--iv-teal), var(--crown-2));
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.5);
+    z-index: 5;
+}
+.iv-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.iv-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.iv-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.iv-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.iv-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--iv-honey);
+    pointer-events: none;
+}
+.iv-wire-label .iv-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--iv-honey);
+    box-shadow: 0 0 0 0 var(--iv-honey-glow);
+    animation: ivPulse 1.6s infinite;
+}
+@keyframes ivPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.iv-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 160px;
+    animation: ivWireRoll 52s linear infinite;
+}
+.iv-wire:hover .iv-wire-track { animation-play-state: paused; }
+@keyframes ivWireRoll { to { transform: translateX(-50%); } }
+
+.iv-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.iv-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--iv-honey);
+    box-shadow: 0 0 8px var(--iv-honey-glow);
+    flex-shrink: 0;
+    animation: ivSpark 1.8s ease-in-out infinite;
+}
+.iv-wire-item.honey    .wdot { background: var(--iv-honey);   box-shadow: 0 0 8px var(--iv-honey-glow); }
+.iv-wire-item.fuchsia  .wdot { background: var(--iv-fuchsia); box-shadow: 0 0 8px var(--iv-fuchsia-glow); }
+.iv-wire-item.teal     .wdot { background: var(--iv-teal);    box-shadow: 0 0 8px var(--iv-teal-glow); }
+.iv-wire-item.rose     .wdot { background: var(--iv-rose);    box-shadow: 0 0 8px var(--iv-rose-glow); }
+.iv-wire-item.emerald  .wdot { background: var(--iv-emerald); box-shadow: 0 0 8px rgba(16,185,129,0.75); }
+@keyframes ivSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.iv-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.iv-wire-item em {
+    font-style: normal;
+    color: var(--iv-honey);
+    font-weight: 700;
+}
+
+/* ============================================================
+   INVITATIONS HERO
+   ============================================================ */
+.iv-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--iv-mesh-1), var(--iv-mesh-2), var(--iv-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(245, 158, 11, 0.20);
+}
+.iv-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--iv-honey), var(--iv-fuchsia) 40%, var(--iv-teal) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(245, 158, 11, 0.5);
+    z-index: 5;
+}
+.iv-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.iv-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.iv-hero-left { min-width: 0; flex: 1 1 520px; }
+.iv-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.42);
+    color: var(--iv-honey);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.iv-hero-kicker i { font-size: 0.7rem; }
+.iv-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.iv-hero-title em { color: var(--iv-honey); font-style: italic; }
+.iv-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 620px;
+    line-height: 1.62;
+}
+.iv-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.iv-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.iv-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.iv-hero-meta .hm:hover {
+    background: rgba(245, 158, 11, 0.10);
+    border-color: rgba(245, 158, 11, 0.42);
+    color: var(--iv-honey);
+    transform: translateY(-2px);
+}
+.iv-hero-meta .hm i { color: var(--iv-honey); font-size: 0.78rem; }
+.iv-hero-meta .hm.warn {
+    background: rgba(251, 113, 133, 0.10);
+    border-color: rgba(251, 113, 133, 0.42);
+    color: var(--iv-rose);
+}
+.iv-hero-meta .hm.warn i { color: var(--iv-rose); }
+
+.iv-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(245, 158, 11, 0.16), rgba(217, 70, 239, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(245, 158, 11, 0.42);
+    box-shadow:
+        0 18px 44px rgba(245, 158, 11, 0.18),
+        0 0 0 1px rgba(245, 158, 11, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--iv-honey) 120deg,
+                var(--iv-fuchsia) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(245, 158, 11, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--iv-honey);
+    display: grid;
+    place-items: center;
+    color: var(--iv-honey);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(245, 158, 11, 0.55), 0 0 0 3px rgba(245, 158, 11, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--iv-honey), var(--iv-fuchsia));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(245, 158, 11, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.iv-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.iv-tabs::-webkit-scrollbar { display: none; }
+
+.iv-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.iv-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.iv-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.iv-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.iv-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.iv-tab .tab-badge.glow {
+    background: var(--iv-honey-dim);
+    color: var(--iv-honey-deep);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+}
+.iv-tab .tab-badge.alert {
+    background: var(--iv-rose-dim);
+    color: var(--iv-rose-deep);
+    border: 1px solid rgba(251, 113, 133, 0.32);
+}
+
+.iv-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.iv-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.iv-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.iv-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.iv-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.iv-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.iv-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.iv-panels { position: relative; }
+.iv-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: ivPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.iv-panel.active { display: flex; }
+@keyframes ivPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.iv-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.iv-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.iv-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--is-accent, linear-gradient(90deg, var(--iv-honey), var(--iv-honey-deep)));
+}
+.iv-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.iv-stat.honey   { --is-accent: linear-gradient(90deg, #F59E0B, #B45309); }
+.iv-stat.fuchsia { --is-accent: linear-gradient(90deg, #D946EF, #A21CAF); }
+.iv-stat.teal    { --is-accent: linear-gradient(90deg, #14B8A6, #0F766E); }
+.iv-stat.rose    { --is-accent: linear-gradient(90deg, #FB7185, #BE123C); }
+.iv-stat.emerald { --is-accent: linear-gradient(90deg, #10B981, #047857); }
+
+.iv-stat .is-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.iv-stat .is-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.iv-stat.honey   .is-ic { background: var(--iv-honey-dim);   color: var(--iv-honey-deep); }
+.iv-stat.fuchsia .is-ic { background: var(--iv-fuchsia-dim); color: var(--iv-fuchsia-deep); }
+.iv-stat.teal    .is-ic { background: var(--iv-teal-dim);    color: var(--iv-teal-deep); }
+.iv-stat.rose    .is-ic { background: var(--iv-rose-dim);    color: var(--iv-rose-deep); }
+.iv-stat.emerald .is-ic { background: var(--iv-emerald-dim); color: var(--iv-emerald-deep); }
+
+.iv-stat .is-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.iv-stat .is-trend.warn { background: var(--iv-honey-dim); color: var(--iv-honey-deep); }
+.iv-stat .is-trend.down { background: var(--iv-rose-dim); color: var(--iv-rose-deep); }
+
+.iv-stat .is-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.iv-stat .is-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.iv-stat .is-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.iv-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.iv-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.iv-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.iv-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.iv-search:focus-within i { color: var(--tab-accent-deep); }
+.iv-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.iv-search input::placeholder { color: var(--gray-400); }
+.iv-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.iv-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.iv-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.iv-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.iv-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+
+.iv-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   INVITATION CARDS
+   ============================================================ */
+.iv-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.iv-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.iv-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--ic-accent, linear-gradient(180deg, var(--iv-honey), var(--iv-honey-deep)));
+    z-index: 2;
+}
+.iv-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.iv-card.pending  { --ic-accent: linear-gradient(180deg, #F59E0B, #B45309); }
+.iv-card.accepted { --ic-accent: linear-gradient(180deg, #10B981, #047857); }
+.iv-card.expired  { --ic-accent: linear-gradient(180deg, #FB7185, #BE123C); }
+
+.iv-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* ---- Left: invitee ---- */
+.ic-applicant {
+    display: flex;
+    gap: 14px;
+    min-width: 0;
+}
+.ic-avatar-wrap {
+    position: relative;
+    width: 64px; height: 64px;
+    flex-shrink: 0;
+}
+.ic-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.14);
+}
+.ic-avatar.teacher { background: linear-gradient(135deg, var(--iv-teal), var(--iv-teal-deep)); }
+.ic-avatar.mentor  { background: linear-gradient(135deg, var(--iv-fuchsia), var(--iv-fuchsia-deep)); }
+
+.ic-avatar-wrap .ic-type {
+    position: absolute;
+    bottom: -4px; left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 9px;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    box-shadow: 0 4px 10px rgba(11,17,33,0.08);
+    z-index: 3;
+    white-space: nowrap;
+}
+.ic-avatar-wrap .ic-type.teacher { color: var(--iv-teal-deep); border-color: rgba(20,184,166,0.4); }
+.ic-avatar-wrap .ic-type.mentor  { color: var(--iv-fuchsia-deep); border-color: rgba(217,70,239,0.4); }
+
+.ic-meta { min-width: 0; flex: 1; }
+.ic-meta .ic-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+.ic-meta .ic-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.76rem;
+    color: var(--gray-600);
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+}
+.ic-meta .ic-line i {
+    color: var(--gray-400);
+    font-size: 0.76rem;
+    flex-shrink: 0;
+}
+.ic-meta .ic-line .v-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--gray-600);
+}
+.ic-meta .ic-line .v-tag.honey { background: var(--iv-honey-dim); color: var(--iv-honey-deep); border-color: rgba(245,158,11,0.3); }
+
+.ic-meta .ic-note {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--gray-100);
+    border-radius: 10px;
+    font-size: 0.72rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+    border-left: 3px solid var(--gray-300);
+}
+.ic-meta .ic-note em {
+    font-style: italic;
+    color: var(--primary-dark);
+}
+
+.ic-invited-by {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 4px 11px 4px 6px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--gray-600);
+}
+.ic-invited-by .ib-av {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    color: var(--primary-deep);
+    display: grid;
+    place-items: center;
+    font-size: 0.54rem;
+    font-weight: 800;
+    font-family: 'Playfair Display', serif;
+}
+.ic-invited-by b { color: var(--primary-dark); font-weight: 800; }
+
+/* ---- Middle: token & status ---- */
+.ic-token-block {
+    padding: 4px 0 4px 24px;
+    border-left: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.ic-token-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.ic-token-head h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+.ic-token-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.ic-token-status.pending  { background: var(--iv-honey-dim); color: var(--iv-honey-deep); border: 1px solid rgba(245,158,11,0.32); }
+.ic-token-status.accepted { background: var(--iv-emerald-dim); color: var(--iv-emerald-deep); border: 1px solid rgba(16,185,129,0.32); }
+.ic-token-status.expired  { background: var(--iv-rose-dim); color: var(--iv-rose-deep); border: 1px solid rgba(251,113,133,0.32); }
+
+.ic-token-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+}
+.ic-token-status.pending .dot  { background: var(--iv-honey); animation: ivSpark 1.8s infinite; }
+.ic-token-status.accepted .dot { background: var(--iv-emerald); }
+.ic-token-status.expired .dot  { background: var(--iv-rose); }
+
+/* Invite link row */
+.ic-link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gray-100);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--gray-600);
+    letter-spacing: 0.02em;
+    overflow: hidden;
+}
+.ic-link-row i { color: var(--tab-accent-deep); font-size: 0.76rem; flex-shrink: 0; }
+.ic-link-row .link-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ic-link-row .link-copy {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--gray-600);
+    transition: var(--transition);
+    font-family: inherit;
+}
+.ic-link-row .link-copy:hover {
+    border-color: var(--tab-accent);
+    color: var(--tab-accent-deep);
+    background: var(--tab-accent-dim);
+}
+
+/* Countdown + QR */
+.ic-countdown-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+.ic-countdown {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.ic-countdown .cd-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+.ic-countdown .cd-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+.ic-countdown .cd-value.urgent { color: var(--iv-rose-deep); }
+.ic-countdown .cd-value.fresh  { color: var(--iv-emerald-deep); }
+.ic-countdown .cd-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+}
+.ic-countdown .cd-bar {
+    height: 4px;
+    background: var(--gray-100);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 3px;
+}
+.ic-countdown .cd-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--iv-honey), var(--iv-honey-deep));
+    transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.ic-countdown .cd-bar.urgent > span { background: linear-gradient(90deg, var(--iv-rose), var(--iv-rose-deep)); }
+.ic-countdown .cd-bar.fresh > span  { background: linear-gradient(90deg, var(--iv-emerald), var(--iv-emerald-deep)); }
+
+.ic-qr {
+    width: 56px; height: 56px;
+    border-radius: 10px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.ic-qr:hover {
+    border-color: var(--tab-accent);
+    color: var(--tab-accent-deep);
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px var(--tab-accent-dim);
+}
+.ic-qr::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        repeating-linear-gradient(0deg, currentColor 0 2px, transparent 2px 5px),
+        repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px);
+    opacity: 0.15;
+}
+
+/* ---- Right: actions ---- */
+.ic-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 180px;
+    padding-top: 4px;
+}
+.ic-actions .ic-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.ic-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.ic-btn i { font-size: 0.86rem; }
+
+.ic-btn.primary {
+    background: linear-gradient(135deg, var(--iv-honey), var(--iv-honey-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(245,158,11,0.32);
+}
+.ic-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(245,158,11,0.44);
+}
+.ic-btn.resend {
+    background: linear-gradient(135deg, var(--iv-fuchsia), var(--iv-fuchsia-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(217,70,239,0.32);
+}
+.ic-btn.resend:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(217,70,239,0.44);
+}
+.ic-btn.extend {
+    background: var(--white);
+    color: var(--iv-teal-deep);
+    border: 1px solid rgba(20,184,166,0.4);
+}
+.ic-btn.extend:hover {
+    background: var(--iv-teal-dim);
+    border-color: var(--iv-teal);
+    transform: translateY(-2px);
+}
+.ic-btn.revoke {
+    background: var(--white);
+    color: var(--iv-rose-deep);
+    border: 1px solid rgba(251,113,133,0.4);
+}
+.ic-btn.revoke:hover {
+    background: var(--iv-rose-dim);
+    border-color: var(--iv-rose);
+    transform: translateY(-2px);
+}
+.ic-btn.ghost {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.ic-btn.ghost:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Accepted card specific */
+.ic-joined-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+.ic-joined-info .ji-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--iv-emerald-dim);
+    color: var(--iv-emerald-deep);
+    border: 1px solid rgba(16,185,129,0.34);
+}
+.ic-joined-info .ji-by {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.ic-joined-info .ji-by b { color: var(--gray-600); font-weight: 800; }
+
+/* Expired card */
+.ic-expired-reason {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+.ic-expired-reason .er-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--iv-rose-dim);
+    color: var(--iv-rose-deep);
+    border: 1px solid rgba(251,113,133,0.34);
+}
+.ic-expired-reason .er-by {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.ic-expired-reason .er-by b { color: var(--gray-600); font-weight: 800; }
+
+/* ============================================================
+   ADMIN EXCLUSIVE — INVITE CONSOLE
+   ============================================================ */
+.invite-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(245, 158, 11, 0.12), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(217, 70, 239, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(245, 158, 11, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.invite-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--iv-honey), var(--iv-fuchsia) 50%, var(--iv-teal) 100%);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.5);
+}
+.invite-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.ic-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.ic-head .ic-h-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--iv-honey), var(--iv-fuchsia));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.ic-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.ic-head h2 em { color: var(--iv-honey); font-style: italic; }
+.ic-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.ic-head .ic-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.42);
+    color: var(--iv-honey);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.ic-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.ic-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.ic-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.ic-tool:hover {
+    background: rgba(245, 158, 11, 0.10);
+    border-color: rgba(245, 158, 11, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(245, 158, 11, 0.18);
+}
+.ic-tool:hover::before { transform: translateX(120%); }
+.ic-tool .ic-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--iv-honey);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.ic-tool:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--iv-honey), var(--iv-fuchsia));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.42);
+}
+.ic-tool.danger .ic-t-ic { color: var(--iv-rose); }
+.ic-tool.danger:hover {
+    background: rgba(251, 113, 133, 0.10);
+    border-color: rgba(251, 113, 133, 0.42);
+}
+.ic-tool.danger:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--iv-rose), var(--iv-rose-deep));
+    box-shadow: 0 8px 20px rgba(251, 113, 133, 0.42);
+}
+.ic-tool.teal .ic-t-ic { color: var(--iv-teal); }
+.ic-tool.teal:hover { background: rgba(20, 184, 166, 0.10); border-color: rgba(20, 184, 166, 0.42); }
+.ic-tool.teal:hover .ic-t-ic {
+    background: linear-gradient(135deg, var(--iv-teal), var(--iv-teal-deep));
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.42);
+}
+.ic-tool .ic-t-body { flex: 1; min-width: 0; }
+.ic-tool .ic-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.ic-tool .ic-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.ic-tool .ic-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.ic-tool:hover .ic-t-arrow { color: var(--iv-honey); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .iv-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .iv-card-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+    .ic-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .ic-actions .ic-action-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .iv-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .ic-token-block { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .iv-card-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .ic-actions { grid-column: auto; }
+}
+@media (max-width: 900px) {
+    .iv-hero { padding: 24px 20px; }
+    .iv-hero-title { font-size: 1.55rem; }
+    .iv-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .iv-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .iv-stat-strip { grid-template-columns: 1fr; }
+    .iv-hero { padding: 22px 18px; }
+    .iv-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .iv-toolbar { padding: 12px 14px; }
+    .iv-search { min-width: 100%; }
+    .ic-actions { flex-direction: column; align-items: stretch; }
+    .ic-actions .ic-action-label { display: block; text-align: left; }
+}
+@media (max-width: 560px) {
+    .iv-tabs { padding: 6px; gap: 3px; }
+    .iv-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .iv-tab .tab-badge { display: none; }
+    .iv-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .iv-wire-label { display: none; }
+    .iv-wire-track { padding-left: 24px; }
+    .iv-card-grid { padding: 18px 16px 18px 20px; }
+    .ic-avatar-wrap, .ic-avatar { width: 52px; height: 52px; }
+    .ic-avatar { font-size: 0.98rem; }
+    .ic-meta .ic-name { font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .iv-wire-track, .acb-avatar::before, .iv-wire-label .iv-dot,
+    .iv-wire-item .wdot, .iv-tab .tab-badge.glow {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     INVITATIONS WIRE — MARQUEE
+     ============================================================ -->
+<div class="iv-wire" aria-label="Invitations pulse">
+    <span class="iv-wire-edge left"></span>
+    <span class="iv-wire-edge right"></span>
+    <div class="iv-wire-label"><span class="iv-dot"></span> Invite Wire</div>
+    <div class="iv-wire-track">
+        <!-- Set A -->
+        <span class="iv-wire-item honey"><span class="wdot"></span><strong>7</strong> pending invites · <em>3 teachers · 4 mentors</em></span>
+        <span class="iv-wire-item emerald"><span class="wdot"></span><strong>142</strong> accepted this month · 68% conversion</span>
+        <span class="iv-wire-item rose"><span class="wdot"></span><strong>24</strong> expired in last 30d · 11% lapse</span>
+        <span class="iv-wire-item fuchsia"><span class="wdot"></span>Fastest accept <strong>2h 14m</strong> after invite sent</span>
+        <span class="iv-wire-item teal"><span class="wdot"></span>Top referrer <strong>Zainab Ibrahim</strong> · 14 accepted</span>
+        <span class="iv-wire-item honey"><span class="wdot"></span><strong>48h</strong> default expiry · extendable up to 7d</span>
+        <span class="iv-wire-item emerald"><span class="wdot"></span><strong>18</strong> invites accepted in last 7 days</span>
+        <span class="iv-wire-item rose"><span class="wdot"></span><strong>3</strong> revoked by admin · abuse prevention</span>
+        <span class="iv-wire-item fuchsia"><span class="wdot"></span>Avg response time <strong>18h 42m</strong></span>
+        <span class="iv-wire-item teal"><span class="wdot"></span><strong>96%</strong> of links clicked within 24h</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="iv-wire-item honey"><span class="wdot"></span><strong>7</strong> pending invites · <em>3 teachers · 4 mentors</em></span>
+        <span class="iv-wire-item emerald"><span class="wdot"></span><strong>142</strong> accepted this month · 68% conversion</span>
+        <span class="iv-wire-item rose"><span class="wdot"></span><strong>24</strong> expired in last 30d · 11% lapse</span>
+        <span class="iv-wire-item fuchsia"><span class="wdot"></span>Fastest accept <strong>2h 14m</strong> after invite sent</span>
+        <span class="iv-wire-item teal"><span class="wdot"></span>Top referrer <strong>Zainab Ibrahim</strong> · 14 accepted</span>
+        <span class="iv-wire-item honey"><span class="wdot"></span><strong>48h</strong> default expiry · extendable up to 7d</span>
+        <span class="iv-wire-item emerald"><span class="wdot"></span><strong>18</strong> invites accepted in last 7 days</span>
+        <span class="iv-wire-item rose"><span class="wdot"></span><strong>3</strong> revoked by admin · abuse prevention</span>
+        <span class="iv-wire-item fuchsia"><span class="wdot"></span>Avg response time <strong>18h 42m</strong></span>
+        <span class="iv-wire-item teal"><span class="wdot"></span><strong>96%</strong> of links clicked within 24h</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     INVITATIONS HERO
+     ============================================================ -->
+<section class="iv-hero fade-up">
+    <div class="iv-hero-inner">
+        <div class="iv-hero-left">
+            <span class="iv-hero-kicker">
+                <i class="bi bi-envelope-paper-fill"></i>
+                Invite System · Root Access
+            </span>
+            <h1 class="iv-hero-title">
+                Open doors, <em>carefully</em>.
+            </h1>
+            <p class="iv-hero-sub">
+                Invite <strong>Teachers</strong> and <strong>Mentors</strong> into Knotwork with
+                single-use links. Default expiry <strong>48h</strong>, extendable to 7 days.
+                Every invite is signed, tracked, and revocable. Conversion this month:
+                <strong>68%</strong>.
+            </p>
+            <div class="iv-hero-meta">
+                <span class="hm"><i class="bi bi-hourglass-split"></i> 7 pending</span>
+                <span class="hm"><i class="bi bi-check2-circle"></i> 142 accepted · 30d</span>
+                <span class="hm warn"><i class="bi bi-x-octagon"></i> 24 expired · 30d</span>
+                <span class="hm"><i class="bi bi-clock-history"></i> 18h avg response</span>
+            </div>
+        </div>
+
+        <div class="iv-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · INVITE OPS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="iv-tabs" role="tablist" aria-label="Invitation sections">
+    <button class="iv-tab active" data-tab="pending" role="tab" style="--tab-accent: #F59E0B; --tab-accent-deep: #B45309; --tab-accent-dim: rgba(245,158,11,0.10); --tab-accent-glow: rgba(245,158,11,0.42);">
+        <span class="tab-ic"><i class="bi bi-hourglass-split"></i></span>
+        <span class="tab-label">
+            Pending
+            <small>Awaiting</small>
+        </span>
+        <span class="tab-badge glow">7</span>
+    </button>
+    <button class="iv-tab" data-tab="accepted" role="tab" style="--tab-accent: #10B981; --tab-accent-deep: #047857; --tab-accent-dim: rgba(16,185,129,0.10); --tab-accent-glow: rgba(16,185,129,0.42);">
+        <span class="tab-ic"><i class="bi bi-check2-circle"></i></span>
+        <span class="tab-label">
+            Accepted
+            <small>Joined</small>
+        </span>
+        <span class="tab-badge">142</span>
+    </button>
+    <button class="iv-tab" data-tab="expired" role="tab" style="--tab-accent: #FB7185; --tab-accent-deep: #BE123C; --tab-accent-dim: rgba(251,113,133,0.10); --tab-accent-glow: rgba(251,113,133,0.42);">
+        <span class="tab-ic"><i class="bi bi-x-octagon"></i></span>
+        <span class="tab-label">
+            Expired
+            <small>Lapsed</small>
+        </span>
+        <span class="tab-badge alert">24</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="iv-panels">
+
+    <!-- =================================================
+         PANEL 1 — PENDING
+         ================================================= -->
+    <div class="iv-panel active" id="panel-pending" role="tabpanel">
+
+        <div class="iv-stat-strip">
+            <div class="iv-stat honey fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-hourglass-split"></i></span><span class="is-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="is-label">Pending Invites</span>
+                <div class="is-value"><span data-count="7">0</span></div>
+            </div>
+            <div class="iv-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-person-workspace"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> 3 new</span></div>
+                <span class="is-label">Teacher Invites</span>
+                <div class="is-value"><span data-count="3">0</span></div>
+            </div>
+            <div class="iv-stat fuchsia fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-person-badge-fill"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> 4 new</span></div>
+                <span class="is-label">Mentor Invites</span>
+                <div class="is-value"><span data-count="4">0</span></div>
+            </div>
+            <div class="iv-stat rose fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-alarm-fill"></i></span><span class="is-trend down"><i class="bi bi-exclamation-triangle-fill"></i> urgent</span></div>
+                <span class="is-label">Expiring &lt; 12h</span>
+                <div class="is-value"><span data-count="2">0</span></div>
+            </div>
+        </div>
+
+        <div class="iv-toolbar">
+            <div class="iv-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search by email, name, or invite ID…" aria-label="Search invitations">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="iv-select" data-toast="Sort by: Expiring soon" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Expiring First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="iv-select" data-toast="Role filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Role</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="iv-toolbar-right">
+                <button class="btn-sm solid" data-toast="Opening invite composer…" data-toast-type="success"><i class="bi bi-envelope-plus-fill"></i> New Invite</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="iv-list">
+
+            <!-- Pending #1 - Teacher -->
+            <article class="iv-card pending fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">AN</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Amara Nwosu</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> amara.nwosu@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="ic-line"><i class="bi bi-mortarboard-fill"></i> Mobile Dev · 7 yrs <span class="v-tag honey">ex-Google</span></div>
+                            <div class="ic-note">Recruited for the <em>Mobile Development track</em>. Strong React Native portfolio.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · 6h ago
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Link</h5>
+                            <span class="ic-token-status pending"><span class="dot"></span> Pending</span>
+                        </div>
+                        <div class="ic-link-row">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="link-text">knotwork.io/join/TCH-a8f3-2e1b-9d4c</span>
+                            <button class="link-copy" data-toast="Link copied to clipboard" data-toast-type="success" title="Copy link"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Expires in</span>
+                                <div class="cd-value fresh">42h <small>/ 48h</small></div>
+                                <div class="cd-bar fresh"><span data-value="88"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code displayed — scan to preview" data-toast-type="info" title="Show QR"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn resend" data-toast="Reminder emailed to Amara Nwosu" data-toast-type="success"><i class="bi bi-send-fill"></i> Resend</button>
+                        <button class="ic-btn extend" data-toast="Extended 48 hours · new expiry Friday 14:22" data-toast-type="info"><i class="bi bi-calendar-plus"></i> Extend</button>
+                        <button class="ic-btn ghost" data-toast="Opening invite detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Revoke invite for Amara Nwosu requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Revoke</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #2 - Mentor (expiring soon) -->
+            <article class="iv-card pending fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar mentor">CO</span>
+                            <span class="ic-type mentor">Mentor</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Chinedu Okafor</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> chinedu.okafor@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="ic-line"><i class="bi bi-cpu-fill"></i> Backend Engineering · 8 yrs <span class="v-tag honey">ex-Stripe</span></div>
+                            <div class="ic-note">Invited to mentor the <em>Backend &amp; Systems</em> cohort. Warm intro from Tunde B.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">TB</span>
+                                Invited by <b>Tunde Bakare</b> · 36h ago
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Link</h5>
+                            <span class="ic-token-status pending"><span class="dot"></span> Pending · Urgent</span>
+                        </div>
+                        <div class="ic-link-row">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="link-text">knotwork.io/join/MNT-4b21-7e9d-1f8a</span>
+                            <button class="link-copy" data-toast="Link copied to clipboard" data-toast-type="success" title="Copy link"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Expires in</span>
+                                <div class="cd-value urgent">4h 18m <small>/ 48h</small></div>
+                                <div class="cd-bar urgent"><span data-value="12"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code displayed" data-toast-type="info" title="Show QR"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn resend" data-toast="Urgent reminder sent to Chinedu Okafor" data-toast-type="success"><i class="bi bi-send-fill"></i> Resend</button>
+                        <button class="ic-btn extend" data-toast="Extended 48 hours · new expiry Sunday 02:40" data-toast-type="info"><i class="bi bi-calendar-plus"></i> Extend</button>
+                        <button class="ic-btn ghost" data-toast="Opening invite detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Revoke invite requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Revoke</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #3 - Teacher -->
+            <article class="iv-card pending fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">IA</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Dr. Ifeoma Adeyemi</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> ifeoma.adeyemi@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Abuja, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="ic-line"><i class="bi bi-mortarboard-fill"></i> Data Science · PhD <span class="v-tag honey">10+ yrs</span></div>
+                            <div class="ic-note">Invited to lead the <em>Data Science</em> curriculum. PhD in Statistics from UNILAG.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · 18h ago
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Link</h5>
+                            <span class="ic-token-status pending"><span class="dot"></span> Pending</span>
+                        </div>
+                        <div class="ic-link-row">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="link-text">knotwork.io/join/TCH-b2c4-1e8a-6d9f</span>
+                            <button class="link-copy" data-toast="Link copied to clipboard" data-toast-type="success" title="Copy link"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Expires in</span>
+                                <div class="cd-value">30h 12m <small>/ 48h</small></div>
+                                <div class="cd-bar"><span data-value="63"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code displayed" data-toast-type="info" title="Show QR"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn resend" data-toast="Reminder sent to Dr. Ifeoma Adeyemi" data-toast-type="success"><i class="bi bi-send-fill"></i> Resend</button>
+                        <button class="ic-btn extend" data-toast="Extended 48 hours" data-toast-type="info"><i class="bi bi-calendar-plus"></i> Extend</button>
+                        <button class="ic-btn ghost" data-toast="Opening detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Revoke invite requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Revoke</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #4 - Mentor -->
+            <article class="iv-card pending fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar mentor">ZI</span>
+                            <span class="ic-type mentor">Mentor</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Zainab Ibrahim</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> zainab.ibrahim@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> London, UK <span class="v-tag">GB</span></div>
+                            <div class="ic-line"><i class="bi bi-palette-fill"></i> Product Design · 6 yrs <span class="v-tag honey">ex-Google</span></div>
+                            <div class="ic-note">Invited to mentor the <em>Design Systems</em> cohort. Referral from existing mentor.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · 5h ago
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Link</h5>
+                            <span class="ic-token-status pending"><span class="dot"></span> Pending</span>
+                        </div>
+                        <div class="ic-link-row">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="link-text">knotwork.io/join/MNT-9e4d-2f1a-8c5b</span>
+                            <button class="link-copy" data-toast="Link copied to clipboard" data-toast-type="success" title="Copy link"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Expires in</span>
+                                <div class="cd-value fresh">43h 04m <small>/ 48h</small></div>
+                                <div class="cd-bar fresh"><span data-value="90"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code displayed" data-toast-type="info" title="Show QR"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn resend" data-toast="Reminder sent to Zainab Ibrahim" data-toast-type="success"><i class="bi bi-send-fill"></i> Resend</button>
+                        <button class="ic-btn extend" data-toast="Extended 48 hours" data-toast-type="info"><i class="bi bi-calendar-plus"></i> Extend</button>
+                        <button class="ic-btn ghost" data-toast="Opening detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Revoke invite requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Revoke</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #5 - Teacher -->
+            <article class="iv-card pending fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">RJ</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Rohan Joshi</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> rohan.joshi@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Bengaluru, India <span class="v-tag">IN</span></div>
+                            <div class="ic-line"><i class="bi bi-server"></i> Backend · 9 yrs <span class="v-tag honey">ex-Atlassian</span></div>
+                            <div class="ic-note">Invited for <em>System Design</em> masterclass series. Referral from Chinedu O.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">CO</span>
+                                Invited by <b>Chinedu Okafor</b> · 12h ago
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Link</h5>
+                            <span class="ic-token-status pending"><span class="dot"></span> Pending</span>
+                        </div>
+                        <div class="ic-link-row">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="link-text">knotwork.io/join/TCH-c7b1-4d2e-9a3f</span>
+                            <button class="link-copy" data-toast="Link copied to clipboard" data-toast-type="success" title="Copy link"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Expires in</span>
+                                <div class="cd-value">36h 22m <small>/ 48h</small></div>
+                                <div class="cd-bar"><span data-value="76"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code displayed" data-toast-type="info" title="Show QR"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn resend" data-toast="Reminder sent to Rohan Joshi" data-toast-type="success"><i class="bi bi-send-fill"></i> Resend</button>
+                        <button class="ic-btn extend" data-toast="Extended 48 hours" data-toast-type="info"><i class="bi bi-calendar-plus"></i> Extend</button>
+                        <button class="ic-btn ghost" data-toast="Opening detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Revoke invite requires confirmation" data-toast-type="error"><i class="bi bi-x-circle"></i> Revoke</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — ACCEPTED
+         ================================================= -->
+    <div class="iv-panel" id="panel-accepted" role="tabpanel">
+
+        <div class="iv-stat-strip">
+            <div class="iv-stat emerald fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-check2-circle"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> 24</span></div>
+                <span class="is-label">Accepted · 30d</span>
+                <div class="is-value"><span data-count="142">0</span></div>
+            </div>
+            <div class="iv-stat honey fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-lightning-charge-fill"></i></span><span class="is-trend"><i class="bi bi-dash"></i> fast</span></div>
+                <span class="is-label">Avg Accept Time</span>
+                <div class="is-value"><span data-count="18">0</span><small>h</small></div>
+            </div>
+            <div class="iv-stat fuchsia fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-graph-up-arrow"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> 3pp</span></div>
+                <span class="is-label">Conversion Rate</span>
+                <div class="is-value"><span data-count="68">0</span><small>%</small></div>
+            </div>
+            <div class="iv-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-trophy-fill"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> top</span></div>
+                <span class="is-label">Top Referrer</span>
+                <div class="is-value">14<small>accepted</small></div>
+            </div>
+        </div>
+
+        <div class="iv-toolbar">
+            <div class="iv-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search accepted invites by name or email…" aria-label="Search accepted">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="iv-select" data-toast="Sort by: Most recent" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Most Recent</span><i class="bi bi-chevron-down"></i></button>
+            <button class="iv-select" data-toast="Role filter opened" data-toast-type="info"><i class="bi bi-funnel-fill"></i><span>Any Role</span><i class="bi bi-chevron-down"></i></button>
+            <div class="iv-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="iv-list">
+
+            <!-- Accepted #1 -->
+            <article class="iv-card accepted fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">AN</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Amara Nwosu <i class="bi bi-patch-check-fill" style="color:var(--iv-emerald);font-size:0.86rem;"></i></div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> amara.nwosu@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="ic-line"><i class="bi bi-mortarboard-fill"></i> Mobile Dev · 7 yrs</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · Mar 12
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status accepted"><span class="dot"></span> Accepted</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-emerald-dim); color:var(--iv-emerald-deep);">
+                            <i class="bi bi-check2-circle" style="color:var(--iv-emerald-deep);"></i>
+                            <span class="link-text">Joined 2h 14m after invite · verification passed</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Published Courses</span>
+                                <div class="cd-value">2 <small>live</small></div>
+                            </div>
+                            <button class="ic-qr" data-toast="Opening profile" data-toast-type="info" title="View Profile"><i class="bi bi-person-fill"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-joined-info">
+                        <span class="ji-tag"><i class="bi bi-check2-circle"></i> Joined</span>
+                        <span class="ji-by">Mar 12, 2025 · 3 days ago</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Accepted #2 -->
+            <article class="iv-card accepted fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar mentor">ZI</span>
+                            <span class="ic-type mentor">Mentor</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Zainab Ibrahim <i class="bi bi-patch-check-fill" style="color:var(--iv-emerald);font-size:0.86rem;"></i></div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> zainab.ibrahim@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> London, UK <span class="v-tag">GB</span></div>
+                            <div class="ic-line"><i class="bi bi-palette-fill"></i> Product Design · 6 yrs</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · Feb 28
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status accepted"><span class="dot"></span> Accepted</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-emerald-dim); color:var(--iv-emerald-deep);">
+                            <i class="bi bi-check2-circle" style="color:var(--iv-emerald-deep);"></i>
+                            <span class="link-text">Joined 4h 08m after invite · verification passed</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Sessions Delivered</span>
+                                <div class="cd-value">248 <small>live</small></div>
+                            </div>
+                            <button class="ic-qr" data-toast="Opening profile" data-toast-type="info" title="View Profile"><i class="bi bi-person-fill"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-joined-info">
+                        <span class="ji-tag"><i class="bi bi-check2-circle"></i> Joined</span>
+                        <span class="ji-by">Feb 28, 2025 · 15 days ago</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Accepted #3 -->
+            <article class="iv-card accepted fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">EM</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Elena Marchetti <i class="bi bi-patch-check-fill" style="color:var(--iv-emerald);font-size:0.86rem;"></i></div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> elena.m@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Milan, Italy <span class="v-tag">IT</span></div>
+                            <div class="ic-line"><i class="bi bi-palette-fill"></i> UI/UX · 8 yrs</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">ZI</span>
+                                Invited by <b>Zainab Ibrahim</b> · Feb 14
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status accepted"><span class="dot"></span> Accepted</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-emerald-dim); color:var(--iv-emerald-deep);">
+                            <i class="bi bi-check2-circle" style="color:var(--iv-emerald-deep);"></i>
+                            <span class="link-text">Joined 6h 42m after invite · verification passed</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Published Courses</span>
+                                <div class="cd-value">5 <small>live</small></div>
+                            </div>
+                            <button class="ic-qr" data-toast="Opening profile" data-toast-type="info" title="View Profile"><i class="bi bi-person-fill"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-joined-info">
+                        <span class="ji-tag"><i class="bi bi-check2-circle"></i> Joined</span>
+                        <span class="ji-by">Feb 14, 2025 · 1 month ago</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Accepted #4 -->
+            <article class="iv-card accepted fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar mentor">TB</span>
+                            <span class="ic-type mentor">Mentor</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Tunde Bakare <i class="bi bi-patch-check-fill" style="color:var(--iv-emerald);font-size:0.86rem;"></i></div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> tunde.bakare@knotwork.io</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="ic-line"><i class="bi bi-server"></i> Backend · 10 yrs</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · Jan 22
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status accepted"><span class="dot"></span> Accepted</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-emerald-dim); color:var(--iv-emerald-deep);">
+                            <i class="bi bi-check2-circle" style="color:var(--iv-emerald-deep);"></i>
+                            <span class="link-text">Joined 3h 18m after invite · verification passed</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Sessions Delivered</span>
+                                <div class="cd-value">184 <small>live</small></div>
+                            </div>
+                            <button class="ic-qr" data-toast="Opening profile" data-toast-type="info" title="View Profile"><i class="bi bi-person-fill"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-joined-info">
+                        <span class="ji-tag"><i class="bi bi-check2-circle"></i> Joined</span>
+                        <span class="ji-by">Jan 22, 2025 · 2 months ago</span>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — EXPIRED
+         ================================================= -->
+    <div class="iv-panel" id="panel-expired" role="tabpanel">
+
+        <div class="iv-stat-strip">
+            <div class="iv-stat rose fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-x-octagon"></i></span><span class="is-trend down"><i class="bi bi-arrow-up-short"></i> 24</span></div>
+                <span class="is-label">Expired · 30d</span>
+                <div class="is-value"><span data-count="24">0</span></div>
+            </div>
+            <div class="iv-stat honey fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-graph-down-arrow"></i></span><span class="is-trend warn"><i class="bi bi-dash"></i> 11%</span></div>
+                <span class="is-label">Lapse Rate</span>
+                <div class="is-value"><span data-count="11">0</span><small>%</small></div>
+            </div>
+            <div class="iv-stat teal fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-arrow-repeat"></i></span><span class="is-trend"><i class="bi bi-arrow-up-short"></i> 8</span></div>
+                <span class="is-label">Re-invited</span>
+                <div class="is-value"><span data-count="8">0</span></div>
+            </div>
+            <div class="iv-stat fuchsia fade-up">
+                <div class="is-head"><span class="is-ic"><i class="bi bi-person-x-fill"></i></span><span class="is-trend down"><i class="bi bi-dash"></i> lost</span></div>
+                <span class="is-label">No Response</span>
+                <div class="is-value"><span data-count="16">0</span></div>
+            </div>
+        </div>
+
+        <div class="iv-toolbar">
+            <div class="iv-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search expired invites…" aria-label="Search expired">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="iv-select" data-toast="Sort by: Recently expired" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Recently Expired</span><i class="bi bi-chevron-down"></i></button>
+            <button class="iv-select" data-toast="Reason filter opened" data-toast-type="info"><i class="bi bi-funnel-fill"></i><span>Any Reason</span><i class="bi bi-chevron-down"></i></button>
+            <div class="iv-toolbar-right">
+                <button class="btn-sm solid" data-toast="Bulk re-invite queued — 3 pending confirmations" data-toast-type="success"><i class="bi bi-arrow-repeat"></i> Bulk Re-invite</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="iv-list">
+
+            <!-- Expired #1 - No response -->
+            <article class="iv-card expired fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">??</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Kofi Mensah</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> kofi.mensah@example.com</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Accra, Ghana <span class="v-tag">GH</span></div>
+                            <div class="ic-line"><i class="bi bi-lightbulb-fill" style="color:var(--iv-rose-deep);"></i> Reason: <strong>No response</strong></div>
+                            <div class="ic-note">Was invited to teach an <em>Android Masterclass</em>. Never clicked link.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · Mar 12
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status expired"><span class="dot"></span> Expired</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-rose-dim); color:var(--iv-rose-deep);">
+                            <i class="bi bi-x-circle" style="color:var(--iv-rose-deep);"></i>
+                            <span class="link-text">Expired 4 days ago · 0 clicks · 0 emails opened</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Status</span>
+                                <div class="cd-value urgent">Expired <small>· 4d ago</small></div>
+                                <div class="cd-bar urgent"><span data-value="0"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code no longer active" data-toast-type="warning" title="QR expired"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn primary" data-toast="Re-invite queued · new link will be emailed" data-toast-type="success"><i class="bi bi-arrow-repeat"></i> Re-invite</button>
+                        <button class="ic-btn ghost" data-toast="Opening invite history" data-toast-type="info"><i class="bi bi-clock-history"></i> History</button>
+                        <button class="ic-btn ghost" data-toast="Opening detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Delete expired invite permanently" data-toast-type="error"><i class="bi bi-trash3"></i> Delete</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Expired #2 - Revoked by admin -->
+            <article class="iv-card expired fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar mentor">SA</span>
+                            <span class="ic-type mentor">Mentor</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Suspicious Applicant</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> suspicious@tempmail.com</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Unknown</div>
+                            <div class="ic-line"><i class="bi bi-shield-exclamation" style="color:var(--iv-rose-deep);"></i> Reason: <strong>Revoked by admin</strong></div>
+                            <div class="ic-note">Flagged by fraud detection. Multiple invites from same IP across different emails.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · Mar 08
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status expired"><span class="dot"></span> Revoked</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-rose-dim); color:var(--iv-rose-deep);">
+                            <i class="bi bi-shield-slash-fill" style="color:var(--iv-rose-deep);"></i>
+                            <span class="link-text">Revoked 6 days ago · fraud pattern detected</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Status</span>
+                                <div class="cd-value urgent">Revoked <small>· 6d ago</small></div>
+                                <div class="cd-bar urgent"><span data-value="0"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR revoked — link permanently disabled" data-toast-type="error" title="QR revoked"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn primary" data-toast="⚠ Re-invite requires KYC review first" data-toast-type="warning"><i class="bi bi-arrow-repeat"></i> Re-invite</button>
+                        <button class="ic-btn ghost" data-toast="Opening fraud report" data-toast-type="info"><i class="bi bi-shield-exclamation"></i> Fraud Log</button>
+                        <button class="ic-btn ghost" data-toast="Opening detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Delete permanently requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i> Delete</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Expired #3 - No response -->
+            <article class="iv-card expired fade-up">
+                <div class="iv-card-grid">
+                    <div class="ic-applicant">
+                        <div class="ic-avatar-wrap">
+                            <span class="ic-avatar teacher">MN</span>
+                            <span class="ic-type teacher">Teacher</span>
+                        </div>
+                        <div class="ic-meta">
+                            <div class="ic-name">Maya Ndaba</div>
+                            <div class="ic-line"><i class="bi bi-envelope-fill"></i> maya.ndaba@example.com</div>
+                            <div class="ic-line"><i class="bi bi-geo-alt-fill"></i> Cape Town, SA <span class="v-tag">ZA</span></div>
+                            <div class="ic-line"><i class="bi bi-lightbulb-fill" style="color:var(--iv-rose-deep);"></i> Reason: <strong>Clicked but never completed</strong></div>
+                            <div class="ic-note">Opened invite link 3 times but never completed profile setup.</div>
+                            <span class="ic-invited-by">
+                                <span class="ib-av">AD</span>
+                                Invited by <b>You</b> · Mar 04
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ic-token-block">
+                        <div class="ic-token-head">
+                            <h5>Invite Lifecycle</h5>
+                            <span class="ic-token-status expired"><span class="dot"></span> Expired</span>
+                        </div>
+                        <div class="ic-link-row" style="background:var(--iv-rose-dim); color:var(--iv-rose-deep);">
+                            <i class="bi bi-x-circle" style="color:var(--iv-rose-deep);"></i>
+                            <span class="link-text">Expired 12 days ago · 3 clicks · dropped at step 2</span>
+                        </div>
+                        <div class="ic-countdown-row">
+                            <div class="ic-countdown">
+                                <span class="cd-label">Status</span>
+                                <div class="cd-value urgent">Expired <small>· 12d ago</small></div>
+                                <div class="cd-bar urgent"><span data-value="0"></span></div>
+                            </div>
+                            <button class="ic-qr" data-toast="QR code no longer active" data-toast-type="warning" title="QR expired"><i class="bi bi-qr-code"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="ic-actions">
+                        <span class="ic-action-label">Actions</span>
+                        <button class="ic-btn primary" data-toast="Re-invite queued · onboarding note attached" data-toast-type="success"><i class="bi bi-arrow-repeat"></i> Re-invite</button>
+                        <button class="ic-btn ghost" data-toast="Opening funnel analysis" data-toast-type="info"><i class="bi bi-graph-down-arrow"></i> Funnel</button>
+                        <button class="ic-btn ghost" data-toast="Opening detail view" data-toast-type="info"><i class="bi bi-eye"></i> View</button>
+                        <button class="ic-btn revoke" data-toast="⚠ Delete permanently requires MFA" data-toast-type="error"><i class="bi bi-trash3"></i> Delete</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — INVITE CONSOLE
+     ============================================================ -->
+<div class="invite-console fade-up">
+    <div class="ic-head">
+        <span class="ic-h-ic"><i class="bi bi-envelope-paper-fill"></i></span>
+        <div>
+            <h2>Invite <em>Console</em></h2>
+            <p>ROOT-ONLY · BULK INVITES · ABUSE CONTROL · AUDIT-LOGGED</p>
+        </div>
+        <span class="ic-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="ic-grid">
+        <button class="ic-tool" data-toast="Opening bulk invite composer — CSV or paste list" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-collection-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Bulk Invite</strong>
+                <p>Upload CSV or paste email list. Generates unique single-use links.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool" data-toast="Invite template editor opened — 4 templates" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-brush-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Email Templates</strong>
+                <p>Customize invite copy for Teachers, Mentors, and region variants.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool teal" data-toast="UTM & referral tracking opened" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-graph-up"></i></span>
+            <div class="ic-t-body">
+                <strong>Referral Tracking</strong>
+                <p>Attribute accepted invites to referrers · leaderboard + payouts.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool" data-toast="Domain allowlist opened — 3 blocked domains" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-shield-slash-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Domain Allowlist</strong>
+                <p>Block disposable emails (tempmail, etc.) from receiving invites.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool" data-toast="Expiry policy editor opened" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-hourglass-split"></i></span>
+            <div class="ic-t-body">
+                <strong>Expiry Policy</strong>
+                <p>Configure default TTL (24h / 48h / 7d) per role and region.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool teal" data-toast="Auto-reminder rules opened" data-toast-type="info">
+            <span class="ic-t-ic"><i class="bi bi-bell-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Auto-Reminders</strong>
+                <p>Send reminders at T-24h and T-6h before expiry for higher accept rate.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool danger" data-toast="⚠ Revoke all pending invites requires MFA + reason" data-toast-type="error">
+            <span class="ic-t-ic"><i class="bi bi-slash-circle-fill"></i></span>
+            <div class="ic-t-body">
+                <strong>Revoke All Pending</strong>
+                <p>Emergency stop — disable every outstanding invite link instantly.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+
+        <button class="ic-tool danger" data-toast="⚠ Freeze invite system — no new invites until unfrozen" data-toast-type="error">
+            <span class="ic-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="ic-t-body">
+                <strong>Freeze Invites</strong>
+                <p>Pause outgoing invites during incidents. Existing links still valid.</p>
+            </div>
+            <i class="bi bi-arrow-right ic-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       MAIN TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.iv-tab');
+    const panels = document.querySelectorAll('.iv-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+            setTimeout(() => paintBars(panel || document), 60);
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       ANIMATE BARS (expiry countdown bars)
+       ============================================================ */
+    function paintBars(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.cd-bar > span[data-value], .bar > span[data-value]').forEach(el => {
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 80));
+        });
+    }
+    window.addEventListener('load', () => paintBars(document));
+
+    /* ============================================================
+       COPY LINK buttons
+       ============================================================ */
+    document.querySelectorAll('.link-copy').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const row = this.closest('.ic-link-row');
+            const text = row?.querySelector('.link-text')?.textContent?.trim() || '';
+            if (navigator.clipboard && text) {
+                navigator.clipboard.writeText(text).catch(() => {});
+            }
+            if (typeof window.showKnotToast === 'function') {
+                window.showKnotToast('Invite link copied to clipboard', 'success');
+            }
+        });
+    });
+
+    /* ============================================================
+       EXPIRY COUNTDOWN TICKER — updates every minute
+       ============================================================ */
+    function tickCountdowns() {
+        document.querySelectorAll('.ic-countdown .cd-value').forEach(el => {
+            if (el.classList.contains('urgent') || el.dataset.frozen) return;
+            const small = el.querySelector('small');
+            if (!small) return;
+            const txt = el.textContent.replace(small.textContent, '').trim();
+            const m = txt.match(/(\d+)h\s*(\d+)?m?/);
+            if (!m) return;
+            let h = parseInt(m[1], 10) || 0;
+            let min = parseInt(m[2] || 0, 10) || 0;
+            if (h === 0 && min === 0) return;
+            min -= 1;
+            if (min < 0) { min = 59; h -= 1; }
+            if (h < 0) { h = 0; min = 0; }
+            const newText = `${h}h ${String(min).padStart(2,'0')}m `;
+            el.childNodes[0].nodeValue = newText;
+        });
+    }
+    setInterval(tickCountdowns, 60000);
+
+    /* ============================================================
+       RESEND / EXTEND / REVOKE / RE-INVITE — quick toasts
+       ============================================================ */
+    document.querySelectorAll('.ic-btn.resend').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (typeof window.showKnotToast === 'function') {
+                window.showKnotToast('Reminder email queued · will arrive in < 60s', 'success');
+            }
+        });
+    });
+    document.querySelectorAll('.ic-btn.extend').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const card = btn.closest('.iv-card');
+            const cd = card?.querySelector('.ic-countdown .cd-value');
+            if (cd) {
+                cd.classList.remove('urgent');
+                cd.classList.add('fresh');
+                cd.dataset.frozen = '1';
+                cd.childNodes[0].nodeValue = '48h 00m ';
+                const bar = card.querySelector('.cd-bar');
+                if (bar) {
+                    bar.classList.remove('urgent');
+                    bar.classList.add('fresh');
+                    const fill = bar.querySelector('span');
+                    if (fill) { fill.dataset.value = '100'; fill.style.width = '100%'; }
+                }
+            }
+        });
+    });
+    document.querySelectorAll('.ic-btn.revoke').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.iv-card');
+            if (!card) return;
+            card.style.transition = 'all .4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(-24px) scale(0.98)';
+            setTimeout(() => card.remove(), 420);
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.ic-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

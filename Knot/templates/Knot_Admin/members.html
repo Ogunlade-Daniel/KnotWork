@@ -1,0 +1,2949 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Members · Command{% endblock %}
+{% block page_title %}Members{% endblock %}
+{% block breadcrumb %}People <i class="bi bi-chevron-right"></i> Members{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   MEMBERS · COMMAND REGISTRY
+   Improvised palette — civic trust blues + admin gold/violet
+   Scoped under .mb-shell so it never leaks
+   ============================================================ */
+
+.mb-shell {
+    --mb-void:      #04081A;
+    --mb-ink:       #0A1024;
+    --mb-slate:     #16203F;
+    --mb-slate-2:   #1F2B52;
+
+    --mb-azure:     #60A5FA;
+    --mb-azure-soft:#93C5FD;
+    --mb-azure-deep:#1D4ED8;
+    --mb-cyan:      #22D3EE;
+    --mb-cyan-deep: #0E7490;
+    --mb-teal:      #2DD4BF;
+    --mb-teal-deep: #0F766E;
+
+    --mb-gold:      #FBBF24;
+    --mb-gold-soft: #FDE68A;
+    --mb-gold-deep: #B45309;
+
+    --mb-violet:    #A78BFA;
+    --mb-violet-deep:#6D28D9;
+    --mb-rose:      #FB7185;
+    --mb-rose-deep: #BE123C;
+    --mb-amber:     #F59E0B;
+    --mb-jade:      #34D399;
+    --mb-jade-deep: #047857;
+
+    --mb-cream:     #FAFBFD;
+    --mb-line:      rgba(10, 16, 36, 0.07);
+
+    --mb-azure-grad: linear-gradient(135deg, #BFDBFE 0%, #60A5FA 48%, #1D4ED8 100%);
+    --mb-cyan-grad:  linear-gradient(135deg, #A5F3FC 0%, #22D3EE 48%, #0E7490 100%);
+    --mb-teal-grad:  linear-gradient(135deg, #99F6E4 0%, #2DD4BF 48%, #0F766E 100%);
+    --mb-violet-grad: linear-gradient(135deg, #DDD6FE 0%, #A78BFA 48%, #6D28D9 100%);
+    --mb-gold-grad:  linear-gradient(135deg, #FEF3C7 0%, #FBBF24 48%, #D97706 100%);
+    --mb-rose-grad:  linear-gradient(135deg, #FECDD3 0%, #FB7185 48%, #BE123C 100%);
+
+    --mb-glow-azure: 0 10px 30px rgba(96, 165, 250, 0.30);
+    --mb-glow-cyan:  0 10px 30px rgba(34, 211, 238, 0.28);
+    --mb-glow-gold:  0 10px 30px rgba(251, 191, 36, 0.30);
+
+    display: flex; flex-direction: column; gap: 22px;
+    padding-bottom: 40px;
+}
+
+/* ============================================================
+   ADMIN BADGES
+   ============================================================ */
+.mb-root {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 13px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--mb-void);
+    background: linear-gradient(135deg, #FDE68A 0%, #FBBF24 42%, #A78BFA 100%);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.42),
+                inset 0 1px 0 rgba(255,255,255,.6);
+    position: relative; overflow: hidden;
+    white-space: nowrap;
+}
+.mb-root::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.8) 50%, transparent 62%);
+    transform: translateX(-130%);
+    animation: mbShine 3.4s cubic-bezier(.4,0,.2,1) infinite;
+}
+@keyframes mbShine {
+    0%, 55% { transform: translateX(-130%); }
+    85%, 100% { transform: translateX(130%); }
+}
+.mb-root i { font-size: 0.72rem; }
+.mb-root.azure { background: var(--mb-azure-grad); color: var(--mb-void); }
+.mb-root.ghost {
+    background: transparent;
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    color: var(--mb-gold-deep);
+    box-shadow: none;
+}
+.mb-root.ghost::after { display: none; }
+
+.mb-lock {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--mb-gold-deep);
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px dashed rgba(251, 191, 36, 0.42);
+}
+.mb-lock.violet { color: var(--mb-violet-deep); background: rgba(139,92,246,.10); border-color: rgba(139,92,246,.42); }
+.mb-lock.rose { color: var(--mb-rose-deep); background: rgba(251,113,133,.10); border-color: rgba(251,113,133,.42); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.mb-hero {
+    position: relative;
+    border-radius: 26px;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        radial-gradient(circle at 88% 8%, rgba(96, 165, 250, 0.30), transparent 52%),
+        radial-gradient(circle at 6% 100%, rgba(34, 211, 238, 0.24), transparent 58%),
+        radial-gradient(circle at 48% -18%, rgba(45, 212, 191, 0.14), transparent 44%),
+        linear-gradient(140deg, #04081A 0%, #0A1024 46%, #1A2344 100%);
+    border: 1px solid rgba(96, 165, 250, 0.22);
+    box-shadow: 0 30px 72px rgba(2, 6, 23, 0.36);
+    padding: 34px 38px 32px;
+}
+.mb-hero::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,.024) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.024) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 78%);
+    pointer-events: none;
+}
+.mb-hero::after {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px; z-index: 4;
+    background: linear-gradient(90deg,
+                #BFDBFE 0%, #60A5FA 34%, #22D3EE 66%, #2DD4BF 100%);
+    box-shadow: 0 0 26px rgba(96, 165, 250, 0.6);
+}
+.mb-hero-body {
+    position: relative; z-index: 2;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 32px; flex-wrap: wrap;
+}
+.mb-hero-badges { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 16px; }
+.mb-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.62);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.mb-chip i { font-size: 0.68rem; color: var(--mb-azure); }
+.mb-chip.jade { color: #6EE7B7; border-color: rgba(52, 211, 153, 0.34); background: rgba(52, 211, 153, 0.09); }
+.mb-chip.jade i { color: var(--mb-jade); }
+.mb-chip.cyan { color: #67E8F9; border-color: rgba(34, 211, 238, 0.34); background: rgba(34, 211, 238, 0.09); }
+.mb-chip.cyan i { color: var(--mb-cyan); }
+.mb-chip.rose { color: #FDA4AF; border-color: rgba(251, 113, 133, 0.34); background: rgba(251, 113, 133, 0.09); }
+.mb-chip.rose i { color: var(--mb-rose); }
+
+.mb-hero h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 3.2vw, 2.6rem);
+    font-weight: 700; line-height: 1.08;
+    color: #fff; letter-spacing: -0.015em;
+}
+.mb-hero h2 em {
+    font-style: italic;
+    background: linear-gradient(135deg, #BFDBFE 0%, #60A5FA 48%, #22D3EE 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.mb-hero p {
+    margin-top: 12px; max-width: 620px;
+    font-size: 0.9rem; line-height: 1.7;
+    color: rgba(255, 255, 255, 0.58);
+}
+.mb-hero p strong { color: rgba(255,255,255,.85); }
+.mb-hero p code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(96, 165, 250, 0.14);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    color: #BFDBFE;
+}
+
+.mb-hero-stats {
+    display: flex; gap: 12px; flex-wrap: wrap;
+}
+.mb-hero-stats > div {
+    min-width: 130px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(10px);
+    transition: all .35s cubic-bezier(.25,.46,.45,.94);
+    position: relative;
+    overflow: hidden;
+}
+.mb-hero-stats > div::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: var(--stat-accent, var(--mb-azure-grad));
+    opacity: .85;
+}
+.mb-hero-stats > div:hover {
+    transform: translateY(-4px);
+    border-color: rgba(96, 165, 250, 0.42);
+    background: rgba(96, 165, 250, 0.08);
+}
+.mb-hero-stats strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1.1;
+}
+.mb-hero-stats strong em { font-style: normal; color: #93C5FD; font-size: 0.85rem; }
+.mb-hero-stats span {
+    display: block; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+/* ============================================================
+   MARQUEE
+   ============================================================ */
+.mb-marquee {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(90deg, #0A1024, #1F2B52 48%, #0A1024);
+    border: 1px solid rgba(96, 165, 250, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.mb-marquee::before, .mb-marquee::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 90px; z-index: 3;
+    pointer-events: none;
+}
+.mb-marquee::before { left: 0;  background: linear-gradient(90deg, #0A1024, transparent); }
+.mb-marquee::after  { right: 0; background: linear-gradient(270deg, #0A1024, transparent); }
+.mb-mq-track {
+    display: flex; align-items: center;
+    width: max-content;
+    animation: mbMq 48s linear infinite;
+}
+.mb-marquee:hover .mb-mq-track { animation-play-state: paused; }
+@keyframes mbMq { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.mb-mq-item {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 26px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; font-weight: 600;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.mb-mq-item b { color: #fff; font-weight: 700; }
+.mb-mq-item i { font-size: 0.78rem; color: var(--mb-azure); }
+.mb-mq-item.jade i  { color: var(--mb-jade); }
+.mb-mq-item.cyan i  { color: var(--mb-cyan); }
+.mb-mq-item.rose i  { color: var(--mb-rose); }
+.mb-mq-item.gold i  { color: var(--mb-gold); }
+.mb-mq-item.viol i  { color: var(--mb-violet); }
+.mb-mq-item .tag {
+    padding: 2px 8px; border-radius: 50px;
+    font-size: 0.5rem; font-weight: 800; letter-spacing: 0.12em;
+    background: rgba(96, 165, 250, 0.14);
+    border: 1px solid rgba(96, 165, 250, 0.34);
+    color: #93C5FD;
+}
+.mb-mq-item .tag.mint { background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.34); color: #6EE7B7; }
+.mb-mq-item .tag.rose { background: rgba(251,113,133,.12); border-color: rgba(251,113,133,.34); color: #FDA4AF; }
+.mb-mq-item .tag.sky  { background: rgba(34,211,238,.12); border-color: rgba(34,211,238,.34); color: #67E8F9; }
+.mb-mq-item .tag.gold { background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.34); color: #FDE68A; }
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.mb-tabbar {
+    position: sticky; top: 74px; z-index: 120;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 10px 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--mb-line);
+    box-shadow: 0 12px 36px rgba(10, 16, 36, 0.07);
+}
+.mb-tabs {
+    position: relative;
+    display: flex; align-items: center; gap: 4px;
+    flex: 1; min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.mb-tabs::-webkit-scrollbar { display: none; }
+.mb-tab {
+    position: relative; z-index: 2;
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px;
+    border-radius: 13px;
+    border: none; background: transparent;
+    font-family: inherit;
+    font-size: 0.83rem; font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer; white-space: nowrap;
+    transition: color .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.mb-tab i { font-size: 0.94rem; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+.mb-tab:hover { color: var(--primary-dark); }
+.mb-tab:hover i { transform: translateY(-2px) scale(1.1); }
+.mb-tab.active { color: var(--primary-deep); font-weight: 700; }
+.mb-tab.active i { color: var(--mb-azure-deep); }
+.mb-tab .cnt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    padding: 2px 7px; border-radius: 50px;
+    background: var(--gray-100); color: var(--gray-600);
+    transition: all .3s ease;
+}
+.mb-tab.active .cnt { background: rgba(96, 165, 250, 0.22); color: var(--mb-azure-deep); }
+
+.mb-tab-ind {
+    position: absolute; z-index: 1;
+    top: 4px; bottom: 4px; left: 0;
+    width: 0; border-radius: 13px;
+    background: linear-gradient(135deg,
+                rgba(191, 219, 254, 0.7) 0%,
+                rgba(96, 165, 250, 0.42) 48%,
+                rgba(34, 211, 238, 0.32) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.42);
+    box-shadow: 0 6px 20px rgba(96, 165, 250, 0.24),
+                inset 0 1px 0 rgba(255,255,255,.7);
+    transition: transform .45s cubic-bezier(.34,1.56,.64,1), width .45s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none;
+}
+
+.mb-tab-actions { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.mb-sync {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #047857;
+    padding: 7px 13px; border-radius: 50px;
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.34);
+    transition: all .35s ease;
+}
+.mb-sync .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--mb-jade);
+    box-shadow: 0 0 0 0 rgba(52,211,153,.6);
+    animation: mbPulse 2s infinite;
+}
+@keyframes mbPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.6); }
+    70%  { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+}
+
+/* ============================================================
+   PANELS + GRID
+   ============================================================ */
+.mb-panel { display: none; animation: mbPanelIn .45s cubic-bezier(.2,.9,.3,1); }
+.mb-panel.active { display: block; }
+@keyframes mbPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mb-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 22px;
+    align-items: start;
+}
+.mb-col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+@media (max-width: 1240px) { .mb-grid { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.mb-card {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--mb-line);
+    border-radius: 20px;
+    box-shadow: 0 6px 26px rgba(10, 16, 36, 0.05);
+    overflow: hidden;
+    transition: box-shadow .35s ease, border-color .35s ease;
+}
+.mb-card:hover { box-shadow: 0 18px 52px rgba(10, 16, 36, 0.10); }
+.mb-card.admin-only { border-color: rgba(251, 191, 36, 0.24); }
+.mb-card.admin-only::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--mb-gold), var(--mb-violet));
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.5);
+    z-index: 2;
+}
+
+.mb-card-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--mb-line);
+    background: linear-gradient(180deg, rgba(250,251,253,.7), #fff);
+}
+.mb-card-head .ttl { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.mb-card-head .ic {
+    width: 42px; height: 42px; flex-shrink: 0;
+    border-radius: 13px;
+    display: grid; place-items: center;
+    font-size: 1rem;
+    background: linear-gradient(135deg, var(--mb-void), var(--mb-slate-2));
+    color: var(--mb-azure);
+    box-shadow: 0 10px 22px rgba(10, 16, 36, 0.22), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.mb-card-head .ic.cyan { color: var(--mb-cyan); }
+.mb-card-head .ic.teal { color: var(--mb-teal); }
+.mb-card-head .ic.violet { color: var(--mb-violet); }
+.mb-card-head .ic.gold { color: var(--mb-gold); }
+.mb-card-head .ic.rose { color: var(--mb-rose); }
+.mb-card-head .ic.jade { color: var(--mb-jade); }
+.mb-card-head h3 {
+    font-size: 1rem; font-weight: 700; color: var(--primary-dark);
+    line-height: 1.25; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.mb-card-head p {
+    margin-top: 3px;
+    font-size: 0.74rem; color: var(--gray-600); line-height: 1.5;
+}
+.mb-card-body { padding: 22px 24px 24px; }
+.mb-card-body.flush { padding: 0; }
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.mb-toolbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--mb-line);
+    background: linear-gradient(180deg, rgba(250,251,253,.6), #fff);
+    flex-wrap: wrap;
+}
+.mb-search {
+    flex: 1; min-width: 240px;
+    position: relative;
+    display: flex; align-items: center;
+    background: #fff;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 50px;
+    padding: 0 14px;
+    height: 42px;
+    transition: all .28s ease;
+}
+.mb-search:focus-within {
+    border-color: var(--mb-azure);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.18);
+}
+.mb-search > i {
+    color: var(--mb-azure-deep);
+    font-size: 0.9rem; flex-shrink: 0;
+}
+.mb-search input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: inherit; font-size: 0.85rem;
+    color: var(--primary-dark);
+    padding: 0 12px; min-width: 0;
+}
+.mb-search input::placeholder { color: var(--gray-400); }
+.mb-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; font-weight: 700;
+    color: var(--gray-400);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    padding: 2px 6px; border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.mb-filter-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 14px;
+    border-radius: 50px;
+    border: 1.5px solid var(--gray-200);
+    background: #fff;
+    font-family: inherit; font-size: 0.78rem; font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all .28s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+}
+.mb-filter-btn:hover {
+    border-color: var(--mb-azure);
+    color: var(--mb-azure-deep);
+    transform: translateY(-2px);
+}
+.mb-filter-btn.active {
+    background: var(--mb-azure-grad);
+    border-color: transparent;
+    color: var(--mb-void);
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(96, 165, 250, 0.32);
+}
+.mb-filter-btn i { font-size: 0.82rem; }
+.mb-filter-btn .f-cnt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    padding: 2px 7px; border-radius: 50px;
+    background: rgba(10, 16, 36, 0.06);
+    color: inherit;
+}
+.mb-filter-btn.active .f-cnt {
+    background: rgba(255,255,255,0.35);
+}
+
+.mb-select {
+    padding: 9px 14px 9px 14px;
+    border-radius: 50px;
+    border: 1.5px solid var(--gray-200);
+    background: #fff;
+    font-family: inherit; font-size: 0.78rem; font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all .28s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 13px;
+    padding-right: 34px;
+    outline: none;
+}
+.mb-select:hover, .mb-select:focus {
+    border-color: var(--mb-azure);
+    color: var(--primary-dark);
+}
+
+/* ============================================================
+   BULK ACTION BAR
+   ============================================================ */
+.mb-bulk {
+    display: none;
+    align-items: center; gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.24);
+    background: linear-gradient(90deg,
+                rgba(191, 219, 254, 0.20),
+                rgba(34, 211, 238, 0.10),
+                transparent);
+    flex-wrap: wrap;
+}
+.mb-bulk.show { display: flex; }
+.mb-bulk .b-selected {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--mb-azure-deep);
+}
+.mb-bulk .b-selected b {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--mb-azure-deep);
+}
+.mb-bulk .b-actions {
+    display: flex; gap: 7px; margin-left: auto; flex-wrap: wrap;
+}
+.mb-bulk .b-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: 50px;
+    border: 1px solid var(--gray-200);
+    background: #fff;
+    font-family: inherit; font-size: 0.72rem; font-weight: 700;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all .28s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+}
+.mb-bulk .b-btn:hover {
+    border-color: var(--mb-azure);
+    color: var(--mb-azure-deep);
+    transform: translateY(-2px);
+}
+.mb-bulk .b-btn.rose:hover {
+    border-color: var(--mb-rose);
+    color: var(--mb-rose-deep);
+    background: rgba(251, 113, 133, 0.06);
+}
+.mb-bulk .b-btn.violet:hover {
+    border-color: var(--mb-violet);
+    color: var(--mb-violet-deep);
+    background: rgba(167, 139, 250, 0.06);
+}
+.mb-bulk .b-btn.gold:hover {
+    border-color: var(--mb-gold);
+    color: var(--mb-gold-deep);
+    background: rgba(251, 191, 36, 0.06);
+}
+
+/* ============================================================
+   MEMBER TABLE
+   ============================================================ */
+.mb-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.mb-table th {
+    text-align: left;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--gray-400);
+    border-bottom: 1px solid var(--gray-200);
+    background: rgba(250, 251, 253, 0.7);
+    white-space: nowrap;
+    position: sticky; top: 0;
+    z-index: 2;
+}
+.mb-table th:first-child { padding-left: 20px; }
+.mb-table th:last-child { padding-right: 20px; text-align: right; }
+.mb-table td {
+    padding: 14px 16px;
+    font-size: 0.82rem;
+    color: var(--gray-600);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+.mb-table td:first-child { padding-left: 20px; }
+.mb-table td:last-child { padding-right: 20px; text-align: right; }
+.mb-table tbody tr {
+    transition: background .25s ease, transform .2s ease;
+    position: relative;
+}
+.mb-table tbody tr:hover { background: rgba(96, 165, 250, 0.04); }
+.mb-table tbody tr.selected {
+    background: linear-gradient(90deg, rgba(191, 219, 254, 0.20), rgba(34, 211, 238, 0.08), transparent);
+}
+.mb-table tbody tr.selected::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--mb-azure-grad);
+    box-shadow: 0 0 12px rgba(96, 165, 250, 0.6);
+}
+.mb-table tbody tr:last-child td { border-bottom: none; }
+
+/* Checkbox */
+.mb-check {
+    display: inline-flex;
+    cursor: pointer;
+    position: relative;
+    width: 18px; height: 18px;
+}
+.mb-check input {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.mb-check .tick {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--gray-300);
+    background: #fff;
+    display: grid; place-items: center;
+    transition: all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.mb-check .tick i {
+    font-size: 0.62rem;
+    color: #fff;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.mb-check input:checked + .tick {
+    background: var(--mb-azure-grad);
+    border-color: transparent;
+    box-shadow: 0 4px 10px rgba(96, 165, 250, 0.42);
+}
+.mb-check input:checked + .tick i {
+    opacity: 1; transform: scale(1); color: var(--mb-void);
+}
+
+/* Member cell */
+.mb-member {
+    display: flex; align-items: center; gap: 12px;
+    min-width: 0;
+}
+.mb-avatar {
+    position: relative;
+    width: 42px; height: 42px; flex-shrink: 0;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 0.9rem;
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 6px 14px rgba(10, 16, 36, 0.14);
+}
+.mb-avatar.student { background: var(--mb-azure-grad); color: var(--mb-void); }
+.mb-avatar.teacher { background: var(--mb-teal-grad); color: #052e2b; }
+.mb-avatar.mentor  { background: var(--mb-violet-grad); }
+.mb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.mb-avatar .role-mark {
+    position: absolute;
+    bottom: -3px; right: -3px;
+    width: 18px; height: 18px;
+    border-radius: 6px;
+    border: 2px solid #fff;
+    display: grid; place-items: center;
+    font-size: 0.6rem;
+    box-shadow: 0 2px 6px rgba(10, 16, 36, 0.2);
+}
+.mb-avatar.student .role-mark { background: var(--mb-azure-deep); color: #fff; }
+.mb-avatar.teacher .role-mark { background: var(--mb-teal-deep); color: #fff; }
+.mb-avatar.mentor  .role-mark { background: var(--mb-violet-deep); color: #fff; }
+
+.mb-member-info { min-width: 0; }
+.mb-member-info strong {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.85rem; font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.25;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mb-member-info strong .verified {
+    display: inline-flex;
+    color: var(--mb-azure-deep);
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+.mb-member-info strong .verified.gold { color: var(--mb-gold-deep); }
+.mb-member-info small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Role pill */
+.mb-role {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase;
+}
+.mb-role i { font-size: 0.68rem; }
+.mb-role.student {
+    color: var(--mb-azure-deep);
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.34);
+}
+.mb-role.teacher {
+    color: var(--mb-teal-deep);
+    background: rgba(45, 212, 191, 0.12);
+    border: 1px solid rgba(45, 212, 191, 0.34);
+}
+.mb-role.mentor {
+    color: var(--mb-violet-deep);
+    background: rgba(167, 139, 250, 0.12);
+    border: 1px solid rgba(167, 139, 250, 0.34);
+}
+
+/* Status indicator */
+.mb-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase;
+}
+.mb-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+}
+.mb-status.active {
+    color: var(--mb-jade-deep);
+    background: rgba(52, 211, 153, 0.10);
+    border: 1px solid rgba(52, 211, 153, 0.30);
+}
+.mb-status.active .dot {
+    background: var(--mb-jade);
+    box-shadow: 0 0 0 0 rgba(52,211,153,.6);
+    animation: mbPulse 2s infinite;
+}
+.mb-status.pending {
+    color: var(--mb-gold-deep);
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.34);
+}
+.mb-status.pending .dot { background: var(--mb-gold); }
+.mb-status.suspended {
+    color: var(--mb-amber);
+    background: rgba(245, 158, 11, 0.10);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+}
+.mb-status.suspended .dot { background: var(--mb-amber); }
+.mb-status.banned {
+    color: var(--mb-rose-deep);
+    background: rgba(251, 113, 133, 0.10);
+    border: 1px solid rgba(251, 113, 133, 0.32);
+}
+.mb-status.banned .dot { background: var(--mb-rose); }
+
+/* Meta cell */
+.mb-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--gray-600);
+    letter-spacing: 0.02em;
+}
+.mb-meta strong {
+    display: block;
+    color: var(--primary-dark);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0;
+    font-family: 'Inter', sans-serif;
+}
+.mb-meta small {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+}
+
+/* Row actions */
+.mb-actions {
+    display: inline-flex; align-items: center; gap: 4px;
+    justify-content: flex-end;
+}
+.mb-act-btn {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--gray-400);
+    display: grid; place-items: center;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all .28s cubic-bezier(.34,1.56,.64,1);
+}
+.mb-act-btn:hover {
+    background: var(--gray-100);
+    color: var(--mb-azure-deep);
+    transform: translateY(-2px);
+}
+.mb-act-btn.gold:hover {
+    background: rgba(251, 191, 36, 0.12);
+    color: var(--mb-gold-deep);
+}
+.mb-act-btn.rose:hover {
+    background: rgba(251, 113, 133, 0.12);
+    color: var(--mb-rose-deep);
+}
+.mb-act-btn.violet:hover {
+    background: rgba(167, 139, 250, 0.12);
+    color: var(--mb-violet-deep);
+}
+
+/* Empty state */
+.mb-empty {
+    padding: 60px 24px;
+    text-align: center;
+}
+.mb-empty .e-ic {
+    width: 68px; height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 20px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.10), rgba(34, 211, 238, 0.06));
+    border: 1px dashed rgba(96, 165, 250, 0.32);
+    color: var(--mb-azure-deep);
+    font-size: 1.6rem;
+}
+.mb-empty h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 6px;
+}
+.mb-empty p {
+    font-size: 0.82rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto 18px;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.mb-paginate {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    padding: 16px 20px;
+    border-top: 1px solid var(--mb-line);
+    background: linear-gradient(180deg, #fff, rgba(250,251,253,.6));
+}
+.mb-paginate .pg-info {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--gray-600);
+}
+.mb-paginate .pg-info b {
+    color: var(--primary-dark);
+    font-weight: 800;
+}
+.mb-paginate .pg-controls {
+    display: flex; gap: 4px; align-items: center;
+}
+.mb-paginate .pg-btn {
+    min-width: 34px; height: 34px;
+    border-radius: 9px;
+    border: 1px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-600);
+    display: inline-grid; place-items: center;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; font-weight: 700;
+    transition: all .28s cubic-bezier(.34,1.56,.64,1);
+    padding: 0 10px;
+}
+.mb-paginate .pg-btn:hover {
+    border-color: var(--mb-azure);
+    color: var(--mb-azure-deep);
+    transform: translateY(-2px);
+}
+.mb-paginate .pg-btn.active {
+    background: var(--mb-azure-grad);
+    border-color: transparent;
+    color: var(--mb-void);
+    box-shadow: 0 6px 14px rgba(96, 165, 250, 0.34);
+}
+.mb-paginate .pg-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================================
+   SIDE INSIGHTS
+   ============================================================ */
+.mb-mini {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--gray-200);
+}
+.mb-mini:last-child { border-bottom: none; padding-bottom: 0; }
+.mb-mini:first-child { padding-top: 0; }
+.mb-mini .ic {
+    width: 38px; height: 38px; flex-shrink: 0;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    font-size: 0.85rem;
+    background: var(--gray-100); color: var(--gray-600);
+}
+.mb-mini .ic.azure  { background: rgba(96,165,250,.14); color: var(--mb-azure-deep); }
+.mb-mini .ic.cyan   { background: rgba(34,211,238,.14); color: var(--mb-cyan-deep); }
+.mb-mini .ic.teal   { background: rgba(45,212,191,.14); color: var(--mb-teal-deep); }
+.mb-mini .ic.violet { background: rgba(167,139,250,.14); color: var(--mb-violet-deep); }
+.mb-mini .ic.gold   { background: rgba(251,191,36,.14); color: var(--mb-gold-deep); }
+.mb-mini .ic.rose   { background: rgba(251,113,133,.13); color: var(--mb-rose-deep); }
+.mb-mini .ic.jade   { background: rgba(52,211,153,.13); color: var(--mb-jade-deep); }
+.mb-mini .txt { flex: 1; min-width: 0; }
+.mb-mini .txt strong {
+    display: block; font-size: 0.79rem; font-weight: 700;
+    color: var(--primary-dark); line-height: 1.3;
+}
+.mb-mini .txt small { display: block; font-size: 0.68rem; color: var(--gray-400); margin-top: 2px; }
+.mb-mini .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--primary-dark);
+}
+
+/* Mini bar chart */
+.mb-minibar {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 6px;
+}
+.mb-minibar .row {
+    display: flex; align-items: center; gap: 10px;
+}
+.mb-minibar .row .lbl {
+    width: 72px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gray-600);
+}
+.mb-minibar .row .track {
+    flex: 1;
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 50px;
+    overflow: hidden;
+}
+.mb-minibar .row .track > span {
+    display: block;
+    height: 100%;
+    border-radius: 50px;
+    background: var(--mb-accent, var(--mb-azure-grad));
+    width: 0;
+    transition: width 1.2s cubic-bezier(.34,1.1,.64,1);
+    box-shadow: 0 0 8px var(--mb-glow, rgba(96, 165, 250, 0.5));
+}
+.mb-minibar .row .val {
+    width: 52px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; font-weight: 800;
+    color: var(--primary-dark);
+}
+
+/* ============================================================
+   ADMIN CONTROL PANEL
+   ============================================================ */
+.mb-root-panel {
+    position: relative;
+    border-radius: 20px;
+    padding: 22px 24px;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(167, 139, 250, 0.22), transparent 52%),
+        radial-gradient(circle at 8% 100%, rgba(251, 191, 36, 0.20), transparent 55%),
+        linear-gradient(140deg, #04081A 0%, #0A1024 48%, #1F2B52 100%);
+    border: 1px solid rgba(251, 191, 36, 0.24);
+    box-shadow: 0 20px 52px rgba(2, 6, 23, 0.28);
+}
+.mb-root-panel::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #FDE68A 0%, #FBBF24 40%, #A78BFA 100%);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.55);
+    z-index: 4;
+}
+.mb-root-panel::after {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    opacity: .55;
+    pointer-events: none;
+}
+.mb-root-panel .rp-head {
+    position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 18px;
+}
+.mb-root-panel .rp-head .ic {
+    width: 46px; height: 46px;
+    border-radius: 13px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #FEF3C7, #FBBF24 48%, #A78BFA);
+    color: var(--mb-void);
+    font-size: 1.1rem;
+    box-shadow: 0 10px 24px rgba(251, 191, 36, 0.42);
+    flex-shrink: 0;
+}
+.mb-root-panel .rp-head .tt {
+    min-width: 0; flex: 1;
+}
+.mb-root-panel .rp-head .tt h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: #fff; line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+.mb-root-panel .rp-head .tt p {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    line-height: 1.5;
+}
+.mb-root-panel .rp-actions {
+    position: relative; z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+.mb-root-action {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.78rem; font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+}
+.mb-root-action:hover {
+    background: rgba(251, 191, 36, 0.10);
+    border-color: rgba(251, 191, 36, 0.36);
+    transform: translateY(-2px);
+}
+.mb-root-action i {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    font-size: 0.85rem;
+    background: rgba(251, 191, 36, 0.16);
+    color: var(--mb-gold);
+    flex-shrink: 0;
+}
+.mb-root-action.rose i { background: rgba(251, 113, 133, 0.14); color: var(--mb-rose); }
+.mb-root-action.violet i { background: rgba(167, 139, 250, 0.14); color: var(--mb-violet); }
+.mb-root-action.jade i { background: rgba(52, 211, 153, 0.14); color: var(--mb-jade); }
+.mb-root-action span {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 2px;
+}
+
+/* ============================================================
+   MEMBER DETAIL DRAWER
+   ============================================================ */
+.mb-drawer-back {
+    position: fixed; inset: 0;
+    background: rgba(4, 8, 26, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 900;
+    opacity: 0; visibility: hidden;
+    transition: opacity .4s ease, visibility .4s;
+}
+.mb-drawer-back.open { opacity: 1; visibility: visible; }
+
+.mb-drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 460px; max-width: 92vw;
+    background: var(--mb-cream);
+    border-left: 1px solid var(--mb-line);
+    z-index: 950;
+    transform: translateX(100%);
+    transition: transform .45s cubic-bezier(.25,.46,.45,.94);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.mb-drawer.open { transform: translateX(0); }
+
+.mb-drawer::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg,
+                var(--mb-azure) 0%, var(--mb-cyan) 50%, var(--mb-violet) 100%);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+    z-index: 5;
+}
+
+.mb-drawer-head {
+    position: relative;
+    padding: 24px 24px 20px;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(96, 165, 250, 0.28), transparent 55%),
+        radial-gradient(circle at 10% 100%, rgba(34, 211, 238, 0.18), transparent 55%),
+        linear-gradient(140deg, #04081A 0%, #0A1024 48%, #1A2344 100%);
+    color: #fff;
+    overflow: hidden;
+}
+.mb-drawer-head .dh-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.mb-drawer-head .dh-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    display: inline-flex; align-items: center; gap: 7px;
+}
+.mb-drawer-head .dh-label i { color: var(--mb-gold); font-size: 0.72rem; }
+.mb-drawer-head .dh-close {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.72);
+    display: grid; place-items: center;
+    cursor: pointer;
+    transition: all .28s ease;
+    font-size: 0.9rem;
+}
+.mb-drawer-head .dh-close:hover {
+    background: rgba(251, 113, 133, 0.16);
+    border-color: rgba(251, 113, 133, 0.5);
+    color: #fff;
+    transform: rotate(90deg);
+}
+.mb-drawer-head .dh-avatar {
+    width: 68px; height: 68px;
+    border-radius: 20px;
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 1.5rem;
+    margin-bottom: 14px;
+    color: var(--mb-void);
+    background: var(--mb-azure-grad);
+    box-shadow: 0 12px 28px rgba(96, 165, 250, 0.4);
+    position: relative;
+}
+.mb-drawer-head .dh-avatar .role-mark {
+    position: absolute;
+    bottom: -6px; right: -6px;
+    width: 26px; height: 26px;
+    border-radius: 9px;
+    border: 2.5px solid #0A1024;
+    display: grid; place-items: center;
+    font-size: 0.85rem;
+    background: var(--mb-violet-deep);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(10, 16, 36, 0.4);
+}
+.mb-drawer-head h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-weight: 700;
+    color: #fff; line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+}
+.mb-drawer-head p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.02em;
+}
+.mb-drawer-head .dh-badges {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.mb-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 24px 24px;
+}
+.mb-drawer-body::-webkit-scrollbar { width: 5px; }
+.mb-drawer-body::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.4); border-radius: 10px; }
+
+.mb-drawer-section {
+    margin-bottom: 22px;
+}
+.mb-drawer-section:last-child { margin-bottom: 0; }
+.mb-drawer-section h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 7px;
+}
+.mb-drawer-section h5::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--gray-200), transparent);
+}
+
+.mb-drawer-field {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--gray-200);
+    font-size: 0.8rem;
+}
+.mb-drawer-field:last-child { border-bottom: none; }
+.mb-drawer-field .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    flex-shrink: 0;
+}
+.mb-drawer-field .val {
+    color: var(--primary-dark);
+    font-weight: 700;
+    text-align: right;
+    font-size: 0.8rem;
+    word-break: break-word;
+}
+.mb-drawer-field .val.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--gray-600);
+}
+
+.mb-drawer-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+}
+.mb-drawer-stat {
+    padding: 12px 10px;
+    border-radius: 11px;
+    background: linear-gradient(160deg, #fff, rgba(250, 251, 253, .7));
+    border: 1px solid var(--mb-line);
+    text-align: center;
+}
+.mb-drawer-stat strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1;
+}
+.mb-drawer-stat span {
+    display: block;
+    margin-top: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+
+.mb-drawer-foot {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--mb-line);
+    background: #fff;
+    display: flex; gap: 8px; flex-wrap: wrap;
+}
+.mb-drawer-foot .db-btn {
+    flex: 1;
+    min-width: 110px;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 7px;
+    padding: 11px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-600);
+    font-family: inherit;
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer;
+    transition: all .28s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+}
+.mb-drawer-foot .db-btn:hover {
+    border-color: var(--mb-azure);
+    color: var(--mb-azure-deep);
+    transform: translateY(-2px);
+}
+.mb-drawer-foot .db-btn.primary {
+    background: var(--mb-azure-grad);
+    border-color: transparent;
+    color: var(--mb-void);
+    box-shadow: 0 8px 22px rgba(96, 165, 250, 0.36);
+}
+.mb-drawer-foot .db-btn.primary:hover {
+    box-shadow: 0 14px 32px rgba(96, 165, 250, 0.46);
+}
+.mb-drawer-foot .db-btn.rose {
+    color: var(--mb-rose-deep);
+    border-color: rgba(251, 113, 133, 0.32);
+    background: rgba(251, 113, 133, 0.04);
+}
+.mb-drawer-foot .db-btn.rose:hover {
+    background: var(--mb-rose-grad);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(251, 113, 133, 0.4);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1240px) {
+    .mb-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+    .mb-hero { padding: 26px 22px 24px; border-radius: 20px; }
+    .mb-tabbar { top: 66px; padding: 8px; }
+    .mb-card-head, .mb-card-body { padding-left: 18px; padding-right: 18px; }
+    .mb-table th, .mb-table td { padding: 12px 12px; }
+    .mb-table th:first-child, .mb-table td:first-child { padding-left: 14px; }
+    .mb-table th:last-child, .mb-table td:last-child { padding-right: 14px; }
+}
+@media (max-width: 720px) {
+    .mb-table th:nth-child(4),
+    .mb-table td:nth-child(4),
+    .mb-table th:nth-child(5),
+    .mb-table td:nth-child(5) { display: none; }
+}
+@media (max-width: 640px) {
+    .mb-hero-stats { width: 100%; }
+    .mb-hero-stats > div { flex: 1; min-width: 0; }
+    .mb-table th:nth-child(2),
+    .mb-table td:nth-child(2),
+    .mb-table th:nth-child(3),
+    .mb-table td:nth-child(3) { display: none; }
+    .mb-toolbar { padding: 12px 14px; }
+    .mb-search { min-width: 100%; }
+    .mb-drawer { width: 100%; max-width: 100%; }
+    .mb-drawer-stat-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mb-mq-track, .mb-root::after, .mb-status.active .dot, .mb-sync .dot { animation: none !important; }
+    .mb-shell *, .mb-shell *::before, .mb-shell *::after { transition-duration: .01ms !important; }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="mb-shell">
+
+    <!-- ====================================================
+         HERO
+         ==================================================== -->
+    <section class="mb-hero fade-up">
+        <div class="mb-hero-body">
+            <div>
+                <div class="mb-hero-badges">
+                    <span class="mb-root"><i class="bi bi-crown-fill"></i> Root Access</span>
+                    <span class="mb-chip jade"><i class="bi bi-database-check"></i> 3 tables unified</span>
+                    <span class="mb-chip cyan"><i class="bi bi-broadcast"></i> Live · 60s refresh</span>
+                    <span class="mb-chip"><i class="bi bi-shield-check"></i> GDPR ready</span>
+                </div>
+                <h2>Member <em>Registry</em></h2>
+                <p>
+                    Unified view across <code>Student</code>, <code>Teacher</code>, and
+                    <code>Mentor</code> profile tables. Every member, every status, every
+                    action — with root-only escalation controls.
+                </p>
+            </div>
+
+            <div class="mb-hero-stats">
+                <div style="--stat-accent: linear-gradient(90deg, #BFDBFE, #60A5FA);">
+                    <strong>12,408</strong>
+                    <span>Total members</span>
+                </div>
+                <div style="--stat-accent: linear-gradient(90deg, #A5F3FC, #22D3EE);">
+                    <strong>10,148</strong>
+                    <span>Students</span>
+                </div>
+                <div style="--stat-accent: linear-gradient(90deg, #99F6E4, #2DD4BF);">
+                    <strong>418</strong>
+                    <span>Teachers</span>
+                </div>
+                <div style="--stat-accent: linear-gradient(90deg, #DDD6FE, #A78BFA);">
+                    <strong>1,842</strong>
+                    <span>Mentors</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         MARQUEE — registry activity ticker
+         ==================================================== -->
+    <div class="mb-marquee fade-up" aria-hidden="true">
+        <div class="mb-mq-track">
+            <span class="mb-mq-item jade"><i class="bi bi-person-check-fill"></i> <b>142</b> new signups today <span class="tag mint">LIVE</span></span>
+            <span class="mb-mq-item"><i class="bi bi-shield-check"></i> <b>10,148</b> students · <b>418</b> teachers · <b>1,842</b> mentors</span>
+            <span class="mb-mq-item rose"><i class="bi bi-exclamation-triangle-fill"></i> <b>3</b> flagged accounts awaiting review <span class="tag rose">ACTION</span></span>
+            <span class="mb-mq-item gold"><i class="bi bi-crown-fill"></i> <b>14</b> root-tier accounts active</span>
+            <span class="mb-mq-item cyan"><i class="bi bi-patch-check-fill"></i> Email verification rate <b>84.9%</b></span>
+            <span class="mb-mq-item viol"><i class="bi bi-person-plus-fill"></i> <b>42</b> mentor applications pending</span>
+            <span class="mb-mq-item"><i class="bi bi-clock-history"></i> Oldest unverified account <b>7d old</b></span>
+            <span class="mb-mq-item jade"><i class="bi bi-graph-up-arrow"></i> Net growth <b>+1,842</b> this month</span>
+            <!-- duplicate for seamless loop -->
+            <span class="mb-mq-item jade"><i class="bi bi-person-check-fill"></i> <b>142</b> new signups today <span class="tag mint">LIVE</span></span>
+            <span class="mb-mq-item"><i class="bi bi-shield-check"></i> <b>10,148</b> students · <b>418</b> teachers · <b>1,842</b> mentors</span>
+            <span class="mb-mq-item rose"><i class="bi bi-exclamation-triangle-fill"></i> <b>3</b> flagged accounts awaiting review <span class="tag rose">ACTION</span></span>
+            <span class="mb-mq-item gold"><i class="bi bi-crown-fill"></i> <b>14</b> root-tier accounts active</span>
+            <span class="mb-mq-item cyan"><i class="bi bi-patch-check-fill"></i> Email verification rate <b>84.9%</b></span>
+            <span class="mb-mq-item viol"><i class="bi bi-person-plus-fill"></i> <b>42</b> mentor applications pending</span>
+            <span class="mb-mq-item"><i class="bi bi-clock-history"></i> Oldest unverified account <b>7d old</b></span>
+            <span class="mb-mq-item jade"><i class="bi bi-graph-up-arrow"></i> Net growth <b>+1,842</b> this month</span>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         TABS
+         ==================================================== -->
+    <div class="mb-tabbar fade-up">
+        <nav class="mb-tabs" id="mbTabs" role="tablist" aria-label="Member views">
+            <span class="mb-tab-ind" id="mbTabInd" aria-hidden="true"></span>
+
+            <button type="button" class="mb-tab active" role="tab" data-tab="all"
+                    aria-selected="true" aria-controls="panel-all">
+                <i class="bi bi-people-fill"></i> All
+                <span class="cnt">12.4k</span>
+            </button>
+
+            <button type="button" class="mb-tab" role="tab" data-tab="students"
+                    aria-selected="false" aria-controls="panel-students">
+                <i class="bi bi-mortarboard-fill"></i> Students
+                <span class="cnt">10.1k</span>
+            </button>
+
+            <button type="button" class="mb-tab" role="tab" data-tab="teachers"
+                    aria-selected="false" aria-controls="panel-teachers">
+                <i class="bi bi-easel2-fill"></i> Teachers
+                <span class="cnt">418</span>
+            </button>
+
+            <button type="button" class="mb-tab" role="tab" data-tab="mentors"
+                    aria-selected="false" aria-controls="panel-mentors">
+                <i class="bi bi-person-badge-fill"></i> Mentors
+                <span class="cnt">1.8k</span>
+            </button>
+        </nav>
+
+        <div class="mb-tab-actions">
+            <span class="mb-sync">
+                <span class="dot"></span> Synced 42s ago
+            </span>
+            <button type="button" class="btn-sm line" data-toast="Inviting new member — form opened" data-toast-type="info">
+                <i class="bi bi-person-plus-fill"></i> Invite
+            </button>
+            <button type="button" class="btn-sm line" data-toast="Member export queued — CSV will email in 2 min" data-toast-type="info">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         PANEL · ALL (students + teachers + mentors)
+         ==================================================== -->
+    <section class="mb-panel active" id="panel-all" role="tabpanel">
+        <div class="mb-grid">
+
+            <div class="mb-col">
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic"><i class="bi bi-people-fill"></i></span>
+                            <div>
+                                <h3>All Members <span class="mb-lock"><i class="bi bi-link-45deg"></i> 3 tables unified</span></h3>
+                                <p>Students, teachers, and mentors — one searchable registry.</p>
+                            </div>
+                        </div>
+                        <span class="mb-root ghost"><i class="bi bi-shield-fill-check"></i> Verified registry</span>
+                    </header>
+
+                    <!-- TOOLBAR -->
+                    <div class="mb-toolbar">
+                        <div class="mb-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="mbSearchAll"
+                                   placeholder="Search by name, email, ID, or phone…"
+                                   aria-label="Search all members">
+                            <kbd>⌘K</kbd>
+                        </div>
+
+                        <button type="button" class="mb-filter-btn active" data-status="all">
+                            <i class="bi bi-grid-fill"></i> All
+                            <span class="f-cnt">12.4k</span>
+                        </button>
+                        <button type="button" class="mb-filter-btn" data-status="active">
+                            <i class="bi bi-check-circle-fill"></i> Active
+                            <span class="f-cnt">11.8k</span>
+                        </button>
+                        <button type="button" class="mb-filter-btn" data-status="pending">
+                            <i class="bi bi-hourglass-split"></i> Pending
+                            <span class="f-cnt">418</span>
+                        </button>
+                        <button type="button" class="mb-filter-btn" data-status="suspended">
+                            <i class="bi bi-pause-circle-fill"></i> Suspended
+                            <span class="f-cnt">92</span>
+                        </button>
+                        <button type="button" class="mb-filter-btn" data-status="banned">
+                            <i class="bi bi-slash-circle-fill"></i> Banned
+                            <span class="f-cnt">74</span>
+                        </button>
+
+                        <select class="mb-select" aria-label="Sort by">
+                            <option>Sort: Recent activity</option>
+                            <option>Sort: Newest first</option>
+                            <option>Sort: Name (A–Z)</option>
+                            <option>Sort: Name (Z–A)</option>
+                            <option>Sort: Revenue (high → low)</option>
+                            <option>Sort: Suspensions first</option>
+                        </select>
+                    </div>
+
+                    <!-- BULK ACTIONS -->
+                    <div class="mb-bulk" id="mbBulkAll">
+                        <span class="b-selected">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Selected: <b id="mbSelCount">0</b>
+                        </span>
+                        <div class="b-actions">
+                            <button type="button" class="b-btn" data-toast="Verifying selected members…" data-toast-type="success">
+                                <i class="bi bi-patch-check-fill"></i> Verify
+                            </button>
+                            <button type="button" class="b-btn" data-toast="Sending activation emails to selected…" data-toast-type="info">
+                                <i class="bi bi-envelope-paper-fill"></i> Email
+                            </button>
+                            <button type="button" class="b-btn gold" data-toast="Tag editor opened" data-toast-type="violet">
+                                <i class="bi bi-tags-fill"></i> Tag
+                            </button>
+                            <button type="button" class="b-btn rose" data-toast="Suspending selected members — requires reason" data-toast-type="warning">
+                                <i class="bi bi-pause-circle-fill"></i> Suspend
+                            </button>
+                            <button type="button" class="b-btn rose" data-toast="Ban flow requires 2-admin approval" data-toast-type="error">
+                                <i class="bi bi-slash-circle-fill"></i> Ban
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TABLE -->
+                    <div class="mb-card-body flush" style="overflow-x:auto;">
+                        <table class="mb-table" id="mbTableAll">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">
+                                        <label class="mb-check">
+                                            <input type="checkbox" id="mbSelectAllAll">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </th>
+                                    <th>Member</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Last active</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <!-- ROW 1 -->
+                                <tr data-status="active" data-role="mentor" data-name="chidi okafor" data-email="chidi@knotwork.io">
+                                    <td>
+                                        <label class="mb-check">
+                                            <input type="checkbox" class="mb-row-check">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <div class="mb-member">
+                                            <span class="mb-avatar mentor" style="background: var(--mb-violet-grad); color: #fff;">
+                                                CO
+                                                <span class="role-mark"><i class="bi bi-person-badge-fill"></i></span>
+                                            </span>
+                                            <span class="mb-member-info">
+                                                <strong>Chidi Okafor <span class="verified"><i class="bi bi-patch-check-fill"></i></span></strong>
+                                                <small>chidi@knotwork.io</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="mb-role mentor"><i class="bi bi-person-badge-fill"></i> Mentor</span></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Active</span></td>
+                                    <td class="mb-meta"><strong>12 Mar 2024</strong><small>2y ago</small></td>
+                                    <td class="mb-meta"><strong>Now</strong><small>Chrome · macOS</small></td>
+                                    <td>
+                                        <div class="mb-actions">
+                                            <button type="button" class="mb-act-btn" data-member="chidi" title="View"><i class="bi bi-eye-fill"></i></button>
+                                            <button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                            <button type="button" class="mb-act-btn violet" title="Impersonate" data-toast="Impersonation requires 2FA + reason" data-toast-type="warning"><i class="bi bi-person-badge"></i></button>
+                                            <button type="button" class="mb-act-btn gold" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 2 -->
+                                <tr data-status="active" data-role="student" data-name="amara balogun" data-email="amara.b@knotwork.io">
+                                    <td>
+                                        <label class="mb-check">
+                                            <input type="checkbox" class="mb-row-check">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <div class="mb-member">
+                                            <span class="mb-avatar student">
+                                                AB
+                                                <span class="role-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                                            </span>
+                                            <span class="mb-member-info">
+                                                <strong>Amara Balogun</strong>
+                                                <small>amara.b@knotwork.io</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="mb-role student"><i class="bi bi-mortarboard-fill"></i> Student</span></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Active</span></td>
+                                    <td class="mb-meta"><strong>04 Jan 2026</strong><small>74d ago</small></td>
+                                    <td class="mb-meta"><strong>2h ago</strong><small>iPhone · Safari</small></td>
+                                    <td>
+                                        <div class="mb-actions">
+                                            <button type="button" class="mb-act-btn" data-member="amara" title="View"><i class="bi bi-eye-fill"></i></button>
+                                            <button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                            <button type="button" class="mb-act-btn violet" title="Impersonate" data-toast="Impersonation requires 2FA + reason" data-toast-type="warning"><i class="bi bi-person-badge"></i></button>
+                                            <button type="button" class="mb-act-btn gold" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 3 -->
+                                <tr data-status="pending" data-role="teacher" data-name="tunde adebayo" data-email="tunde@knotwork.io">
+                                    <td>
+                                        <label class="mb-check">
+                                            <input type="checkbox" class="mb-row-check">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <div class="mb-member">
+                                            <span class="mb-avatar teacher">
+                                                TA
+                                                <span class="role-mark"><i class="bi bi-easel2-fill"></i></span>
+                                            </span>
+                                            <span class="mb-member-info">
+                                                <strong>Tunde Adebayo</strong>
+                                                <small>tunde@knotwork.io</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="mb-role teacher"><i class="bi bi-easel2-fill"></i> Teacher</span></td>
+                                    <td><span class="mb-status pending"><span class="dot"></span> Pending</span></td>
+                                    <td class="mb-meta"><strong>18 Mar 2026</strong><small>1d ago</small></td>
+                                    <td class="mb-meta"><strong>12h ago</strong><small>Pending verification</small></td>
+                                    <td>
+                                        <div class="mb-actions">
+                                            <button type="button" class="mb-act-btn" data-member="tunde" title="View"><i class="bi bi-eye-fill"></i></button>
+                                            <button type="button" class="mb-act-btn gold" title="Approve" data-toast="Verification approved" data-toast-type="success"><i class="bi bi-patch-check-fill"></i></button>
+                                            <button type="button" class="mb-act-btn rose" title="Reject" data-toast="Rejection requires reason" data-toast-type="warning"><i class="bi bi-x-octagon-fill"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 4 -->
+                                <tr data-status="suspended" data-role="student" data-name="zainab suleiman" data-email="zainab.s@knotwork.io">
+                                    <td>
+                                        <label class="mb-check">
+                                            <input type="checkbox" class="mb-row-check">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <div class="mb-member">
+                                            <span class="mb-avatar student">
+                                                ZS
+                                                <span class="role-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                                            </span>
+                                            <span class="mb-member-info">
+                                                <strong>Zainab Suleiman</strong>
+                                                <small>zainab.s@knotwork.io</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="mb-role student"><i class="bi bi-mortarboard-fill"></i> Student</span></td>
+                                    <td><span class="mb-status suspended"><span class="dot"></span> Suspended</span></td>
+                                    <td class="mb-meta"><strong>15 Sep 2025</strong><small>6mo ago</small></td>
+                                    <td class="mb-meta"><strong>3d ago</strong><small>Before suspension</small></td>
+                                    <td>
+                                        <div class="mb-actions">
+                                            <button type="button" class="mb-act-btn" data-member="zainab" title="View"><i class="bi bi-eye-fill"></i></button>
+                                            <button type="button" class="mb-act-btn" title="Reinstate" data-toast="Reinstatement requires reason" data-toast-type="info"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                            <button type="button" class="mb-act-btn gold" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 5 -->
+                                <tr data-status="active" data-role="mentor" data-name="ifeanyi eze" data-email="ifeanyi@knotwork.io">
+                                    <td>
+                                        <label class="mb-check">
+                                            <input type="checkbox" class="mb-row-check">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <div class="mb-member">
+                                            <span class="mb-avatar mentor" style="background: var(--mb-gold-grad); color: var(--mb-void);">
+                                                IE
+                                                <span class="role-mark" style="background: var(--mb-gold-deep);"><i class="bi bi-crown-fill"></i></span>
+                                            </span>
+                                            <span class="mb-member-info">
+                                                <strong>Ifeanyi Eze <span class="verified gold"><i class="bi bi-crown-fill"></i></span></strong>
+                                                <small>ifeanyi@knotwork.io</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="mb-role mentor"><i class="bi bi-person-badge-fill"></i> Mentor</span></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Active</span></td>
+                                    <td class="mb-meta"><strong>22 Jul 2024</strong><small>1.6y ago</small></td>
+                                    <td class="mb-meta"><strong>45m ago</strong><small>Chrome · Windows</small></td>
+                                    <td>
+                                        <div class="mb-actions">
+                                            <button type="button" class="mb-act-btn" data-member="ifeanyi" title="View"><i class="bi bi-eye-fill"></i></button>
+                                            <button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button>
+                                            <button type="button" class="mb-act-btn violet" title="Impersonate" data-toast="Impersonation requires 2FA + reason" data-toast-type="warning"><i class="bi bi-person-badge"></i></button>
+                                            <button type="button" class="mb-act-btn gold" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW 6 -->
+                                <tr data-status="banned" data-role="student" data-name="unknown user" data-email="spam@example.com">
+                                    <td>
+                                        <label class="mb-check">
+                                            <input type="checkbox" class="mb-row-check">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <div class="mb-member">
+                                            <span class="mb-avatar" style="background: var(--mb-rose-grad); color: #fff;">
+                                                ??
+                                                <span class="role-mark" style="background: var(--mb-rose-deep);"><i class="bi bi-slash-circle-fill"></i></span>
+                                            </span>
+                                            <span class="mb-member-info">
+                                                <strong>spam-account-4</strong>
+                                                <small>spam@example.com</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="mb-role student" style="color: var(--mb-rose-deep); background: rgba(251,113,133,.10); border-color: rgba(251,113,133,.34);"><i class="bi bi-slash-circle-fill"></i> Banned</span></td>
+                                    <td><span class="mb-status banned"><span class="dot"></span> Banned</span></td>
+                                    <td class="mb-meta"><strong>02 Mar 2026</strong><small>14d ago</small></td>
+                                    <td class="mb-meta"><strong>12d ago</strong><small>Before ban</small></td>
+                                    <td>
+                                        <div class="mb-actions">
+                                            <button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button>
+                                            <button type="button" class="mb-act-btn rose" title="Delete permanently" data-toast="Permanent deletion requires 2-admin approval" data-toast-type="error"><i class="bi bi-trash3-fill"></i></button>
+                                            <button type="button" class="mb-act-btn gold" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="mb-paginate">
+                        <span class="pg-info">Showing <b>1–6</b> of <b>12,408</b> members</span>
+                        <div class="pg-controls">
+                            <button type="button" class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
+                            <button type="button" class="pg-btn active">1</button>
+                            <button type="button" class="pg-btn">2</button>
+                            <button type="button" class="pg-btn">3</button>
+                            <span style="color:var(--gray-400);padding:0 4px;font-family:'JetBrains Mono',monospace;font-size:.72rem;">…</span>
+                            <button type="button" class="pg-btn">2,068</button>
+                            <button type="button" class="pg-btn"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ROOT CONTROL PANEL -->
+                <div class="mb-root-panel fade-up">
+                    <div class="rp-head">
+                        <span class="ic"><i class="bi bi-crown-fill"></i></span>
+                        <div class="tt">
+                            <h4>Root Member Controls</h4>
+                            <p>Bulk operations and hard actions — visible only to root-tier admins. Every action is ledger-signed.</p>
+                        </div>
+                        <span class="mb-root"><i class="bi bi-crown-fill"></i> Root only</span>
+                    </div>
+
+                    <div class="rp-actions">
+                        <button type="button" class="mb-root-action" data-toast="Bulk verification queued for 418 pending accounts" data-toast-type="success">
+                            <i class="bi bi-patch-check-fill"></i>
+                            <div>
+                                Bulk verify pending
+                                <span>418 accounts</span>
+                            </div>
+                        </button>
+                        <button type="button" class="mb-root-action violet" data-toast="CSV import wizard opened" data-toast-type="info">
+                            <i class="bi bi-cloud-upload-fill"></i>
+                            <div>
+                                Import from CSV
+                                <span>Bulk create</span>
+                            </div>
+                        </button>
+                        <button type="button" class="mb-root-action jade" data-toast="Cross-table sync started — reconciling 3 profile tables" data-toast-type="info">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <div>
+                                Re-sync tables
+                                <span>Student · Teacher · Mentor</span>
+                            </div>
+                        </button>
+                        <button type="button" class="mb-root-action rose" data-toast="GDPR data export requires 2-admin approval" data-toast-type="error">
+                            <i class="bi bi-shield-fill-exclamation"></i>
+                            <div>
+                                GDPR data export
+                                <span>Requires approval</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SIDE INSIGHTS -->
+            <div class="mb-col">
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic"><i class="bi bi-pie-chart-fill"></i></span>
+                            <div>
+                                <h3>Composition</h3>
+                                <p>By role type.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+
+                        <div class="mb-minibar">
+                            <div class="row">
+                                <span class="lbl">Students</span>
+                                <span class="track"><span style="--mb-accent: var(--mb-azure-grad); --mb-glow: rgba(96,165,250,.5); width: 82%;"></span></span>
+                                <span class="val">10.1k</span>
+                            </div>
+                            <div class="row">
+                                <span class="lbl">Mentors</span>
+                                <span class="track"><span style="--mb-accent: var(--mb-violet-grad); --mb-glow: rgba(167,139,250,.5); width: 15%;"></span></span>
+                                <span class="val">1.8k</span>
+                            </div>
+                            <div class="row">
+                                <span class="lbl">Teachers</span>
+                                <span class="track"><span style="--mb-accent: var(--mb-teal-grad); --mb-glow: rgba(45,212,191,.5); width: 3.4%;"></span></span>
+                                <span class="val">418</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:18px; padding-top:16px; border-top:1px dashed var(--gray-200);">
+                            <div class="mb-mini">
+                                <span class="ic azure"><i class="bi bi-mortarboard-fill"></i></span>
+                                <span class="txt"><strong>Students</strong><small>82% of registry</small></span>
+                                <span class="num">10,148</span>
+                            </div>
+                            <div class="mb-mini">
+                                <span class="ic violet"><i class="bi bi-person-badge-fill"></i></span>
+                                <span class="txt"><strong>Mentors</strong><small>14.9% of registry</small></span>
+                                <span class="num">1,842</span>
+                            </div>
+                            <div class="mb-mini">
+                                <span class="ic teal"><i class="bi bi-easel2-fill"></i></span>
+                                <span class="txt"><strong>Teachers</strong><small>3.4% of registry</small></span>
+                                <span class="num">418</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </article>
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic cyan"><i class="bi bi-graph-up-arrow"></i></span>
+                            <div>
+                                <h3>Signup Momentum</h3>
+                                <p>Last 30 days.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+                        <div class="mb-mini">
+                            <span class="ic jade"><i class="bi bi-arrow-up-right"></i></span>
+                            <span class="txt"><strong>2,842 new</strong><small>This month</small></span>
+                            <span class="num" style="color: var(--mb-jade-deep);">+18%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic azure"><i class="bi bi-person-check-fill"></i></span>
+                            <span class="txt"><strong>2,412 verified</strong><small>84.9% verification rate</small></span>
+                            <span class="num">85%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-hourglass-split"></i></span>
+                            <span class="txt"><strong>418 pending</strong><small>Avg 2.4d waiting</small></span>
+                            <span class="num">418</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic rose"><i class="bi bi-person-dash-fill"></i></span>
+                            <span class="txt"><strong>166 churned</strong><small>Removed or banned</small></span>
+                            <span class="num">5.8%</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic gold"><i class="bi bi-award-fill"></i></span>
+                            <div>
+                                <h3>Top Contributors</h3>
+                                <p>This month.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body" style="padding-top:16px;">
+                        <div class="mb-mini">
+                            <span class="ic violet"><i class="bi bi-1-circle-fill"></i></span>
+                            <span class="txt"><strong>Chidi Okafor</strong><small>Mentor · ₦4.82M earned</small></span>
+                            <span class="num" style="font-size: .85rem;">#1</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic teal"><i class="bi bi-2-circle-fill"></i></span>
+                            <span class="txt"><strong>Amara Balogun</strong><small>Mentor · ₦3.68M earned</small></span>
+                            <span class="num" style="font-size: .85rem;">#2</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-3-circle-fill"></i></span>
+                            <span class="txt"><strong>Tunde Adebayo</strong><small>Teacher · 42 cohorts</small></span>
+                            <span class="num" style="font-size: .85rem;">#3</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic rose"><i class="bi bi-shield-fill-exclamation"></i></span>
+                            <div>
+                                <h3>Needs Attention</h3>
+                                <p>Flagged accounts.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+                        <div class="mb-mini">
+                            <span class="ic rose"><i class="bi bi-flag-fill"></i></span>
+                            <span class="txt"><strong>3 flagged for moderation</strong><small>Awaiting review</small></span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-clock-history"></i></span>
+                            <span class="txt"><strong>2 stale admins</strong><small>No login in 90d+</small></span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic violet"><i class="bi bi-person-dash-fill"></i></span>
+                            <span class="txt"><strong>418 unverified emails</strong><small>Older than 48h</small></span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         PANEL · STUDENTS
+         ==================================================== -->
+    <section class="mb-panel" id="panel-students" role="tabpanel">
+        <div class="mb-grid">
+            <div class="mb-col">
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic"><i class="bi bi-mortarboard-fill"></i></span>
+                            <div>
+                                <h3>Students <span class="mb-lock"><i class="bi bi-database-fill"></i> Student table</span></h3>
+                                <p>Learners enrolled in courses, cohorts, or the mentorship program.</p>
+                            </div>
+                        </div>
+                        <span class="mb-root ghost"><i class="bi bi-check-circle-fill"></i> 10,148 total</span>
+                    </header>
+
+                    <div class="mb-toolbar">
+                        <div class="mb-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" placeholder="Search students by name or email…" aria-label="Search students">
+                            <kbd>⌘K</kbd>
+                        </div>
+                        <button type="button" class="mb-filter-btn active">All <span class="f-cnt">10.1k</span></button>
+                        <button type="button" class="mb-filter-btn">Active <span class="f-cnt">9.6k</span></button>
+                        <button type="button" class="mb-filter-btn">Enrolled <span class="f-cnt">8.4k</span></button>
+                        <button type="button" class="mb-filter-btn">Graduated <span class="f-cnt">1.2k</span></button>
+                        <select class="mb-select" aria-label="Sort">
+                            <option>Sort: Recent activity</option>
+                            <option>Sort: Newest first</option>
+                            <option>Sort: Courses enrolled (high)</option>
+                            <option>Sort: Spending (high → low)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-bulk" id="mbBulkStudents">
+                        <span class="b-selected"><i class="bi bi-check-circle-fill"></i> Selected: <b>0</b></span>
+                        <div class="b-actions">
+                            <button type="button" class="b-btn" data-toast="Sending student emails…" data-toast-type="info"><i class="bi bi-envelope-paper-fill"></i> Email</button>
+                            <button type="button" class="b-btn gold" data-toast="Tag editor opened" data-toast-type="violet"><i class="bi bi-tags-fill"></i> Tag cohort</button>
+                            <button type="button" class="b-btn rose" data-toast="Bulk suspend requires reason" data-toast-type="warning"><i class="bi bi-pause-circle-fill"></i> Suspend</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-card-body flush" style="overflow-x:auto;">
+                        <table class="mb-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">
+                                        <label class="mb-check">
+                                            <input type="checkbox">
+                                            <span class="tick"><i class="bi bi-check-lg"></i></span>
+                                        </label>
+                                    </th>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                    <th>Courses</th>
+                                    <th>Joined</th>
+                                    <th>Last active</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar student">AB<span class="role-mark"><i class="bi bi-mortarboard-fill"></i></span></span><span class="mb-member-info"><strong>Amara Balogun</strong><small>amara.b@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Active</span></td>
+                                    <td class="mb-meta"><strong>8 courses</strong><small>3 completed</small></td>
+                                    <td class="mb-meta"><strong>04 Jan 2026</strong></td>
+                                    <td class="mb-meta"><strong>2h ago</strong></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar student">OK<span class="role-mark"><i class="bi bi-mortarboard-fill"></i></span></span><span class="mb-member-info"><strong>Oluwakemi Adeniyi</strong><small>kemi.a@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Active</span></td>
+                                    <td class="mb-meta"><strong>5 courses</strong><small>1 completed</small></td>
+                                    <td class="mb-meta"><strong>22 Feb 2026</strong></td>
+                                    <td class="mb-meta"><strong>1h ago</strong></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar student">KM<span class="role-mark"><i class="bi bi-mortarboard-fill"></i></span></span><span class="mb-member-info"><strong>Kofi Mensah</strong><small>kofi@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status pending"><span class="dot"></span> Pending</span></td>
+                                    <td class="mb-meta"><strong>—</strong><small>Not started</small></td>
+                                    <td class="mb-meta"><strong>18 Mar 2026</strong></td>
+                                    <td class="mb-meta"><strong>12h ago</strong></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn gold" title="Verify" data-toast="Verification approved" data-toast-type="success"><i class="bi bi-patch-check-fill"></i></button><button type="button" class="mb-act-btn rose" title="Reject" data-toast="Rejection requires reason" data-toast-type="warning"><i class="bi bi-x-octagon-fill"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar student">ZS<span class="role-mark"><i class="bi bi-mortarboard-fill"></i></span></span><span class="mb-member-info"><strong>Zainab Suleiman</strong><small>zainab.s@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status suspended"><span class="dot"></span> Suspended</span></td>
+                                    <td class="mb-meta"><strong>3 courses</strong><small>Suspended</small></td>
+                                    <td class="mb-meta"><strong>15 Sep 2025</strong></td>
+                                    <td class="mb-meta"><strong>3d ago</strong></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn" title="Reinstate" data-toast="Reinstate requires reason" data-toast-type="info"><i class="bi bi-arrow-counterclockwise"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-paginate">
+                        <span class="pg-info">Showing <b>1–4</b> of <b>10,148</b> students</span>
+                        <div class="pg-controls">
+                            <button type="button" class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
+                            <button type="button" class="pg-btn active">1</button>
+                            <button type="button" class="pg-btn">2</button>
+                            <button type="button" class="pg-btn">3</button>
+                            <span style="color:var(--gray-400);padding:0 4px;">…</span>
+                            <button type="button" class="pg-btn">2,537</button>
+                            <button type="button" class="pg-btn"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <div class="mb-col">
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic"><i class="bi bi-mortarboard-fill"></i></span>
+                            <div>
+                                <h3>Student Insights</h3>
+                                <p>This cycle.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+                        <div class="mb-mini">
+                            <span class="ic azure"><i class="bi bi-people-fill"></i></span>
+                            <span class="txt"><strong>Active learners</strong><small>DAU last 30d</small></span>
+                            <span class="num">9,612</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic jade"><i class="bi bi-arrow-up-right"></i></span>
+                            <span class="txt"><strong>New this month</strong><small>Signups</small></span>
+                            <span class="num">2,842</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-mortarboard-fill"></i></span>
+                            <span class="txt"><strong>Graduated</strong><small>Completed all courses</small></span>
+                            <span class="num">1,182</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic rose"><i class="bi bi-person-dash-fill"></i></span>
+                            <span class="txt"><strong>Churned</strong><small>No login in 60d+</small></span>
+                            <span class="num">892</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         PANEL · TEACHERS
+         ==================================================== -->
+    <section class="mb-panel" id="panel-teachers" role="tabpanel">
+        <div class="mb-grid">
+            <div class="mb-col">
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic teal"><i class="bi bi-easel2-fill"></i></span>
+                            <div>
+                                <h3>Teachers <span class="mb-lock violet"><i class="bi bi-database-fill"></i> Teacher table</span></h3>
+                                <p>Instructors running live cohorts, bootcamps, and structured curricula.</p>
+                            </div>
+                        </div>
+                        <span class="mb-root ghost"><i class="bi bi-check-circle-fill"></i> 418 total</span>
+                    </header>
+
+                    <div class="mb-toolbar">
+                        <div class="mb-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" placeholder="Search teachers by name, email, or subject…" aria-label="Search teachers">
+                            <kbd>⌘K</kbd>
+                        </div>
+                        <button type="button" class="mb-filter-btn active">All <span class="f-cnt">418</span></button>
+                        <button type="button" class="mb-filter-btn">Verified <span class="f-cnt">386</span></button>
+                        <button type="button" class="mb-filter-btn">Pending <span class="f-cnt">28</span></button>
+                        <button type="button" class="mb-filter-btn">On leave <span class="f-cnt">4</span></button>
+                        <select class="mb-select" aria-label="Sort">
+                            <option>Sort: Cohorts (high)</option>
+                            <option>Sort: Rating (high)</option>
+                            <option>Sort: Newest first</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-card-body flush" style="overflow-x:auto;">
+                        <table class="mb-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;"><label class="mb-check"><input type="checkbox"><span class="tick"><i class="bi bi-check-lg"></i></span></label></th>
+                                    <th>Teacher</th>
+                                    <th>Status</th>
+                                    <th>Subject</th>
+                                    <th>Cohorts</th>
+                                    <th>Rating</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar teacher">TA<span class="role-mark"><i class="bi bi-easel2-fill"></i></span></span><span class="mb-member-info"><strong>Tunde Adebayo <span class="verified"><i class="bi bi-patch-check-fill"></i></span></strong><small>tunde@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Verified</span></td>
+                                    <td class="mb-meta"><strong>Data Analytics</strong><small>Since 2023</small></td>
+                                    <td class="mb-meta"><strong>42</strong><small>Total</small></td>
+                                    <td class="mb-meta"><strong>4.92 ★</strong><small>842 reviews</small></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar teacher">NN<span class="role-mark"><i class="bi bi-easel2-fill"></i></span></span><span class="mb-member-info"><strong>Ngozi Nwachukwu <span class="verified"><i class="bi bi-patch-check-fill"></i></span></strong><small>ngozi@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status active"><span class="dot"></span> Verified</span></td>
+                                    <td class="mb-meta"><strong>Product Design</strong><small>Since 2024</small></td>
+                                    <td class="mb-meta"><strong>28</strong><small>Total</small></td>
+                                    <td class="mb-meta"><strong>4.88 ★</strong><small>512 reviews</small></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn" title="Edit"><i class="bi bi-pencil-fill"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar teacher" style="background: var(--mb-gold-grad); color: var(--mb-void);">EO<span class="role-mark" style="background: var(--mb-gold-deep);"><i class="bi bi-hourglass-split"></i></span></span><span class="mb-member-info"><strong>Emeka Obi</strong><small>emeka@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-status pending"><span class="dot"></span> Pending</span></td>
+                                    <td class="mb-meta"><strong>—</strong><small>Not yet assigned</small></td>
+                                    <td class="mb-meta"><strong>0</strong><small>Awaiting approval</small></td>
+                                    <td class="mb-meta"><strong>—</strong></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn gold" title="Approve" data-toast="Teacher approved" data-toast-type="success"><i class="bi bi-patch-check-fill"></i></button><button type="button" class="mb-act-btn rose" title="Reject" data-toast="Rejection requires reason" data-toast-type="warning"><i class="bi bi-x-octagon-fill"></i></button></div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-paginate">
+                        <span class="pg-info">Showing <b>1–3</b> of <b>418</b> teachers</span>
+                        <div class="pg-controls">
+                            <button type="button" class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
+                            <button type="button" class="pg-btn active">1</button>
+                            <button type="button" class="pg-btn">2</button>
+                            <button type="button" class="pg-btn">3</button>
+                            <button type="button" class="pg-btn">…</button>
+                            <button type="button" class="pg-btn">105</button>
+                            <button type="button" class="pg-btn"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <div class="mb-col">
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic teal"><i class="bi bi-bar-chart-fill"></i></span>
+                            <div>
+                                <h3>Teaching Health</h3>
+                                <p>Across all subjects.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+                        <div class="mb-mini">
+                            <span class="ic teal"><i class="bi bi-check-circle-fill"></i></span>
+                            <span class="txt"><strong>386 verified</strong><small>92.3% verification rate</small></span>
+                            <span class="num">92%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-star-fill"></i></span>
+                            <span class="txt"><strong>4.86 avg rating</strong><small>Across 12,412 reviews</small></span>
+                            <span class="num">4.86</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic azure"><i class="bi bi-people-fill"></i></span>
+                            <span class="txt"><strong>84 avg cohort size</strong><small>Per teacher</small></span>
+                            <span class="num">84</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         PANEL · MENTORS
+         ==================================================== -->
+    <section class="mb-panel" id="panel-mentors" role="tabpanel">
+        <div class="mb-grid">
+            <div class="mb-col">
+
+                <article class="mb-card admin-only fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic violet"><i class="bi bi-person-badge-fill"></i></span>
+                            <div>
+                                <h3>Mentors <span class="mb-lock"><i class="bi bi-database-fill"></i> Mentor table</span> <span class="mb-lock violet"><i class="bi bi-cash-stack"></i> Payouts linked</span></h3>
+                                <p>Revenue-earning mentors. Commission tier and payout status visible at a glance.</p>
+                            </div>
+                        </div>
+                        <span class="mb-root ghost"><i class="bi bi-check-circle-fill"></i> 1,842 total</span>
+                    </header>
+
+                    <div class="mb-toolbar">
+                        <div class="mb-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" placeholder="Search mentors by name, email, or tier…" aria-label="Search mentors">
+                            <kbd>⌘K</kbd>
+                        </div>
+                        <button type="button" class="mb-filter-btn active">All <span class="f-cnt">1.8k</span></button>
+                        <button type="button" class="mb-filter-btn">Elite <span class="f-cnt">214</span></button>
+                        <button type="button" class="mb-filter-btn">Pro <span class="f-cnt">1.1k</span></button>
+                        <button type="button" class="mb-filter-btn">Rising <span class="f-cnt">3.4k</span></button>
+                        <select class="mb-select" aria-label="Sort">
+                            <option>Sort: Revenue (high)</option>
+                            <option>Sort: Rating (high)</option>
+                            <option>Sort: Pending payouts</option>
+                            <option>Sort: Newest first</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-bulk" id="mbBulkMentors">
+                        <span class="b-selected"><i class="bi bi-check-circle-fill"></i> Selected: <b>0</b></span>
+                        <div class="b-actions">
+                            <button type="button" class="b-btn" data-toast="Message composer opened" data-toast-type="info"><i class="bi bi-chat-dots-fill"></i> Message</button>
+                            <button type="button" class="b-btn violet" data-toast="Commission tier editor opened" data-toast-type="warning"><i class="bi bi-percent"></i> Adjust commission</button>
+                            <button type="button" class="b-btn gold" data-toast="Payout priority updated" data-toast-type="success"><i class="bi bi-lightning-charge-fill"></i> Priority payout</button>
+                            <button type="button" class="b-btn rose" data-toast="Freezing payouts requires reason" data-toast-type="error"><i class="bi bi-snow"></i> Freeze payouts</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-card-body flush" style="overflow-x:auto;">
+                        <table class="mb-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;"><label class="mb-check"><input type="checkbox"><span class="tick"><i class="bi bi-check-lg"></i></span></label></th>
+                                    <th>Mentor</th>
+                                    <th>Tier</th>
+                                    <th>Revenue · 30d</th>
+                                    <th>Payouts</th>
+                                    <th>Rating</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar mentor" style="background: var(--mb-gold-grad); color: var(--mb-void);">CO<span class="role-mark" style="background: var(--mb-gold-deep);"><i class="bi bi-crown-fill"></i></span></span><span class="mb-member-info"><strong>Chidi Okafor <span class="verified gold"><i class="bi bi-crown-fill"></i></span></strong><small>chidi@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-role mentor" style="color: var(--mb-gold-deep); background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.34);"><i class="bi bi-crown-fill"></i> Elite</span></td>
+                                    <td class="mb-meta"><strong style="color: var(--mb-jade-deep);">₦4.82M</strong><small>+18.4% MoM</small></td>
+                                    <td class="mb-meta"><strong>₦4.1M</strong><small>Paid on time</small></td>
+                                    <td class="mb-meta"><strong>4.98 ★</strong><small>1,248 reviews</small></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn violet" title="Override commission" data-toast="Commission override editor opened" data-toast-type="warning"><i class="bi bi-percent"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar mentor" style="background: var(--mb-violet-grad);">AB<span class="role-mark"><i class="bi bi-person-badge-fill"></i></span></span><span class="mb-member-info"><strong>Amara Balogun <span class="verified"><i class="bi bi-patch-check-fill"></i></span></strong><small>amara.b@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-role mentor"><i class="bi bi-award-fill"></i> Pro</span></td>
+                                    <td class="mb-meta"><strong style="color: var(--mb-jade-deep);">₦3.68M</strong><small>+12.1% MoM</small></td>
+                                    <td class="mb-meta"><strong>₦3.2M</strong><small>Paid on time</small></td>
+                                    <td class="mb-meta"><strong>4.92 ★</strong><small>842 reviews</small></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn violet" title="Override commission" data-toast="Commission override editor opened" data-toast-type="warning"><i class="bi bi-percent"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar mentor">IE<span class="role-mark"><i class="bi bi-person-badge-fill"></i></span></span><span class="mb-member-info"><strong>Ifeanyi Eze <span class="verified"><i class="bi bi-patch-check-fill"></i></span></strong><small>ifeanyi@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-role mentor"><i class="bi bi-award-fill"></i> Pro</span></td>
+                                    <td class="mb-meta"><strong style="color: var(--mb-jade-deep);">₦2.18M</strong><small>+5.2% MoM</small></td>
+                                    <td class="mb-meta"><strong style="color: var(--mb-gold-deep);">₦1.4M</strong><small>Pending release</small></td>
+                                    <td class="mb-meta"><strong>4.85 ★</strong><small>412 reviews</small></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn violet" title="Override commission" data-toast="Commission override editor opened" data-toast-type="warning"><i class="bi bi-percent"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                                <tr>
+                                    <td><label class="mb-check"><input type="checkbox" class="mb-row-check"><span class="tick"><i class="bi bi-check-lg"></i></span></label></td>
+                                    <td><div class="mb-member"><span class="mb-avatar mentor" style="background: var(--mb-azure-grad); color: var(--mb-void);">SO<span class="role-mark" style="background: var(--mb-azure-deep);"><i class="bi bi-arrow-up-circle-fill"></i></span></span><span class="mb-member-info"><strong>Segun Ojo</strong><small>segun@knotwork.io</small></span></div></td>
+                                    <td><span class="mb-role mentor" style="color: var(--mb-azure-deep); background: rgba(96,165,250,.12); border-color: rgba(96,165,250,.34);"><i class="bi bi-arrow-up-circle-fill"></i> Rising</span></td>
+                                    <td class="mb-meta"><strong style="color: var(--mb-jade-deep);">₦482K</strong><small>+42.1% MoM</small></td>
+                                    <td class="mb-meta"><strong>₦0</strong><small>Awaiting threshold</small></td>
+                                    <td class="mb-meta"><strong>4.72 ★</strong><small>68 reviews</small></td>
+                                    <td><div class="mb-actions"><button type="button" class="mb-act-btn" title="View"><i class="bi bi-eye-fill"></i></button><button type="button" class="mb-act-btn violet" title="Override commission" data-toast="Commission override editor opened" data-toast-type="warning"><i class="bi bi-percent"></i></button><button type="button" class="mb-act-btn gold"><i class="bi bi-three-dots-vertical"></i></button></div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-paginate">
+                        <span class="pg-info">Showing <b>1–4</b> of <b>1,842</b> mentors</span>
+                        <div class="pg-controls">
+                            <button type="button" class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
+                            <button type="button" class="pg-btn active">1</button>
+                            <button type="button" class="pg-btn">2</button>
+                            <button type="button" class="pg-btn">3</button>
+                            <span style="color:var(--gray-400);padding:0 4px;">…</span>
+                            <button type="button" class="pg-btn">461</button>
+                            <button type="button" class="pg-btn"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ROOT MENTOR CONTROL -->
+                <div class="mb-root-panel fade-up">
+                    <div class="rp-head">
+                        <span class="ic"><i class="bi bi-crown-fill"></i></span>
+                        <div class="tt">
+                            <h4>Root Mentor Controls</h4>
+                            <p>Commission tiers, override management, and marketplace economics.</p>
+                        </div>
+                        <span class="mb-root"><i class="bi bi-crown-fill"></i> Root only</span>
+                    </div>
+
+                    <div class="rp-actions">
+                        <button type="button" class="mb-root-action" data-toast="Commission tier editor opened" data-toast-type="warning">
+                            <i class="bi bi-percent"></i>
+                            <div>Edit commission tiers<span>Rising 22% · Pro 18% · Elite 12%</span></div>
+                        </button>
+                        <button type="button" class="mb-root-action violet" data-toast="Override manager opened" data-toast-type="info">
+                            <i class="bi bi-sliders"></i>
+                            <div>Commission overrides<span>14 active</span></div>
+                        </button>
+                        <button type="button" class="mb-root-action jade" data-toast="Payout batch queued" data-toast-type="success">
+                            <i class="bi bi-cash-coin"></i>
+                            <div>Release pending payouts<span>₦6.4M · 312 mentors</span></div>
+                        </button>
+                        <button type="button" class="mb-root-action rose" data-toast="Freezing mentor requires review" data-toast-type="error">
+                            <i class="bi bi-snow"></i>
+                            <div>Freeze payouts<span>Requires 2-admin approval</span></div>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mb-col">
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic violet"><i class="bi bi-graph-up-arrow"></i></span>
+                            <div>
+                                <h3>Marketplace Health</h3>
+                                <p>Mentor economy.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+                        <div class="mb-mini">
+                            <span class="ic violet"><i class="bi bi-award-fill"></i></span>
+                            <span class="txt"><strong>214 Elite mentors</strong><small>100+ sales, 4.8★</small></span>
+                            <span class="num">11.6%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic azure"><i class="bi bi-star-fill"></i></span>
+                            <span class="txt"><strong>1,088 Pro mentors</strong><small>11–100 sales</small></span>
+                            <span class="num">59.1%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-arrow-up-circle-fill"></i></span>
+                            <span class="txt"><strong>Rising cohort</strong><small>0–10 sales</small></span>
+                            <span class="num">3,412</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic jade"><i class="bi bi-hourglass-split"></i></span>
+                            <span class="txt"><strong>Pending payouts</strong><small>Fri release batch</small></span>
+                            <span class="num">₦6.4M</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="mb-card fade-up">
+                    <header class="mb-card-head">
+                        <div class="ttl">
+                            <span class="ic gold"><i class="bi bi-award-fill"></i></span>
+                            <div>
+                                <h3>Commission Tiers</h3>
+                                <p>Current rates.</p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mb-card-body">
+                        <div class="mb-mini">
+                            <span class="ic gold"><i class="bi bi-crown-fill"></i></span>
+                            <span class="txt"><strong>Elite tier</strong><small>100+ sales &amp; 4.8★</small></span>
+                            <span class="num">12%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic violet"><i class="bi bi-award-fill"></i></span>
+                            <span class="txt"><strong>Pro tier</strong><small>11–100 sales</small></span>
+                            <span class="num">18%</span>
+                        </div>
+                        <div class="mb-mini">
+                            <span class="ic azure"><i class="bi bi-arrow-up-circle-fill"></i></span>
+                            <span class="txt"><strong>Rising tier</strong><small>0–10 sales</small></span>
+                            <span class="num">22%</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ====================================================
+     MEMBER DETAIL DRAWER
+     ==================================================== -->
+<div class="mb-drawer-back" id="mbDrawerBack"></div>
+
+<aside class="mb-drawer" id="mbDrawer" aria-hidden="true">
+    <div class="mb-drawer-head">
+        <div class="dh-top">
+            <span class="dh-label"><i class="bi bi-crown-fill"></i> Member Profile</span>
+            <button type="button" class="dh-close" id="mbDrawerClose" aria-label="Close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="dh-avatar">
+            CO
+            <span class="role-mark"><i class="bi bi-person-badge-fill"></i></span>
+        </div>
+        <h3 id="mbDrawerName">Chidi Okafor</h3>
+        <p id="mbDrawerEmail">chidi@knotwork.io · KW-MEM-04218</p>
+        <div class="dh-badges">
+            <span class="mb-role mentor"><i class="bi bi-person-badge-fill"></i> Mentor</span>
+            <span class="mb-status active"><span class="dot"></span> Active</span>
+            <span class="mb-root"><i class="bi bi-crown-fill"></i> Elite tier</span>
+        </div>
+    </div>
+
+    <div class="mb-drawer-body">
+
+        <div class="mb-drawer-section">
+            <h5><i class="bi bi-bar-chart-fill"></i> Engagement</h5>
+            <div class="mb-drawer-stat-grid">
+                <div class="mb-drawer-stat"><strong>4.82M</strong><span>Revenue 30d</span></div>
+                <div class="mb-drawer-stat"><strong>12</strong><span>Courses</span></div>
+                <div class="mb-drawer-stat"><strong>1,248</strong><span>Reviews</span></div>
+            </div>
+        </div>
+
+        <div class="mb-drawer-section">
+            <h5><i class="bi bi-info-circle-fill"></i> Contact</h5>
+            <div class="mb-drawer-field">
+                <span class="lbl">Email</span>
+                <span class="val mono">chidi@knotwork.io</span>
+            </div>
+            <div class="mb-drawer-field">
+                <span class="lbl">Phone</span>
+                <span class="val mono">+234 803 456 7890</span>
+            </div>
+            <div class="mb-drawer-field">
+                <span class="lbl">Location</span>
+                <span class="val">Lagos, NG · 102.89.34.7</span>
+            </div>
+            <div class="mb-drawer-field">
+                <span class="lbl">Joined</span>
+                <span class="val">12 Mar 2024 · 2y ago</span>
+            </div>
+        </div>
+
+        <div class="mb-drawer-section">
+            <h5><i class="bi bi-shield-lock-fill"></i> Security</h5>
+            <div class="mb-drawer-field">
+                <span class="lbl">MFA</span>
+                <span class="val" style="color: var(--mb-jade-deep);">Enabled · TOTP</span>
+            </div>
+            <div class="mb-drawer-field">
+                <span class="lbl">Email verified</span>
+                <span class="val" style="color: var(--mb-jade-deep);">Yes · 12 Mar 2024</span>
+            </div>
+            <div class="mb-drawer-field">
+                <span class="lbl">Last IP</span>
+                <span class="val mono">102.89.34.7</span>
+            </div>
+            <div class="mb-drawer-field">
+                <span class="lbl">Sessions active</span>
+                <span class="val">3 devices</span>
+            </div>
+        </div>
+
+        <div class="mb-drawer-section">
+            <h5><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            <div class="mb-mini">
+                <span class="ic violet"><i class="bi bi-journal-check"></i></span>
+                <span class="txt"><strong>Published "Advanced Product Design v2"</strong><small>2h ago</small></span>
+            </div>
+            <div class="mb-mini">
+                <span class="ic jade"><i class="bi bi-cash-coin"></i></span>
+                <span class="txt"><strong>Payout released · ₦1.2M</strong><small>Yesterday</small></span>
+            </div>
+            <div class="mb-mini">
+                <span class="ic azure"><i class="bi bi-chat-dots-fill"></i></span>
+                <span class="txt"><strong>Replied to 12 students</strong><small>2 days ago</small></span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mb-drawer-foot">
+        <button type="button" class="db-btn primary" data-toast="Edit form opened" data-toast-type="info">
+            <i class="bi bi-pencil-fill"></i> Edit
+        </button>
+        <button type="button" class="db-btn" data-toast="Message composer opened" data-toast-type="info">
+            <i class="bi bi-chat-dots-fill"></i> Message
+        </button>
+        <button type="button" class="db-btn rose" data-toast="Suspension requires reason + 2FA" data-toast-type="warning">
+            <i class="bi bi-pause-circle-fill"></i> Suspend
+        </button>
+    </div>
+</aside>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    const tabs      = Array.from(document.querySelectorAll('.mb-tab'));
+    const panels    = Array.from(document.querySelectorAll('.mb-panel'));
+    const indicator = document.getElementById('mbTabInd');
+    const tabsNav   = document.getElementById('mbTabs');
+
+    function moveIndicator(tab) {
+        if (!tab || !indicator) return;
+        indicator.style.width = tab.offsetWidth + 'px';
+        indicator.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+    }
+
+    function activateTab(name, push) {
+        const tab = tabs.find(t => t.dataset.tab === name);
+        if (!tab) return;
+        tabs.forEach(t => {
+            const on = t === tab;
+            t.classList.toggle('active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+        moveIndicator(tab);
+        if (push !== false && history.replaceState) {
+            history.replaceState(null, '', '#' + name);
+        }
+        document.querySelectorAll('#panel-' + name + ' .fade-up').forEach((el, i) => {
+            el.classList.remove('visible');
+            setTimeout(() => el.classList.add('visible'), 40 + i * 55);
+        });
+        /* animate mini-bars */
+        setTimeout(() => {
+            document.querySelectorAll('#panel-' + name + ' .mb-minibar .track > span').forEach(el => {
+                el.style.width = '0';
+                requestAnimationFrame(() => setTimeout(() => {
+                    const w = el.getAttribute('data-w') || el.style.width;
+                    el.style.width = w;
+                }, 80));
+            });
+        }, 40);
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    tabsNav && tabsNav.addEventListener('keydown', e => {
+        const i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); tabs[(i + 1) % tabs.length].focus(); tabs[(i + 1) % tabs.length].click(); }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); const p = (i - 1 + tabs.length) % tabs.length; tabs[p].focus(); tabs[p].click(); }
+    });
+
+    const hash = (location.hash || '').replace('#', '');
+    if (hash && tabs.some(t => t.dataset.tab === hash)) {
+        activateTab(hash, false);
+    } else {
+        requestAnimationFrame(() => moveIndicator(tabs[0]));
+    }
+    window.addEventListener('resize', () => {
+        const active = tabs.find(t => t.classList.contains('active'));
+        moveIndicator(active);
+    });
+
+    /* ============================================================
+       SEARCH FILTER
+       ============================================================ */
+    const searchAll = document.getElementById('mbSearchAll');
+    if (searchAll) {
+        searchAll.addEventListener('input', e => {
+            const q = e.target.value.trim().toLowerCase();
+            const rows = document.querySelectorAll('#panel-all tbody tr');
+            let hits = 0;
+            rows.forEach(row => {
+                const name = row.dataset.name || '';
+                const email = row.dataset.email || '';
+                const match = !q || name.includes(q) || email.includes(q);
+                row.style.display = match ? '' : 'none';
+                if (match) hits++;
+            });
+            if (window.showKnotToast && q) {
+                window.showKnotToast(
+                    hits === 0 ? 'No members matched "' + q + '"' : hits + ' member' + (hits === 1 ? '' : 's') + ' matched',
+                    hits === 0 ? 'warning' : 'info'
+                );
+            }
+        });
+        searchAll.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { e.target.value = ''; e.target.dispatchEvent(new Event('input')); e.target.blur(); }
+        });
+    }
+
+    document.addEventListener('keydown', e => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            searchAll && searchAll.focus();
+        }
+    });
+
+    /* ============================================================
+       STATUS FILTERS
+       ============================================================ */
+    document.querySelectorAll('.mb-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const parent = btn.closest('.mb-toolbar');
+            if (!parent) return;
+            parent.querySelectorAll('.mb-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const status = btn.dataset.status || 'all';
+            const rows = parent.parentElement.querySelectorAll('tbody tr');
+            let hits = 0;
+            rows.forEach(row => {
+                const rowStatus = row.dataset.status || 'active';
+                const match = status === 'all' || rowStatus === status;
+                row.style.display = match ? '' : 'none';
+                if (match) hits++;
+            });
+            if (window.showKnotToast) {
+                const label = status === 'all' ? 'All members' : status.charAt(0).toUpperCase() + status.slice(1);
+                window.showKnotToast('Filter · ' + label + ' (' + hits + ')', 'info');
+            }
+        });
+    });
+
+    /* ============================================================
+       ROW CHECKBOXES + BULK BAR
+       ============================================================ */
+    function updateBulkBar(tableEl, bulkId) {
+        if (!tableEl) return;
+        const checked = tableEl.querySelectorAll('.mb-row-check:checked').length;
+        const bulk = document.getElementById(bulkId);
+        if (!bulk) return;
+        const counter = bulk.querySelector('b');
+        if (counter) counter.textContent = checked;
+        bulk.classList.toggle('show', checked > 0);
+    }
+
+    const tableAll = document.getElementById('mbTableAll');
+    if (tableAll) {
+        tableAll.addEventListener('change', e => {
+            if (e.target.classList.contains('mb-row-check') || e.target.id === 'mbSelectAllAll') {
+                if (e.target.id === 'mbSelectAllAll') {
+                    const checked = e.target.checked;
+                    tableAll.querySelectorAll('.mb-row-check').forEach(c => {
+                        c.checked = checked;
+                        c.closest('tr').classList.toggle('selected', checked);
+                    });
+                } else {
+                    e.target.closest('tr').classList.toggle('selected', e.target.checked);
+                }
+                updateBulkBar(tableAll, 'mbBulkAll');
+            }
+        });
+    }
+
+    document.querySelectorAll('.mb-panel .mb-table').forEach(table => {
+        if (table === tableAll) return;
+        table.addEventListener('change', e => {
+            if (e.target.classList.contains('mb-row-check')) {
+                e.target.closest('tr').classList.toggle('selected', e.target.checked);
+                const panel = table.closest('.mb-panel');
+                const bulk = panel ? panel.querySelector('.mb-bulk') : null;
+                if (bulk) {
+                    const checked = table.querySelectorAll('.mb-row-check:checked').length;
+                    const counter = bulk.querySelector('b');
+                    if (counter) counter.textContent = checked;
+                    bulk.classList.toggle('show', checked > 0);
+                }
+            }
+        });
+    });
+
+    /* ============================================================
+       DRAWER (member detail)
+       ============================================================ */
+    const drawer = document.getElementById('mbDrawer');
+    const drawerBack = document.getElementById('mbDrawerBack');
+    const drawerClose = document.getElementById('mbDrawerClose');
+
+    function openDrawer() {
+        drawer && drawer.classList.add('open');
+        drawerBack && drawerBack.classList.add('open');
+        drawer && drawer.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+        drawer && drawer.classList.remove('open');
+        drawerBack && drawerBack.classList.remove('open');
+        drawer && drawer.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    drawerClose && drawerClose.addEventListener('click', closeDrawer);
+    drawerBack && drawerBack.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) closeDrawer();
+    });
+
+    /* open drawer from row view buttons */
+    document.querySelectorAll('[data-member]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const key = btn.dataset.member;
+            const row = btn.closest('tr');
+            if (!row) return;
+            const nameEl = row.querySelector('.mb-member-info strong');
+            const emailEl = row.querySelector('.mb-member-info small');
+            const drawerName = document.getElementById('mbDrawerName');
+            const drawerEmail = document.getElementById('mbDrawerEmail');
+            if (drawerName && nameEl) drawerName.textContent = nameEl.childNodes[0].textContent.trim();
+            if (drawerEmail && emailEl) drawerEmail.textContent = emailEl.textContent + ' · KW-MEM-' + (1000 + Math.floor(Math.random() * 9000));
+            openDrawer();
+        });
+    });
+
+    /* ============================================================
+       DATA-TOAST TARGETS
+       ============================================================ */
+    document.querySelectorAll('[data-toast]').forEach(el => {
+        el.addEventListener('click', function (e) {
+            if (this.hasAttribute('data-member')) return;
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (window.showKnotToast) window.showKnotToast(msg, type);
+        });
+    });
+
+    /* ============================================================
+       ENTRANCE ANIMATION
+       ============================================================ */
+    const io = new IntersectionObserver(entries => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 70);
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+    /* Reveal what's already in viewport */
+    setTimeout(() => {
+        document.querySelectorAll('.fade-up').forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight) {
+                el.classList.add('visible');
+            }
+        });
+    }, 100);
+
+    /* Animate mini-bars on load */
+    setTimeout(() => {
+        document.querySelectorAll('.mb-minibar .track > span').forEach(el => {
+            const w = el.style.width;
+            el.setAttribute('data-w', w);
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => { el.style.width = w; }, 180));
+        });
+    }, 300);
+
+})();
+</script>
+{% endblock %}

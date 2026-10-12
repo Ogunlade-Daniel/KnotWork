@@ -962,18 +962,18 @@
      ==================================================== -->
 <section class="hc-head fade-up">
     <div>
-        <span class="badge-soft"><span class="live-dot"></span> Support online · Replies in ~2h</span>
+        <span class="badge-soft"><span class="live-dot"></span> {{ open_ticket_count }} open support requests</span>
         <h1>Help <span>Centre</span></h1>
         <p>Answers, guides and real humans — whenever you need them. Browse the FAQs or talk to our support team directly.</p>
     </div>
 
     <div class="hc-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-line" data-toast="Opening the community forum…">
+        <a class="btn btn-line" href="{% url 'student_community' %}">
             <i class="bi bi-people-fill"></i> Ask community
-        </button>
-        <button class="btn btn-secondary" data-toast="Opening support chat…">
+         </a>
+        <a class="btn btn-secondary" href="#support-ticket-form">
             <i class="bi bi-chat-dots-fill"></i> Chat with support
-        </button>
+        </a>
     </div>
 </section>
 
@@ -984,23 +984,23 @@
 <section class="hc-hero fade-up">
     <div class="hc-hero-inner">
         <h2>How can we <span>help?</span></h2>
-        <p>Search our knowledge base for instant answers, or browse categories below. Over 140 articles, updated weekly.</p>
+        <p>Search the knowledge base or browse the answers by topic. If an answer is missing, contact support below.</p>
 
-        <form class="hc-search" onsubmit="return false;">
+        <form class="hc-search" method="get" action="{% url 'student_help' %}">
             <i class="bi bi-search"></i>
-            <input type="text" id="hcSearch" placeholder="Search: bookings, credits, 2FA, mentors…" aria-label="Search help articles">
-            <button type="button" class="btn btn-secondary" data-toast="Searching the knowledge base…">
+            <input type="search" id="hcSearch" name="q" value="{{ search_query }}" placeholder="Search: bookings, credits, 2FA, mentors…" aria-label="Search help articles">
+            <button type="submit" class="btn btn-secondary">
                 <i class="bi bi-search"></i> Search
             </button>
         </form>
 
         <div class="hc-trends">
             <span class="lbl">Popular</span>
-            <button class="hc-trend" data-toast="Searching: Book a session…"><i class="bi bi-fire"></i> Book a session</button>
-            <button class="hc-trend" data-toast="Searching: Credits and refunds…"><i class="bi bi-fire"></i> Credits &amp; refunds</button>
-            <button class="hc-trend" data-toast="Searching: Two-factor authentication…"><i class="bi bi-fire"></i> 2FA</button>
-            <button class="hc-trend" data-toast="Searching: Become a mentor…"><i class="bi bi-fire"></i> Become a mentor</button>
-            <button class="hc-trend" data-toast="Searching: Skill matching…"><i class="bi bi-fire"></i> Skill matching</button>
+            <button class="hc-trend" type="button" data-search="Book a session"><i class="bi bi-fire"></i> Book a session</button>
+            <button class="hc-trend" type="button" data-search="Credits and refunds"><i class="bi bi-fire"></i> Credits &amp; refunds</button>
+            <button class="hc-trend" type="button" data-search="two-factor authentication"><i class="bi bi-fire"></i> 2FA</button>
+            <button class="hc-trend" type="button" data-search="mentor"><i class="bi bi-fire"></i> Become a mentor</button>
+            <button class="hc-trend" type="button" data-search="matching algorithm"><i class="bi bi-fire"></i> Skill matching</button>
         </div>
     </div>
 </section>
@@ -1013,29 +1013,29 @@
     <div class="hc-trust item fade-up">
         <i class="bi bi-clock-history"></i>
         <div>
-            <strong>~2 hour replies</strong>
-            <span>Average support response</span>
+            <strong>{{ open_ticket_count }} open</strong>
+            <span>Your support requests</span>
         </div>
     </div>
     <div class="hc-trust item sky fade-up">
         <i class="bi bi-book-half"></i>
         <div>
-            <strong>140+ articles</strong>
+            <strong>{{ faq_count }} articles</strong>
             <span>Knowledge base guides</span>
         </div>
     </div>
     <div class="hc-trust item violet fade-up">
         <i class="bi bi-people-fill"></i>
         <div>
-            <strong>12,400 members</strong>
+            <strong>{{ member_count }} members</strong>
             <span>Peer community help</span>
         </div>
     </div>
     <div class="hc-trust item amber fade-up">
         <i class="bi bi-star-fill"></i>
         <div>
-            <strong>96% satisfaction</strong>
-            <span>Support rating this month</span>
+            <strong>{{ faq_count }}</strong>
+            <span>Frequently asked answers</span>
         </div>
     </div>
 </section>
@@ -1045,56 +1045,56 @@
      CATEGORY GRID
      ==================================================== -->
 <section class="hc-cats">
-    <a class="hc-cat fade-up" data-toast="Opening: Getting started…">
+    <a class="hc-cat fade-up" href="#hcPanelGeneral" data-faq-tab="general">
         <div class="ic"><i class="bi bi-rocket-takeoff-fill"></i></div>
         <h4>Getting started</h4>
         <p>Set up your profile, find your first match, and book your first session on Knotwork.</p>
         <span class="count"><i class="bi bi-file-text"></i> 18 articles</span>
     </a>
 
-    <a class="hc-cat sky fade-up" data-toast="Opening: Sessions &amp; bookings…">
+    <a class="hc-cat sky fade-up" href="#hcPanelSessions" data-faq-tab="sessions">
         <div class="ic"><i class="bi bi-camera-video-fill"></i></div>
         <h4>Sessions &amp; bookings</h4>
         <p>Book, reschedule, cancel, join sessions, and what to do if something goes wrong.</p>
         <span class="count"><i class="bi bi-file-text"></i> 24 articles</span>
     </a>
 
-    <a class="hc-cat violet fade-up" data-toast="Opening: Credits &amp; billing…">
+    <a class="hc-cat violet fade-up" href="#hcPanelCredits" data-faq-tab="credits">
         <div class="ic"><i class="bi bi-wallet2"></i></div>
         <h4>Credits &amp; billing</h4>
         <p>Top up, earn credits, understand refunds, and manage payment methods safely.</p>
         <span class="count"><i class="bi bi-file-text"></i> 22 articles</span>
     </a>
 
-    <a class="hc-cat amber fade-up" data-toast="Opening: Skill matching…">
+    <a class="hc-cat amber fade-up" href="#hcPanelGeneral" data-faq-tab="general">
         <div class="ic"><i class="bi bi-arrow-left-right"></i></div>
         <h4>Skill matching</h4>
         <p>How our matching works, how to improve your matches, and what makes a great swap.</p>
         <span class="count"><i class="bi bi-file-text"></i> 16 articles</span>
     </a>
 
-    <a class="hc-cat green fade-up" data-toast="Opening: Mentorship…">
+    <a class="hc-cat green fade-up" href="#hcPanelGeneral" data-faq-tab="general">
         <div class="ic"><i class="bi bi-person-badge-fill"></i></div>
         <h4>Mentorship</h4>
         <p>Apply to be a mentor, work with a mentee, and make your mentorship worth their time.</p>
         <span class="count"><i class="bi bi-file-text"></i> 14 articles</span>
     </a>
 
-    <a class="hc-cat dark fade-up" data-toast="Opening: Account &amp; security…">
+    <a class="hc-cat dark fade-up" href="#hcPanelAccount" data-faq-tab="account">
         <div class="ic"><i class="bi bi-shield-lock-fill"></i></div>
         <h4>Account &amp; security</h4>
         <p>Password, 2FA, sessions, devices, connected accounts, and account recovery.</p>
         <span class="count"><i class="bi bi-file-text"></i> 20 articles</span>
     </a>
 
-    <a class="hc-cat rose fade-up" data-toast="Opening: Trust &amp; safety…">
+    <a class="hc-cat rose fade-up" href="#hcPanelSafety" data-faq-tab="safety">
         <div class="ic"><i class="bi bi-shield-check"></i></div>
         <h4>Trust &amp; safety</h4>
         <p>Report abuse, block members, understand our policies, and stay safe on Knotwork.</p>
         <span class="count"><i class="bi bi-file-text"></i> 12 articles</span>
     </a>
 
-    <a class="hc-cat fade-up" data-toast="Opening: Community guidelines…">
+    <a class="hc-cat fade-up" href="{% url 'student_community' %}">
         <div class="ic"><i class="bi bi-chat-dots-fill"></i></div>
         <h4>Community</h4>
         <p>Post, reply, upvote, and understand what makes a great community contribution.</p>
@@ -1116,9 +1116,9 @@
 
             <div class="hc-faq-head">
                 <h3><i class="bi bi-patch-question-fill"></i> Frequently asked questions</h3>
-                <button class="link" data-toast="Opening full knowledge base…">
+                <a class="link" href="#hcPanelGeneral">
                     Full knowledge base <i class="bi bi-arrow-right"></i>
-                </button>
+                </a>
             </div>
 
             <!-- Tabs -->
@@ -1646,12 +1646,8 @@
                 <!-- Was this helpful CTA -->
                 <div class="hc-helpful">
                     <span>Was this article helpful?</span>
-                    <button class="act yes" data-toast="Thanks for the feedback!" data-toast-type="success">
-                        <i class="bi bi-hand-thumbs-up-fill"></i> Yes
-                    </button>
-                    <button class="act no" data-toast="Sorry to hear that — we'll improve it">
-                        <i class="bi bi-hand-thumbs-down-fill"></i> No
-                    </button>
+                    <form method="post" action="{% url 'student_help_action' %}">{% csrf_token %}<input type="hidden" name="action" value="feedback"><input type="hidden" name="helpful" value="yes"><button class="act yes" type="submit"><i class="bi bi-hand-thumbs-up-fill"></i> Yes</button></form>
+                    <form method="post" action="{% url 'student_help_action' %}">{% csrf_token %}<input type="hidden" name="action" value="feedback"><input type="hidden" name="helpful" value="no"><button class="act no" type="submit"><i class="bi bi-hand-thumbs-down-fill"></i> No</button></form>
                 </div>
 
             </div>
@@ -1664,9 +1660,19 @@
                 <h5>Still need help?</h5>
                 <p>Our support team is online right now. Average response time: <strong>~2 hours</strong> during the day, and always within 24 hours.</p>
             </div>
-            <button class="btn btn-secondary" data-toast="Opening support chat…">
-                <i class="bi bi-chat-dots-fill"></i> Start a chat
-            </button>
+            <a class="btn btn-secondary" href="#support-ticket-form"><i class="bi bi-chat-dots-fill"></i> Contact support</a>
+        </div>
+
+        <div class="hc-faq-card fade-up" id="support-ticket-form">
+            <div class="hc-faq-head"><h3><i class="bi bi-ticket-detailed"></i> Contact support</h3><span>{{ open_ticket_count }} open</span></div>
+            <form method="post" action="{% url 'student_help_action' %}" style="padding:22px;display:grid;gap:14px;">
+                {% csrf_token %}<input type="hidden" name="action" value="ticket">
+                <label>Topic<select name="category" class="form-select" required><option value="general">General</option><option value="sessions">Sessions</option><option value="credits">Credits &amp; billing</option><option value="account">Account</option><option value="safety">Safety</option><option value="community">Community</option></select></label>
+                <label>Subject<input class="form-control" type="text" name="subject" maxlength="180" required></label>
+                <label>Message<textarea class="form-control" name="message" rows="4" maxlength="5000" required></textarea></label>
+                <button class="btn btn-secondary" type="submit"><i class="bi bi-send"></i> Submit request</button>
+            </form>
+            {% if tickets %}<div style="padding:0 22px 22px;"><h4>Your recent tickets</h4>{% for ticket in tickets %}<div class="hc-channel"><div class="body"><h5>{{ ticket.subject }}</h5><p>{{ ticket.get_status_display }} · Updated {{ ticket.updated_at|timesince }} ago</p></div>{% if ticket.status == 'open' or ticket.status == 'in_progress' %}<form method="post" action="{% url 'student_help_action' %}">{% csrf_token %}<input type="hidden" name="action" value="close_ticket"><input type="hidden" name="ticket_id" value="{{ ticket.id }}"><button class="btn btn-line btn-sm" type="submit">Close</button></form>{% endif %}</div>{% endfor %}</div>{% endif %}
         </div>
     </div>
 
@@ -1682,7 +1688,7 @@
                 <h4><i class="bi bi-headset"></i> Contact support</h4>
             </div>
 
-            <a class="hc-channel" data-toast="Opening live chat…">
+            <a class="hc-channel" href="#support-ticket-form">
                 <div class="ic">
                     <i class="bi bi-chat-dots-fill"></i>
                 </div>
@@ -1693,7 +1699,7 @@
                 <i class="bi bi-chevron-right arrow"></i>
             </a>
 
-            <a class="hc-channel" data-toast="Opening email composer…">
+            <a class="hc-channel" href="mailto:support@knotwork.io">
                 <div class="ic sky"><i class="bi bi-envelope-fill"></i></div>
                 <div class="body">
                     <h5>Email support</h5>
@@ -1702,16 +1708,16 @@
                 <i class="bi bi-chevron-right arrow"></i>
             </a>
 
-            <a class="hc-channel" data-toast="Opening community forum…">
+            <a class="hc-channel" href="{% url 'student_community' %}">
                 <div class="ic violet"><i class="bi bi-people-fill"></i></div>
                 <div class="body">
                     <h5>Community forum</h5>
-                    <p>Ask 12,400 members — often 5 min replies</p>
+                    <p>Ask {{ member_count }} members in the community</p>
                 </div>
                 <i class="bi bi-chevron-right arrow"></i>
             </a>
 
-            <a class="hc-channel" data-toast="Opening booking flow for a mentor call…">
+            <a class="hc-channel" href="{% url 'student_sessions' %}">
                 <div class="ic amber"><i class="bi bi-person-video3"></i></div>
                 <div class="body">
                     <h5>Book a support call</h5>
@@ -1725,10 +1731,10 @@
         <div class="hc-panel fade-up">
             <div class="hc-panel-head">
                 <h4><i class="bi bi-file-earmark-text-fill"></i> Popular this week</h4>
-                <button class="link" data-toast="Opening all articles…">View all</button>
+                <a class="link" href="#hcPanelGeneral">View all</a>
             </div>
 
-            <a class="hc-article" data-toast="Opening: How matching works…">
+            <a class="hc-article" href="#hcPanelGeneral" data-faq-tab="general">
                 <span class="rank">1</span>
                 <div class="body">
                     <h5>How Knotwork's skill matching actually works</h5>
@@ -1736,7 +1742,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" data-toast="Opening: Getting your first session…">
+            <a class="hc-article" href="#hcPanelSessions" data-faq-tab="sessions">
                 <span class="rank">2</span>
                 <div class="body">
                     <h5>Getting your first session booked</h5>
@@ -1744,7 +1750,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" data-toast="Opening: Credits explained…">
+            <a class="hc-article" href="#hcPanelCredits" data-faq-tab="credits">
                 <span class="rank">3</span>
                 <div class="body">
                     <h5>Credits, refunds and payouts explained</h5>
@@ -1752,7 +1758,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" data-toast="Opening: Setting up 2FA…">
+            <a class="hc-article" href="#hcPanelAccount" data-faq-tab="account">
                 <span class="rank">4</span>
                 <div class="body">
                     <h5>Setting up two-factor authentication in 2 minutes</h5>
@@ -1760,7 +1766,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" data-toast="Opening: Becoming a mentor…">
+            <a class="hc-article" href="#hcPanelGeneral" data-faq-tab="general">
                 <span class="rank">5</span>
                 <div class="body">
                     <h5>Becoming a mentor: what we look for</h5>
@@ -1796,7 +1802,7 @@
             <i class="bi bi-shield-check"></i>
             <span>
                 <strong>We never ask for</strong> your password, full card number, or government ID via chat or email.
-                If someone does, report it immediately to <a href="#">trust@knotwork.io</a>.
+                If someone does, report it immediately to <a href="mailto:trust@knotwork.io">trust@knotwork.io</a>.
             </span>
         </div>
 
@@ -1857,26 +1863,33 @@
         var searchInput = document.getElementById('hcSearch');
         document.querySelectorAll('.hc-trend').forEach(function (tag) {
             tag.addEventListener('click', function () {
-                var text = this.textContent.trim().replace(/^[^\s]+\s/, '');
+                var text = this.dataset.search || this.textContent.trim();
                 if (searchInput) {
                     searchInput.value = text;
                     searchInput.focus();
+                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             });
         });
 
-        /* ======================================================
-           "Was this helpful" — visual feedback
-           ====================================================== */
-        document.querySelectorAll('.hc-helpful .act').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var row = this.closest('.hc-helpful');
-                if (!row) return;
-                row.innerHTML =
-                    '<span style="color:#4D7C0F;font-weight:700;">' +
-                    '<i class="bi bi-check2-circle" style="margin-right:6px;"></i>' +
-                    'Thanks for the feedback!' +
-                    '</span>';
+        document.querySelectorAll('[data-faq-tab]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                var tab = document.querySelector('.hc-faq-tab[data-tab="' + this.dataset.faqTab + '"]');
+                if (tab) tab.click();
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                var query = this.value.trim().toLowerCase();
+                document.querySelectorAll('.hc-item').forEach(function (item) {
+                    item.style.display = !query || item.textContent.toLowerCase().includes(query) ? '' : 'none';
+                });
+                document.querySelectorAll('.hc-faq-panel').forEach(function (panel) {
+                    if (query && panel.querySelector('.hc-item:not([style*="display: none"])')) {
+                        activate(panel.id.replace('hcPanel', '').toLowerCase());
+                    }
+                });
             });
         });
 

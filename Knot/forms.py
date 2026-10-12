@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 
+from .models import Course
+
 
 class OnboardingForm(forms.Form):
     REQUIRED_ROLE_FIELDS = {
@@ -10,13 +12,9 @@ class OnboardingForm(forms.Form):
         'mentor': ('first_name', 'surname', 'email', 'phone_number', 'password', 'confirm_password', 'mentorship_areas', 'industry_skills', 'years_experience', 'current_role_company', 'mentor_bio', 'mentorship_type', 'session_rate', 'availability', 'languages_spoken', 'max_students_per_month', 'mentor_terms_accepted'),
     }
     PROFILE_FIELDS = (
-        'first_name', 'surname', 'email', 'phone_number', 'hear_about_us', 'terms_accepted', 'email_marketing',
-        'learning_goal', 'skill_level', 'timezone', 'primary_subject', 'years_experience',
-        'current_job_title', 'portfolio_url', 'linkedin_url', 'github_url', 'short_bio',
-        'id_certificate', 'teaching_style', 'languages_spoken', 'payment_method', 'availability',
-        'teacher_terms_accepted', 'background_check_consent', 'mentorship_areas', 'industry_skills',
-        'current_role_company', 'mentor_bio', 'mentor_links', 'mentorship_type', 'session_rate',
-        'max_students_per_month', 'mentor_id', 'references', 'mentor_terms_accepted',
+        'first_name', 'surname', 'email', 'short_bio',
+        'mentor_bio', 'timezone', 'hear_about_us', 'terms_accepted',
+        'email_marketing',
     )
 
     role = forms.CharField(widget=forms.HiddenInput())
@@ -47,7 +45,6 @@ class OnboardingForm(forms.Form):
     teacher_terms_accepted = forms.BooleanField(required=False)
     background_check_consent = forms.BooleanField(required=False)
     mentorship_areas = forms.CharField(max_length=255, required=False)
-    years_experience = forms.IntegerField(min_value=0, required=False)
     industry_skills = forms.CharField(max_length=255, required=False)
     current_role_company = forms.CharField(max_length=180, required=False)
     mentor_bio = forms.CharField(required=False, widget=forms.Textarea)
@@ -105,3 +102,25 @@ class LoginForm(forms.Form):
             raise forms.ValidationError('Email or password is incorrect.')
         cleaned_data['user'] = user
         return cleaned_data
+
+
+class CourseForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = ('title', 'category', 'level', 'description', 'price')
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'placeholder': 'Give your course a clear, memorable title',
+            }),
+            'category': forms.Select(),
+            'level': forms.Select(),
+            'description': forms.Textarea(attrs={
+                'rows': 5,
+                'placeholder': 'What will learners be able to do after this course?',
+            }),
+            'price': forms.NumberInput(attrs={
+                'min': '0',
+                'step': '0.01',
+                'placeholder': '0 for free',
+            }),
+        }

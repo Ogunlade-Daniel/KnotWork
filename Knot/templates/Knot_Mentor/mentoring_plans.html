@@ -1,0 +1,1664 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Mentoring Plans{% endblock %}
+{% block breadcrumb %}Mentoring Plans{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .plans-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .plans-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .plans-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .ph-text { position: relative; z-index: 2; max-width: 640px; }
+    .ph-text .hero-badge { margin-bottom: 14px; }
+    .ph-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .ph-text h1 span { color: var(--secondary); font-style: italic; }
+    .ph-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        margin-bottom: 22px;
+        max-width: 540px;
+    }
+    .ph-text p strong { color: var(--white); font-weight: 600; }
+    .ph-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    .ph-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .ph-metric { text-align: center; }
+    .ph-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .ph-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.15rem; }
+    .ph-metric span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .ph-sep { width: 1px; background: rgba(255, 255, 255, 0.12); }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .plans-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .po-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .po-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .po-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .po-card:hover::before { opacity: 1; }
+    .po-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .po-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .po-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .po-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .po-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .po-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .po-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .po-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .po-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .po-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .po-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    .tool-view {
+        display: inline-flex;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        overflow: hidden;
+        background: var(--white);
+        height: 42px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .tool-view button {
+        width: 36px;
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        display: grid; place-items: center;
+    }
+    .tool-view button:hover { color: var(--primary-dark); }
+    .tool-view button.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 14px rgba(190, 242, 100, 0.3);
+    }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       PLAN CARD (list view)
+       ============================================================ */
+    .plan-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .plan-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .plan-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 22px; bottom: 22px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .plan-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .plan-card:hover::before { opacity: 1; }
+    .plan-card.draft::before { background: var(--amber); }
+    .plan-card.template::before { background: var(--violet); }
+    .plan-card.draft { border-style: dashed; }
+
+    .pc-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .pc-emblem {
+        width: 54px; height: 54px;
+        border-radius: 15px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .pc-emblem::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 13px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .pc-emblem.violet {
+        background: linear-gradient(135deg, #A78BFA, #7C3AED);
+        color: #fff;
+        box-shadow: 0 12px 26px rgba(139, 92, 246, 0.32);
+    }
+    .pc-emblem.violet::after { border-color: rgba(255,255,255,0.24); }
+    .pc-emblem.accent {
+        background: linear-gradient(135deg, var(--accent), #0EA5E9);
+        color: #fff;
+        box-shadow: 0 12px 26px rgba(56, 189, 248, 0.32);
+    }
+    .pc-emblem.accent::after { border-color: rgba(255,255,255,0.24); }
+    .pc-emblem.amber {
+        background: linear-gradient(135deg, #FCD34D, #F59E0B);
+        color: #451A03;
+        box-shadow: 0 12px 26px rgba(245, 158, 11, 0.32);
+    }
+    .pc-emblem.amber::after { border-color: rgba(69,26,3,0.18); }
+
+    .pc-id { flex: 1; min-width: 0; }
+    .pc-cat-row {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 5px;
+        flex-wrap: wrap;
+    }
+    .pc-cat {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.20);
+        border: 1px solid rgba(190, 242, 100, 0.36);
+        padding: 3px 9px;
+        border-radius: 50px;
+    }
+    .pc-cat.violet { color: #6D28D9; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.32); }
+    .pc-cat.accent { color: #0369A1; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.32); }
+    .pc-cat.amber  { color: #B45309; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.34); }
+
+    .pc-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+    .pc-title-row h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.25;
+    }
+    .pc-status {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .pc-status.active { background: rgba(34,197,94,0.14); color: #15803D; border: 1px solid rgba(34,197,94,0.34); }
+    .pc-status.draft { background: rgba(245,158,11,0.14); color: #B45309; border: 1px solid rgba(245,158,11,0.34); }
+    .pc-status.template { background: rgba(139,92,246,0.12); color: #6D28D9; border: 1px solid rgba(139,92,246,0.32); }
+    .pc-status.completed { background: rgba(190,242,100,0.20); color: #4D7C0F; border: 1px solid rgba(190,242,100,0.4); }
+
+    .pc-sub {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-bottom: 8px;
+        max-width: 720px;
+    }
+
+    /* Assignment row for active plans */
+    .pc-assign {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--cream);
+        border-radius: 12px;
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 14px;
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        flex-wrap: wrap;
+    }
+    .pc-assign .avatar {
+        width: 28px; height: 28px;
+        font-size: 0.6rem;
+        font-family: 'Playfair Display', serif;
+        flex-shrink: 0;
+    }
+    .pc-assign strong { color: var(--primary-dark); font-weight: 700; }
+    .pc-assign .dot-sep {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--gray-300);
+    }
+
+    /* Meta chips */
+    .pc-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-bottom: 14px;
+    }
+    .pc-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .pc-meta i { color: var(--gray-300); font-size: 0.78rem; }
+    .pc-meta i.lime { color: var(--secondary-deep); }
+    .pc-meta i.accent { color: var(--accent); }
+    .pc-meta i.violet { color: var(--violet); }
+
+    /* Milestone / task preview list */
+    .pc-milestones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .pc-milestone {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+        transition: var(--transition);
+    }
+    .pc-milestone .num {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: var(--white);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.58rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        border: 1px solid var(--gray-200);
+    }
+    .pc-milestone.done {
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        border-color: rgba(190, 242, 100, 0.4);
+    }
+    .pc-milestone.done .num {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        border-color: transparent;
+    }
+    .pc-milestone.active {
+        background: rgba(56, 189, 248, 0.12);
+        color: #0369A1;
+        border-color: rgba(56, 189, 248, 0.36);
+    }
+    .pc-milestone.active .num {
+        background: var(--accent);
+        color: #fff;
+        border-color: transparent;
+    }
+
+    /* Progress row */
+    .pc-progress-wrap {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+    .pc-progress-wrap .bar { flex: 1; }
+    .pc-progress-wrap .pct {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--primary-dark);
+        min-width: 44px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    /* Actions */
+    .pc-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding-top: 16px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .pc-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .pc-btn i { font-size: 0.82rem; }
+    .pc-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .pc-btn.primary {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+    }
+    .pc-btn.primary:hover {
+        background: var(--secondary-light);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.4);
+    }
+    .pc-btn.mute { background: var(--gray-100); border-color: transparent; }
+    .pc-btn.mute:hover { background: var(--gray-200); transform: none; border-color: transparent; }
+    .pc-btn.danger {
+        color: #DC2626;
+        border-color: rgba(239, 68, 68, 0.20);
+        background: rgba(239, 68, 68, 0.05);
+    }
+    .pc-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.10);
+        border-color: rgba(239, 68, 68, 0.36);
+        color: #B91C1C;
+    }
+    .pc-actions .pc-note {
+        margin-left: auto;
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .pc-actions .pc-note i { color: var(--gray-300); }
+
+    /* ============================================================
+       PLAN GRID (alternate view)
+       ============================================================ */
+    .plan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 18px;
+    }
+    .pg-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .pg-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .pg-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .pg-card:hover::before { opacity: 1; }
+
+    .pg-head {
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 14px;
+    }
+    .pg-head .pc-emblem { width: 46px; height: 46px; font-size: 1.15rem; border-radius: 13px; }
+    .pg-head .pc-emblem::after { inset: 2.5px; border-radius: 11px; }
+    .pg-head-info { min-width: 0; flex: 1; }
+    .pg-head-info h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.25;
+        margin-bottom: 3px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .pg-head-info span {
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        font-weight: 600;
+        display: block;
+    }
+
+    .pg-sub {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-bottom: 14px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .pg-progress {
+        margin-bottom: 14px;
+    }
+    .pg-progress .row {
+        display: flex; justify-content: space-between;
+        align-items: baseline; margin-bottom: 6px;
+    }
+    .pg-progress .row span { font-size: 0.7rem; color: var(--gray-600); font-weight: 600; }
+    .pg-progress .row strong { font-size: 0.78rem; color: var(--primary-dark); font-weight: 800; }
+
+    .pg-meta {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        font-size: 0.68rem; color: var(--gray-600);
+        padding: 12px 0;
+        border-top: 1px dashed var(--gray-200);
+        border-bottom: 1px dashed var(--gray-200);
+        margin-bottom: 14px;
+    }
+    .pg-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .pg-meta i { color: var(--gray-300); font-size: 0.75rem; }
+
+    .pg-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: auto;
+    }
+    .pg-actions .pc-btn { flex: 1; justify-content: center; padding: 8px 8px; font-size: 0.7rem; }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+    }
+    .empty-state .em-ic {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        margin: 0 auto 18px;
+        display: grid; place-items: center;
+        background: rgba(190, 242, 100, 0.14);
+        color: var(--secondary-deep);
+        font-size: 1.8rem;
+    }
+    .empty-state h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .empty-state p {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        max-width: 400px;
+        margin: 0 auto 20px;
+        line-height: 1.65;
+    }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .pg-btn {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .plans-overview { grid-template-columns: repeat(2, 1fr); }
+        .ph-metrics { gap: 18px; }
+        .ph-metric strong { font-size: 1.6rem; }
+    }
+    @media (max-width: 900px) {
+        .plans-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .ph-metrics { width: 100%; justify-content: space-between; }
+        .pc-head { flex-wrap: wrap; }
+    }
+    @media (max-width: 640px) {
+        .plans-overview { grid-template-columns: 1fr; }
+        .ph-metrics { flex-wrap: wrap; gap: 14px; }
+        .ph-sep { display: none; }
+        .ph-metric { flex: 1; min-width: 80px; }
+        .plan-card { padding: 20px 18px; }
+        .pc-actions { flex-direction: column; align-items: stretch; }
+        .pc-actions .pc-btn { width: 100%; justify-content: center; }
+        .pc-actions .pc-note { margin-left: 0; justify-content: center; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 420px) {
+        .pc-title-row h3 { font-size: 0.98rem; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="plans-hero fade-up">
+    <div class="ph-text">
+        <span class="hero-badge">
+            <i class="bi bi-patch-check-fill"></i> Verified Mentor · Structured roadmaps
+        </span>
+        <h1>Mentoring <span>Plans</span></h1>
+        <p>
+            You are running <strong>8 active roadmaps</strong> with
+            <strong>164 completed milestones</strong> between them.
+            <strong>12 templates</strong> are ready to assign, and
+            <strong>3 drafts</strong> are waiting to be finished. Every plan
+            is versioned and visible to your mentees.
+        </p>
+        <div class="ph-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening plan composer…" data-toast-type="info">
+                <i class="bi bi-plus-lg"></i> Create new plan
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening template gallery…" data-toast-type="info">
+                <i class="bi bi-grid-3x3-gap"></i> Browse templates
+            </button>
+        </div>
+    </div>
+
+    <div class="ph-metrics">
+        <div class="ph-metric">
+            <strong data-count="8">8</strong>
+            <span>Active plans</span>
+        </div>
+        <div class="ph-sep"></div>
+        <div class="ph-metric">
+            <strong data-count="164">164</strong>
+            <span>Milestones done</span>
+        </div>
+        <div class="ph-sep"></div>
+        <div class="ph-metric">
+            <strong>72<em>%</em></strong>
+            <span>Avg progress</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="plans-overview fade-up">
+
+    <div class="po-card">
+        <div class="po-top">
+            <span class="po-ic"><i class="bi bi-map-fill"></i></span>
+            <span class="po-trend"><i class="bi bi-arrow-up-short"></i> +2</span>
+        </div>
+        <div class="po-value" data-count="8">8</div>
+        <div class="po-label">Active roadmaps</div>
+    </div>
+
+    <div class="po-card">
+        <div class="po-top">
+            <span class="po-ic accent"><i class="bi bi-check-circle-fill"></i></span>
+            <span class="po-trend"><i class="bi bi-arrow-up-short"></i> +18</span>
+        </div>
+        <div class="po-value" data-count="164">164</div>
+        <div class="po-label">Milestones completed</div>
+    </div>
+
+    <div class="po-card">
+        <div class="po-top">
+            <span class="po-ic violet"><i class="bi bi-grid-3x3-gap-fill"></i></span>
+            <span class="po-trend"><i class="bi bi-shield-check"></i> Curated</span>
+        </div>
+        <div class="po-value" data-count="12">12</div>
+        <div class="po-label">Templates available</div>
+    </div>
+
+    <div class="po-card">
+        <div class="po-top">
+            <span class="po-ic amber"><i class="bi bi-pencil-square"></i></span>
+            <span class="po-trend warn"><i class="bi bi-clock-history"></i> In progress</span>
+        </div>
+        <div class="po-value" data-count="3">3</div>
+        <div class="po-label">Drafts unfinished</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="planSearch" placeholder="Search by plan name, mentee, or skill…" aria-label="Search plans">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All categories
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Recent activity" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Recent activity
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <div class="tool-view" role="tablist" aria-label="View mode">
+        <button type="button" class="active" id="viewList" aria-label="List view" title="List view">
+            <i class="bi bi-list-ul"></i>
+        </button>
+        <button type="button" id="viewGrid" aria-label="Grid view" title="Grid view">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Plans are versioned &amp; shared transparently</strong>
+        <p>
+            Every plan is time-stamped and visible to your mentee. Edits create a
+            <strong>new version</strong> so progress is never lost, and mentees
+            always know exactly what is expected of them next.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TABS + PLAN LIST
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="card tabs-card fade-up" style="padding: 0;">
+    <div class="tabs-head">
+        <h3><i class="bi bi-map-fill"></i> All Plans</h3>
+        <a href="#" class="link">Plan library <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="active">
+            Active Plans <span class="count">8</span>
+        </button>
+        <button class="tab" data-tab="templates">
+            Templates <span class="count">12</span>
+        </button>
+        <button class="tab" data-tab="drafts">
+            Drafts <span class="count">3</span>
+        </button>
+    </div>
+
+    <div class="tab-panels">
+
+        <!-- ───────────── ACTIVE PLANS ───────────── -->
+        <div class="tab-panel active" id="tab-active">
+            <div class="plan-list">
+
+                <!-- Plan 1 -->
+                <article class="plan-card" data-searchable="30-day backend mastery tunde kayode postgres node aws">
+                    <div class="pc-head">
+                        <span class="pc-emblem"><i class="bi bi-database-fill"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat"><i class="bi bi-tag-fill"></i> Backend</span>
+                                <span class="pc-cat accent"><i class="bi bi-clock-history"></i> 30 days</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>30-day Backend Mastery Plan</h3>
+                                <span class="pc-status active"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Active</span>
+                            </div>
+                            <p class="pc-sub">
+                                A sprint-style roadmap focused on production-grade PostgreSQL, Node.js architecture, and AWS deployment. Built from the Full-Stack Track template.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-assign">
+                        <span class="avatar">TK</span>
+                        <span>Assigned to <strong>Tunde Kayode</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Started <strong>8 days ago</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Target finish <strong>22 Nov 2025</strong></span>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 12 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 6 milestones</span>
+                        <span><i class="bi bi-calendar-check"></i> Weekly checkpoints</span>
+                        <span><i class="bi bi-eye"></i> Visible to mentee</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> SQL fundamentals</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Query plan review</span>
+                        <span class="pc-milestone active"><span class="num">3</span> Indexing strategy</span>
+                        <span class="pc-milestone"><span class="num">4</span> Node architecture</span>
+                        <span class="pc-milestone"><span class="num">5</span> AWS deployment</span>
+                        <span class="pc-milestone"><span class="num">6</span> Capstone review</span>
+                    </div>
+
+                    <div class="pc-progress-wrap">
+                        <div class="bar"><span data-value="42"></span></div>
+                        <div class="pct">42%</div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Opening plan editor…" data-toast-type="info">
+                            <i class="bi bi-pencil-square"></i> Edit plan
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening roadmap view…" data-toast-type="info">
+                            <i class="bi bi-diagram-3"></i> View roadmap
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Progress snapshot opened" data-toast-type="info">
+                            <i class="bi bi-graph-up-arrow"></i> Progress
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-clock-history"></i> Updated 2 hours ago
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Plan 2 -->
+                <article class="plan-card" data-searchable="advanced react patterns sara kim hooks typescript">
+                    <div class="pc-head">
+                        <span class="pc-emblem accent"><i class="bi bi-code-slash"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat accent"><i class="bi bi-tag-fill"></i> Frontend</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 8 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>Advanced React Patterns · Deep Dive</h3>
+                                <span class="pc-status active"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Active</span>
+                            </div>
+                            <p class="pc-sub">
+                                Custom hooks, render optimisation, and pattern-driven architecture. Ships a production React library at the end of the roadmap.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-assign">
+                        <span class="avatar sky">SK</span>
+                        <span>Assigned to <strong>Sara Kim</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Started <strong>4 weeks ago</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Target finish <strong>8 Dec 2025</strong></span>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 14 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 8 milestones</span>
+                        <span><i class="bi bi-calendar-check"></i> Weekly 1:1s</span>
+                        <span><i class="bi bi-eye"></i> Visible to mentee</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Context</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> useReducer</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> useMemo</span>
+                        <span class="pc-milestone active"><span class="num">4</span> Custom hooks</span>
+                        <span class="pc-milestone"><span class="num">5</span> Render opt.</span>
+                        <span class="pc-milestone"><span class="num">6</span> Library design</span>
+                        <span class="pc-milestone"><span class="num">7</span> Testing</span>
+                        <span class="pc-milestone"><span class="num">8</span> Ship it</span>
+                    </div>
+
+                    <div class="pc-progress-wrap">
+                        <div class="bar accent"><span data-value="72"></span></div>
+                        <div class="pct">72%</div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Opening plan editor…" data-toast-type="info">
+                            <i class="bi bi-pencil-square"></i> Edit plan
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening roadmap view…" data-toast-type="info">
+                            <i class="bi bi-diagram-3"></i> View roadmap
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Progress snapshot opened" data-toast-type="info">
+                            <i class="bi bi-graph-up-arrow"></i> Progress
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-clock-history"></i> Updated yesterday
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Plan 3 -->
+                <article class="plan-card" data-searchable="design to dev bridge maya rahman react ui ux">
+                    <div class="pc-head">
+                        <span class="pc-emblem violet"><i class="bi bi-palette-fill"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat violet"><i class="bi bi-tag-fill"></i> Design → Dev</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 12 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>Design → Dev Bridge Plan</h3>
+                                <span class="pc-status active"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Active</span>
+                            </div>
+                            <p class="pc-sub">
+                                A translation plan that turns design instincts into React competence. Focused on shipping real UI, not toy exercises.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-assign">
+                        <span class="avatar violet">MR</span>
+                        <span>Assigned to <strong>Maya Rahman</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Started <strong>10 weeks ago</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Target finish <strong>1 Dec 2025</strong></span>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 11 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 8 milestones</span>
+                        <span><i class="bi bi-calendar-check"></i> Async-first</span>
+                        <span><i class="bi bi-eye"></i> Visible to mentee</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> JSX</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Components</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Tailwind</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> State</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Routing</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> API</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Deploy v1</span>
+                        <span class="pc-milestone active"><span class="num">8</span> Portfolio v2</span>
+                    </div>
+
+                    <div class="pc-progress-wrap">
+                        <div class="bar violet"><span data-value="91"></span></div>
+                        <div class="pct">91%</div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Opening plan editor…" data-toast-type="info">
+                            <i class="bi bi-pencil-square"></i> Edit plan
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening roadmap view…" data-toast-type="info">
+                            <i class="bi bi-diagram-3"></i> View roadmap
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Progress snapshot opened" data-toast-type="info">
+                            <i class="bi bi-graph-up-arrow"></i> Progress
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 5.0 · almost complete
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Plan 4 -->
+                <article class="plan-card" data-searchable="ml foundations james oduya python machine learning">
+                    <div class="pc-head">
+                        <span class="pc-emblem amber"><i class="bi bi-graph-up-arrow"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat amber"><i class="bi bi-tag-fill"></i> Data / ML</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 10 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>ML Foundations · From Analyst to Engineer</h3>
+                                <span class="pc-status active"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Active</span>
+                            </div>
+                            <p class="pc-sub">
+                                Bridges the gap between analytics and production ML. Ships a live model with monitoring at the end.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-assign">
+                        <span class="avatar">JO</span>
+                        <span>Assigned to <strong>James Oduya</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Started <strong>3 weeks ago</strong></span>
+                        <span class="dot-sep"></span>
+                        <span>Target finish <strong>14 Dec 2025</strong></span>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 13 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 7 milestones</span>
+                        <span><i class="bi bi-calendar-check"></i> Biweekly reviews</span>
+                        <span><i class="bi bi-eye"></i> Visible to mentee</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Python for ML</span>
+                        <span class="pc-milestone done"><span class="num"><i class="bi bi-check" style="font-size:0.55rem;"></i></span> Pandas + NumPy</span>
+                        <span class="pc-milestone active"><span class="num">3</span> First model</span>
+                        <span class="pc-milestone"><span class="num">4</span> Feature engineering</span>
+                        <span class="pc-milestone"><span class="num">5</span> MLOps basics</span>
+                        <span class="pc-milestone"><span class="num">6</span> Monitoring</span>
+                        <span class="pc-milestone"><span class="num">7</span> Capstone ship</span>
+                    </div>
+
+                    <div class="pc-progress-wrap">
+                        <div class="bar gold"><span data-value="38"></span></div>
+                        <div class="pct">38%</div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Opening plan editor…" data-toast-type="info">
+                            <i class="bi bi-pencil-square"></i> Edit plan
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening roadmap view…" data-toast-type="info">
+                            <i class="bi bi-diagram-3"></i> View roadmap
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Progress snapshot opened" data-toast-type="info">
+                            <i class="bi bi-graph-up-arrow"></i> Progress
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-clock-history"></i> Updated 2 days ago
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── TEMPLATES ───────────── -->
+        <div class="tab-panel" id="tab-templates">
+            <div class="plan-list">
+
+                <!-- Template 1 -->
+                <article class="plan-card template" data-searchable="backend mastery template postgres node aws">
+                    <div class="pc-head">
+                        <span class="pc-emblem"><i class="bi bi-database-fill"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat"><i class="bi bi-tag-fill"></i> Backend</span>
+                                <span class="pc-cat accent"><i class="bi bi-clock-history"></i> 30 days</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>30-day Backend Mastery Template</h3>
+                                <span class="pc-status template"><i class="bi bi-grid-3x3-gap-fill"></i> Template</span>
+                            </div>
+                            <p class="pc-sub">
+                                The canonical 30-day backend sprint. 12 tasks, 6 milestones, weekly checkpoints. Used 24 times by the faculty.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 12 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 6 milestones</span>
+                        <span><i class="bi bi-people-fill"></i> Used 24 times</span>
+                        <span><i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 4.9 avg rating</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone"><span class="num">1</span> SQL fundamentals</span>
+                        <span class="pc-milestone"><span class="num">2</span> Query plan review</span>
+                        <span class="pc-milestone"><span class="num">3</span> Indexing strategy</span>
+                        <span class="pc-milestone"><span class="num">4</span> Node architecture</span>
+                        <span class="pc-milestone"><span class="num">5</span> AWS deployment</span>
+                        <span class="pc-milestone"><span class="num">6</span> Capstone review</span>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Assign to mentee…" data-toast-type="info">
+                            <i class="bi bi-person-plus-fill"></i> Assign to mentee
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening template preview…" data-toast-type="info">
+                            <i class="bi bi-eye"></i> Preview
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Duplicated as draft" data-toast-type="success">
+                            <i class="bi bi-files"></i> Duplicate
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-shield-check"></i> Faculty curated
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Template 2 -->
+                <article class="plan-card template" data-searchable="react patterns template hooks typescript">
+                    <div class="pc-head">
+                        <span class="pc-emblem accent"><i class="bi bi-code-slash"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat accent"><i class="bi bi-tag-fill"></i> Frontend</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 8 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>Advanced React Patterns Template</h3>
+                                <span class="pc-status template"><i class="bi bi-grid-3x3-gap-fill"></i> Template</span>
+                            </div>
+                            <p class="pc-sub">
+                                Deep-dive React roadmap covering hooks, patterns, testing, and library design. Ships a real library.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 14 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 8 milestones</span>
+                        <span><i class="bi bi-people-fill"></i> Used 18 times</span>
+                        <span><i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 4.8 avg rating</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone"><span class="num">1</span> Context</span>
+                        <span class="pc-milestone"><span class="num">2</span> useReducer</span>
+                        <span class="pc-milestone"><span class="num">3</span> useMemo</span>
+                        <span class="pc-milestone"><span class="num">4</span> Custom hooks</span>
+                        <span class="pc-milestone"><span class="num">5</span> Render opt.</span>
+                        <span class="pc-milestone"><span class="num">6</span> Library design</span>
+                        <span class="pc-milestone"><span class="num">7</span> Testing</span>
+                        <span class="pc-milestone"><span class="num">8</span> Ship it</span>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Assign to mentee…" data-toast-type="info">
+                            <i class="bi bi-person-plus-fill"></i> Assign to mentee
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening template preview…" data-toast-type="info">
+                            <i class="bi bi-eye"></i> Preview
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Duplicated as draft" data-toast-type="success">
+                            <i class="bi bi-files"></i> Duplicate
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-shield-check"></i> Faculty curated
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Template 3 -->
+                <article class="plan-card template" data-searchable="design to dev template ui ux react">
+                    <div class="pc-head">
+                        <span class="pc-emblem violet"><i class="bi bi-palette-fill"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat violet"><i class="bi bi-tag-fill"></i> Design → Dev</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 12 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>Design → Dev Bridge Template</h3>
+                                <span class="pc-status template"><i class="bi bi-grid-3x3-gap-fill"></i> Template</span>
+                            </div>
+                            <p class="pc-sub">
+                                Translation plan for designers becoming engineers. Ships real UI, not toy exercises.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task lime"></i> 11 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 8 milestones</span>
+                        <span><i class="bi bi-people-fill"></i> Used 14 times</span>
+                        <span><i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 4.9 avg rating</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone"><span class="num">1</span> JSX</span>
+                        <span class="pc-milestone"><span class="num">2</span> Components</span>
+                        <span class="pc-milestone"><span class="num">3</span> Tailwind</span>
+                        <span class="pc-milestone"><span class="num">4</span> State</span>
+                        <span class="pc-milestone"><span class="num">5</span> Routing</span>
+                        <span class="pc-milestone"><span class="num">6</span> API</span>
+                        <span class="pc-milestone"><span class="num">7</span> Deploy v1</span>
+                        <span class="pc-milestone"><span class="num">8</span> Portfolio v2</span>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Assign to mentee…" data-toast-type="info">
+                            <i class="bi bi-person-plus-fill"></i> Assign to mentee
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening template preview…" data-toast-type="info">
+                            <i class="bi bi-eye"></i> Preview
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Duplicated as draft" data-toast-type="success">
+                            <i class="bi bi-files"></i> Duplicate
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-shield-check"></i> Faculty curated
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── DRAFTS ───────────── -->
+        <div class="tab-panel" id="tab-drafts">
+            <div class="plan-list">
+
+                <article class="plan-card draft" data-searchable="rust systems draft in progress">
+                    <div class="pc-head">
+                        <span class="pc-emblem amber"><i class="bi bi-cpu-fill"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat amber"><i class="bi bi-tag-fill"></i> Systems</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 6 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>Rust for Systems Engineers</h3>
+                                <span class="pc-status draft"><i class="bi bi-pencil-square"></i> Draft</span>
+                            </div>
+                            <p class="pc-sub">
+                                A new roadmap in progress. Currently has milestones sketched but not yet assigned any tasks.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task"></i> 0 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 4 milestones drafted</span>
+                        <span><i class="bi bi-clock-history"></i> Created 2 days ago</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone"><span class="num">1</span> Ownership</span>
+                        <span class="pc-milestone"><span class="num">2</span> Borrowing</span>
+                        <span class="pc-milestone"><span class="num">3</span> Concurrency</span>
+                        <span class="pc-milestone"><span class="num">4</span> Capstone</span>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Opening plan composer…" data-toast-type="info">
+                            <i class="bi bi-pencil-square"></i> Continue editing
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening template preview…" data-toast-type="info">
+                            <i class="bi bi-eye"></i> Preview
+                        </button>
+                        <button type="button" class="pc-btn danger"
+                                data-toast="Draft deleted" data-toast-type="warning">
+                            <i class="bi bi-trash3"></i> Delete
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-clock-history"></i> Not visible to mentees
+                        </span>
+                    </div>
+                </article>
+
+                <article class="plan-card draft" data-searchable="interview prep draft behavioral">
+                    <div class="pc-head">
+                        <span class="pc-emblem amber"><i class="bi bi-chat-quote-fill"></i></span>
+                        <div class="pc-id">
+                            <div class="pc-cat-row">
+                                <span class="pc-cat amber"><i class="bi bi-tag-fill"></i> Career</span>
+                                <span class="pc-cat"><i class="bi bi-clock-history"></i> 4 weeks</span>
+                            </div>
+                            <div class="pc-title-row">
+                                <h3>Interview Prep · Behavioral + Systems</h3>
+                                <span class="pc-status draft"><i class="bi bi-pencil-square"></i> Draft</span>
+                            </div>
+                            <p class="pc-sub">
+                                A structured 4-week interview prep roadmap. Currently missing the systems-design week.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pc-meta">
+                        <span><i class="bi bi-list-task"></i> 6 tasks</span>
+                        <span><i class="bi bi-flag-fill accent"></i> 5 milestones drafted</span>
+                        <span><i class="bi bi-clock-history"></i> Created 5 days ago</span>
+                    </div>
+
+                    <div class="pc-milestones">
+                        <span class="pc-milestone"><span class="num">1</span> STAR method</span>
+                        <span class="pc-milestone"><span class="num">2</span> System design 101</span>
+                        <span class="pc-milestone active"><span class="num">3</span> Mock interview</span>
+                        <span class="pc-milestone"><span class="num">4</span> Take-home prep</span>
+                        <span class="pc-milestone"><span class="num">5</span> Offer strategy</span>
+                    </div>
+
+                    <div class="pc-progress-wrap">
+                        <div class="bar accent"><span data-value="60"></span></div>
+                        <div class="pct">60%</div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <button type="button" class="pc-btn primary"
+                                data-toast="Opening plan composer…" data-toast-type="info">
+                            <i class="bi bi-pencil-square"></i> Continue editing
+                        </button>
+                        <button type="button" class="pc-btn"
+                                data-toast="Opening template preview…" data-toast-type="info">
+                            <i class="bi bi-eye"></i> Preview
+                        </button>
+                        <button type="button" class="pc-btn danger"
+                                data-toast="Draft deleted" data-toast-type="warning">
+                            <i class="bi bi-trash3"></i> Delete
+                        </button>
+                        <span class="pc-note">
+                            <i class="bi bi-clock-history"></i> Not visible to mentees
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PAGINATION
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="pagination fade-up">
+    <div class="pg-info">
+        Showing <strong>1–4</strong> of <strong>8</strong> active plans
+    </div>
+
+    <div class="pg-controls">
+        <button type="button" class="pg-btn" disabled>
+            <i class="bi bi-chevron-left"></i> Prev
+        </button>
+        <button type="button" class="pg-btn active">1</button>
+        <button type="button" class="pg-btn">2</button>
+        <button type="button" class="pg-btn">
+            Next <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('planSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.plan-card, .pg-card').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           VIEW MODE TOGGLE
+           ====================================================== */
+        const viewList = document.getElementById('viewList');
+        const viewGrid = document.getElementById('viewGrid');
+        const listContainers = document.querySelectorAll('.plan-list');
+
+        function applyView(mode) {
+            if (mode === 'grid') {
+                viewGrid.classList.add('active');
+                viewList.classList.remove('active');
+                listContainers.forEach(function (el) {
+                    el.classList.remove('plan-list');
+                    el.classList.add('plan-grid');
+                });
+            } else {
+                viewList.classList.add('active');
+                viewGrid.classList.remove('active');
+                listContainers.forEach(function (el) {
+                    el.classList.remove('plan-grid');
+                    el.classList.add('plan-list');
+                });
+            }
+        }
+
+        if (viewList) viewList.addEventListener('click', function () { applyView('list'); });
+        if (viewGrid) viewGrid.addEventListener('click', function () { applyView('grid'); });
+
+    })();
+</script>
+{% endblock extra_js %}

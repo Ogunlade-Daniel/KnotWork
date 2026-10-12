@@ -463,24 +463,24 @@
 <!-- ==================== HERO ==================== -->
 <section class="lp-hero fade-up">
     <div class="lp-hero-text">
-        <span class="hero-badge"><i class="bi bi-mortarboard-fill"></i> FRONTEND TRACK · COHORT 12</span>
+        <span class="hero-badge"><i class="bi bi-mortarboard-fill"></i> YOUR LEARNING SPACE</span>
         <h1>My <span>Learning</span></h1>
         <p>
-            You have <strong>4 active courses</strong> and <strong>3 certificates</strong> waiting to be claimed.
-            Keep the pace — two sessions this week unlocks the <strong>Momentum</strong> badge.
+            You have <strong>{{ active_count }} active course{{ active_count|pluralize }}</strong> and <strong>{{ completed_count }} certificates</strong> waiting to be claimed.
+            Enrol in a course from the catalogue to start building your learning path.
         </p>
     </div>
 
     <div class="lp-hero-panel">
         <div class="row">
             <span>Track progress</span>
-            <strong>68%</strong>
+            <strong>{{ progress_percent }}%</strong>
         </div>
         <div class="bar"><span data-value="68"></span></div>
         <div class="lp-hero-mini">
-            <div><strong>4</strong><span>Active</span></div>
-            <div><strong>3</strong><span>Done</span></div>
-            <div><strong>4</strong><span>Saved</span></div>
+            <div><strong>{{ active_count }}</strong><span>Active</span></div>
+            <div><strong>{{ completed_count }}</strong><span>Done</span></div>
+            <div><strong>{{ saved_count }}</strong><span>Saved</span></div>
         </div>
     </div>
 </section>
@@ -490,27 +490,27 @@
     <div class="stat-card fade-up">
         <div class="stat-top">
             <div class="stat-icon"><i class="bi bi-play-circle"></i></div>
-            <span class="stat-trend">+1 this month</span>
+            <span class="stat-trend">+0 this month</span>
         </div>
-        <div class="value" data-count="4">0</div>
+        <div class="value">{{ active_count }}</div>
         <div class="label">Courses in progress</div>
     </div>
 
     <div class="stat-card fade-up">
         <div class="stat-top">
             <div class="stat-icon accent"><i class="bi bi-patch-check"></i></div>
-            <span class="stat-trend">+2 this year</span>
+            <span class="stat-trend">+0 this year</span>
         </div>
-        <div class="value" data-count="3">0</div>
+        <div class="value">{{ completed_count }}</div>
         <div class="label">Courses completed</div>
     </div>
 
     <div class="stat-card fade-up">
         <div class="stat-top">
             <div class="stat-icon violet"><i class="bi bi-clock-history"></i></div>
-            <span class="stat-trend">+8.5h</span>
+            <span class="stat-trend">+0h</span>
         </div>
-        <div class="value"><span data-count="48">0</span><span>h</span></div>
+        <div class="value"><span>{{ total_learning_hours|default:'0' }}</span><span>h</span></div>
         <div class="label">Total learning hours</div>
     </div>
 
@@ -519,7 +519,7 @@
             <div class="stat-icon amber"><i class="bi bi-award"></i></div>
             <span class="stat-trend">Verified</span>
         </div>
-        <div class="value" data-count="3">0</div>
+        <div class="value">{{ certificate_count }}</div>
         <div class="label">Certificates earned</div>
     </div>
 </section>
@@ -529,18 +529,18 @@
 
     <div class="tabs-head">
         <h3><i class="bi bi-collection"></i> My courses</h3>
-        <a href="#" class="link">Browse catalogue <i class="bi bi-arrow-right"></i></a>
+        <a href="{% url 'student_find_courses' %}" class="link">Browse catalogue <i class="bi bi-arrow-right"></i></a>
     </div>
 
     <div class="tabs" role="tablist">
         <button class="tab active" data-tab="active" role="tab" aria-selected="true">
-            Active <span class="count">4</span>
+            Active <span class="count">{{ active_count }}</span>
         </button>
         <button class="tab" data-tab="completed" role="tab" aria-selected="false">
-            Completed <span class="count">3</span>
+            Completed <span class="count">{{ completed_count }}</span>
         </button>
         <button class="tab" data-tab="saved" role="tab" aria-selected="false">
-            Saved <span class="count">4</span>
+            Saved <span class="count">{{ saved_count }}</span>
         </button>
     </div>
 
@@ -573,163 +573,42 @@
              ============================================================ -->
         <div class="tab-panel active" id="tab-active">
             <div class="lp-grid">
-
-                <!-- Course 1 -->
-                <article class="lp-course" data-title="advanced react patterns" data-track="frontend"
-                         data-progress="82" data-recent="5"
-                         data-tags="daniel okafor react javascript hooks frontend intermediate">
-                    <div class="lp-cover">
-                        <span class="lp-tag">Frontend</span>
-                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
-                        <i class="bi bi-filetype-jsx"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Advanced React Patterns</h4>
-                            <span class="lp-pill good">On track</span>
+                {% for enrollment in enrollments %}
+                    <article class="lp-course" data-title="{{ enrollment.course.title|lower }}" data-track="{{ enrollment.course.category|lower }}" data-progress="0" data-recent="1" data-tags="{{ enrollment.course.title|lower }} {{ enrollment.course.category|lower }} {{ enrollment.course.level|lower }}">
+                        <div class="lp-cover">
+                            <span class="lp-tag">{{ enrollment.course.get_category_display }}</span>
+                            <i class="{{ enrollment.course.get_category_icon }}"></i>
                         </div>
-                        <p class="lp-sub">with <strong>Daniel Okafor</strong> · Intermediate</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 12 modules</span>
-                            <span><i class="bi bi-clock"></i> 6h 20m left</span>
-                        </div>
-
-                        <div>
-                            <div class="lp-progress-top">
-                                <span>Progress</span>
-                                <strong>82%</strong>
+                        <div class="lp-body">
+                            <div class="lp-title-row">
+                                <h4 class="lp-title">{{ enrollment.course.title }}</h4>
+                                <span class="lp-pill info">Not started</span>
                             </div>
-                            <div class="bar"><span data-value="82"></span></div>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: Custom Hooks</span>
-                            <button class="btn-ghost" data-toast="Resuming Advanced React Patterns…"
-                                    data-toast-type="success">Resume</button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Course 2 -->
-                <article class="lp-course" data-title="ui ux design systems" data-track="design"
-                         data-progress="54" data-recent="4"
-                         data-tags="fatima bello figma design tokens ui ux design">
-                    <div class="lp-cover accent">
-                        <span class="lp-tag">Design</span>
-                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
-                        <i class="bi bi-pen"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">UI/UX Design Systems</h4>
-                            <span class="lp-pill warn">Needs attention</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Fatima Bello</strong> · Intermediate</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 10 modules</span>
-                            <span><i class="bi bi-clock"></i> 9h 10m left</span>
-                        </div>
-
-                        <div>
-                            <div class="lp-progress-top">
-                                <span>Progress</span>
-                                <strong>54%</strong>
+                            <p class="lp-sub">with <strong>{{ enrollment.course.teacher.user.get_full_name|default:enrollment.course.teacher.user.username }}</strong> · {{ enrollment.course.get_level_display }}</p>
+                            <div class="lp-meta">
+                                <span><i class="bi bi-tag"></i> {{ enrollment.course.get_category_display }}</span>
+                                <span><i class="bi bi-calendar3"></i> Joined {{ enrollment.enrolled_at|date:"M j, Y" }}</span>
                             </div>
-                            <div class="bar accent"><span data-value="54"></span></div>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: Design Tokens</span>
-                            <button class="btn-ghost" data-toast="Resuming UI/UX Design Systems…"
-                                    data-toast-type="success">Resume</button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Course 3 -->
-                <article class="lp-course" data-title="backend fundamentals" data-track="backend"
-                         data-progress="27" data-recent="3"
-                         data-tags="chidi nwosu django python rest api backend">
-                    <div class="lp-cover violet">
-                        <span class="lp-tag">Backend</span>
-                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
-                        <i class="bi bi-database"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Backend Fundamentals</h4>
-                            <span class="lp-pill info">Just started</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Chidi Nwosu</strong> · Beginner</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 14 modules</span>
-                            <span><i class="bi bi-clock"></i> 11h 45m left</span>
-                        </div>
-
-                        <div>
-                            <div class="lp-progress-top">
-                                <span>Progress</span>
-                                <strong>27%</strong>
+                            <div>
+                                <div class="lp-progress-top"><span>Progress</span><strong>{{ enrollment.progress_percent }}%</strong></div>
+                                <div class="bar"><span data-value="{{ enrollment.progress_percent }}"></span></div>
                             </div>
-                            <div class="bar violet"><span data-value="27"></span></div>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: REST vs GraphQL</span>
-                            <button class="btn-ghost" data-toast="Resuming Backend Fundamentals…"
-                                    data-toast-type="success">Resume</button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Course 4 -->
-                <article class="lp-course" data-title="data storytelling with python" data-track="data"
-                         data-progress="41" data-recent="2"
-                         data-tags="maya rahman pandas matplotlib data analysis python">
-                    <div class="lp-cover amber">
-                        <span class="lp-tag">Data</span>
-                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
-                        <i class="bi bi-bar-chart"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Data Storytelling with Python</h4>
-                            <span class="lp-pill good">On track</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Maya Rahman</strong> · Intermediate</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 8 modules</span>
-                            <span><i class="bi bi-clock"></i> 5h 05m left</span>
-                        </div>
-
-                        <div>
-                            <div class="lp-progress-top">
-                                <span>Progress</span>
-                                <strong>41%</strong>
+                            <div class="lp-actions">
+                                <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Ready to begin</span>
+                                <a class="btn-ghost" href="{% url 'student_find_courses' %}?q={{ enrollment.course.title|urlencode }}">View course</a>
                             </div>
-                            <div class="bar"><span data-value="41"></span></div>
                         </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-play-circle-fill"></i> Next: Visual Encoding</span>
-                            <button class="btn-ghost" data-toast="Resuming Data Storytelling…"
-                                    data-toast-type="success">Resume</button>
-                        </div>
+                    </article>
+                {% empty %}
+                    <div class="lp-empty show" style="grid-column:1/-1;">
+                        <div class="ic"><i class="bi bi-inbox"></i></div>
+                        <h4>Your learning list is empty</h4>
+                        <p>Find a course that fits your goals and enrol to see it here.</p>
+                        <a class="btn btn-secondary" href="{% url 'student_find_courses' %}">Browse courses</a>
                     </div>
-                </article>
-
+                {% endfor %}
             </div>
 
-            <div class="lp-empty">
-                <div class="ic"><i class="bi bi-inbox"></i></div>
-                <h4>No active courses match</h4>
-                <p>Try a different track filter or clear your search to see all of your in-progress courses.</p>
-                <button class="btn btn-secondary" data-toast="Opening course catalogue…">Browse courses</button>
-            </div>
         </div>
 
         <!-- ============================================================
@@ -737,110 +616,19 @@
              ============================================================ -->
         <div class="tab-panel" id="tab-completed">
             <div class="lp-grid">
-
-                <!-- Completed 1 -->
-                <article class="lp-course" data-title="javascript essentials" data-track="frontend"
-                         data-progress="100" data-recent="3"
-                         data-tags="daniel okafor javascript es6 frontend certificate">
-                    <div class="lp-cover green">
-                        <span class="lp-tag">Frontend</span>
-                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
-                        <i class="bi bi-patch-check-fill"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">JavaScript Essentials</h4>
-                            <span class="lp-pill done">Completed</span>
+                {% for enrollment in completed_enrollments %}
+                    <article class="lp-course" data-title="{{ enrollment.course.title|lower }}" data-track="{{ enrollment.course.category|lower }}" data-progress="100" data-recent="1" data-tags="{{ enrollment.course.title|lower }} {{ enrollment.course.category|lower }} {{ enrollment.course.level|lower }}">
+                        <div class="lp-cover green"><span class="lp-tag">{{ enrollment.course.get_category_display }}</span><i class="bi bi-patch-check-fill"></i></div>
+                        <div class="lp-body">
+                            <div class="lp-title-row"><h4 class="lp-title">{{ enrollment.course.title }}</h4><span class="lp-pill done">Completed</span></div>
+                            <p class="lp-sub">with <strong>{{ enrollment.course.teacher.user.get_full_name|default:enrollment.course.teacher.user.username }}</strong> · {{ enrollment.course.get_level_display }}</p>
+                            <div class="lp-meta"><span><i class="bi bi-calendar-check"></i> Completed {{ enrollment.completed_at|date:"M j, Y" }}</span></div>
+                            <div class="lp-actions"><span class="lp-next"><i class="bi bi-hash"></i> {{ enrollment.course.course_id }}</span><span class="btn-ghost"><i class="bi bi-patch-check"></i> Certificate ready</span></div>
                         </div>
-                        <p class="lp-sub">with <strong>Daniel Okafor</strong> · <strong>Grade A</strong></p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 16 modules</span>
-                            <span><i class="bi bi-calendar-check"></i> Mar 2025</span>
-                            <span><i class="bi bi-star-fill" style="color:#F59E0B"></i> 4.9</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-hash"></i> KW-JS-2041</span>
-                            <button class="btn-ghost" data-toast="Downloading your certificate…"
-                                    data-toast-type="success">
-                                <i class="bi bi-download"></i> Certificate
-                            </button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Completed 2 -->
-                <article class="lp-course" data-title="figma for developers" data-track="design"
-                         data-progress="100" data-recent="2"
-                         data-tags="fatima bello figma design handoff certificate">
-                    <div class="lp-cover green">
-                        <span class="lp-tag">Design</span>
-                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
-                        <i class="bi bi-patch-check-fill"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Figma for Developers</h4>
-                            <span class="lp-pill done">Completed</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Fatima Bello</strong> · <strong>Grade A−</strong></p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 9 modules</span>
-                            <span><i class="bi bi-calendar-check"></i> Jan 2025</span>
-                            <span><i class="bi bi-star-fill" style="color:#F59E0B"></i> 4.7</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-hash"></i> KW-FG-1188</span>
-                            <button class="btn-ghost" data-toast="Downloading your certificate…"
-                                    data-toast-type="success">
-                                <i class="bi bi-download"></i> Certificate
-                            </button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Completed 3 -->
-                <article class="lp-course" data-title="public speaking lab" data-track="design"
-                         data-progress="100" data-recent="1"
-                         data-tags="tolu fashina public speaking communication soft skills certificate">
-                    <div class="lp-cover green">
-                        <span class="lp-tag">Soft skills</span>
-                        <button class="lp-save" aria-label="Save course"><i class="bi bi-bookmark"></i></button>
-                        <i class="bi bi-patch-check-fill"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Public Speaking Lab</h4>
-                            <span class="lp-pill done">Completed</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Tolu Fashina</strong> · <strong>Grade B+</strong></p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 6 modules</span>
-                            <span><i class="bi bi-calendar-check"></i> Nov 2024</span>
-                            <span><i class="bi bi-star-fill" style="color:#F59E0B"></i> 4.6</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-hash"></i> KW-PS-0942</span>
-                            <button class="btn-ghost" data-toast="Downloading your certificate…"
-                                    data-toast-type="success">
-                                <i class="bi bi-download"></i> Certificate
-                            </button>
-                        </div>
-                    </div>
-                </article>
-
-            </div>
-
-            <div class="lp-empty">
-                <div class="ic"><i class="bi bi-trophy"></i></div>
-                <h4>No completed courses yet</h4>
-                <p>Finish your first course and your verified certificate will appear right here.</p>
-                <button class="btn btn-secondary" data-toast="Resuming your latest lesson…">Continue learning</button>
+                    </article>
+                {% empty %}
+                    <div class="lp-empty show" style="grid-column:1/-1;"><div class="ic"><i class="bi bi-trophy"></i></div><h4>No completed courses yet</h4><p>Finish your first course and your verified certificate will appear right here.</p></div>
+                {% endfor %}
             </div>
         </div>
 
@@ -849,134 +637,14 @@
              ============================================================ -->
         <div class="tab-panel" id="tab-saved">
             <div class="lp-grid">
-
-                <!-- Saved 1 -->
-                <article class="lp-course" data-title="typescript in depth" data-track="frontend"
-                         data-progress="0" data-recent="4"
-                         data-tags="daniel okafor typescript javascript typing frontend">
-                    <div class="lp-cover slate">
-                        <span class="lp-tag">Frontend</span>
-                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
-                        <i class="bi bi-filetype-tsx"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">TypeScript in Depth</h4>
-                            <span class="lp-pill muted">Not started</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Daniel Okafor</strong> · Advanced</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 12 modules</span>
-                            <span><i class="bi bi-clock"></i> 8h 30m</span>
-                            <span><i class="bi bi-bookmark"></i> Saved 3d ago</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-info-circle"></i> Prereq: JavaScript</span>
-                            <button class="btn-join" data-toast="Enrolling in TypeScript in Depth…"
-                                    data-toast-type="success">Start course</button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Saved 2 -->
-                <article class="lp-course" data-title="motion design basics" data-track="design"
-                         data-progress="0" data-recent="3"
-                         data-tags="fatima bello motion animation after effects design">
-                    <div class="lp-cover accent">
-                        <span class="lp-tag">Design</span>
-                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
-                        <i class="bi bi-magic"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Motion Design Basics</h4>
-                            <span class="lp-pill muted">Not started</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Fatima Bello</strong> · Beginner</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 7 modules</span>
-                            <span><i class="bi bi-clock"></i> 4h 15m</span>
-                            <span><i class="bi bi-bookmark"></i> Saved 1w ago</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-info-circle"></i> No prerequisites</span>
-                            <button class="btn-join" data-toast="Enrolling in Motion Design Basics…"
-                                    data-toast-type="success">Start course</button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Saved 3 -->
-                <article class="lp-course" data-title="system design interview prep" data-track="backend"
-                         data-progress="0" data-recent="2"
-                         data-tags="chidi nwosu system design architecture scalability backend interview">
-                    <div class="lp-cover violet">
-                        <span class="lp-tag">Backend</span>
-                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
-                        <i class="bi bi-diagram-3"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">System Design Interview Prep</h4>
-                            <span class="lp-pill muted">Not started</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Chidi Nwosu</strong> · Advanced</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 10 modules</span>
-                            <span><i class="bi bi-clock"></i> 7h 40m</span>
-                            <span><i class="bi bi-bookmark"></i> Saved 2w ago</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-info-circle"></i> Prereq: Backend basics</span>
-                            <button class="btn-join" data-toast="Enrolling in System Design Interview Prep…"
-                                    data-toast-type="success">Start course</button>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- Saved 4 -->
-                <article class="lp-course" data-title="accessibility first" data-track="frontend"
-                         data-progress="0" data-recent="1"
-                         data-tags="fatima bello a11y wcag accessibility frontend design">
-                    <div class="lp-cover">
-                        <span class="lp-tag">Frontend</span>
-                        <button class="lp-save on" aria-label="Saved"><i class="bi bi-bookmark-fill"></i></button>
-                        <i class="bi bi-universal-access"></i>
-                    </div>
-                    <div class="lp-body">
-                        <div class="lp-title-row">
-                            <h4 class="lp-title">Accessibility First</h4>
-                            <span class="lp-pill muted">Not started</span>
-                        </div>
-                        <p class="lp-sub">with <strong>Fatima Bello</strong> · Intermediate</p>
-
-                        <div class="lp-meta">
-                            <span><i class="bi bi-collection"></i> 8 modules</span>
-                            <span><i class="bi bi-clock"></i> 5h 00m</span>
-                            <span><i class="bi bi-bookmark"></i> Saved 3w ago</span>
-                        </div>
-
-                        <div class="lp-actions">
-                            <span class="lp-next"><i class="bi bi-info-circle"></i> No prerequisites</span>
-                            <button class="btn-join" data-toast="Enrolling in Accessibility First…"
-                                    data-toast-type="success">Start course</button>
-                        </div>
-                    </div>
-                </article>
-
-            </div>
-
-            <div class="lp-empty">
-                <div class="ic"><i class="bi bi-bookmark"></i></div>
-                <h4>Nothing saved yet</h4>
-                <p>Tap the bookmark icon on any course to keep it here for later — your list is private to you.</p>
-                <button class="btn btn-secondary" data-toast="Opening course catalogue…">Browse catalogue</button>
+                {% for saved in saved_courses %}
+                    <article class="lp-course" data-title="{{ saved.title|lower }}" data-track="{{ saved.category|lower }}" data-progress="0" data-recent="1" data-tags="{{ saved.title|lower }} {{ saved.category|lower }} {{ saved.level|lower }}">
+                        <div class="lp-cover slate"><span class="lp-tag">{{ saved.get_category_display }}</span><i class="{{ saved.get_category_icon }}"></i></div>
+                        <div class="lp-body"><div class="lp-title-row"><h4 class="lp-title">{{ saved.title }}</h4><span class="lp-pill muted">Saved</span></div><p class="lp-sub">with <strong>{{ saved.teacher.user.get_full_name|default:saved.teacher.user.username }}</strong> · {{ saved.get_level_display }}</p><div class="lp-meta"><span><i class="bi bi-bookmark"></i> Saved course</span><span><i class="bi bi-tag"></i> {% if saved.price == 0 %}Free{% else %}{{ saved.price|floatformat:0|intcomma }} credits{% endif %}</span></div><div class="lp-actions"><a class="btn-ghost" href="{% url 'student_find_courses' %}?q={{ saved.title|urlencode }}">View course</a><form method="post" action="{% url 'student_toggle_saved_course' saved.course_id %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'student_my_learning' %}"><button class="btn-join" type="submit">Unsave</button></form></div></div>
+                    </article>
+                {% empty %}
+                    <div class="lp-empty show" style="grid-column:1/-1;"><div class="ic"><i class="bi bi-bookmark"></i></div><h4>Nothing saved yet</h4><p>Save courses from the catalogue and they will appear here.</p><a class="btn btn-secondary" href="{% url 'student_find_courses' %}">Browse catalogue</a></div>
+                {% endfor %}
             </div>
         </div>
 
@@ -994,41 +662,11 @@
                 <a href="#" class="link">Calendar <i class="bi bi-arrow-right"></i></a>
             </div>
 
-            <div class="session live">
-                <div class="session-time">
-                    <strong>18:30</strong>
-                    <span>Today</span>
-                </div>
-                <div class="session-info">
-                    <h5>React Hooks Deep Dive</h5>
-                    <p>with <strong>Daniel O.</strong> · 45 min</p>
-                </div>
-                <button class="btn-join" data-toast="Joining React Hooks Deep Dive…">Join</button>
-            </div>
-
-            <div class="session">
-                <div class="session-time">
-                    <strong>23:59</strong>
-                    <span>Fri</span>
-                </div>
-                <div class="session-info">
-                    <h5>Design Systems — Module 6 quiz</h5>
-                    <p>with <strong>Fatima B.</strong> · 20 min</p>
-                </div>
-                <button class="btn-join muted" data-toast="Opening assessment…">Start</button>
-            </div>
-
-            <div class="session">
-                <div class="session-time">
-                    <strong>10:00</strong>
-                    <span>Sat</span>
-                </div>
-                <div class="session-info">
-                    <h5>Backend Fundamentals — Peer review</h5>
-                    <p>with <strong>Chidi N.</strong> · 30 min</p>
-                </div>
-                <button class="btn-join muted" data-toast="Opening peer review…">Review</button>
-            </div>
+            {% for deadline in upcoming_deadlines %}
+                <div class="session{% if forloop.first %} live{% endif %}"><div class="session-time"><strong>{{ deadline.due_at|date:"H:i" }}</strong><span>{{ deadline.due_at|date:"D" }}</span></div><div class="session-info"><h5>{{ deadline.title }}</h5><p>{% if deadline.course %}{{ deadline.course.title }}{% else %}Learning task{% endif %}</p></div><button class="btn-join{% if not forloop.first %} muted{% endif %}" type="button">{{ deadline.action_label }}</button></div>
+            {% empty %}
+                <div class="session"><div class="session-info"><h5>No upcoming deadlines</h5><p>Your next learning tasks will appear here.</p></div></div>
+            {% endfor %}
         </div>
     </div>
 
@@ -1040,40 +678,17 @@
                 <a href="#" class="link">All <i class="bi bi-arrow-right"></i></a>
             </div>
 
-            <div class="lp-cert">
-                <div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div>
-                <div class="lp-cert-body">
-                    <h5>JavaScript Essentials</h5>
-                    <p>Issued Mar 2025 · ID KW-JS-2041</p>
-                </div>
-                <button class="btn-ghost" data-toast="Downloading certificate…" data-toast-type="success">PDF</button>
-            </div>
-
-            <div class="lp-cert">
-                <div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div>
-                <div class="lp-cert-body">
-                    <h5>Figma for Developers</h5>
-                    <p>Issued Jan 2025 · ID KW-FG-1188</p>
-                </div>
-                <button class="btn-ghost" data-toast="Downloading certificate…" data-toast-type="success">PDF</button>
-            </div>
-
-            <div class="lp-cert">
-                <div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div>
-                <div class="lp-cert-body">
-                    <h5>Public Speaking Lab</h5>
-                    <p>Issued Nov 2024 · ID KW-PS-0942</p>
-                </div>
-                <button class="btn-ghost" data-toast="Downloading certificate…" data-toast-type="success">PDF</button>
-            </div>
+            {% for certificate in certificates %}
+                <div class="lp-cert"><div class="lp-cert-ic"><i class="bi bi-patch-check-fill"></i></div><div class="lp-cert-body"><h5>{{ certificate.course.title }}</h5><p>Issued {{ certificate.issued_at|date:"M Y" }} · ID {{ certificate.certificate_id }}</p></div><button class="btn-ghost" type="button">PDF</button></div>
+            {% empty %}<div class="lp-cert"><div class="lp-cert-body"><h5>No certificates yet</h5><p>Complete a course to earn your first certificate.</p></div></div>{% endfor %}
         </div>
 
         <div class="card fade-up">
             <div class="card-head">
                 <h3><i class="bi bi-bullseye"></i> Weekly goal</h3>
-                <span class="link" style="cursor:default;">4 of 5 sessions</span>
+                <span class="link" style="cursor:default;">{{ weekly_goal.completed_sessions }} of {{ weekly_goal.target_sessions }} sessions</span>
             </div>
-            <div class="bar"><span data-value="80"></span></div>
+            <div class="bar"><span data-value="{% widthratio weekly_goal.completed_sessions weekly_goal.target_sessions 100 %}"></span></div>
             <p style="font-size:0.78rem;color:var(--gray-600);margin-top:12px;line-height:1.65;">
                 One more session this week keeps your <strong style="color:var(--primary-dark);">12-day streak</strong>
                 alive and unlocks the <strong style="color:var(--primary-dark);">Momentum</strong> badge.
@@ -1107,13 +722,27 @@
         function applyFilters() {
             var q = (searchInput ? searchInput.value : '').trim().toLowerCase();
 
+            function matchesSelectedTrack(card) {
+                if (activeTrack === 'all') return true;
+                var category = card.dataset.track || '';
+                var trackMap = {
+                    frontend: ['frontend', 'fullstack', 'mobile', 'flutter', 'react native'],
+                    design: ['ui/ux', 'product design', 'no-code'],
+                    backend: ['backend', 'fullstack', 'devops', 'cybersecurity', 'blockchain', 'embedded', 'qa testing'],
+                    data: ['data analysis', 'data science', 'machine learning', 'prompt engineering']
+                };
+                return (trackMap[activeTrack] || []).some(function (term) {
+                    return category.indexOf(term) !== -1;
+                });
+            }
+
             grids.forEach(function (grid) {
                 var visible = 0;
 
                 grid.querySelectorAll('.lp-course').forEach(function (card) {
                     var haystack = (card.dataset.title || '') + ' ' + (card.dataset.tags || '');
                     var matchesQuery = !q || haystack.indexOf(q) !== -1;
-                    var matchesTrack = activeTrack === 'all' || card.dataset.track === activeTrack;
+                    var matchesTrack = matchesSelectedTrack(card);
                     var show = matchesQuery && matchesTrack;
 
                     card.style.display = show ? '' : 'none';

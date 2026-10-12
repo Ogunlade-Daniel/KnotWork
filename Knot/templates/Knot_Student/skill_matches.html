@@ -925,6 +925,73 @@
     }
 </style>
 
+<section class="sm-head fade-up">
+    <div>
+        <span class="badge-soft"><i class="bi bi-arrow-left-right"></i> {{ match_count }} relevant matches</span>
+        <h1>Skill <span>Matches</span></h1>
+        <p>Profiles are matched against your learning subject and goal using the skills listed in published courses and mentor profiles.</p>
+    </div>
+    <div class="sm-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn btn-line" href="{% url 'student_profile' %}"><i class="bi bi-person-gear"></i> Learning profile</a>
+        <a class="btn btn-secondary" href="{% url 'student_browse' %}"><i class="bi bi-people"></i> Browse people</a>
+    </div>
+</section>
+
+<section class="sm-overview">
+    <div class="sm-stat"><div class="ic"><i class="bi bi-stack"></i></div><div><div class="v">{{ match_count }}</div><div class="l">Relevant profiles</div></div></div>
+    <div class="sm-stat"><div class="ic accent"><i class="bi bi-handshake"></i></div><div><div class="v">{{ connected_count }}</div><div class="l">Active connections</div></div></div>
+    <div class="sm-stat"><div class="ic violet"><i class="bi bi-bullseye"></i></div><div><div class="v">{{ wanted_skills|length }}</div><div class="l">Learning keywords</div></div></div>
+    <div class="sm-stat"><div class="ic amber"><i class="bi bi-lightbulb"></i></div><div><div class="v">{{ matches|length }}</div><div class="l">Profiles in this deck</div></div></div>
+</section>
+
+<section class="sm-layout">
+    <div class="sm-col">
+        <div class="sm-deck-card fade-up">
+            <div class="sm-deck-head"><h3><i class="bi bi-shuffle"></i> Your match deck</h3><div class="sm-deck-meta"><span><span class="live-dot"></span> Skill overlap</span><span id="smDeckCount">{{ match_count }} profiles</span></div></div>
+            <div class="sm-stage" id="smStage" aria-label="Swipeable skill match cards">
+                {% for match in matches %}
+                    <article class="sm-card" data-pos="{{ forloop.counter0 }}" data-id="{{ match.user.id }}" data-name="{{ match.name }}" data-action="{{ match.action }}" tabindex="0">
+                        <div class="sm-stamp pass">Pass</div><div class="sm-stamp connect">Connect</div>
+                        <div class="sm-card-top">
+                            <div class="sm-score"><span class="num">{{ match.match_score }}%</span><span class="lbl">Skill overlap</span></div>
+                            <span class="sm-avatar">{{ match.initials }}</span>
+                            <div class="sm-name"><h4>{{ match.name }}</h4><span class="sm-verified"><i class="bi bi-person-check-fill"></i> {{ match.user.onboarding_profile.get_role_display|default:'Member' }}</span></div>
+                            <div class="sm-role">{{ match.role }}</div>
+                            <div class="sm-loc"><i class="bi bi-bookmark-star"></i> {{ match.matched_skills|join:', ' }}</div>
+                        </div>
+                        <div class="sm-card-body">
+                            <p class="sm-bio">{{ match.bio }}</p>
+                            <div class="sm-swap">
+                                <div class="sm-swap-col teach"><div class="lbl"><i class="bi bi-arrow-up-right"></i> Offers</div>{% for skill in match.offerings|slice:":5" %}<span class="sm-skill teach">{{ skill }}</span>{% endfor %}</div>
+                                <div class="sm-swap-arrow"><i class="bi bi-arrow-left-right"></i></div>
+                                <div class="sm-swap-col learn"><div class="lbl"><i class="bi bi-arrow-down-left"></i> Matches your goal</div>{% for skill in match.matched_skills %}<span class="sm-skill learn">{{ skill }}</span>{% endfor %}</div>
+                            </div>
+                        </div>
+                        <form class="sm-action-form" method="post" action="{% url 'student_browse_action' match.user.id %}" hidden>{% csrf_token %}<input type="hidden" name="action" value="{{ match.action }}"><input type="hidden" name="next" value="{% url 'student_skill_matches' %}"></form>
+                    </article>
+                {% empty %}
+                    <div class="sm-empty show" style="position:relative;"><div class="ic"><i class="bi bi-stars"></i></div><h4>No skill matches yet</h4><p>Add a learning subject or goal to your profile, or browse all members.</p><div class="btn-row"><a class="btn btn-secondary btn-sm" href="{% url 'student_profile' %}">Update profile</a><a class="btn btn-line btn-sm" href="{% url 'student_browse' %}">Browse people</a></div></div>
+                {% endfor %}
+            </div>
+            {% if matches %}
+                <div class="sm-empty" id="smEmpty"><div class="ic"><i class="bi bi-stars"></i></div><h4>You've reviewed every match</h4><p>Browse people or update your learning profile to find more relevant profiles.</p><div class="btn-row"><a class="btn btn-secondary btn-sm" href="{% url 'student_browse' %}">Browse people</a><a class="btn btn-line btn-sm" href="{% url 'student_profile' %}">Update profile</a></div></div>
+                <div class="sm-actions" id="smActions"><button class="sm-act pass" id="smPass" aria-label="Pass on this match" title="Pass"><i class="bi bi-x-lg"></i><span class="tip">Pass</span></button><a class="sm-act info" id="smInfo" href="{% url 'student_browse' %}" aria-label="Browse this profile" title="Browse profiles"><i class="bi bi-person-badge"></i></a><button class="sm-act connect" id="smConnect" aria-label="Connect with this match" title="Connect"><i class="bi bi-handshake"></i><span class="tip">Connect</span></button></div>
+                <div class="sm-hint"><span><i class="bi bi-mouse"></i> Drag the card</span><span><kbd>←</kbd> Pass</span><span><kbd>→</kbd> Connect</span></div>
+            {% endif %}
+        </div>
+        <div class="sm-trust fade-up"><i class="bi bi-shield-check"></i><span><strong>Match data is grounded in profiles.</strong> This deck does not invent ratings, reviews, or availability.</span></div>
+    </div>
+    <aside class="sm-col">
+        <div class="sm-panel fade-up"><div class="sm-panel-head"><h4><i class="bi bi-bullseye"></i> Your learning keywords</h4></div>
+            {% for skill in wanted_skills %}<div class="sm-pref"><div class="row"><span class="lbl">{{ skill }}</span></div></div>{% empty %}<p class="sm-bio">No subject or learning goal is saved on your profile yet.</p>{% endfor %}
+        </div>
+        <div class="card fade-up"><div class="card-head"><h3><i class="bi bi-link-45deg"></i> Recent connections</h3><a href="{% url 'student_my_connections' %}" class="link">See all <i class="bi bi-arrow-right"></i></a></div>
+            {% for row in recent_connections %}<div class="sm-conn"><span class="avatar xs">{{ row.initials }}</span><div class="sm-conn-body"><h5>{{ row.person.get_full_name|default:row.person.username }}</h5><p>Accepted connection</p></div><span class="sm-conn-tag">Connected</span></div>{% empty %}<p class="sm-bio">Accepted connections will appear on My Connections.</p>{% endfor %}
+        </div>
+    </aside>
+</section>
+
+{% comment %}
 
 <!-- ====================================================
      PAGE HEAD
@@ -1393,6 +1460,7 @@
     </div>
 </section>
 
+{% endcomment %}
 
 <script>
     (function () {
@@ -1440,6 +1508,18 @@
             if (!card || card.dataset.gone) return;
             card.dataset.gone = '1';
             card.classList.add(direction === 'right' ? 'show-connect' : 'show-pass');
+
+            var actionForm = card.querySelector('.sm-action-form');
+            if (actionForm) {
+                actionForm.querySelector('[name="action"]').value = direction === 'right' ? card.dataset.action : 'pass';
+                fetch(actionForm.action, {
+                    method: 'POST',
+                    body: new FormData(actionForm),
+                    credentials: 'same-origin'
+                }).then(function (response) {
+                    if (!response.ok) window.location.reload();
+                }).catch(function () { window.location.reload(); });
+            }
 
             var flyX = direction === 'right' ? window.innerWidth : -window.innerWidth;
             card.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease';

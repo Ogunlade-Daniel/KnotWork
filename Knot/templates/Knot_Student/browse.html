@@ -260,6 +260,43 @@
         display: flex;
         flex-direction: column;
         gap: 18px;
+        height: clamp(540px, calc(100vh - var(--topbar-h) - 48px), 760px);
+        overflow-y: auto;
+        padding-right: 5px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gray-300) transparent;
+    }
+    .br-filter-intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 4px 2px;
+    }
+    .br-filter-intro .eyebrow {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--secondary-deep);
+    }
+    .br-filter-intro h3 {
+        margin-top: 3px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .br-filter-count {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 8px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: rgba(190, 242, 100, 0.24);
+        color: #4D7C0F;
+        font-size: 0.78rem;
+        font-weight: 700;
     }
     .br-panel {
         background: var(--white);
@@ -779,6 +816,8 @@
         border-top: 1px solid var(--gray-100);
     }
     .p-foot .btn { flex: 1; }
+    .p-foot form { flex: 1; min-width: 0; }
+    .p-foot form .btn { width: 100%; }
     .p-foot .btn-ghost { flex: 0 0 auto; }
 
     /* ---------- List view ---------- */
@@ -912,7 +951,7 @@
 
     @media (max-width: 980px) {
         .br-layout { grid-template-columns: 1fr; }
-        .br-filters { position: static; display: none; }
+        .br-filters { position: static; display: none; height: auto; max-height: 70vh; }
         .br-filters.open { display: flex; }
         .br-hero { padding: 30px 24px 28px; }
         .br-searchbar { flex-wrap: wrap; border-radius: var(--radius); padding: 12px; }
@@ -954,18 +993,18 @@
      ==================================================== -->
 <section class="br-head fade-up">
     <div>
-        <span class="badge-soft"><i class="bi bi-people-fill"></i> 12,400+ active members</span>
+        <span class="badge-soft"><i class="bi bi-people-fill"></i> {{ role_counts.student|add:role_counts.teacher|add:role_counts.mentor|intcomma }} members</span>
         <h1>Browse <span>people</span></h1>
         <p>Find students to learn with, teachers to learn from, and mentors to guide you. Every profile is real, verified, and rated by the community.</p>
     </div>
 
     <div class="br-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-line" data-toast="Opening your network graph…">
+        <a class="btn btn-line" href="{% url 'student_my_connections' %}">
             <i class="bi bi-diagram-3"></i> My network
-        </button>
-        <button class="btn btn-secondary" data-toast="Opening the match finder…">
+        </a>
+        <a class="btn btn-secondary" href="{% url 'student_skill_matches' %}">
             <i class="bi bi-arrow-left-right"></i> Find a match
-        </button>
+        </a>
     </div>
 </section>
 
@@ -976,21 +1015,18 @@
 <section class="br-hero fade-up">
     <div class="br-hero-inner">
         <h2>Search the <span>community</span></h2>
-        <p><strong>12,400+</strong> members ready to exchange skills. Filter by role, skill, rating or availability.</p>
+        <p><strong>{{ role_counts.student|add:role_counts.teacher|add:role_counts.mentor|intcomma }}</strong> members ready to learn and share what they know.</p>
 
-        <form class="br-searchbar" onsubmit="return false;">
+        <form class="br-searchbar" method="get" action="{% url 'student_browse' %}">
+            <input type="hidden" name="role" value="{{ role }}">
             <i class="bi bi-search"></i>
-            <input type="text" id="brSearch" placeholder="Search by name, skill, or location…" aria-label="Search people">
+            <input type="search" id="brSearch" name="q" value="{{ search_query }}" placeholder="Search by name or skill…" aria-label="Search people">
             <span class="divider"></span>
-            <select aria-label="Skill">
+            <select name="skill" aria-label="Skill">
                 <option value="">Any skill</option>
-                <option value="react">React</option>
-                <option value="figma">Figma</option>
-                <option value="python">Python</option>
-                <option value="design">UI Design</option>
-                <option value="speaking">Public Speaking</option>
+                {% for skill in skill_options %}<option value="{{ skill }}" {% if selected_skill == skill %}selected{% endif %}>{{ skill }}</option>{% endfor %}
             </select>
-            <button type="button" class="btn btn-secondary" data-toast="Searching the community…">
+            <button type="submit" class="btn btn-secondary">
                 <i class="bi bi-search"></i> Search
             </button>
         </form>
@@ -998,11 +1034,7 @@
 
     <div class="br-trends">
         <span class="lbl">Popular</span>
-        <button class="br-trend" data-toast="Filtering: React mentors…"><i class="bi bi-fire"></i> React</button>
-        <button class="br-trend" data-toast="Filtering: Figma teachers…"><i class="bi bi-fire"></i> Figma</button>
-        <button class="br-trend" data-toast="Filtering: Python teachers…"><i class="bi bi-fire"></i> Python</button>
-        <button class="br-trend" data-toast="Filtering: UI Design…"><i class="bi bi-fire"></i> UI Design</button>
-        <button class="br-trend" data-toast="Filtering: Public Speaking…"><i class="bi bi-fire"></i> Public Speaking</button>
+        {% for skill in skill_options|slice:":5" %}<a class="br-trend" href="?role={{ role }}&amp;skill={{ skill|urlencode }}"><i class="bi bi-fire"></i> {{ skill }}</a>{% endfor %}
     </div>
 </section>
 
@@ -1051,6 +1083,42 @@
          FILTER RAIL
          ============================================ -->
     <aside class="br-filters" id="brFilters">
+
+        <div class="br-filter-intro">
+            <div>
+                <span class="eyebrow">Community</span>
+                <h3>Refine your search</h3>
+            </div>
+            <span class="br-filter-count" aria-label="Matching members">{{ result_count }}</span>
+        </div>
+
+        <form method="get" action="{% url 'student_browse' %}">
+            <input type="hidden" name="role" value="{{ role }}">
+            <input type="hidden" name="q" value="{{ search_query }}">
+            <div class="br-panel">
+                <div class="br-panel-head">
+                    <h4><i class="bi bi-lightning-charge"></i> Skill</h4>
+                    <a class="reset" href="?role={{ role }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}">Reset</a>
+                </div>
+                <label class="br-check">
+                    <input type="radio" name="skill" value="" {% if not selected_skill %}checked{% endif %}>
+                    <span class="box"><i class="bi bi-check-lg"></i></span>
+                    Any skill
+                </label>
+                {% for skill in skill_options %}
+                    <label class="br-check">
+                        <input type="radio" name="skill" value="{{ skill }}" {% if selected_skill == skill %}checked{% endif %}>
+                        <span class="box"><i class="bi bi-check-lg"></i></span>
+                        {{ skill }}
+                    </label>
+                {% empty %}
+                    <p class="p-bio">No skills are listed yet.</p>
+                {% endfor %}
+                <button class="btn btn-secondary btn-sm" type="submit" style="width:100%;margin-top:12px;">Apply filters</button>
+            </div>
+        </form>
+
+        {% comment %}
 
         <!-- Skills -->
         <div class="br-panel">
@@ -1180,6 +1248,7 @@
             </button>
         </div>
 
+        {% endcomment %}
     </aside>
 
 
@@ -1193,21 +1262,21 @@
 
             <!-- Tabs -->
             <div class="br-tabs" role="tablist" aria-label="Browse people categories">
-                <button class="br-tab active" data-tab="students" role="tab" aria-selected="true" aria-controls="brPanelStudents">
-                    <i class="bi bi-mortarboard"></i> Students <span class="count">8.4k</span>
+                <button class="br-tab {% if role == 'student' %}active{% endif %}" data-tab="student" type="button" role="tab" aria-selected="{% if role == 'student' %}true{% else %}false{% endif %}" aria-controls="brPanelStudent">
+                    <i class="bi bi-mortarboard"></i> Students <span class="count">{{ role_counts.student }}</span>
                 </button>
-                <button class="br-tab" data-tab="teachers" role="tab" aria-selected="false" aria-controls="brPanelTeachers">
-                    <i class="bi bi-person-video3"></i> Teachers <span class="count">2.6k</span>
+                <button class="br-tab {% if role == 'teacher' %}active{% endif %}" data-tab="teacher" type="button" role="tab" aria-selected="{% if role == 'teacher' %}true{% else %}false{% endif %}" aria-controls="brPanelTeacher">
+                    <i class="bi bi-person-video3"></i> Teachers <span class="count">{{ role_counts.teacher }}</span>
                 </button>
-                <button class="br-tab" data-tab="mentors" role="tab" aria-selected="false" aria-controls="brPanelMentors">
-                    <i class="bi bi-person-badge"></i> Mentors <span class="count">1.4k</span>
+                <button class="br-tab {% if role == 'mentor' %}active{% endif %}" data-tab="mentor" type="button" role="tab" aria-selected="{% if role == 'mentor' %}true{% else %}false{% endif %}" aria-controls="brPanelMentor">
+                    <i class="bi bi-person-badge"></i> Mentors <span class="count">{{ role_counts.mentor }}</span>
                 </button>
             </div>
 
             <!-- Toolbar -->
             <div class="br-toolbar">
                 <p class="br-results-count">
-                    <strong id="brCount">8,412</strong> people · showing <em>1 – 9</em>
+                    <strong id="brCount">{{ result_count }}</strong> {{ role }}{{ result_count|pluralize }} · showing <em>{% if page_obj %}{{ page_obj.start_index }}–{{ page_obj.end_index }}{% else %}0{% endif %}</em>
                 </p>
 
                 <button class="btn-ghost" id="brFilterToggle" style="display:none;">
@@ -1217,12 +1286,8 @@
                 <div class="br-view">
                     <div class="br-sort">
                         <label for="brSort">Sort by</label>
-                        <select id="brSort">
-                            <option>Most relevant</option>
-                            <option>Highest rated</option>
-                            <option>Most active</option>
-                            <option>Newest members</option>
-                            <option>Best match</option>
+                        <select id="brSort" aria-label="Sort members" disabled>
+                            <option>Name</option>
                         </select>
                     </div>
                     <button class="br-viewbtn active" id="viewGrid" aria-label="Grid view" aria-pressed="true">
@@ -1234,9 +1299,69 @@
                 </div>
             </div>
 
+            <div class="br-panel-body active" id="brPanel{{ role|title }}" role="tabpanel">
+                <div class="br-grid" id="brGrid">
+                    {% for person in people %}
+                        <article class="p-card" data-name="{{ person.name|escape }}">
+                            <div class="p-top">
+                                <span class="p-avatar">{{ person.initials }}</span>
+                                <div class="p-name">
+                                    <h4>{{ person.name }}</h4>
+                                    <span class="p-verify"><i class="bi bi-person-check-fill"></i> {{ person.role_name }}</span>
+                                </div>
+                                <div class="p-role">{{ person.role_label }}</div>
+                                <span class="p-role-badge {{ person.role_class }}"><i class="bi {{ person.role_icon }}"></i> {{ person.role_name }}</span>
+                            </div>
+                            <div class="p-body">
+                                <p class="p-bio">{{ person.bio }}</p>
+                                {% if person.skills %}
+                                    <div class="p-skills">
+                                        {% for skill in person.skills|slice:":4" %}<span class="p-skill teach">{{ skill }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="p-meta">
+                                    <span><i class="bi bi-info-circle"></i> {{ person.meta_label }}: {{ person.meta_value }}</span>
+                                    {% if person.secondary_label %}<span><i class="bi bi-people"></i> {{ person.secondary_label }}: {{ person.secondary_value }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <div class="p-foot">
+                                {% if person.action == 'courses' %}
+                                    <a class="btn btn-secondary btn-sm" href="{% url 'student_find_courses' %}?teacher_id={{ person.user.id }}">
+                                        <i class="bi bi-journal-bookmark"></i> Courses
+                                    </a>
+                                {% else %}
+                                    <form method="post" action="{% url 'student_browse_action' person.user.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="{% if person.request_status == 'incoming' %}accept{% else %}{{ person.action }}{% endif %}">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        {% if person.request_status == 'connected' %}
+                                            <a class="btn btn-line btn-sm" href="{% url 'student_my_connections' %}"><i class="bi bi-check2-circle"></i> Connected</a>
+                                        {% elif person.request_status == 'accepted' %}
+                                            <a class="btn btn-line btn-sm" href="{% url 'student_requests' %}?tab=history"><i class="bi bi-check2-circle"></i> Accepted</a>
+                                        {% else %}
+                                            <button class="btn btn-secondary btn-sm" type="submit" {% if person.request_status == 'sent' %}disabled{% endif %}>
+                                                <i class="bi {% if person.request_status == 'incoming' %}bi-check-lg{% elif person.action == 'connection' %}bi-person-plus{% else %}bi-person-badge{% endif %}"></i>
+                                                {% if person.request_status == 'incoming' %}Accept{% elif person.request_status == 'sent' %}Request sent{% elif person.action == 'connection' %}Connect{% else %}Request mentorship{% endif %}
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="br-empty">
+                            <div class="ic"><i class="bi bi-search"></i></div>
+                            <h4>No members found</h4>
+                            <p>Try another name or skill, or clear your filters.</p>
+                            <a class="btn btn-line btn-sm" href="{% url 'student_browse' %}?role={{ role }}">Clear search</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% comment %}
             <!-- ============================================================
-                 PANEL: STUDENTS
-                 Backend: {% for student in students %} … {% endfor %}
+                 Sample panels retained for layout reference; live cards render above.
                  ============================================================ -->
             <div class="br-panel-body active" id="brPanelStudents" role="tabpanel" aria-labelledby="brTabStudents">
                 <div class="br-grid" id="brGrid">
@@ -1595,20 +1720,29 @@
                 </div>
             </div>
 
-            <!-- Pagination (shared across panels — update on tab switch) -->
+            {% endcomment %}
+
+            <!-- Pagination -->
             <nav class="br-pagination" aria-label="People pagination">
-                <button class="br-page" disabled aria-label="Previous page">
-                    <i class="bi bi-chevron-left"></i> Prev
-                </button>
-                <button class="br-page active">1</button>
-                <button class="br-page" data-toast="Loading page 2…">2</button>
-                <button class="br-page" data-toast="Loading page 3…">3</button>
-                <button class="br-page" data-toast="Loading page 4…">4</button>
-                <span class="br-page" style="border:none;background:none;"><span class="dots">···</span></span>
-                <button class="br-page" data-toast="Loading page 64…">64</button>
-                <button class="br-page" data-toast="Loading next page…" aria-label="Next page">
-                    Next <i class="bi bi-chevron-right"></i>
-                </button>
+                {% if page_obj.has_previous %}
+                    <a class="br-page" href="?role={{ role }}&amp;q={{ search_query|urlencode }}&amp;skill={{ selected_skill|urlencode }}&amp;page={{ page_obj.previous_page_number }}" aria-label="Previous page"><i class="bi bi-chevron-left"></i> Prev</a>
+                {% else %}
+                    <button class="br-page" disabled aria-label="Previous page"><i class="bi bi-chevron-left"></i> Prev</button>
+                {% endif %}
+                {% for page_number in page_range %}
+                    {% if page_number == page_obj.paginator.ELLIPSIS %}
+                        <span class="br-page" style="border:none;background:none;" aria-hidden="true"><span class="dots">···</span></span>
+                    {% elif page_number == page_obj.number %}
+                        <span class="br-page active" aria-current="page">{{ page_number }}</span>
+                    {% else %}
+                        <a class="br-page" href="?role={{ role }}&amp;q={{ search_query|urlencode }}&amp;skill={{ selected_skill|urlencode }}&amp;page={{ page_number }}">{{ page_number }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <a class="br-page" href="?role={{ role }}&amp;q={{ search_query|urlencode }}&amp;skill={{ selected_skill|urlencode }}&amp;page={{ page_obj.next_page_number }}" aria-label="Next page">Next <i class="bi bi-chevron-right"></i></a>
+                {% else %}
+                    <button class="br-page" disabled aria-label="Next page">Next <i class="bi bi-chevron-right"></i></button>
+                {% endif %}
             </nav>
         </div>
 
@@ -1649,7 +1783,12 @@
         }
 
         tabs.forEach(function (t) {
-            t.addEventListener('click', function () { activateTab(this.dataset.tab); });
+            t.addEventListener('click', function () {
+                var url = new URL(window.location.href);
+                url.searchParams.set('role', this.dataset.tab);
+                url.searchParams.delete('page');
+                window.location.assign(url.toString());
+            });
         });
 
         /* ======================================================
@@ -1738,19 +1877,6 @@
                 resultsCount.textContent = visible.toLocaleString();
             }
         }
-
-        if (searchInput) searchInput.addEventListener('input', runFilter);
-
-        /* Popular tag → fill the search box */
-        document.querySelectorAll('.br-trend').forEach(function (tag) {
-            tag.addEventListener('click', function () {
-                var text = this.textContent.trim();
-                if (searchInput) {
-                    searchInput.value = text;
-                    runFilter();
-                }
-            });
-        });
 
         /* ======================================================
            MOBILE FILTER TOGGLE

@@ -42,6 +42,7 @@
 
     --r:           var(--radius, 16px);
     --r-xl:        var(--radius-xl, 24px);
+    --transition:  all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     display: flex;
@@ -735,8 +736,12 @@
 .part-badge.hand{
     background: rgba(56, 189, 248, 0.16);
     color: #7DD3FC;
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
     animation: dotPulse 2s ease-in-out infinite;
 }
+.part-badge.hand:hover{ background: rgba(56, 189, 248, 0.28); }
 
 .rail-foot{
     margin-top: auto;
@@ -1552,6 +1557,20 @@
 .up-card.sky .up-when i{ color: var(--sky); }
 .up-card.violet .up-when{ color: var(--violet); }
 .up-card.violet .up-when i{ color: var(--violet); }
+.studio-modal{ position:fixed; inset:0; z-index:1300; display:grid; place-items:center; padding:20px; background:rgba(2,6,23,.62); backdrop-filter:blur(7px); opacity:0; visibility:hidden; transition:.25s ease; }
+.studio-modal.open{ opacity:1; visibility:visible; }
+.studio-modal-card{ width:min(620px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:26px; border-radius:var(--r-xl); background:var(--paper); color:var(--ink); box-shadow:0 30px 90px rgba(2,6,23,.38); transform:translateY(12px); transition:.25s ease; }
+.studio-modal.open .studio-modal-card{ transform:none; }
+.studio-modal-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:20px; }
+.studio-modal-head span{ color:var(--gold-deep); font-size:.6rem; font-weight:800; letter-spacing:.16em; }
+.studio-modal-head h3{ margin:5px 0 0; font:700 1.45rem 'Playfair Display',serif; }
+.studio-modal-close{ width:34px; height:34px; border:1px solid var(--line); border-radius:50%; background:var(--paper-2); color:var(--ink); font-size:1.25rem; cursor:pointer; }
+.studio-modal form{ display:grid; gap:13px; }
+.studio-modal label{ display:grid; gap:6px; color:var(--muted); font-size:.68rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.studio-modal input,.studio-modal select,.studio-modal textarea{ width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--paper-2); color:var(--ink); font:inherit; text-transform:none; letter-spacing:normal; }
+.studio-modal-row{ display:grid; grid-template-columns:1fr 1fr .8fr; gap:10px; }
+.studio-modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:8px; }
+@media(max-width:640px){ .studio-modal-row{ grid-template-columns:1fr; } }
 
 .up-card h4{
     font-family: 'Playfair Display', serif;
@@ -1706,7 +1725,10 @@
             <button class="btn-ghost" data-toast="Opening test room…">
                 <i class="bi bi-mic-mute"></i> Test room
             </button>
-            <button class="btn-live" data-toast="Going live…">
+            <button class="btn-ghost" id="studioScheduleSession" type="button">
+                <i class="bi bi-calendar-plus"></i> Schedule session
+            </button>
+            <button class="btn-live" id="studioStartSession" type="button" data-start-url="{% url 'teacher_start_session' %}" data-live-url="{% if next_session %}{% url 'teacher_session_action' next_session.id %}{% endif %}">
                 <span class="rec-dot"></span> Go live
             </button>
         </div>
@@ -1790,7 +1812,7 @@
                     <button class="ctrl primary" data-toast="Opening session menu…">
                         <i class="bi bi-three-dots"></i> Menu
                     </button>
-                    <button class="ctrl danger" data-toast="Ending session…">
+                    <button class="ctrl danger" id="studioEndSession" type="button" data-session-id="{{ active_session.id|default:'' }}" data-action-url="{% if active_session %}{% url 'teacher_session_action' active_session.id %}{% endif %}">
                         <i class="bi bi-box-arrow-right"></i> End
                     </button>
                 </div>
@@ -1851,7 +1873,7 @@
                         <h5>Tunde Kalu</h5>
                         <p>Student</p>
                     </div>
-                    <span class="part-badge hand">Hand ✋</span>
+                    <button class="part-badge hand" type="button" data-hand-id="{{ active_hands.0.id|default:'' }}" data-action-url="{% if active_session %}{% url 'teacher_session_action' active_session.id %}{% endif %}">Hand ✋</button>
                 </div>
 
                 <div class="part">
@@ -1914,7 +1936,7 @@
             </div>
             <div class="tool-body">
                 <div class="rec-panel">
-                    <button class="rec-btn" data-record-btn aria-label="Start recording">
+                    <button class="rec-btn" data-record-btn data-record-url="{% url 'teacher_recording_action' %}" aria-label="Start recording">
                         <i class="bi bi-circle-fill"></i>
                     </button>
                     <div class="rec-timer" data-rec-timer>00:00:00</div>
@@ -2094,6 +2116,18 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% if recordings %}
+                        {% for recording in recordings %}
+                        <tr data-status="{{ recording.status }}" data-title="{{ recording.title|lower }}">
+                            <td><div class="rec-cell"><div class="rec-thumb cam"><i class="bi bi-camera-video-fill"></i></div><div class="rec-info"><h5>{{ recording.title }}</h5><p><i class="bi bi-calendar3"></i> {{ recording.created_at|date:"j M Y" }} · <i class="bi bi-clock"></i> {{ recording.duration_seconds|default:0 }} sec</p></div></div></td>
+                            <td>{% if recording.course %}{{ recording.course.title }}{% else %}Studio session{% endif %}</td>
+                            <td class="num" style="text-align:right;">{{ recording.duration_seconds|default:0 }}s</td>
+                            <td class="num" style="text-align:right;">{{ recording.size_mb|floatformat:1 }} MB</td>
+                            <td><span class="lib-status {{ recording.status }}"><span class="dot"></span> {{ recording.get_status_display }}</span></td>
+                            <td><div class="lib-actions"><button type="button" aria-label="Play" data-recording-action="play" data-recording-id="{{ recording.id }}"><i class="bi bi-play-fill"></i></button><button type="button" aria-label="Publish" data-recording-action="publish" data-recording-id="{{ recording.id }}"><i class="bi bi-broadcast"></i></button><button type="button" aria-label="Archive" data-recording-action="archive" data-recording-id="{{ recording.id }}"><i class="bi bi-archive"></i></button></div></td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
 
                         <tr data-toast="Opening React Hooks Deep Dive…">
                             <td>
@@ -2232,6 +2266,8 @@
                             </td>
                         </tr>
 
+                        {% endif %}
+
                     </tbody>
                 </table>
             </div>
@@ -2257,26 +2293,22 @@
     <section class="s-rise">
         <div class="sect-head" style="margin-bottom:16px;">
             <h2>Coming up next</h2>
-            <span class="meta"><i class="bi bi-calendar3"></i> 3 sessions this week</span>
+            <span class="meta"><i class="bi bi-calendar3"></i> {{ upcoming_sessions|length }} sessions this week</span>
         </div>
 
         <div class="upcoming">
-
-            <article class="up-card" data-toast="Opening Design Systems Deep Dive…">
-                <span class="up-when"><i class="bi bi-clock-fill"></i> Today · 20:00</span>
-                <h4>Design Systems Deep Dive</h4>
-                <p>Session 4 of 16 · <strong>Tunde Kalu</strong> hosting · 45 minutes</p>
-                <div class="up-foot">
-                    <div class="avatars">
-                        <span>TK</span>
-                        <span>MR</span>
-                        <span>JT</span>
-                        <span class="more">+18</span>
-                    </div>
-                    <span>21 registered</span>
-                </div>
+            {% for session in upcoming_sessions %}
+            <article class="up-card" data-toast="Opening {{ session.title }}…">
+                <span class="up-when"><i class="bi bi-clock-fill"></i> {{ session.starts_at|date:"D · H:i" }}</span>
+                <h4>{{ session.title }}</h4>
+                <p>{% if session.course %}{{ session.course.title }} · {% endif %}<strong>{{ session.student.user.get_full_name|default:session.student.user.username }}</strong> · {{ session.duration_minutes }} minutes</p>
+                <div class="up-foot"><div class="avatars"><span>{{ session.student.initials }}</span></div><span>1 registered</span></div>
             </article>
+            {% empty %}
+            <article class="up-card"><h4>No scheduled sessions</h4><p>New student bookings will appear here.</p></article>
+            {% endfor %}
 
+            {% comment %}
             <article class="up-card sky" data-toast="Opening API Design Workshop…">
                 <span class="up-when"><i class="bi bi-clock-fill"></i> Tomorrow · 10:00</span>
                 <h4>API Design Workshop</h4>
@@ -2306,11 +2338,28 @@
                     <span>12 registered</span>
                 </div>
             </article>
+            {% endcomment %}
 
         </div>
     </section>
 
 </div><!-- /.studio -->
+
+<div class="studio-modal" id="studioScheduleModal" aria-hidden="true">
+    <div class="studio-modal-card">
+        <div class="studio-modal-head"><div><span>SESSION PLANNER</span><h3>Schedule a live session</h3></div><button type="button" class="studio-modal-close">&times;</button></div>
+        <form method="post" action="{% url 'teacher_schedule_session' %}">
+            {% csrf_token %}
+            <label>Session title<input name="title" required placeholder="React Hooks Deep Dive - Session 8 of 12"></label>
+            <label>Course / track<select name="course_id"><option value="">General session</option>{% for course in teacher_courses %}<option value="{{ course.course_id }}">{{ course.title }}</option>{% endfor %}</select></label>
+            <div class="studio-modal-row"><label>Date<input type="date" name="date" required></label><label>Time<input type="time" name="time" required></label><label>Duration<select name="duration_minutes"><option>15</option><option>30</option><option selected>45</option><option>60</option><option>90</option></select></label></div>
+            <label>Session type<select name="session_type"><option value="one_to_one">1-on-1 Video call</option><option value="group">Group call</option><option value="cohort">Cohort class</option></select></label>
+            <label>Attendees<select name="student_ids" multiple>{% for student in teacher_students %}<option value="{{ student.id }}">{{ student.user.get_full_name|default:student.user.username }}</option>{% endfor %}</select></label>
+            <label>Description<textarea name="description" rows="3"></textarea></label>
+            <div class="studio-modal-actions"><button type="button" class="btn-ghost studio-modal-cancel">Cancel</button><button type="submit" class="btn-live">Schedule &amp; notify</button></div>
+        </form>
+    </div>
+</div>
 
 
 <script>
@@ -2319,6 +2368,76 @@
 
     var root = document.querySelector('.studio');
     if (!root) return;
+
+    var scheduleModal = document.getElementById('studioScheduleModal');
+    var scheduleButton = document.getElementById('studioScheduleSession');
+    function toggleScheduleModal(open) {
+        if (!scheduleModal) return;
+        scheduleModal.classList.toggle('open', open);
+        scheduleModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+        document.body.style.overflow = open ? 'hidden' : '';
+    }
+    if (scheduleButton) scheduleButton.addEventListener('click', function () { toggleScheduleModal(true); });
+    if (scheduleModal) {
+        scheduleModal.querySelector('.studio-modal-close').addEventListener('click', function () { toggleScheduleModal(false); });
+        scheduleModal.querySelector('.studio-modal-cancel').addEventListener('click', function () { toggleScheduleModal(false); });
+        scheduleModal.addEventListener('click', function (event) { if (event.target === scheduleModal) toggleScheduleModal(false); });
+    }
+
+    function csrfToken() {
+        var match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function postStudioAction(url, payload, button, successMessage) {
+        if (!url) return;
+        if (button) button.disabled = true;
+        fetch(url, {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams(payload),
+            credentials: 'same-origin'
+        }).then(function (response) {
+            if (!response.ok) throw new Error('Session action failed');
+            if (window.__toast) window.__toast(successMessage, 'success');
+            window.setTimeout(function () { window.location.reload(); }, 350);
+        }).catch(function () {
+            if (button) button.disabled = false;
+            if (window.__toast) window.__toast('Could not update the session.', 'error');
+        });
+    }
+
+    var startSessionButton = document.getElementById('studioStartSession');
+    if (startSessionButton) {
+        startSessionButton.addEventListener('click', function () {
+            var title = window.prompt('Name this session', 'Live learning session');
+            if (title === null) return;
+            if (startSessionButton.dataset.liveUrl) {
+                postStudioAction(startSessionButton.dataset.liveUrl, {action: 'start'}, startSessionButton, 'Your scheduled session is now live.');
+            } else {
+                postStudioAction(startSessionButton.dataset.startUrl, {title: title, duration_minutes: '45'}, startSessionButton, 'Group session created for enrolled students.');
+            }
+        });
+    }
+
+    var endSessionButton = document.getElementById('studioEndSession');
+    if (endSessionButton && endSessionButton.dataset.sessionId) {
+        endSessionButton.addEventListener('click', function () {
+            postStudioAction(endSessionButton.dataset.actionUrl, {
+                action: 'end'
+            }, endSessionButton, 'Session ended and saved to your history.');
+        });
+    }
+
+    root.querySelectorAll('.part-badge.hand').forEach(function (handButton) {
+        handButton.addEventListener('click', function () {
+            if (!handButton.dataset.handId) return;
+            postStudioAction(handButton.dataset.actionUrl, {
+                action: 'resolve_hand',
+                hand_id: handButton.dataset.handId
+            }, handButton, 'Question marked as answered.');
+        });
+    });
 
     /* ---------- progress bars ---------- */
     requestAnimationFrame(function () {
@@ -2375,6 +2494,7 @@
     var recState = false;
     var recSecs = 0;
     var recInterval = null;
+    var recordingId = null;
 
     function fmtTime(total) {
         var h = Math.floor(total / 3600);
@@ -2394,6 +2514,12 @@
                 recBtn.classList.add('recording');
                 recLabel.textContent = 'Recording · tap to stop';
                 recBtn.innerHTML = '<i class="bi bi-stop-fill"></i>';
+                fetch(recBtn.dataset.recordUrl, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({action: 'start', mode: 'camera'}),
+                    credentials: 'same-origin'
+                }).then(function (response) { return response.json(); }).then(function (data) { recordingId = data.recording_id; });
                 recInterval = setInterval(function () {
                     recSecs++;
                     recTimer.textContent = fmtTime(recSecs);
@@ -2404,12 +2530,31 @@
                 recBtn.classList.remove('recording');
                 recLabel.textContent = 'Saved to library';
                 recBtn.innerHTML = '<i class="bi bi-circle-fill"></i>';
+                if (recordingId) {
+                    postStudioAction(recBtn.dataset.recordUrl, {
+                        action: 'stop', recording_id: recordingId, duration_seconds: String(recSecs)
+                    }, null, 'Recording saved to the library.');
+                }
                 if (window.__toast) {
                     window.__toast('Recording saved · ' + fmtTime(recSecs), 'success');
                 }
             }
         });
     }
+
+    root.querySelectorAll('[data-recording-action]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var action = button.dataset.recordingAction;
+            if (action === 'play') {
+                if (window.__toast) window.__toast('Playback will open when a media URL is available.', '');
+                return;
+            }
+            postStudioAction(recBtn ? recBtn.dataset.recordUrl : '', {
+                action: action,
+                recording_id: button.dataset.recordingId
+            }, button, action === 'publish' ? 'Recording published.' : 'Recording updated.');
+        });
+    });
 
     /* ---------- rec-mode switcher ---------- */
     var recModes = root.querySelectorAll('.rec-mode');
@@ -2470,3 +2615,6 @@
 </script>
 
 {% endblock content %}
+
+
+

@@ -877,6 +877,76 @@
     }
 </style>
 
+<section class="rq-head fade-up">
+    <div>
+        <span class="badge-soft {% if incoming_count %}pulse{% endif %}"><i class="bi bi-inbox-fill"></i> {{ incoming_count }} pending requests</span>
+        <h1>Your <span>Requests</span></h1>
+        <p>Review incoming connection and mentorship requests, track requests you sent, and see decisions in one place.</p>
+    </div>
+    <div class="rq-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn btn-line" href="{% url 'student_browse' %}"><i class="bi bi-people"></i> Browse people</a>
+        <a class="btn btn-secondary" href="{% url 'student_my_connections' %}"><i class="bi bi-link-45deg"></i> My connections</a>
+    </div>
+</section>
+
+<section class="rq-kpis">
+    <div class="rq-kpi"><div class="ic"><i class="bi bi-envelope-paper-fill"></i></div><div><div class="v">{{ incoming_count }}</div><div class="l">Incoming</div></div></div>
+    <div class="rq-kpi"><div class="ic accent"><i class="bi bi-check2-circle"></i></div><div><div class="v">{{ accepted_count }}</div><div class="l">Accepted</div></div></div>
+    <div class="rq-kpi"><div class="ic violet"><i class="bi bi-send-fill"></i></div><div><div class="v">{{ sent_count }}</div><div class="l">Sent &amp; awaiting</div></div></div>
+    <div class="rq-kpi"><div class="ic amber"><i class="bi bi-clock-history"></i></div><div><div class="v">{{ history_count }}</div><div class="l">Resolved</div></div></div>
+</section>
+
+<section class="rq-layout">
+    <div class="rq-main">
+        <div class="rq-card fade-up">
+            <nav class="rq-tabs" aria-label="Request status">
+                <a class="rq-tab {% if active_tab == 'incoming' %}active{% endif %}" href="?tab=incoming"><i class="bi bi-inbox-fill"></i> Incoming <span class="count alert">{{ incoming_count }}</span></a>
+                <a class="rq-tab {% if active_tab == 'sent' %}active{% endif %}" href="?tab=sent"><i class="bi bi-send"></i> Sent <span class="count">{{ sent_count }}</span></a>
+                <a class="rq-tab {% if active_tab == 'history' %}active{% endif %}" href="?tab=history"><i class="bi bi-clock-history"></i> History <span class="count">{{ history_count }}</span></a>
+            </nav>
+            <div class="rq-list">
+                {% for row in request_rows %}
+                    <article class="rq-row" data-name="{{ row.person.get_full_name|default:row.person.username }}">
+                        <div class="rq-avatar">{{ row.initials }}<span class="rq-type"><i class="bi {% if row.request.request_type == 'mentorship' %}bi-person-badge-fill{% else %}bi-person-plus-fill{% endif %}"></i></span></div>
+                        <div class="rq-body">
+                            <div class="top">
+                                <h4>{{ row.person.get_full_name|default:row.person.username }}</h4>
+                                <span class="rq-chip exchange">{{ row.request.get_request_type_display }}</span>
+                                {% if active_tab == 'history' %}<span class="rq-chip">{{ row.request.get_status_display }}</span>{% endif %}
+                            </div>
+                            <div class="rq-role">{{ row.person.username }}</div>
+                            <div class="rq-meta"><span><i class="bi bi-clock"></i> {{ row.request.created_at|timesince }} ago</span></div>
+                        </div>
+                        <div class="rq-actions">
+                            {% if active_tab == 'incoming' %}
+                                <form method="post" action="{% url 'student_people_request_action' row.request.id %}">{% csrf_token %}<input type="hidden" name="action" value="accept"><input type="hidden" name="next" value="/student/requests?tab=incoming"><button class="rq-act accept" type="submit"><i class="bi bi-check-lg"></i> Accept</button></form>
+                                <form method="post" action="{% url 'student_people_request_action' row.request.id %}">{% csrf_token %}<input type="hidden" name="action" value="decline"><input type="hidden" name="next" value="/student/requests?tab=incoming"><button class="rq-act decline" type="submit"><i class="bi bi-x-lg"></i> Decline</button></form>
+                            {% elif active_tab == 'sent' %}
+                                <form method="post" action="{% url 'student_people_request_action' row.request.id %}">{% csrf_token %}<input type="hidden" name="action" value="withdraw"><input type="hidden" name="next" value="/student/requests?tab=sent"><button class="rq-act decline" type="submit"><i class="bi bi-x-lg"></i> Withdraw</button></form>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="rq-empty" style="display:block;">
+                        <div class="ic"><i class="bi bi-inbox"></i></div>
+                        <h4>{% if active_tab == 'incoming' %}No incoming requests{% elif active_tab == 'sent' %}No pending requests sent{% else %}No request history yet{% endif %}</h4>
+                        <p>Request activity appears here as members connect through Browse and Skill Matches.</p>
+                        <a class="btn btn-secondary btn-sm" href="{% url 'student_browse' %}"><i class="bi bi-people"></i> Browse people</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <aside class="rq-side">
+        <div class="rq-panel-card"><div class="rq-panel-head"><h4><i class="bi bi-pie-chart-fill"></i> Incoming breakdown</h4></div>
+            <div class="rq-break"><span class="lbl">Connections</span><strong>{{ connection_count }}</strong></div>
+            <div class="rq-break"><span class="lbl">Mentorship</span><strong>{{ mentorship_count }}</strong></div>
+        </div>
+        <div class="rq-trust"><i class="bi bi-shield-lock-fill"></i><span><strong>Your decisions are private.</strong> Accepting a connection moves the member to My Connections.</span></div>
+    </aside>
+</section>
+
+{% comment %}
 
 <!-- ====================================================
      PAGE HEAD
@@ -1440,6 +1510,7 @@
     </div>
 </section>
 
+{% endcomment %}
 
 <script>
     (function () {
@@ -1448,7 +1519,7 @@
         /* ======================================================
            TABS — switch panels
            ====================================================== */
-        var tabs = Array.prototype.slice.call(document.querySelectorAll('.rq-tab'));
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('.rq-tab[data-tab]'));
         var panels = Array.prototype.slice.call(document.querySelectorAll('.rq-panel'));
         var list = document.getElementById('rqList');
         var emptyIncoming = document.getElementById('rqEmptyIncoming');

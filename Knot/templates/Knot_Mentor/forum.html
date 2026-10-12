@@ -1,0 +1,1923 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Forum{% endblock %}
+{% block breadcrumb %}Forum{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO — FORUM OVERVIEW
+       ============================================================ */
+    .forum-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .forum-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .forum-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .fh-text { position: relative; z-index: 2; max-width: 660px; }
+    .fh-text .hero-badge { margin-bottom: 14px; }
+    .fh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .fh-text h1 span { color: var(--secondary); font-style: italic; }
+    .fh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        margin-bottom: 22px;
+        max-width: 540px;
+    }
+    .fh-text p strong { color: var(--white); font-weight: 600; }
+    .fh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    .fh-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .fh-metric { text-align: center; }
+    .fh-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .fh-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.15rem; }
+    .fh-metric span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .fh-sep { width: 1px; background: rgba(255, 255, 255, 0.12); }
+
+    /* ============================================================
+       MENTOR-AUTHORITY BANNER
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .forum-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .fo-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .fo-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .fo-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .fo-card:hover::before { opacity: 1; }
+    .fo-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .fo-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .fo-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .fo-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .fo-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .fo-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .fo-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .fo-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .fo-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .fo-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .fo-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .forum-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 26px;
+        align-items: start;
+    }
+    .col-stack {
+        display: flex; flex-direction: column;
+        gap: 26px; min-width: 0;
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+
+    .tab-panels { padding: 10px 26px 24px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       QUESTION THREAD CARD
+       ============================================================ */
+    .thread-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .thread {
+        display: grid;
+        grid-template-columns: 66px minmax(0, 1fr) auto;
+        gap: 18px;
+        padding: 20px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        cursor: pointer;
+    }
+    .thread::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 22px; bottom: 22px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .thread:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .thread:hover::before { opacity: 1; }
+    .thread.answered::before { background: var(--green); opacity: 0.5; }
+    .thread.pinned::before { background: var(--amber); opacity: 0.7; }
+    .thread.solved {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.03), rgba(190, 242, 100, 0.04));
+    }
+
+    /* Vote column */
+    .thread-votes {
+        text-align: center;
+        flex-shrink: 0;
+        border-right: 1px solid var(--gray-100);
+        padding-right: 18px;
+        align-self: flex-start;
+    }
+    .thread-votes .tv-num {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+    .thread.solved .thread-votes .tv-num { color: var(--green); }
+    .thread-votes .tv-lbl {
+        font-size: 0.58rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--gray-600);
+        font-weight: 800;
+        margin-top: 4px;
+    }
+    .thread-votes .tv-ans {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--gray-200);
+    }
+    .thread-votes .tv-ans .tv-num { font-size: 1.05rem; color: #4D7C0F; }
+    .thread.solved .thread-votes .tv-ans .tv-num { color: var(--secondary-deep); }
+
+    /* Body column */
+    .thread-body { min-width: 0; }
+    .thread-tags-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+    .thread-cat {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.20);
+        border: 1px solid rgba(190, 242, 100, 0.36);
+        padding: 3px 9px;
+        border-radius: 50px;
+    }
+    .thread-cat.accent { color: #0369A1; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.32); }
+    .thread-cat.violet { color: #6D28D9; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.32); }
+    .thread-cat.amber  { color: #B45309; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.34); }
+
+    .thread-status {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .thread-status.solved { background: rgba(34,197,94,0.14); color: #15803D; border: 1px solid rgba(34,197,94,0.34); }
+    .thread-status.answered { background: rgba(190,242,100,0.20); color: #4D7C0F; border: 1px solid rgba(190,242,100,0.4); }
+    .thread-status.unanswered { background: rgba(245,158,11,0.14); color: #B45309; border: 1px solid rgba(245,158,11,0.34); }
+    .thread-status.pinned { background: rgba(245,158,11,0.14); color: #B45309; border: 1px solid rgba(245,158,11,0.34); }
+
+    .thread-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    .thread:hover .thread-title { color: #4D7C0F; }
+
+    .thread-excerpt {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .thread-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        align-items: center;
+    }
+    .thread-meta .tm-author {
+        display: inline-flex; align-items: center; gap: 7px;
+    }
+    .thread-meta .tm-author .avatar {
+        width: 24px; height: 24px;
+        font-size: 0.6rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .thread-meta .tm-author strong { color: var(--primary-dark); font-weight: 700; }
+    .thread-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .thread-meta i { color: var(--gray-300); font-size: 0.78rem; }
+    .thread-meta i.lime { color: var(--secondary-deep); }
+    .thread-meta i.accent { color: var(--accent); }
+
+    /* Mentor badge — inside meta or top-right */
+    .mentor-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px 3px 3px;
+        border-radius: 50px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.22), rgba(56, 189, 248, 0.14));
+        border: 1px solid rgba(190, 242, 100, 0.4);
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+    }
+    .mentor-chip .mc-dot {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.62rem;
+        flex-shrink: 0;
+    }
+
+    /* Right column of thread card */
+    .thread-side {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+        min-width: 120px;
+    }
+    .thread-view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .thread-view-btn i { font-size: 0.82rem; }
+    .thread-view-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .thread-view-btn.primary {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 22px rgba(190, 242, 100, 0.34);
+    }
+    .thread-view-btn.primary:hover {
+        box-shadow: 0 14px 32px rgba(190, 242, 100, 0.48);
+    }
+    .thread-side .ts-note {
+        font-size: 0.66rem;
+        color: var(--gray-300);
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* ============================================================
+       SIDE COLUMN — trending, contributors, unanswered
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Trending topics */
+    .trend-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 12px;
+        border-radius: 11px;
+        transition: var(--transition);
+        cursor: pointer;
+        margin-bottom: 2px;
+    }
+    .trend-item:hover { background: var(--cream); }
+    .trend-rank {
+        width: 24px;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-300);
+        flex-shrink: 0;
+    }
+    .trend-item:nth-child(1) .trend-rank { color: #4D7C0F; }
+    .trend-item:nth-child(2) .trend-rank { color: var(--accent); }
+    .trend-item:nth-child(3) .trend-rank { color: var(--violet); }
+    .trend-body { flex: 1; min-width: 0; }
+    .trend-body strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .trend-body span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+    }
+    .trend-trend {
+        font-size: 0.62rem;
+        font-weight: 800;
+        color: var(--secondary-deep);
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        flex-shrink: 0;
+    }
+
+    /* Top contributors */
+    .contrib-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .contrib-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .contrib-row:first-of-type { padding-top: 0; }
+    .contrib-row .avatar {
+        width: 38px; height: 38px;
+        font-size: 0.78rem;
+        font-family: 'Playfair Display', serif;
+        position: relative;
+    }
+    .contrib-row .avatar.rank-1 { box-shadow: 0 0 0 2px var(--secondary); }
+    .contrib-row .avatar.rank-2 { box-shadow: 0 0 0 2px var(--accent); }
+    .contrib-row .avatar.rank-3 { box-shadow: 0 0 0 2px var(--violet); }
+    .contrib-info { flex: 1; min-width: 0; }
+    .contrib-info strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .contrib-info .contrib-tags {
+        display: flex; gap: 5px;
+        flex-wrap: wrap;
+    }
+    .contrib-info .mini-tag {
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .contrib-info .mini-tag.mentor {
+        background: rgba(190, 242, 100, 0.22);
+        color: #4D7C0F;
+    }
+    .contrib-score {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .contrib-score strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+    }
+    .contrib-score span {
+        display: block;
+        font-size: 0.58rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+    }
+
+    /* Unanswered queue */
+    .unans-item {
+        display: flex;
+        gap: 10px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .unans-item:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .unans-item:first-of-type { padding-top: 0; }
+    .unans-item:hover .unans-title { color: #4D7C0F; }
+    .unans-wait {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: rgba(245, 158, 11, 0.14);
+        color: #B45309;
+        font-family: 'Playfair Display', serif;
+        font-weight: 800;
+        font-size: 0.7rem;
+    }
+    .unans-body { flex: 1; min-width: 0; }
+    .unans-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        margin-bottom: 3px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    .unans-meta {
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .unans-meta .tag-mini {
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 50px;
+        background: rgba(56, 189, 248, 0.12);
+        color: #0369A1;
+    }
+
+    /* Guidelines card */
+    .guide-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .guide-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .guide-item i {
+        flex-shrink: 0;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.6rem;
+        margin-top: 2px;
+    }
+    .guide-item strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls { display: flex; align-items: center; gap: 4px; }
+    .pg-btn {
+        min-width: 38px; height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .forum-grid { grid-template-columns: 1fr; }
+        .forum-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .fh-metrics { gap: 18px; }
+        .fh-metric strong { font-size: 1.6rem; }
+    }
+    @media (max-width: 900px) {
+        .forum-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .fh-metrics { width: 100%; justify-content: space-between; }
+        .thread {
+            grid-template-columns: 56px minmax(0, 1fr);
+        }
+        .thread-side {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px dashed var(--gray-100);
+            min-width: 0;
+        }
+    }
+    @media (max-width: 640px) {
+        .forum-overview { grid-template-columns: 1fr; }
+        .fh-metrics { flex-wrap: wrap; gap: 14px; }
+        .fh-sep { display: none; }
+        .fh-metric { flex: 1; min-width: 80px; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .thread { padding: 16px; gap: 14px; grid-template-columns: 46px minmax(0, 1fr); }
+        .thread-votes { padding-right: 12px; }
+        .thread-votes .tv-num { font-size: 1.1rem; }
+        .thread-title { font-size: 0.94rem; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+    }
+    @media (max-width: 420px) {
+        .thread-side { flex-direction: column; align-items: stretch; }
+        .thread-view-btn { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="forum-hero fade-up">
+    <div class="fh-text">
+        <span class="hero-badge">
+            <i class="bi bi-patch-check-fill"></i> Verified Mentor · Answering publicly
+        </span>
+        <h1>The <span>Forum</span></h1>
+        <p>
+            A public Q&amp;A where your answers build authority. You've answered
+            <strong>184 questions</strong> with a <strong>94% acceptance rate</strong>,
+            and <strong>6 questions</strong> are waiting on your expertise right now.
+        </p>
+        <div class="fh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening answer composer…" data-toast-type="info">
+                <i class="bi bi-pencil-square"></i> Write an answer
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening question composer…" data-toast-type="info">
+                <i class="bi bi-plus-lg"></i> Ask a question
+            </button>
+        </div>
+    </div>
+
+    <div class="fh-metrics">
+        <div class="fh-metric">
+            <strong data-count="184">184</strong>
+            <span>Answers</span>
+        </div>
+        <div class="fh-sep"></div>
+        <div class="fh-metric">
+            <strong>94<em>%</em></strong>
+            <span>Accepted</span>
+        </div>
+        <div class="fh-sep"></div>
+        <div class="fh-metric">
+            <strong>#3</strong>
+            <span>Faculty rank</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MENTOR AUTHORITY BANNER
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-patch-check-fill"></i></span>
+    <div class="as-body">
+        <strong>Your answers carry a Verified Mentor badge</strong>
+        <p>
+            Every reply you post is attributed to <strong>Daniel Okafor · Master Mentor · Level XII</strong>
+            and marked with your verified badge. Answers are permanent, quotable, and linked to
+            your dossier so the community can trace your expertise.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening your forum profile…" data-toast-type="info">
+            <i class="bi bi-person-badge"></i> Forum profile
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="forum-overview fade-up">
+
+    <div class="fo-card">
+        <div class="fo-top">
+            <span class="fo-ic"><i class="bi bi-chat-square-quote-fill"></i></span>
+            <span class="fo-trend"><i class="bi bi-arrow-up-short"></i> +12</span>
+        </div>
+        <div class="fo-value" data-count="184">184</div>
+        <div class="fo-label">Answers published</div>
+    </div>
+
+    <div class="fo-card">
+        <div class="fo-top">
+            <span class="fo-ic accent"><i class="bi bi-check-circle-fill"></i></span>
+            <span class="fo-trend"><i class="bi bi-arrow-up-short"></i> +4%</span>
+        </div>
+        <div class="fo-value">94<span>%</span></div>
+        <div class="fo-label">Answer acceptance rate</div>
+    </div>
+
+    <div class="fo-card">
+        <div class="fo-top">
+            <span class="fo-ic violet"><i class="bi bi-hand-thumbs-up-fill"></i></span>
+            <span class="fo-trend"><i class="bi bi-arrow-up-short"></i> +48</span>
+        </div>
+        <div class="fo-value" data-count="1284">1,284</div>
+        <div class="fo-label">Total upvotes earned</div>
+    </div>
+
+    <div class="fo-card">
+        <div class="fo-top">
+            <span class="fo-ic amber"><i class="bi bi-hourglass-split"></i></span>
+            <span class="fo-trend warn"><i class="bi bi-clock-history"></i> Waiting</span>
+        </div>
+        <div class="fo-value" data-count="6">6</div>
+        <div class="fo-label">Questions needing you</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="forumSearch" placeholder="Search questions, tags, authors…" aria-label="Search forum">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All categories
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Trending" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Trending
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FORUM GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="forum-grid">
+
+    <!-- ────────────────────────── LEFT ────────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-chat-square-quote-fill"></i> Community Questions</h3>
+                <a href="#" class="link">RSS feed <i class="bi bi-rss"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="trending">
+                    Trending <span class="count">24</span>
+                </button>
+                <button class="tab" data-tab="new">
+                    New <span class="count">8</span>
+                </button>
+                <button class="tab" data-tab="unanswered">
+                    Unanswered <span class="count">6</span>
+                </button>
+                <button class="tab" data-tab="yours">
+                    Your Answers <span class="count">184</span>
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ─────── TRENDING ─────── -->
+                <div class="tab-panel active" id="tab-trending">
+                    <div class="thread-list">
+
+                        <!-- Thread 1 -->
+                        <article class="thread solved" data-searchable="react hooks useeffect race condition sara kim">
+                            <div class="thread-votes">
+                                <div class="tv-num">142</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">8</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat accent"><i class="bi bi-tag-fill"></i> React</span>
+                                    <span class="thread-status solved"><i class="bi bi-check-circle-fill"></i> Solved</span>
+                                    <span class="mentor-chip">
+                                        <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                        Answered by you
+                                    </span>
+                                </div>
+                                <h3 class="thread-title">
+                                    How do you prevent race conditions in useEffect when fetching?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    I'm using useEffect to fetch data on prop change, but if the user
+                                    types fast the slower request wins. I've tried AbortController but
+                                    I'm not sure I'm using it correctly. What's the canonical pattern?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm sky">SK</span>
+                                        <strong>Sara Kim</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 2h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 3.2k views</span>
+                                    <span><i class="bi bi-bookmark-fill lime"></i> 42 saves</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn primary"
+                                        data-toast="Opening thread…" data-toast-type="info">
+                                    <i class="bi bi-arrow-right-circle-fill"></i> View thread
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i>
+                                    Accepted answer
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Thread 2 -->
+                        <article class="thread" data-searchable="postgres index composite query plan tunde kayode">
+                            <div class="thread-votes">
+                                <div class="tv-num">98</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">5</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat"><i class="bi bi-tag-fill"></i> PostgreSQL</span>
+                                    <span class="thread-status answered"><i class="bi bi-check2-circle"></i> Answered</span>
+                                    <span class="mentor-chip">
+                                        <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                        Answered by you
+                                    </span>
+                                </div>
+                                <h3 class="thread-title">
+                                    When does a composite index actually help vs hurt write performance?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    I've got a table with ~40M rows and heavy read traffic. Adding a
+                                    composite index on (user_id, created_at) cut a query from 400ms
+                                    to 12ms, but the write throughput dropped by 30%. Is this expected?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm">TK</span>
+                                        <strong>Tunde Kayode</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 4h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 2.1k views</span>
+                                    <span><i class="bi bi-bookmark-fill lime"></i> 28 saves</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn"
+                                        data-toast="Opening thread…" data-toast-type="info">
+                                    <i class="bi bi-arrow-right-circle"></i> View thread
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-check2-all" style="color: var(--secondary-deep);"></i>
+                                    Your answer upvoted 42×
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Thread 3 -->
+                        <article class="thread" data-searchable="react testing library async act warning">
+                            <div class="thread-votes">
+                                <div class="tv-num">76</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">3</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat accent"><i class="bi bi-tag-fill"></i> Testing</span>
+                                    <span class="thread-status unanswered"><i class="bi bi-hourglass-split"></i> Needs answer</span>
+                                </div>
+                                <h3 class="thread-title">
+                                    How do I eliminate the "act" warning in React Testing Library for async state?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    My tests pass but React logs the act warning whenever I have a
+                                    useEffect that updates state after a fetch. Wrapping in waitFor
+                                    helps, but it's noisy. Is there a proper pattern?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm violet">MR</span>
+                                        <strong>Maya Rahman</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 6h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 1.4k views</span>
+                                    <span><i class="bi bi-bookmark-fill lime"></i> 19 saves</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn primary"
+                                        data-toast="Opening answer composer…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Answer
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-lightning-charge-fill" style="color: var(--amber);"></i>
+                                    High-value question
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Thread 4 -->
+                        <article class="thread" data-searchable="system design caching strategy aws redis">
+                            <div class="thread-votes">
+                                <div class="tv-num">64</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">7</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat violet"><i class="bi bi-tag-fill"></i> System Design</span>
+                                    <span class="thread-status solved"><i class="bi bi-check-circle-fill"></i> Solved</span>
+                                    <span class="mentor-chip">
+                                        <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                        Answered by you
+                                    </span>
+                                </div>
+                                <h3 class="thread-title">
+                                    Redis vs in-process cache for read-heavy GraphQL resolvers?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    My resolvers hit the same few queries repeatedly. Redis adds a
+                                    network hop; in-process is per-instance. What's the right
+                                    decision framework?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm">JO</span>
+                                        <strong>James Oduya</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 8h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 980 views</span>
+                                    <span><i class="bi bi-bookmark-fill lime"></i> 14 saves</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn"
+                                        data-toast="Opening thread…" data-toast-type="info">
+                                    <i class="bi bi-arrow-right-circle"></i> View thread
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i>
+                                    Accepted answer
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Thread 5 -->
+                        <article class="thread" data-searchable="typescript generics conditional types error">
+                            <div class="thread-votes">
+                                <div class="tv-num">52</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">4</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat accent"><i class="bi bi-tag-fill"></i> TypeScript</span>
+                                    <span class="thread-status answered"><i class="bi bi-check2-circle"></i> Answered</span>
+                                </div>
+                                <h3 class="thread-title">
+                                    Conditional types inside a generic function — why does this inference fail?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    I want a function that returns different shapes based on an
+                                    input key. TypeScript keeps widening to a union instead of
+                                    narrowing. Is there a clean way to force inference?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm amber">AO</span>
+                                        <strong>Amara Okoye</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 10h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 720 views</span>
+                                    <span><i class="bi bi-bookmark-fill lime"></i> 11 saves</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn"
+                                        data-toast="Opening thread…" data-toast-type="info">
+                                    <i class="bi bi-arrow-right-circle"></i> View thread
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-person-check-fill" style="color: var(--accent);"></i>
+                                    Another mentor answered
+                                </span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── NEW ─────── -->
+                <div class="tab-panel" id="tab-new">
+                    <div class="thread-list">
+
+                        <article class="thread" data-searchable="react server components new question">
+                            <div class="thread-votes">
+                                <div class="tv-num">12</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">0</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat accent"><i class="bi bi-tag-fill"></i> React</span>
+                                    <span class="thread-status unanswered"><i class="bi bi-hourglass-split"></i> Needs answer</span>
+                                </div>
+                                <h3 class="thread-title">
+                                    When should I reach for React Server Components vs a normal page?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    Starting a new Next.js app and confused by the mental model.
+                                    Everything could be a server component — where do I actually
+                                    draw the line?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm">NK</span>
+                                        <strong>Nadia Kim</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 30 min ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 24 views</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn primary"
+                                        data-toast="Opening answer composer…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Answer
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-lightning-charge-fill" style="color: var(--amber);"></i>
+                                    Fresh question
+                                </span>
+                            </div>
+                        </article>
+
+                        <article class="thread" data-searchable="postgres locking row level concurrent">
+                            <div class="thread-votes">
+                                <div class="tv-num">8</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">0</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat"><i class="bi bi-tag-fill"></i> PostgreSQL</span>
+                                    <span class="thread-status unanswered"><i class="bi bi-hourglass-split"></i> Needs answer</span>
+                                </div>
+                                <h3 class="thread-title">
+                                    Row-level locking vs SELECT ... FOR UPDATE — when do I use each?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    Building a job queue on top of Postgres and hitting weird
+                                    deadlocks. Any guidance on the right pattern for claiming jobs?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm sky">SC</span>
+                                        <strong>Samuel Chen</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 1h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 42 views</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn primary"
+                                        data-toast="Opening answer composer…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Answer
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-lightning-charge-fill" style="color: var(--amber);"></i>
+                                    Fresh question
+                                </span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── UNANSWERED ─────── -->
+                <div class="tab-panel" id="tab-unanswered">
+                    <div class="thread-list">
+
+                        <article class="thread" data-searchable="react act warning async state testing">
+                            <div class="thread-votes">
+                                <div class="tv-num">76</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">0</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat accent"><i class="bi bi-tag-fill"></i> Testing</span>
+                                    <span class="thread-status unanswered"><i class="bi bi-hourglass-split"></i> Needs answer</span>
+                                </div>
+                                <h3 class="thread-title">
+                                    How do I eliminate the "act" warning in React Testing Library for async state?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    My tests pass but React logs the act warning whenever I have a
+                                    useEffect that updates state after a fetch.
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm violet">MR</span>
+                                        <strong>Maya Rahman</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 6h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 1.4k views</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn primary"
+                                        data-toast="Opening answer composer…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Answer
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-lightning-charge-fill" style="color: var(--amber);"></i>
+                                    High-value
+                                </span>
+                            </div>
+                        </article>
+
+                        <article class="thread" data-searchable="node streams backpressure file upload">
+                            <div class="thread-votes">
+                                <div class="tv-num">38</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">0</div>
+                                    <div class="tv-lbl">Answers</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat"><i class="bi bi-tag-fill"></i> Node.js</span>
+                                    <span class="thread-status unanswered"><i class="bi bi-hourglass-split"></i> Needs answer</span>
+                                </div>
+                                <h3 class="thread-title">
+                                    Handling backpressure in Node streams when uploading to S3
+                                </h3>
+                                <p class="thread-excerpt">
+                                    Large file uploads are buffering in memory instead of streaming.
+                                    Where does the backpressure break?
+                                </p>
+                                <div class="thread-meta">
+                                    <span class="tm-author">
+                                        <span class="avatar sm">RK</span>
+                                        <strong>Rahul Kapoor</strong>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i> 8h ago</span>
+                                    <span><i class="bi bi-eye accent"></i> 620 views</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn primary"
+                                        data-toast="Opening answer composer…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Answer
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-clock-history" style="color: var(--gray-300);"></i>
+                                    Waiting 8h
+                                </span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── YOUR ANSWERS ─────── -->
+                <div class="tab-panel" id="tab-yours">
+                    <div class="thread-list">
+
+                        <article class="thread solved" data-searchable="your answer react race condition">
+                            <div class="thread-votes">
+                                <div class="tv-num">142</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">1</div>
+                                    <div class="tv-lbl">Your answer</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat accent"><i class="bi bi-tag-fill"></i> React</span>
+                                    <span class="thread-status solved"><i class="bi bi-check-circle-fill"></i> Accepted</span>
+                                    <span class="mentor-chip">
+                                        <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                        Your answer
+                                    </span>
+                                </div>
+                                <h3 class="thread-title">
+                                    How do you prevent race conditions in useEffect when fetching?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    Your accepted answer has 142 upvotes and was marked accepted by Sara Kim · 2 days ago.
+                                </p>
+                                <div class="thread-meta">
+                                    <span><i class="bi bi-hand-thumbs-up-fill lime"></i> 142 upvotes</span>
+                                    <span><i class="bi bi-chat-left-text"></i> 8 replies</span>
+                                    <span><i class="bi bi-clock"></i> Answered 2 days ago</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn"
+                                        data-toast="Opening thread…" data-toast-type="info">
+                                    <i class="bi bi-arrow-right-circle"></i> View thread
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i>
+                                    Accepted
+                                </span>
+                            </div>
+                        </article>
+
+                        <article class="thread solved" data-searchable="your answer postgres composite index">
+                            <div class="thread-votes">
+                                <div class="tv-num">98</div>
+                                <div class="tv-lbl">Votes</div>
+                                <div class="tv-ans">
+                                    <div class="tv-num">1</div>
+                                    <div class="tv-lbl">Your answer</div>
+                                </div>
+                            </div>
+                            <div class="thread-body">
+                                <div class="thread-tags-row">
+                                    <span class="thread-cat"><i class="bi bi-tag-fill"></i> PostgreSQL</span>
+                                    <span class="thread-status solved"><i class="bi bi-check-circle-fill"></i> Accepted</span>
+                                    <span class="mentor-chip">
+                                        <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                        Your answer
+                                    </span>
+                                </div>
+                                <h3 class="thread-title">
+                                    When does a composite index actually help vs hurt write performance?
+                                </h3>
+                                <p class="thread-excerpt">
+                                    Your accepted answer has 98 upvotes and was marked accepted by Tunde Kayode · 4 days ago.
+                                </p>
+                                <div class="thread-meta">
+                                    <span><i class="bi bi-hand-thumbs-up-fill lime"></i> 98 upvotes</span>
+                                    <span><i class="bi bi-chat-left-text"></i> 5 replies</span>
+                                    <span><i class="bi bi-clock"></i> Answered 4 days ago</span>
+                                </div>
+                            </div>
+                            <div class="thread-side">
+                                <button type="button" class="thread-view-btn"
+                                        data-toast="Opening thread…" data-toast-type="info">
+                                    <i class="bi bi-arrow-right-circle"></i> View thread
+                                </button>
+                                <span class="ts-note">
+                                    <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i>
+                                    Accepted
+                                </span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <section class="pagination fade-up">
+            <div class="pg-info">
+                Showing <strong>1–5</strong> of <strong>24</strong> trending questions
+            </div>
+            <div class="pg-controls">
+                <button type="button" class="pg-btn" disabled>
+                    <i class="bi bi-chevron-left"></i> Prev
+                </button>
+                <button type="button" class="pg-btn active">1</button>
+                <button type="button" class="pg-btn">2</button>
+                <button type="button" class="pg-btn">3</button>
+                <button type="button" class="pg-btn">4</button>
+                <button type="button" class="pg-btn">5</button>
+                <button type="button" class="pg-btn">
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ────────────────────────── RIGHT ────────────────────────── -->
+    <div class="col-stack">
+
+        <!-- TRENDING TOPICS -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-fire"></i> Trending Topics</h4>
+                <a href="#" class="link">See all <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="trend-item">
+                <span class="trend-rank">01</span>
+                <div class="trend-body">
+                    <strong>react-hooks</strong>
+                    <span>128 questions · 3 today</span>
+                </div>
+                <span class="trend-trend"><i class="bi bi-arrow-up-short"></i> 42%</span>
+            </div>
+
+            <div class="trend-item">
+                <span class="trend-rank">02</span>
+                <div class="trend-body">
+                    <strong>postgresql-indexing</strong>
+                    <span>86 questions · 2 today</span>
+                </div>
+                <span class="trend-trend"><i class="bi bi-arrow-up-short"></i> 28%</span>
+            </div>
+
+            <div class="trend-item">
+                <span class="trend-rank">03</span>
+                <div class="trend-body">
+                    <strong>system-design</strong>
+                    <span>64 questions · 4 today</span>
+                </div>
+                <span class="trend-trend"><i class="bi bi-arrow-up-short"></i> 19%</span>
+            </div>
+
+            <div class="trend-item">
+                <span class="trend-rank">04</span>
+                <div class="trend-body">
+                    <strong>typescript-generics</strong>
+                    <span>52 questions · 1 today</span>
+                </div>
+                <span class="trend-trend"><i class="bi bi-arrow-up-short"></i> 12%</span>
+            </div>
+
+            <div class="trend-item">
+                <span class="trend-rank">05</span>
+                <div class="trend-body">
+                    <strong>aws-deployment</strong>
+                    <span>38 questions · 2 today</span>
+                </div>
+                <span class="trend-trend"><i class="bi bi-arrow-up-short"></i> 8%</span>
+            </div>
+
+        </div>
+
+        <!-- TOP CONTRIBUTORS -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-trophy-fill"></i> Top Contributors</h4>
+                <a href="#" class="link">This week <i class="bi bi-chevron-down"></i></a>
+            </div>
+
+            <div class="contrib-row">
+                <span class="avatar rank-1">DO</span>
+                <div class="contrib-info">
+                    <strong>Daniel Okafor</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag mentor">Mentor · You</span>
+                    </div>
+                </div>
+                <div class="contrib-score">
+                    <strong>184</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="contrib-row">
+                <span class="avatar rank-2 sky">MR</span>
+                <div class="contrib-info">
+                    <strong>Maya Rahman</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag mentor">Mentor</span>
+                    </div>
+                </div>
+                <div class="contrib-score">
+                    <strong>142</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="contrib-row">
+                <span class="avatar rank-3 violet">TK</span>
+                <div class="contrib-info">
+                    <strong>Tunde Kayode</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag">Top learner</span>
+                    </div>
+                </div>
+                <div class="contrib-score">
+                    <strong>98</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="contrib-row">
+                <span class="avatar amber">JO</span>
+                <div class="contrib-info">
+                    <strong>James Oduya</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag">Top learner</span>
+                    </div>
+                </div>
+                <div class="contrib-score">
+                    <strong>76</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="contrib-row">
+                <span class="avatar sky">NB</span>
+                <div class="contrib-info">
+                    <strong>Nadia Bello</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag">Alumni</span>
+                    </div>
+                </div>
+                <div class="contrib-score">
+                    <strong>64</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- UNANSWERED QUEUE -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-inbox-fill"></i> Waiting on You</h4>
+                <a href="#" class="link">All 6 <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="unans-item">
+                <span class="unans-wait">6h</span>
+                <div class="unans-body">
+                    <div class="unans-title">
+                        How do I eliminate the "act" warning in React Testing Library?
+                    </div>
+                    <div class="unans-meta">
+                        <span class="tag-mini">Testing</span>
+                        <span><i class="bi bi-hand-thumbs-up" style="color: var(--gray-300);"></i> 76 votes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="unans-item">
+                <span class="unans-wait">8h</span>
+                <div class="unans-body">
+                    <div class="unans-title">
+                        Handling backpressure in Node streams when uploading to S3
+                    </div>
+                    <div class="unans-meta">
+                        <span class="tag-mini">Node.js</span>
+                        <span><i class="bi bi-hand-thumbs-up" style="color: var(--gray-300);"></i> 38 votes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="unans-item">
+                <span class="unans-wait">1d</span>
+                <div class="unans-body">
+                    <div class="unans-title">
+                        Should I use useReducer for a multi-step form or keep useState?
+                    </div>
+                    <div class="unans-meta">
+                        <span class="tag-mini">React</span>
+                        <span><i class="bi bi-hand-thumbs-up" style="color: var(--gray-300);"></i> 24 votes</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-gold" style="width: 100%; margin-top: 14px; padding: 10px 18px; font-size: 0.8rem; border: none; border-radius: 25px; transition: var(--transition);"
+                    data-toast="Opening unanswered queue…" data-toast-type="info">
+                <i class="bi bi-lightning-charge-fill"></i> Answer all 6
+            </button>
+        </div>
+
+        <!-- GUIDELINES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-shield-check"></i> Mentor Guidelines</h4>
+            </div>
+
+            <div class="guide-list">
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Answer with code</strong> — snippets beat paragraphs.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Link to resources</strong> — your plans, docs, or repos.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Be kind, be specific</strong> — mentors lead by tone.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Mark duplicates politely</strong> — link the original.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('forumSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.thread').forEach(function (thread) {
+                    const haystack = (thread.dataset.searchable || thread.textContent || '').toLowerCase();
+                    thread.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           PAGINATION (visual only)
+           ====================================================== */
+        document.querySelectorAll('.pg-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.disabled || this.classList.contains('active')) return;
+                const label = this.textContent.trim().toLowerCase();
+                if (label.startsWith('prev') || label.startsWith('next')) return;
+
+                document.querySelectorAll('.pg-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (window.showKnotToast) {
+                    window.showKnotToast('Loading page ' + this.textContent.trim() + '…', 'info');
+                }
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

@@ -1,0 +1,1364 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Sessions{% endblock %}
+{% block breadcrumb %}Sessions{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO — SESSIONS OVERVIEW
+       ============================================================ */
+    .sess-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .sess-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .sess-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .sh-text { position: relative; z-index: 2; max-width: 640px; }
+    .sh-text .hero-badge { margin-bottom: 14px; }
+    .sh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .sh-text h1 span { color: var(--secondary); font-style: italic; }
+    .sh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        max-width: 540px;
+    }
+    .sh-text p strong { color: var(--white); font-weight: 600; }
+
+    .sh-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .sh-metric { text-align: center; }
+    .sh-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .sh-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.15rem; }
+    .sh-metric span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .sh-sep { width: 1px; background: rgba(255, 255, 255, 0.12); }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .sess-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .so-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .so-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .so-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .so-card:hover::before { opacity: 1; }
+    .so-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .so-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .so-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .so-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .so-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .so-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .so-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .so-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .so-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .so-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .so-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    .tool-view {
+        display: inline-flex;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        overflow: hidden;
+        background: var(--white);
+        height: 42px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .tool-view button {
+        width: 36px;
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        display: grid; place-items: center;
+    }
+    .tool-view button:hover { color: var(--primary-dark); }
+    .tool-view button.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 14px rgba(190, 242, 100, 0.3);
+    }
+
+    /* ============================================================
+       LIVE SESSION BANNER
+       ============================================================ */
+    .live-banner {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 24px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary) 55%, var(--primary-light));
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.24);
+        border: 1px solid rgba(190, 242, 100, 0.24);
+    }
+    .live-banner::before {
+        content: '';
+        position: absolute; top: -50%; right: -10%;
+        width: 50%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 60%);
+        pointer-events: none;
+    }
+    .live-banner::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 22px 22px;
+        opacity: 0.55;
+        pointer-events: none;
+    }
+    .lb-ic {
+        position: relative;
+        z-index: 2;
+        width: 52px; height: 52px;
+        border-radius: 15px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+        box-shadow: 0 12px 28px rgba(190, 242, 100, 0.4);
+        animation: lbPulse 2s infinite;
+    }
+    @keyframes lbPulse {
+        0%, 100% { box-shadow: 0 12px 28px rgba(190, 242, 100, 0.40); }
+        50%      { box-shadow: 0 12px 40px rgba(190, 242, 100, 0.70); }
+    }
+    .lb-body {
+        position: relative; z-index: 2;
+        flex: 1; min-width: 0;
+    }
+    .lb-live-tag {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.58rem; font-weight: 800;
+        letter-spacing: 0.16em; text-transform: uppercase;
+        color: var(--secondary);
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.34);
+        padding: 3px 10px; border-radius: 50px;
+        margin-bottom: 8px;
+    }
+    .lb-live-tag .blink {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--secondary);
+        animation: dotBlink 1.4s infinite;
+    }
+    @keyframes dotBlink {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.3; }
+    }
+    .lb-body h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.18rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+    .lb-body p {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.62);
+    }
+    .lb-body p strong { color: var(--white); font-weight: 600; }
+    .lb-actions {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .lb-actions .btn {
+        padding: 11px 22px;
+        font-size: 0.82rem;
+    }
+    .lb-actions .btn-outline {
+        padding: 11px 20px;
+    }
+
+    /* ============================================================
+       SESSION CARD
+       ============================================================ */
+    .sess-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .sess-card {
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1.8fr) minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+        padding: 20px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+    }
+    .sess-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 22px; bottom: 22px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .sess-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .sess-card:hover::before { opacity: 1; }
+    .sess-card.live::before { background: var(--danger); opacity: 1; }
+    .sess-card.live {
+        border-color: rgba(239, 68, 68, 0.24);
+        box-shadow: 0 12px 36px rgba(239, 68, 68, 0.10);
+    }
+    .sess-card.past::before { background: var(--gray-300); }
+    .sess-card.past { opacity: 0.85; }
+    .sess-card.cancelled::before { background: var(--gray-300); }
+    .sess-card.cancelled { opacity: 0.7; }
+    .sess-card.cancelled .sc-title { text-decoration: line-through; text-decoration-color: var(--gray-300); }
+
+    /* Date block */
+    .sc-date {
+        text-align: center;
+        flex-shrink: 0;
+        padding-right: 18px;
+        border-right: 2px solid var(--gray-100);
+    }
+    .sess-card.live .sc-date { border-right-color: var(--danger); }
+    .sess-card.past .sc-date { border-right-color: var(--gray-200); }
+    .sc-date .sc-day {
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        margin-bottom: 4px;
+    }
+    .sess-card.live .sc-date .sc-day { color: var(--danger); }
+    .sc-date .sc-num {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+    .sc-date .sc-time {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-top: 4px;
+    }
+
+    /* Main body */
+    .sc-body { min-width: 0; }
+    .sc-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+    .sc-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.25;
+    }
+    .sc-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .sc-status.live {
+        background: rgba(239, 68, 68, 0.12);
+        color: #DC2626;
+        border: 1px solid rgba(239, 68, 68, 0.32);
+        animation: liveGlow 2s infinite;
+    }
+    @keyframes liveGlow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+        50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+    .sc-status.soon {
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        border: 1px solid rgba(190, 242, 100, 0.4);
+    }
+    .sc-status.done {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+    .sc-status.cancelled {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+
+    .sc-with {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 8px;
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .sc-with .avatar {
+        width: 26px; height: 26px;
+        font-size: 0.58rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .sc-with strong { color: var(--primary-dark); font-weight: 700; }
+
+    .sc-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+    }
+    .sc-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .sc-meta i { color: var(--gray-300); font-size: 0.78rem; }
+    .sc-meta span.platform i { color: var(--accent); }
+    .sc-meta span.rec i { color: var(--violet); }
+
+    /* Topic / plan strip */
+    .sc-topic {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: var(--cream);
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-bottom: 10px;
+    }
+    .sc-topic i { color: var(--secondary-deep); font-size: 0.8rem; flex-shrink: 0; }
+    .sc-topic strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Actions column */
+    .sc-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+        min-width: 148px;
+    }
+    .sc-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .sc-btn i { font-size: 0.82rem; }
+    .sc-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .sc-btn.primary {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 22px rgba(190, 242, 100, 0.34);
+    }
+    .sc-btn.primary:hover {
+        box-shadow: 0 14px 32px rgba(190, 242, 100, 0.48);
+        background: var(--gold);
+    }
+    .sc-btn.live {
+        background: linear-gradient(135deg, #F87171, #DC2626);
+        border-color: transparent;
+        color: var(--white);
+        box-shadow: 0 8px 22px rgba(239, 68, 68, 0.34);
+    }
+    .sc-btn.live:hover {
+        box-shadow: 0 14px 32px rgba(239, 68, 68, 0.48);
+    }
+    .sc-btn.mute {
+        background: var(--gray-100);
+        border-color: transparent;
+        color: var(--gray-600);
+    }
+    .sc-btn.mute:hover {
+        background: var(--gray-200);
+        transform: none;
+        border-color: transparent;
+        color: var(--gray-800);
+    }
+    .sc-btn.danger {
+        color: #DC2626;
+        border-color: rgba(239, 68, 68, 0.20);
+        background: rgba(239, 68, 68, 0.05);
+    }
+    .sc-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.10);
+        border-color: rgba(239, 68, 68, 0.36);
+        color: #B91C1C;
+    }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+    }
+    .empty-state .em-ic {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        margin: 0 auto 18px;
+        display: grid; place-items: center;
+        background: rgba(190, 242, 100, 0.14);
+        color: var(--secondary-deep);
+        font-size: 1.8rem;
+    }
+    .empty-state h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .empty-state p {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        max-width: 400px;
+        margin: 0 auto 20px;
+        line-height: 1.65;
+    }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .pg-btn {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .sess-overview { grid-template-columns: repeat(2, 1fr); }
+        .sh-metrics { gap: 18px; }
+        .sh-metric strong { font-size: 1.6rem; }
+        .sess-card {
+            grid-template-columns: 78px minmax(0, 1.8fr) auto;
+        }
+        .sess-card .sc-actions {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding-top: 14px;
+            border-top: 1px dashed var(--gray-100);
+            margin-top: 4px;
+            min-width: 0;
+        }
+        .sess-card .sc-actions .sc-btn { flex: 1; min-width: 130px; }
+    }
+    @media (max-width: 900px) {
+        .sess-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .sh-metrics { width: 100%; justify-content: space-between; }
+        .live-banner { flex-direction: column; align-items: flex-start; }
+        .lb-actions { width: 100%; }
+        .lb-actions .btn { flex: 1; }
+    }
+    @media (max-width: 640px) {
+        .sess-overview { grid-template-columns: 1fr; }
+        .sh-metrics { flex-wrap: wrap; gap: 14px; }
+        .sh-sep { display: none; }
+        .sh-metric { flex: 1; min-width: 80px; }
+        .sess-card { padding: 16px; gap: 14px; grid-template-columns: 62px minmax(0, 1fr); }
+        .sc-date { padding-right: 12px; }
+        .sc-date .sc-num { font-size: 1.4rem; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sess-hero fade-up">
+    <div class="sh-text">
+        <span class="hero-badge">
+            <i class="bi bi-broadcast"></i> Verified Mentor · 1-on-1 calendar
+        </span>
+        <h1>Your <span>Sessions</span></h1>
+        <p>
+            You have <strong>3 sessions today</strong> and
+            <strong>14 upcoming</strong> this fortnight.
+            Your <strong>97% attendance rate</strong> is one of the highest
+            on the platform. Every session is recorded for your mentees.
+        </p>
+    </div>
+
+    <div class="sh-metrics">
+        <div class="sh-metric">
+            <strong data-count="3">3</strong>
+            <span>Today</span>
+        </div>
+        <div class="sh-sep"></div>
+        <div class="sh-metric">
+            <strong>14</strong>
+            <span>Upcoming</span>
+        </div>
+        <div class="sh-sep"></div>
+        <div class="sh-metric">
+            <strong>97<em>%</em></strong>
+            <span>Attendance</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     LIVE BANNER
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="live-banner fade-up">
+    <span class="lb-ic"><i class="bi bi-broadcast"></i></span>
+    <div class="lb-body">
+        <span class="lb-live-tag">
+            <span class="blink"></span> Live in 2h 14m
+        </span>
+        <h3>React Hooks Deep Dive · with Sara Kim</h3>
+        <p>
+            <strong>18:30</strong> today · 60 min · Studio Room 02 ·
+            <strong>+2 observers</strong>
+        </p>
+    </div>
+    <div class="lb-actions">
+        <button type="button" class="btn btn-outline"
+                data-toast="Opening room details…" data-toast-type="info">
+            <i class="bi bi-gear"></i> Room details
+        </button>
+        <button type="button" class="btn btn-gold"
+                data-toast="Joining studio…" data-toast-type="success">
+            <i class="bi bi-camera-video-fill"></i> Join now
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sess-overview fade-up">
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic"><i class="bi bi-calendar-check"></i></span>
+            <span class="so-trend"><i class="bi bi-arrow-up-short"></i> +3</span>
+        </div>
+        <div class="so-value" data-count="14">14</div>
+        <div class="so-label">Upcoming sessions</div>
+    </div>
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic accent"><i class="bi bi-clock-history"></i></span>
+            <span class="so-trend"><i class="bi bi-arrow-up-short"></i> 18h</span>
+        </div>
+        <div class="so-value">18<span>h</span></div>
+        <div class="so-label">Scheduled this week</div>
+    </div>
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic violet"><i class="bi bi-check-circle-fill"></i></span>
+            <span class="so-trend"><i class="bi bi-arrow-up-short"></i> +18</span>
+        </div>
+        <div class="so-value" data-count="248">248</div>
+        <div class="so-label">Completed lifetime</div>
+    </div>
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic amber"><i class="bi bi-patch-check-fill"></i></span>
+            <span class="so-trend"><i class="bi bi-shield-check"></i> 97%</span>
+        </div>
+        <div class="so-value">97<span>%</span></div>
+        <div class="so-label">Attendance rate</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="sessionSearch" placeholder="Search by mentee, topic, or room…" aria-label="Search sessions">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> This week
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Soonest first" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Soonest first
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <div class="tool-view" role="tablist" aria-label="View mode">
+        <button type="button" class="active" id="viewList" aria-label="List view" title="List view">
+            <i class="bi bi-list-ul"></i>
+        </button>
+        <button type="button" id="viewWeek" aria-label="Week view" title="Week view">
+            <i class="bi bi-calendar-week"></i>
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Session integrity is protected</strong>
+        <p>
+            Every session is time-stamped, recorded, and summarised into action
+            points. <strong>Rescheduling requires mentee confirmation</strong>,
+            and cancellations are logged for both sides.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TABS + SESSION LIST
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="card tabs-card fade-up" style="padding: 0;">
+    <div class="tabs-head">
+        <h3><i class="bi bi-calendar-week"></i> All Sessions</h3>
+        <a href="#" class="link">Export calendar <i class="bi bi-download"></i></a>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="upcoming">
+            Upcoming <span class="count">14</span>
+        </button>
+        <button class="tab" data-tab="past">
+            Past <span class="count">248</span>
+        </button>
+        <button class="tab" data-tab="cancelled">
+            Cancelled <span class="count">4</span>
+        </button>
+    </div>
+
+    <div class="tab-panels">
+
+        <!-- ───────────── UPCOMING ───────────── -->
+        <div class="tab-panel active" id="tab-upcoming">
+            <div class="sess-list">
+
+                <!-- Live session -->
+                <article class="sess-card live" data-searchable="sara kim react hooks 18:30 studio">
+                    <div class="sc-date">
+                        <div class="sc-day">Today</div>
+                        <div class="sc-num">12</div>
+                        <div class="sc-time">18:30</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">React Hooks Deep Dive</h4>
+                            <span class="sc-status live"><i class="bi bi-broadcast"></i> Live in 2h</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar sky">SK</span>
+                            <span>with <strong>Sara Kim</strong></span>
+                        </div>
+                        <div class="sc-topic">
+                            <i class="bi bi-bullseye"></i>
+                            <span>Topic · <strong>Custom hooks & render optimisation</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span class="platform"><i class="bi bi-camera-video"></i> Studio Room 02</span>
+                            <span><i class="bi bi-clock"></i> 60 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Will record</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn live"
+                                data-toast="Joining studio…" data-toast-type="success">
+                            <i class="bi bi-camera-video-fill"></i> Join Zoom
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Reschedule panel opened" data-toast-type="info">
+                            <i class="bi bi-calendar-event"></i> Reschedule
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Tomorrow -->
+                <article class="sess-card" data-searchable="tunde kayode system design tomorrow 10:00">
+                    <div class="sc-date">
+                        <div class="sc-day">Tomorrow</div>
+                        <div class="sc-num">13</div>
+                        <div class="sc-time">10:00</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">System Design Review · PostgreSQL indexes</h4>
+                            <span class="sc-status soon"><i class="bi bi-clock"></i> In 18h</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar">TK</span>
+                            <span>with <strong>Tunde Kayode</strong></span>
+                        </div>
+                        <div class="sc-topic">
+                            <i class="bi bi-bullseye"></i>
+                            <span>Topic · <strong>Query plan review + index strategy</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span class="platform"><i class="bi bi-camera-video"></i> Studio Room 01</span>
+                            <span><i class="bi bi-clock"></i> 45 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Will record</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn"
+                                data-toast="Session details opened" data-toast-type="info">
+                            <i class="bi bi-info-circle"></i> Details
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Reschedule panel opened" data-toast-type="info">
+                            <i class="bi bi-calendar-event"></i> Reschedule
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Thursday -->
+                <article class="sess-card" data-searchable="maya rahman portfolio thursday 14:15">
+                    <div class="sc-date">
+                        <div class="sc-day">Thu</div>
+                        <div class="sc-num">15</div>
+                        <div class="sc-time">14:15</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">Portfolio Feedback · Maya Rahman</h4>
+                            <span class="sc-status soon"><i class="bi bi-clock"></i> In 3d</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar violet">MR</span>
+                            <span>with <strong>Maya Rahman</strong></span>
+                        </div>
+                        <div class="sc-topic">
+                            <i class="bi bi-bullseye"></i>
+                            <span>Topic · <strong>Review deployed portfolio v2</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span class="platform"><i class="bi bi-camera-video"></i> Studio Room 03</span>
+                            <span><i class="bi bi-clock"></i> 30 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Will record</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn"
+                                data-toast="Session details opened" data-toast-type="info">
+                            <i class="bi bi-info-circle"></i> Details
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Reschedule panel opened" data-toast-type="info">
+                            <i class="bi bi-calendar-event"></i> Reschedule
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Friday group session -->
+                <article class="sess-card" data-searchable="cohort standup friday 09:00 main hall">
+                    <div class="sc-date">
+                        <div class="sc-day">Fri</div>
+                        <div class="sc-num">16</div>
+                        <div class="sc-time">09:00</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">Weekly Cohort Standup</h4>
+                            <span class="sc-status soon"><i class="bi bi-people-fill"></i> Group</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar sm" style="background: var(--gold);">DO</span>
+                            <span class="avatar sm sky" style="margin-left: -8px;">SK</span>
+                            <span class="avatar sm" style="margin-left: -8px;">TK</span>
+                            <span class="avatar sm violet" style="margin-left: -8px;">MR</span>
+                            <span style="margin-left: 6px;">with <strong>Full cohort</strong> · 6 mentees</span>
+                        </div>
+                        <div class="sc-topic">
+                            <i class="bi bi-bullseye"></i>
+                            <span>Topic · <strong>Week in review + next sprint planning</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span class="platform"><i class="bi bi-camera-video"></i> Main Hall</span>
+                            <span><i class="bi bi-clock"></i> 45 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Will record</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn"
+                                data-toast="Session details opened" data-toast-type="info">
+                            <i class="bi bi-info-circle"></i> Details
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Reschedule panel opened" data-toast-type="info">
+                            <i class="bi bi-calendar-event"></i> Reschedule
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── PAST ───────────── -->
+        <div class="tab-panel" id="tab-past">
+            <div class="sess-list">
+
+                <article class="sess-card past" data-searchable="sara kim react wednesday completed">
+                    <div class="sc-date">
+                        <div class="sc-day">Wed</div>
+                        <div class="sc-num">11</div>
+                        <div class="sc-time">18:30</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">React Context vs Redux · Sara Kim</h4>
+                            <span class="sc-status done"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar sky">SK</span>
+                            <span>with <strong>Sara Kim</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span><i class="bi bi-clock"></i> 58 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Recorded</span>
+                            <span><i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 5.0 rated</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn"
+                                data-toast="Opening recording…" data-toast-type="info">
+                            <i class="bi bi-play-circle"></i> Recording
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Opening session notes…" data-toast-type="info">
+                            <i class="bi bi-journal-text"></i> Notes
+                        </button>
+                    </div>
+                </article>
+
+                <article class="sess-card past" data-searchable="tunde kayode postgres tuesday completed">
+                    <div class="sc-date">
+                        <div class="sc-day">Tue</div>
+                        <div class="sc-num">10</div>
+                        <div class="sc-time">10:00</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">PostgreSQL query plan review</h4>
+                            <span class="sc-status done"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar">TK</span>
+                            <span>with <strong>Tunde Kayode</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span><i class="bi bi-clock"></i> 45 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Recorded</span>
+                            <span><i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 5.0 rated</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn"
+                                data-toast="Opening recording…" data-toast-type="info">
+                            <i class="bi bi-play-circle"></i> Recording
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Opening session notes…" data-toast-type="info">
+                            <i class="bi bi-journal-text"></i> Notes
+                        </button>
+                    </div>
+                </article>
+
+                <article class="sess-card past" data-searchable="maya rahman portfolio monday completed">
+                    <div class="sc-date">
+                        <div class="sc-day">Mon</div>
+                        <div class="sc-num">09</div>
+                        <div class="sc-time">14:00</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">Portfolio feedback round 1</h4>
+                            <span class="sc-status done"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar violet">MR</span>
+                            <span>with <strong>Maya Rahman</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span><i class="bi bi-clock"></i> 34 min</span>
+                            <span class="rec"><i class="bi bi-record-circle"></i> Recorded</span>
+                            <span><i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 5.0 rated</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn"
+                                data-toast="Opening recording…" data-toast-type="info">
+                            <i class="bi bi-play-circle"></i> Recording
+                        </button>
+                        <button type="button" class="sc-btn"
+                                data-toast="Opening session notes…" data-toast-type="info">
+                            <i class="bi bi-journal-text"></i> Notes
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── CANCELLED ───────────── -->
+        <div class="tab-panel" id="tab-cancelled">
+            <div class="sess-list">
+
+                <article class="sess-card cancelled" data-searchable="amara okoye cancelled last week">
+                    <div class="sc-date">
+                        <div class="sc-day">Last Thu</div>
+                        <div class="sc-num">05</div>
+                        <div class="sc-time">16:00</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">Frontend Foundations · Amara Okoye</h4>
+                            <span class="sc-status cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar amber">AO</span>
+                            <span>with <strong>Amara Okoye</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span><i class="bi bi-info-circle"></i> Cancelled by mentee · 24h notice</span>
+                            <span><i class="bi bi-clock"></i> 30 min</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn primary"
+                                data-toast="Session restored to Upcoming" data-toast-type="success">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                        </button>
+                        <button type="button" class="sc-btn mute"
+                                data-toast="Cancel reason shown" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Reason
+                        </button>
+                    </div>
+                </article>
+
+                <article class="sess-card cancelled" data-searchable="james oduya cancelled ml session">
+                    <div class="sc-date">
+                        <div class="sc-day">Last Tue</div>
+                        <div class="sc-num">03</div>
+                        <div class="sc-time">09:00</div>
+                    </div>
+                    <div class="sc-body">
+                        <div class="sc-title-row">
+                            <h4 class="sc-title">ML Foundations · James Oduya</h4>
+                            <span class="sc-status cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>
+                        </div>
+                        <div class="sc-with">
+                            <span class="avatar">JO</span>
+                            <span>with <strong>James Oduya</strong></span>
+                        </div>
+                        <div class="sc-meta">
+                            <span><i class="bi bi-info-circle"></i> Cancelled by mentor · rescheduled</span>
+                            <span><i class="bi bi-clock"></i> 45 min</span>
+                        </div>
+                    </div>
+                    <div class="sc-actions">
+                        <button type="button" class="sc-btn primary"
+                                data-toast="Session restored to Upcoming" data-toast-type="success">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                        </button>
+                        <button type="button" class="sc-btn mute"
+                                data-toast="Cancel reason shown" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Reason
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PAGINATION
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="pagination fade-up">
+    <div class="pg-info">
+        Showing <strong>4</strong> of <strong>14</strong> upcoming sessions
+    </div>
+
+    <div class="pg-controls">
+        <button type="button" class="pg-btn" disabled>
+            <i class="bi bi-chevron-left"></i> Prev
+        </button>
+        <button type="button" class="pg-btn active">1</button>
+        <button type="button" class="pg-btn">2</button>
+        <button type="button" class="pg-btn">3</button>
+        <button type="button" class="pg-btn">
+            Next <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('sessionSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.sess-card').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+    })();
+</script>
+{% endblock extra_js %}

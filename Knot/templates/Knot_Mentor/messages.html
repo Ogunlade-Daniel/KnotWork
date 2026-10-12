@@ -1,0 +1,1398 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Messages{% endblock %}
+{% block breadcrumb %}Messages{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       MESSAGES SHELL — full-height 2-pane
+       ============================================================ */
+    .msg-shell {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 20px;
+        height: calc(100vh - 200px);
+        min-height: 620px;
+        align-items: stretch;
+    }
+
+    /* ============================================================
+       INBOX PANE (left)
+       ============================================================ */
+    .inbox {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* Inbox header */
+    .inbox-head {
+        padding: 20px 20px 14px;
+        border-bottom: 1px solid var(--gray-100);
+        flex-shrink: 0;
+    }
+    .inbox-head .ih-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .inbox-head h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.06rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .inbox-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .inbox-head h3 .unread-pill {
+        font-family: 'Inter', sans-serif;
+        background: var(--danger);
+        color: var(--white);
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 50px;
+        margin-left: 4px;
+        line-height: 1.5;
+    }
+    .compose-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: none;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+        flex-shrink: 0;
+    }
+    .compose-btn:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.45);
+    }
+
+    /* Search inside inbox */
+    .inbox-search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 38px;
+        padding: 0 14px;
+        transition: var(--transition);
+    }
+    .inbox-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.14);
+    }
+    .inbox-search i {
+        color: var(--gray-300);
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    .inbox-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.82rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .inbox-search input::placeholder { color: var(--gray-300); }
+
+    /* Filter tabs inside inbox */
+    .inbox-tabs {
+        display: flex;
+        gap: 6px;
+        padding: 10px 20px 12px;
+        border-bottom: 1px solid var(--gray-100);
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex-shrink: 0;
+    }
+    .inbox-tabs::-webkit-scrollbar { display: none; }
+    .inbox-tab {
+        padding: 5px 12px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .inbox-tab:hover { border-color: var(--secondary); color: var(--primary-dark); }
+    .inbox-tab.active {
+        background: var(--primary-dark);
+        color: var(--white);
+        border-color: var(--primary-dark);
+    }
+    .inbox-tab .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--secondary);
+    }
+
+    /* Conversation list */
+    .conv-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 8px 8px;
+        scrollbar-width: thin;
+    }
+    .conv-list::-webkit-scrollbar { width: 4px; }
+    .conv-list::-webkit-scrollbar-thumb {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+
+    .conv {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        margin-bottom: 2px;
+        border: 1px solid transparent;
+    }
+    .conv:hover {
+        background: var(--cream);
+        border-color: var(--gray-100);
+    }
+    .conv.active {
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.18), rgba(190, 242, 100, 0.06));
+        border-color: rgba(190, 242, 100, 0.34);
+    }
+    .conv.active::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 14px; bottom: 14px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        box-shadow: 0 0 10px rgba(190, 242, 100, 0.5);
+    }
+
+    .conv-av {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .conv-av .avatar {
+        width: 44px; height: 44px;
+        font-size: 0.85rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .conv-av .online {
+        position: absolute;
+        bottom: 1px; right: 1px;
+        width: 11px; height: 11px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2px solid var(--white);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.16);
+    }
+    .conv-av .online.away { background: var(--amber); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16); }
+    .conv-av .online.offline { background: var(--gray-300); box-shadow: none; }
+
+    .conv-body {
+        flex: 1;
+        min-width: 0;
+    }
+    .conv-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 3px;
+    }
+    .conv-top h5 {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .conv-top .time {
+        font-size: 0.62rem;
+        color: var(--gray-300);
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .conv.unread .conv-top .time { color: var(--secondary-deep); }
+    .conv-preview {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+    .conv.unread .conv-preview {
+        color: var(--gray-800);
+        font-weight: 500;
+    }
+    .conv.unread .conv-top h5 { color: var(--primary-dark); }
+    .conv.unread .conv-top h5::before {
+        content: '';
+        display: inline-block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--secondary);
+        margin-right: 6px;
+        vertical-align: middle;
+        box-shadow: 0 0 8px rgba(190, 242, 100, 0.6);
+    }
+    .conv-foot {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    .conv-badge {
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 50px;
+    }
+    .conv-badge.mentee { background: rgba(56, 189, 248, 0.14); color: #0369A1; }
+    .conv-badge.plan { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .conv-badge.pinned { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .conv-count {
+        margin-left: auto;
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 1px 8px;
+        border-radius: 50px;
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       CHAT PANE (right)
+       ============================================================ */
+    .chat {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* Chat header */
+    .chat-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--gray-100);
+        flex-shrink: 0;
+        position: relative;
+    }
+    .chat-head::after {
+        content: '';
+        position: absolute;
+        left: 0; right: 0; bottom: -1px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent), transparent);
+        opacity: 0.35;
+    }
+    .chat-head .ch-av {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .chat-head .ch-av .avatar {
+        width: 46px; height: 46px;
+        font-size: 0.9rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .chat-head .ch-av .online {
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+    }
+    .ch-meta {
+        flex: 1;
+        min-width: 0;
+        line-height: 1.2;
+    }
+    .ch-meta h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ch-meta p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .ch-meta p .verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #0369A1;
+        background: rgba(56, 189, 248, 0.14);
+        padding: 2px 8px;
+        border-radius: 50px;
+    }
+    .ch-meta p .typing {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--secondary-deep);
+        font-weight: 700;
+    }
+    .ch-meta p .typing .dots {
+        display: inline-flex;
+        gap: 3px;
+    }
+    .ch-meta p .typing .dots i {
+        display: block;
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--secondary-deep);
+        animation: typingBounce 1.2s infinite;
+    }
+    .ch-meta p .typing .dots i:nth-child(2) { animation-delay: 0.15s; }
+    .ch-meta p .typing .dots i:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes typingBounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+        30%           { transform: translateY(-3px); opacity: 1; }
+    }
+
+    .ch-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .ch-act-btn {
+        width: 38px; height: 38px;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        position: relative;
+    }
+    .ch-act-btn:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.10);
+        transform: translateY(-2px);
+    }
+    .ch-act-btn.gold {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+    .ch-act-btn.gold:hover {
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.45);
+    }
+
+    /* Pinned plan strip under header */
+    .chat-plan-strip {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border-bottom: 1px solid rgba(190, 242, 100, 0.22);
+        flex-shrink: 0;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+    }
+    .chat-plan-strip .cp-ic {
+        width: 30px; height: 30px;
+        border-radius: 10px;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .chat-plan-strip strong { color: var(--primary-dark); font-weight: 700; }
+    .chat-plan-strip .open-link {
+        margin-left: auto;
+        color: var(--secondary-deep);
+        font-weight: 700;
+        font-size: 0.72rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: var(--transition);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: inherit;
+    }
+    .chat-plan-strip .open-link:hover { gap: 8px; }
+
+    /* Message stream */
+    .chat-stream {
+        flex: 1;
+        overflow-y: auto;
+        padding: 22px 22px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        scrollbar-width: thin;
+        background:
+            radial-gradient(circle at 20% 10%, rgba(190, 242, 100, 0.03), transparent 40%),
+            radial-gradient(circle at 80% 90%, rgba(56, 189, 248, 0.03), transparent 40%);
+    }
+    .chat-stream::-webkit-scrollbar { width: 5px; }
+    .chat-stream::-webkit-scrollbar-thumb {
+        background: var(--gray-200);
+        border-radius: 10px;
+    }
+    .chat-stream::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary);
+    }
+
+    /* Date divider */
+    .stream-date {
+        text-align: center;
+        position: relative;
+        margin: 6px 0;
+    }
+    .stream-date::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 0; right: 0;
+        height: 1px;
+        background: var(--gray-100);
+        z-index: 1;
+    }
+    .stream-date span {
+        position: relative;
+        z-index: 2;
+        background: var(--white);
+        padding: 0 14px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+    }
+
+    /* Message bubble rows */
+    .msg-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        max-width: 78%;
+    }
+    .msg-row.me { margin-left: auto; flex-direction: row-reverse; }
+    .msg-row .msg-av {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 0.68rem;
+        flex-shrink: 0;
+        color: var(--primary-dark);
+    }
+    .msg-row .msg-av.them {
+        background: linear-gradient(135deg, var(--accent), #0EA5E9);
+        color: #fff;
+    }
+    .msg-row .msg-av.me {
+        background: var(--gold);
+    }
+
+    .msg-bubble {
+        padding: 11px 15px;
+        border-radius: 18px;
+        font-size: 0.85rem;
+        line-height: 1.55;
+        color: var(--gray-800);
+        position: relative;
+        word-wrap: break-word;
+        box-shadow: 0 2px 8px rgba(11, 17, 33, 0.04);
+    }
+    .msg-row.them .msg-bubble {
+        background: var(--cream);
+        border: 1px solid var(--gray-100);
+        border-bottom-left-radius: 6px;
+    }
+    .msg-row.me .msg-bubble {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        color: var(--white);
+        border-bottom-right-radius: 6px;
+        box-shadow: 0 8px 20px rgba(11, 17, 33, 0.18);
+    }
+    .msg-row.me .msg-bubble strong { color: var(--secondary); font-weight: 700; }
+
+    .msg-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.6rem;
+        color: var(--gray-300);
+        margin-top: 5px;
+        padding: 0 4px;
+        font-weight: 600;
+    }
+    .msg-row.me .msg-meta { justify-content: flex-end; }
+    .msg-meta i { font-size: 0.7rem; }
+    .msg-meta .read { color: var(--secondary-deep); }
+
+    /* Attachment inside bubble */
+    .msg-attach {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        margin-top: 6px;
+        margin-bottom: 4px;
+        font-size: 0.74rem;
+    }
+    .msg-row.them .msg-attach {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+    }
+    .msg-row.me .msg-attach {
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: var(--white);
+    }
+    .msg-attach .att-ic {
+        width: 32px; height: 32px;
+        border-radius: 9px;
+        display: grid; place-items: center;
+        flex-shrink: 0;
+        font-size: 0.85rem;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+    }
+    .msg-row.me .msg-attach .att-ic {
+        background: rgba(190, 242, 100, 0.24);
+        color: var(--secondary);
+    }
+    .msg-attach div { min-width: 0; line-height: 1.25; }
+    .msg-attach strong {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 240px;
+    }
+    .msg-row.them .msg-attach strong { color: var(--primary-dark); }
+    .msg-attach span {
+        display: block;
+        font-size: 0.64rem;
+        opacity: 0.75;
+        margin-top: 2px;
+    }
+
+    /* Day-group last bubble tweak */
+    .msg-row + .msg-row.them.same-sender .msg-av { opacity: 0; }
+
+    /* Composer */
+    .chat-composer {
+        border-top: 1px solid var(--gray-100);
+        padding: 14px 20px 16px;
+        background: var(--white);
+        flex-shrink: 0;
+    }
+    .composer-tools {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    .tool-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-chip i { font-size: 0.8rem; color: var(--secondary-deep); }
+    .tool-chip:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .composer-input {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        border: 1px solid var(--gray-200);
+        border-radius: 18px;
+        padding: 8px 8px 8px 14px;
+        background: var(--cream);
+        transition: var(--transition);
+    }
+    .composer-input:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .composer-input textarea {
+        flex: 1;
+        border: none;
+        background: transparent;
+        resize: none;
+        font-family: inherit;
+        font-size: 0.86rem;
+        line-height: 1.5;
+        color: var(--gray-800);
+        outline: none;
+        padding: 8px 0;
+        min-height: 40px;
+        max-height: 140px;
+        overflow-y: auto;
+    }
+    .composer-input textarea::placeholder { color: var(--gray-300); }
+
+    .composer-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+    .comp-btn {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .comp-btn:hover {
+        background: rgba(190, 242, 100, 0.14);
+        color: var(--primary-dark);
+    }
+    .comp-send {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.35);
+    }
+    .comp-send:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 14px 30px rgba(190, 242, 100, 0.5);
+    }
+
+    .composer-hint {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 8px;
+        font-size: 0.66rem;
+        color: var(--gray-300);
+        font-weight: 600;
+    }
+    .composer-hint kbd {
+        font-family: inherit;
+        font-size: 0.6rem;
+        font-weight: 700;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        padding: 2px 6px;
+        border-radius: 5px;
+        border: 1px solid var(--gray-200);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .msg-shell { grid-template-columns: 320px 1fr; }
+    }
+    @media (max-width: 900px) {
+        .content { padding: 94px 16px 40px; }
+        .msg-shell {
+            grid-template-columns: 1fr;
+            height: auto;
+            min-height: 0;
+        }
+        .inbox { max-height: 480px; }
+        .chat { min-height: 560px; }
+
+        /* Mobile: hide chat, show inbox or vice versa */
+        .msg-shell.mobile-chat .inbox { display: none; }
+        .msg-shell:not(.mobile-chat) .chat { display: none; }
+
+        .mobile-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 50px;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+            color: var(--gray-600);
+            font-family: inherit;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .mobile-back:hover {
+            border-color: var(--secondary);
+            color: var(--primary-dark);
+        }
+    }
+    @media (min-width: 901px) {
+        .mobile-back { display: none; }
+    }
+    @media (max-width: 640px) {
+        .chat-head { padding: 14px 16px; gap: 10px; }
+        .ch-actions .ch-act-btn { width: 34px; height: 34px; }
+        .chat-plan-strip { padding: 10px 16px; font-size: 0.7rem; }
+        .chat-stream { padding: 16px 14px; }
+        .msg-row { max-width: 88%; }
+        .chat-composer { padding: 12px 14px 14px; }
+        .composer-tools { gap: 4px; }
+        .tool-chip { padding: 5px 10px; font-size: 0.68rem; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MESSAGES SHELL
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="msg-shell fade-up" id="msgShell">
+
+    <!-- ═════════════════ INBOX ═════════════════ -->
+    <aside class="inbox" id="inboxPane">
+
+        <div class="inbox-head">
+            <div class="ih-top">
+                <h3>
+                    <i class="bi bi-chat-square-dots-fill"></i> Inbox
+                    <span class="unread-pill">4</span>
+                </h3>
+                <button type="button" class="compose-btn" title="New message"
+                        data-toast="Compose panel opened" data-toast-type="info">
+                    <i class="bi bi-pencil-fill"></i>
+                </button>
+            </div>
+
+            <div class="inbox-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="convSearch" placeholder="Search conversations…" aria-label="Search conversations">
+            </div>
+        </div>
+
+        <div class="inbox-tabs">
+            <button type="button" class="inbox-tab active">
+                All <span class="dot"></span>
+            </button>
+            <button type="button" class="inbox-tab">
+                Unread
+            </button>
+            <button type="button" class="inbox-tab">
+                Mentees
+            </button>
+            <button type="button" class="inbox-tab">
+                Plans
+            </button>
+            <button type="button" class="inbox-tab">
+                Archived
+            </button>
+        </div>
+
+        <div class="conv-list" id="convList">
+
+            <!-- Conversation 1 -->
+            <article class="conv active unread"
+                     data-conv-id="sara-kim"
+                     data-searchable="sara kim react hooks portfolio">
+                <div class="conv-av">
+                    <span class="avatar sky">SK</span>
+                    <span class="online" title="Online"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h5>Sara Kim</h5>
+                        <span class="time">2m</span>
+                    </div>
+                    <p class="conv-preview">
+                        That makes so much sense — I'll refactor the hook tonight and push by morning. Thank you!
+                    </p>
+                    <div class="conv-foot">
+                        <span class="conv-badge mentee">Mentee</span>
+                        <span class="conv-badge plan">React Patterns</span>
+                        <span class="conv-count">2</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Conversation 2 -->
+            <article class="conv unread"
+                     data-conv-id="tunde-kayode"
+                     data-searchable="tunde kayode postgres indexing aws">
+                <div class="conv-av">
+                    <span class="avatar">TK</span>
+                    <span class="online away" title="Away"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h5>Tunde Kayode</h5>
+                        <span class="time">1h</span>
+                    </div>
+                    <p class="conv-preview">
+                        Quick one — do you want me to benchmark the new index before the session tomorrow?
+                    </p>
+                    <div class="conv-foot">
+                        <span class="conv-badge mentee">Mentee</span>
+                        <span class="conv-badge plan">Backend Mastery</span>
+                        <span class="conv-count">1</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Conversation 3 -->
+            <article class="conv"
+                     data-conv-id="maya-rahman"
+                     data-searchable="maya rahman design dev portfolio">
+                <div class="conv-av">
+                    <span class="avatar violet">MR</span>
+                    <span class="online" title="Online"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h5>Maya Rahman</h5>
+                        <span class="time">3h</span>
+                    </div>
+                    <p class="conv-preview">
+                        I've shipped v2 of the portfolio — the design system is finally clicking for me.
+                    </p>
+                    <div class="conv-foot">
+                        <span class="conv-badge mentee">Mentee</span>
+                        <span class="conv-badge plan">Design → Dev</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Conversation 4 -->
+            <article class="conv"
+                     data-conv-id="amara-okoye"
+                     data-searchable="amara okoye frontend foundations react">
+                <div class="conv-av">
+                    <span class="avatar amber">AO</span>
+                    <span class="online offline" title="Offline"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h5>Amara Okoye</h5>
+                        <span class="time">1d</span>
+                    </div>
+                    <p class="conv-preview">
+                        Sorry for the late reply — I've been deep in the Routing chapter. Can we push Thursday?
+                    </p>
+                    <div class="conv-foot">
+                        <span class="conv-badge mentee">Mentee</span>
+                        <span class="conv-badge plan">Frontend Foundations</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Conversation 5 -->
+            <article class="conv"
+                     data-conv-id="james-oduya"
+                     data-searchable="james oduya ml mlops python">
+                <div class="conv-av">
+                    <span class="avatar">JO</span>
+                    <span class="online away" title="Away"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h5>James Oduya</h5>
+                        <span class="time">2d</span>
+                    </div>
+                    <p class="conv-preview">
+                        Deployed my first model to a staging endpoint! Monitoring dashboard is next.
+                    </p>
+                    <div class="conv-foot">
+                        <span class="conv-badge mentee">Mentee</span>
+                        <span class="conv-badge plan">ML Foundations</span>
+                        <span class="conv-badge pinned">Pinned</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Conversation 6 -->
+            <article class="conv"
+                     data-conv-id="nadia-bello"
+                     data-searchable="nadia bello react typescript">
+                <div class="conv-av">
+                    <span class="avatar sky">NB</span>
+                    <span class="online offline" title="Offline"></span>
+                </div>
+                <div class="conv-body">
+                    <div class="conv-top">
+                        <h5>Nadia Bello</h5>
+                        <span class="time">3d</span>
+                    </div>
+                    <p class="conv-preview">
+                        Program complete — I can't thank you enough. I'll keep the notebook you built me forever.
+                    </p>
+                    <div class="conv-foot">
+                        <span class="conv-badge mentee">Alumni</span>
+                        <span class="conv-badge plan">Advanced React</span>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </aside>
+
+    <!-- ═════════════════ CHAT ═════════════════ -->
+    <main class="chat" id="chatPane">
+
+        <!-- Chat header -->
+        <header class="chat-head">
+            <button type="button" class="mobile-back" id="mobileBack" aria-label="Back to inbox">
+                <i class="bi bi-chevron-left"></i> Inbox
+            </button>
+
+            <div class="ch-av">
+                <span class="avatar sky">SK</span>
+                <span class="online"></span>
+            </div>
+
+            <div class="ch-meta">
+                <h4>Sara Kim</h4>
+                <p>
+                    <span class="verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                    <span class="typing">
+                        typing
+                        <span class="dots"><i></i><i></i><i></i></span>
+                    </span>
+                </p>
+            </div>
+
+            <div class="ch-actions">
+                <button type="button" class="ch-act-btn" title="Video session"
+                        data-toast="Starting video session with Sara…" data-toast-type="success">
+                    <i class="bi bi-camera-video-fill"></i>
+                </button>
+                <button type="button" class="ch-act-btn" title="Search in chat"
+                        data-toast="Chat search opened" data-toast-type="info">
+                    <i class="bi bi-search"></i>
+                </button>
+                <button type="button" class="ch-act-btn" title="Conversation options"
+                        data-toast="Options menu opened" data-toast-type="info">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <button type="button" class="ch-act-btn gold" title="Open plan"
+                        data-toast="Opening Sara's plan…" data-toast-type="info">
+                    <i class="bi bi-map-fill"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Pinned plan strip -->
+        <div class="chat-plan-strip">
+            <span class="cp-ic"><i class="bi bi-map-fill"></i></span>
+            <div>
+                <span>Linked plan · </span>
+                <strong>Advanced React Patterns · Deep Dive</strong>
+                <span> · 72% complete · next milestone: Custom hooks</span>
+            </div>
+            <button type="button" class="open-link"
+                    data-toast="Opening plan…" data-toast-type="info">
+                Open plan <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Stream -->
+        <div class="chat-stream" id="chatStream">
+
+            <div class="stream-date"><span>Yesterday</span></div>
+
+            <!-- Them -->
+            <div class="msg-row them">
+                <span class="msg-av them">SK</span>
+                <div>
+                    <div class="msg-bubble">
+                        Hi Daniel — I re-read the custom hooks chapter twice and
+                        something finally clicked about <strong>extracting logic out of components</strong>.
+                        Quick sanity check before I refactor?
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-clock"></i> 16:42
+                    </div>
+                </div>
+            </div>
+
+            <!-- Me -->
+            <div class="msg-row me">
+                <span class="msg-av me">DO</span>
+                <div>
+                    <div class="msg-bubble">
+                        Yes, absolutely. Extract when the logic is <strong>named after a behaviour</strong>
+                        (“useFormValidation”) not a data type (“useStateForForm”).
+                        Send me a 20-line sketch and I'll review before you commit.
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-check2-all read"></i> 16:48
+                    </div>
+                </div>
+            </div>
+
+            <!-- Them -->
+            <div class="msg-row them">
+                <span class="msg-av them">SK</span>
+                <div>
+                    <div class="msg-bubble">
+                        Perfect. Here's the sketch — I called it
+                        <strong>useDebouncedSearch</strong>. Does this feel right?
+                    </div>
+                    <div class="msg-attach">
+                        <span class="att-ic"><i class="bi bi-filetype-tsx"></i></span>
+                        <div>
+                            <strong>useDebouncedSearch.tsx</strong>
+                            <span>4.2 KB · TypeScript</span>
+                        </div>
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-clock"></i> 16:52
+                    </div>
+                </div>
+            </div>
+
+            <!-- Me -->
+            <div class="msg-row me">
+                <span class="msg-av me">DO</span>
+                <div>
+                    <div class="msg-bubble">
+                        Yes — that name says exactly what the caller gets.
+                        Two small notes: <strong>accept a delay param</strong> and
+                        <strong>return the cancel function</strong> so the caller can clean up on unmount.
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-check2-all read"></i> 16:57
+                    </div>
+                </div>
+            </div>
+
+            <div class="stream-date"><span>Today</span></div>
+
+            <!-- Them -->
+            <div class="msg-row them">
+                <span class="msg-av them">SK</span>
+                <div>
+                    <div class="msg-bubble">
+                        That makes so much sense. Refactoring tonight and pushing
+                        before the session tomorrow. 🙏
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-clock"></i> 09:12
+                    </div>
+                </div>
+            </div>
+
+            <!-- Me -->
+            <div class="msg-row me">
+                <span class="msg-av me">DO</span>
+                <div>
+                    <div class="msg-bubble">
+                        Looking forward to it. Bring the diff and we'll walk through
+                        the <strong>render performance</strong> angle in tomorrow's session.
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-check2-all read"></i> 09:15
+                    </div>
+                </div>
+            </div>
+
+            <!-- Them (last message — no read) -->
+            <div class="msg-row them">
+                <span class="msg-av them">SK</span>
+                <div>
+                    <div class="msg-bubble">
+                        Will do. Also — should I add a loading state to the search?
+                    </div>
+                    <div class="msg-meta">
+                        <i class="bi bi-clock"></i> 09:18
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Composer -->
+        <div class="chat-composer">
+            <div class="composer-tools">
+                <button type="button" class="tool-chip" data-toast="Schedule session composer…" data-toast-type="info">
+                    <i class="bi bi-calendar-plus"></i> Schedule session
+                </button>
+                <button type="button" class="tool-chip" data-toast="Task assignment…" data-toast-type="info">
+                    <i class="bi bi-check2-square"></i> Assign task
+                </button>
+                <button type="button" class="tool-chip" data-toast="Plan update panel…" data-toast-type="info">
+                    <i class="bi bi-map"></i> Update plan
+                </button>
+                <button type="button" class="tool-chip" data-toast="Resources panel…" data-toast-type="info">
+                    <i class="bi bi-bookmark"></i> Share resource
+                </button>
+            </div>
+
+            <div class="composer-input">
+                <textarea id="composerInput" rows="1" placeholder="Write a message to Sara…"></textarea>
+                <div class="composer-actions">
+                    <button type="button" class="comp-btn" title="Attach file"
+                            data-toast="File picker opened" data-toast-type="info">
+                        <i class="bi bi-paperclip"></i>
+                    </button>
+                    <button type="button" class="comp-btn" title="Emoji"
+                            data-toast="Emoji picker opened" data-toast-type="info">
+                        <i class="bi bi-emoji-smile"></i>
+                    </button>
+                    <button type="button" class="comp-send" id="composerSend" title="Send">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="composer-hint">
+                <span>
+                    <kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> for newline
+                </span>
+                <span>
+                    <i class="bi bi-shield-check"></i>
+                    End-to-end encrypted · Logged for session integrity
+                </span>
+            </div>
+        </div>
+
+    </main>
+
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        const shell = document.getElementById('msgShell');
+        const convs = document.querySelectorAll('.conv');
+        const stream = document.getElementById('chatStream');
+        const composer = document.getElementById('composerInput');
+        const sendBtn = document.getElementById('composerSend');
+        const mobileBack = document.getElementById('mobileBack');
+
+        /* ======================================================
+           CONVERSATION SWITCH
+           ====================================================== */
+        convs.forEach(function (conv) {
+            conv.addEventListener('click', function () {
+                convs.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+
+                // Mark as read
+                this.classList.remove('unread');
+
+                // Mobile: switch to chat pane
+                if (window.innerWidth <= 900) {
+                    shell.classList.add('mobile-chat');
+                }
+
+                // Simulated header update
+                const name = this.querySelector('.conv-top h5')?.textContent || 'Mentee';
+                const chatName = document.querySelector('.ch-meta h4');
+                if (chatName) chatName.textContent = name;
+            });
+        });
+
+        /* ======================================================
+           MOBILE BACK
+           ====================================================== */
+        if (mobileBack) {
+            mobileBack.addEventListener('click', function () {
+                shell.classList.remove('mobile-chat');
+            });
+        }
+
+        /* ======================================================
+           INBOX SEARCH
+           ====================================================== */
+        const search = document.getElementById('convSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                convs.forEach(function (conv) {
+                    const haystack = (conv.dataset.searchable || conv.textContent || '').toLowerCase();
+                    conv.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           INBOX TABS (visual only)
+           ====================================================== */
+        document.querySelectorAll('.inbox-tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.inbox-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        /* ======================================================
+           COMPOSER — auto-grow textarea
+           ====================================================== */
+        function autoGrow() {
+            if (!composer) return;
+            composer.style.height = 'auto';
+            composer.style.height = Math.min(composer.scrollHeight, 140) + 'px';
+        }
+        if (composer) {
+            composer.addEventListener('input', autoGrow);
+            composer.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        /* ======================================================
+           SEND MESSAGE — appends a bubble to the stream
+           ====================================================== */
+        function sendMessage() {
+            if (!composer || !stream) return;
+            const text = composer.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+
+            const el = document.createElement('div');
+            el.className = 'msg-row me';
+            el.innerHTML = `
+                <span class="msg-av me">DO</span>
+                <div>
+                    <div class="msg-bubble"></div>
+                    <div class="msg-meta">
+                        <i class="bi bi-check2-all read"></i> ${hh}:${mm}
+                    </div>
+                </div>
+            `;
+            el.querySelector('.msg-bubble').textContent = text;
+            stream.appendChild(el);
+
+            composer.value = '';
+            autoGrow();
+            stream.scrollTop = stream.scrollHeight;
+
+            if (window.showKnotToast) {
+                window.showKnotToast('Message sent', 'success');
+            }
+        }
+
+        if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+
+        /* ======================================================
+           SCROLL TO BOTTOM ON LOAD
+           ====================================================== */
+        window.addEventListener('load', function () {
+            if (stream) stream.scrollTop = stream.scrollHeight;
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

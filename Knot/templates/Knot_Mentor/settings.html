@@ -1,0 +1,2044 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Settings{% endblock %}
+{% block breadcrumb %}Settings{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .set-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .set-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .set-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .sh-text { position: relative; z-index: 2; max-width: 660px; }
+    .sh-text .hero-badge { margin-bottom: 14px; }
+    .sh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700; line-height: 1.15; margin-bottom: 12px;
+    }
+    .sh-text h1 span { color: var(--secondary); font-style: italic; }
+    .sh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem; line-height: 1.75;
+        margin-bottom: 22px; max-width: 540px;
+    }
+    .sh-text p strong { color: var(--white); font-weight: 600; }
+    .sh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    /* Account status panel */
+    .status-panel {
+        position: relative;
+        z-index: 2;
+        flex-shrink: 0;
+        width: 320px;
+        padding: 22px 22px 20px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
+        position: relative;
+        overflow: hidden;
+    }
+    .status-panel::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: var(--gold);
+    }
+    .status-panel::after {
+        content: '';
+        position: absolute; top: -50%; right: -30%;
+        width: 80%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.16), transparent 62%);
+        pointer-events: none;
+    }
+    .sp-head {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .sp-avatar {
+        width: 54px; height: 54px;
+        border-radius: 50%;
+        background: var(--gold);
+        display: grid; place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--primary-dark);
+        flex-shrink: 0;
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.35);
+        position: relative;
+    }
+    .sp-avatar::after {
+        content: '';
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        background: var(--secondary);
+        border: 2.5px solid #0B1121;
+    }
+    .sp-body { min-width: 0; line-height: 1.25; }
+    .sp-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        color: var(--white);
+        font-size: 1rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sp-body span {
+        display: block;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.55);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sp-body em {
+        display: inline-block;
+        margin-top: 5px;
+        font-style: normal;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--secondary-light);
+        background: rgba(190, 242, 100, 0.16);
+        border: 1px solid rgba(190, 242, 100, 0.38);
+        padding: 2px 9px;
+        border-radius: 50px;
+    }
+
+    .sp-stats {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 14px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        margin-bottom: 14px;
+    }
+    .sp-stats div { text-align: center; }
+    .sp-stats strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+    }
+    .sp-stats span {
+        display: block;
+        font-size: 0.55rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 4px;
+    }
+
+    .sp-checks {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .sp-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.82);
+    }
+    .sp-check i {
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: var(--secondary);
+        display: grid; place-items: center;
+        font-size: 0.58rem;
+        flex-shrink: 0;
+    }
+    .sp-check span {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sp-check em {
+        font-style: normal;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--secondary-light);
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       AUTHORITY STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .set-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .so-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .so-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .so-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .so-card:hover::before { opacity: 1; }
+    .so-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .so-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .so-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .so-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .so-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .so-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .so-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .so-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .so-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .so-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .so-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       SETTINGS GRID — Side nav + content
+       ============================================================ */
+    .settings-shell {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* ---------- Side nav (settings sections) ---------- */
+    .settings-nav {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 14px 12px;
+        position: sticky;
+        top: 88px;
+    }
+    .settings-nav-head {
+        padding: 8px 12px 12px;
+        border-bottom: 1px solid var(--gray-100);
+        margin-bottom: 10px;
+    }
+    .settings-nav-head h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .settings-nav-head p {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        margin-top: 2px;
+    }
+
+    .settings-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 11px;
+        color: var(--gray-600);
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        margin-bottom: 2px;
+        border: 1px solid transparent;
+    }
+    .settings-nav-link i.lead {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        display: grid; place-items: center;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .settings-nav-link .snl-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .settings-nav-link .snl-badge {
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        line-height: 1.5;
+        flex-shrink: 0;
+    }
+    .settings-nav-link:hover {
+        background: var(--cream);
+        color: var(--primary-dark);
+    }
+    .settings-nav-link:hover i.lead {
+        background: rgba(190, 242, 100, 0.16);
+        color: #4D7C0F;
+    }
+    .settings-nav-link.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        font-weight: 700;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.28);
+    }
+    .settings-nav-link.active i.lead {
+        background: rgba(2, 6, 23, 0.14);
+        color: var(--primary-dark);
+    }
+    .settings-nav-link.active .snl-badge {
+        background: rgba(2, 6, 23, 0.16);
+        color: var(--primary-dark);
+    }
+
+    .settings-nav-foot {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .settings-nav-foot .safety-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.20);
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .settings-nav-foot .safety-note i {
+        color: var(--secondary-deep);
+        font-size: 0.82rem;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    .settings-nav-foot .safety-note strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ---------- Content panels ---------- */
+    .settings-content {
+        min-width: 0;
+    }
+    .settings-panel {
+        display: none;
+        animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .settings-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section card */
+    .set-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px;
+        margin-bottom: 20px;
+        transition: var(--transition);
+    }
+    .set-card:hover { box-shadow: var(--shadow-md); }
+    .set-card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .set-card-head h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        line-height: 1.2;
+    }
+    .set-card-head h3 i { color: var(--secondary-deep); font-size: 0.92rem; }
+    .set-card-head p {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        margin-top: 4px;
+    }
+
+    /* Field rows */
+    .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+    .field-grid.full { grid-template-columns: 1fr; }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 0;
+    }
+    .field label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .field label .optional {
+        font-weight: 600;
+        color: var(--gray-300);
+        text-transform: uppercase;
+        font-size: 0.6rem;
+        letter-spacing: 0.08em;
+    }
+    .field input[type="text"],
+    .field input[type="email"],
+    .field input[type="tel"],
+    .field input[type="url"],
+    .field input[type="password"],
+    .field input[type="number"],
+    .field select,
+    .field textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        background: var(--cream);
+        font-family: inherit;
+        font-size: 0.86rem;
+        color: var(--gray-800);
+        outline: none;
+        transition: var(--transition);
+        resize: vertical;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .field textarea { min-height: 96px; }
+    .field .field-hint {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+
+    .field input[disabled] {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        cursor: not-allowed;
+    }
+
+    /* Avatar editor */
+    .avatar-editor {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 16px;
+        border-radius: 14px;
+        background: var(--cream);
+        border: 1px dashed var(--gray-200);
+        margin-bottom: 22px;
+    }
+    .avatar-editor .av-preview {
+        width: 86px; height: 86px;
+        border-radius: 50%;
+        background: var(--gold);
+        display: grid; place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.7rem;
+        color: var(--primary-dark);
+        flex-shrink: 0;
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .avatar-editor .av-preview::after {
+        content: '';
+        position: absolute;
+        inset: 5px;
+        border-radius: 50%;
+        border: 2px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .avatar-editor .av-body { flex: 1; min-width: 0; }
+    .avatar-editor .av-body h5 {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+    .avatar-editor .av-body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+    .avatar-editor .av-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Toggle switch rows */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .toggle-row:first-of-type { padding-top: 0; }
+    .toggle-body { flex: 1; min-width: 0; }
+    .toggle-body strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .toggle-body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .toggle-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .toggle-body em {
+        font-style: normal;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.2);
+        border: 1px solid rgba(190, 242, 100, 0.4);
+        padding: 2px 8px;
+        border-radius: 50px;
+        margin-left: 8px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .switch {
+        position: relative;
+        width: 48px;
+        height: 28px;
+        flex-shrink: 0;
+        cursor: pointer;
+        display: inline-block;
+    }
+    .switch input {
+        opacity: 0; width: 0; height: 0;
+    }
+    .switch .slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 50px;
+        background: var(--gray-200);
+        transition: var(--transition);
+    }
+    .switch .slider::before {
+        content: '';
+        position: absolute;
+        top: 3px; left: 3px;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: var(--white);
+        box-shadow: 0 3px 8px rgba(11, 17, 33, 0.15);
+        transition: var(--transition);
+    }
+    .switch input:checked + .slider {
+        background: var(--secondary);
+    }
+    .switch input:checked + .slider::before {
+        transform: translateX(20px);
+    }
+    .switch input:focus-visible + .slider {
+        outline: 2px solid var(--secondary);
+        outline-offset: 3px;
+    }
+
+    /* Method row (like earnings page) */
+    .method-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        background: var(--cream);
+        margin-bottom: 10px;
+        transition: var(--transition);
+    }
+    .method-row:hover { border-color: var(--secondary); background: rgba(190, 242, 100, 0.04); }
+    .method-row .mr-ic {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .method-row .mr-body { flex: 1; min-width: 0; line-height: 1.3; }
+    .method-row .mr-body strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .method-row .mr-body span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+    }
+    .method-row .mr-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    /* Sessions list */
+    .sess-history {
+        border-top: 1px solid var(--gray-100);
+        padding-top: 16px;
+        margin-top: 16px;
+    }
+    .sess-history h5 {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+    }
+    .sess-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .sess-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .sess-ic {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-size: 0.86rem;
+        flex-shrink: 0;
+    }
+    .sess-ic.curr { background: rgba(190, 242, 100, 0.18); color: #4D7C0F; }
+    .sess-ic.past { background: var(--gray-100); color: var(--gray-600); }
+    .sess-body { flex: 1; min-width: 0; line-height: 1.3; }
+    .sess-body strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .sess-body span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+    }
+    .sess-body .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2);
+        color: #4D7C0F;
+        border: 1px solid rgba(190, 242, 100, 0.4);
+    }
+
+    /* Danger zone */
+    .danger-card {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.04), rgba(245, 158, 11, 0.03));
+        border: 1px solid rgba(239, 68, 68, 0.20);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        margin-bottom: 20px;
+    }
+    .danger-card h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #B91C1C;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .danger-card h4 i { font-size: 1rem; }
+    .danger-card p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.6;
+        margin-bottom: 14px;
+    }
+    .danger-card p strong { color: #B91C1C; font-weight: 700; }
+    .danger-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .danger-actions .btn-ghost {
+        color: #DC2626;
+        border-color: rgba(239, 68, 68, 0.30);
+        background: rgba(239, 68, 68, 0.04);
+    }
+    .danger-actions .btn-ghost:hover {
+        background: rgba(239, 68, 68, 0.10);
+        border-color: rgba(239, 68, 68, 0.45);
+        color: #B91C1C;
+    }
+
+    /* Save bar */
+    .save-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 20px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+    .save-bar .sb-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+        min-width: 0;
+    }
+    .save-bar .sb-info i { color: var(--secondary-deep); font-size: 0.9rem; flex-shrink: 0; }
+    .save-bar .sb-info strong { color: var(--primary-dark); font-weight: 700; }
+    .save-bar .sb-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .settings-shell { grid-template-columns: 220px minmax(0, 1fr); }
+        .set-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1024px) {
+        .settings-shell { grid-template-columns: 1fr; }
+        .settings-nav { position: static; }
+        .settings-nav .settings-nav-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .settings-nav-link {
+            flex: 0 0 auto;
+            padding: 8px 14px;
+            margin-bottom: 0;
+        }
+        .settings-nav-link i.lead { width: 24px; height: 24px; font-size: 0.76rem; }
+        .settings-nav-link .snl-badge { display: none; }
+        .settings-nav-foot { display: none; }
+    }
+    @media (max-width: 900px) {
+        .set-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .status-panel { width: 100%; }
+        .field-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+        .set-overview { grid-template-columns: 1fr; }
+        .set-card { padding: 20px 18px; }
+        .avatar-editor { flex-direction: column; text-align: center; }
+        .avatar-editor .av-actions { justify-content: center; }
+        .toggle-row { flex-wrap: wrap; }
+        .save-bar { flex-direction: column; align-items: stretch; }
+        .save-bar .sb-actions { width: 100%; }
+        .save-bar .sb-actions .btn-ghost, .save-bar .sb-actions .btn-gold { flex: 1; justify-content: center; }
+    }
+    @media (max-width: 420px) {
+        .settings-nav .settings-nav-list { flex-direction: column; }
+        .settings-nav-link { width: 100%; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="set-hero fade-up">
+    <div class="sh-text">
+        <span class="hero-badge">
+            <i class="bi bi-shield-check"></i> Verified Mentor · Account secured
+        </span>
+        <h1>Your <span>Settings</span></h1>
+        <p>
+            Manage your <strong>profile</strong>, <strong>notification preferences</strong>,
+            <strong>security</strong>, <strong>availability</strong>, and
+            <strong>integrations</strong> — all from one place. Changes save instantly
+            and are versioned for your protection.
+        </p>
+        <div class="sh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening your public dossier…" data-toast-type="info">
+                <i class="bi bi-person-badge"></i> Preview public dossier
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening account export…" data-toast-type="info">
+                <i class="bi bi-download"></i> Export account data
+            </button>
+        </div>
+    </div>
+
+    <!-- Account status panel -->
+    <aside class="status-panel" aria-label="Account status">
+        <div class="sp-head">
+            <span class="sp-avatar">DO</span>
+            <div class="sp-body">
+                <strong>Daniel Okafor</strong>
+                <span>daniel.okafor@knotwork.io</span>
+                <em>Master Mentor · Level XII</em>
+            </div>
+        </div>
+
+        <div class="sp-stats">
+            <div>
+                <strong>86%</strong>
+                <span>Complete</span>
+            </div>
+            <div>
+                <strong>2FA</strong>
+                <span>Enabled</span>
+            </div>
+            <div>
+                <strong>#3</strong>
+                <span>Rank</span>
+            </div>
+        </div>
+
+        <div class="sp-checks">
+            <div class="sp-check">
+                <i class="bi bi-check-lg"></i>
+                <span>Email verified</span>
+                <em>Done</em>
+            </div>
+            <div class="sp-check">
+                <i class="bi bi-check-lg"></i>
+                <span>Identity verified</span>
+                <em>Done</em>
+            </div>
+            <div class="sp-check">
+                <i class="bi bi-check-lg"></i>
+                <span>Payment method</span>
+                <em>Done</em>
+            </div>
+            <div class="sp-check">
+                <i class="bi bi-check-lg"></i>
+                <span>Two-factor auth</span>
+                <em>Active</em>
+            </div>
+        </div>
+    </aside>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-shield-lock-fill"></i></span>
+    <div class="as-body">
+        <strong>Settings are private and versioned</strong>
+        <p>
+            Your settings are <strong>encrypted at rest</strong> and every change
+            is <strong>versioned in an audit log</strong>. You can view recent
+            changes at any time. Sensitive changes (email, 2FA, payment method)
+            require <strong>re-authentication</strong>.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening audit log…" data-toast-type="info">
+            <i class="bi bi-clock-history"></i> Audit log
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="set-overview fade-up">
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic"><i class="bi bi-person-check-fill"></i></span>
+            <span class="so-trend"><i class="bi bi-check-circle-fill"></i> Complete</span>
+        </div>
+        <div class="so-value">86<span>%</span></div>
+        <div class="so-label">Profile completeness</div>
+    </div>
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic accent"><i class="bi bi-shield-lock-fill"></i></span>
+            <span class="so-trend"><i class="bi bi-shield-check"></i> Active</span>
+        </div>
+        <div class="so-value">2FA</div>
+        <div class="so-label">Two-factor authentication</div>
+    </div>
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic violet"><i class="bi bi-bell-fill"></i></span>
+            <span class="so-trend"><i class="bi bi-check-circle"></i> 6 of 8</span>
+        </div>
+        <div class="so-value">6</div>
+        <div class="so-label">Notification channels</div>
+    </div>
+
+    <div class="so-card">
+        <div class="so-top">
+            <span class="so-ic amber"><i class="bi bi-clock-history"></i></span>
+            <span class="so-trend warn"><i class="bi bi-info-circle"></i> 2 days ago</span>
+        </div>
+        <div class="so-value">0</div>
+        <div class="so-label">Pending changes</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SETTINGS SHELL — Side nav + content panels
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="settings-shell fade-up">
+
+    <!-- ═════════════════ SIDE NAV ═════════════════ -->
+    <aside class="settings-nav" aria-label="Settings sections">
+        <div class="settings-nav-head">
+            <h3>Settings</h3>
+            <p>Configure your mentor account</p>
+        </div>
+
+        <nav class="settings-nav-list" role="tablist">
+            <button type="button" class="settings-nav-link active" data-panel="profile" role="tab">
+                <i class="lead bi bi-person-fill"></i>
+                <span class="snl-label">Profile</span>
+                <span class="snl-badge">86%</span>
+            </button>
+
+            <button type="button" class="settings-nav-link" data-panel="notifications" role="tab">
+                <i class="lead bi bi-bell-fill"></i>
+                <span class="snl-label">Notifications</span>
+                <span class="snl-badge">6/8</span>
+            </button>
+
+            <button type="button" class="settings-nav-link" data-panel="security" role="tab">
+                <i class="lead bi bi-shield-lock-fill"></i>
+                <span class="snl-label">Security</span>
+                <span class="snl-badge">2FA</span>
+            </button>
+
+            <button type="button" class="settings-nav-link" data-panel="availability" role="tab">
+                <i class="lead bi bi-calendar-week-fill"></i>
+                <span class="snl-label">Availability</span>
+            </button>
+
+            <button type="button" class="settings-nav-link" data-panel="billing" role="tab">
+                <i class="lead bi bi-wallet2"></i>
+                <span class="snl-label">Billing &amp; Payouts</span>
+            </button>
+
+            <button type="button" class="settings-nav-link" data-panel="integrations" role="tab">
+                <i class="lead bi bi-link-45deg"></i>
+                <span class="snl-label">Integrations</span>
+            </button>
+
+            <button type="button" class="settings-nav-link" data-panel="privacy" role="tab">
+                <i class="lead bi bi-eye-slash-fill"></i>
+                <span class="snl-label">Privacy</span>
+            </button>
+        </nav>
+
+        <div class="settings-nav-foot">
+            <div class="safety-note">
+                <i class="bi bi-shield-check"></i>
+                <span>Every change is <strong>versioned</strong> and visible in your audit log.</span>
+            </div>
+        </div>
+    </aside>
+
+
+    <!-- ═════════════════ CONTENT ═════════════════ -->
+    <div class="settings-content">
+
+        <!-- ─────────────── PROFILE ─────────────── -->
+        <div class="settings-panel active" id="panel-profile">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-person-fill"></i> Public Profile</h3>
+                        <p>This appears on your public dossier and to every mentee.</p>
+                    </div>
+                </div>
+
+                <!-- Avatar -->
+                <div class="avatar-editor">
+                    <span class="av-preview">DO</span>
+                    <div class="av-body">
+                        <h5>Profile photo</h5>
+                        <p>PNG, JPG, or GIF · up to 2 MB · recommended 400×400px. Square photos look best.</p>
+                        <div class="av-actions">
+                            <button type="button" class="btn-ghost" data-toast="File picker opened" data-toast-type="info">
+                                <i class="bi bi-cloud-arrow-up-fill"></i> Upload new
+                            </button>
+                            <button type="button" class="btn-ghost" data-toast="Photo removed" data-toast-type="warning">
+                                <i class="bi bi-trash3"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="profileName">Full name</label>
+                        <input id="profileName" type="text" value="Daniel Okafor">
+                    </div>
+                    <div class="field">
+                        <label for="profileTitle">Public title</label>
+                        <input id="profileTitle" type="text" value="Master Mentor · Frontend Track">
+                    </div>
+                    <div class="field">
+                        <label for="profileEmail">Email</label>
+                        <input id="profileEmail" type="email" value="daniel.okafor@knotwork.io">
+                        <p class="field-hint">Changing email requires re-authentication.</p>
+                    </div>
+                    <div class="field">
+                        <label for="profilePhone">Phone <span class="optional">Optional</span></label>
+                        <input id="profilePhone" type="tel" value="+234 803 555 0192">
+                    </div>
+                    <div class="field">
+                        <label for="profileLocation">Location</label>
+                        <input id="profileLocation" type="text" value="Lagos, Nigeria">
+                    </div>
+                    <div class="field">
+                        <label for="profileTimezone">Timezone</label>
+                        <select id="profileTimezone">
+                            <option>Africa/Lagos (GMT+1)</option>
+                            <option>Europe/London (GMT+0)</option>
+                            <option>Europe/Berlin (GMT+1)</option>
+                            <option>America/New_York (GMT-5)</option>
+                            <option>Asia/Tokyo (GMT+9)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-grid full" style="margin-top: 18px;">
+                    <div class="field">
+                        <label for="profileBio">Bio</label>
+                        <textarea id="profileBio" placeholder="Tell prospective mentees who you are and how you mentor.">Master Mentor with 18 months of tenure. I focus on production-grade React patterns, PostgreSQL performance, and helping engineers transition from intermediate to senior. My sessions are structured, practical, and end with clear next steps.</textarea>
+                        <p class="field-hint">180 characters recommended. This appears at the top of your public dossier.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expertise -->
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-award-fill"></i> Expertise &amp; Specialisations</h3>
+                        <p>Mentees use these to find you. Add up to 10 specialisations.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid full">
+                    <div class="field">
+                        <label>Current specialisations</label>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+                            <span class="tag teach">React</span>
+                            <span class="tag teach">TypeScript</span>
+                            <span class="tag learn">PostgreSQL</span>
+                            <span class="tag learn">System Design</span>
+                            <span class="tag violet">Performance</span>
+                            <span class="tag amber">AWS</span>
+                        </div>
+                        <p class="field-hint">Click a tag to remove it. Add new ones from the field below.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid" style="margin-top: 18px;">
+                    <div class="field">
+                        <label for="expAdd">Add specialisation</label>
+                        <input id="expAdd" type="text" placeholder="e.g. GraphQL, Testing, Redis…">
+                    </div>
+                    <div class="field">
+                        <label for="expLevel">Proficiency level</label>
+                        <select id="expLevel">
+                            <option>Master</option>
+                            <option>Senior</option>
+                            <option>Professional</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="save-bar">
+                <div class="sb-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Profile changes are <strong>public</strong>. Preview your dossier before saving.</span>
+                </div>
+                <div class="sb-actions">
+                    <button type="button" class="btn-ghost" data-toast="Reverted to last saved" data-toast-type="info">
+                        <i class="bi bi-arrow-counterclockwise"></i> Discard
+                    </button>
+                    <button type="button" class="btn-gold" data-toast="Profile saved successfully" data-toast-type="success">
+                        <i class="bi bi-check-lg"></i> Save profile
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ─────────────── NOTIFICATIONS ─────────────── -->
+        <div class="settings-panel" id="panel-notifications">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-bell-fill"></i> Notification Preferences</h3>
+                        <p>Choose what Knotwork sends you and how. Changes apply immediately.</p>
+                    </div>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>New mentorship requests <em>High</em></strong>
+                        <p>Immediate notification when a mentee requests you as a mentor.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Session reminders <em>High</em></strong>
+                        <p>Reminder 24 hours and 30 minutes before each session.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>New messages from mentees</strong>
+                        <p>In-app and email notification for unread messages.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>New forum answers</strong>
+                        <p>When someone answers a question you follow or authored.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Payout confirmations</strong>
+                        <p>Receipt when a payout clears to your bank.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Weekly analytics digest</strong>
+                        <p>Monday morning summary of your key mentor metrics.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Product updates from Knotwork</strong>
+                        <p>Occasional emails about new features and platform news.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Mentor community digest</strong>
+                        <p>Highlights from the faculty forum and network, twice a week.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-sliders2"></i> Delivery Channels</h3>
+                        <p>Where each notification type is delivered.</p>
+                    </div>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Email delivery</strong>
+                        <p>Send notifications to <strong>daniel.okafor@knotwork.io</strong>.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>In-app notifications</strong>
+                        <p>Bell icon in the topbar with unread counter.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Push notifications</strong>
+                        <p>Mobile push via the Knotwork iOS or Android app.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>SMS alerts <em>Urgent only</em></strong>
+                        <p>SMS to <strong>+234 803 555 0192</strong> for urgent events only.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="save-bar">
+                <div class="sb-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Changes to notifications apply <strong>immediately</strong> — no save required.</span>
+                </div>
+                <div class="sb-actions">
+                    <button type="button" class="btn-ghost" data-toast="All notifications reverted" data-toast-type="info">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset defaults
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ─────────────── SECURITY ─────────────── -->
+        <div class="settings-panel" id="panel-security">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-shield-lock-fill"></i> Account Security</h3>
+                        <p>Protect your account with strong authentication and monitoring.</p>
+                    </div>
+                    <span class="so-trend"><i class="bi bi-check-circle-fill"></i> Strong</span>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Two-factor authentication <em>Enabled</em></strong>
+                        <p>Authenticator app (Google Authenticator) required at sign-in on new devices.</p>
+                    </div>
+                    <button type="button" class="btn-ghost" data-toast="Opening 2FA settings…" data-toast-type="info">
+                        <i class="bi bi-gear"></i> Manage
+                    </button>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Backup codes</strong>
+                        <p>10 single-use recovery codes generated <strong>2 weeks ago</strong>. Store them somewhere safe.</p>
+                    </div>
+                    <button type="button" class="btn-ghost" data-toast="New backup codes generated" data-toast-type="success">
+                        <i class="bi bi-arrow-repeat"></i> Regenerate
+                    </button>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Sign-in alerts</strong>
+                        <p>Get notified by email whenever a new device signs into your account.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Require re-authentication for sensitive changes</strong>
+                        <p>Ask for password confirmation before changing email, 2FA, or payout method.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="sess-history">
+                    <h5>Active sessions</h5>
+
+                    <div class="sess-item">
+                        <span class="sess-ic curr"><i class="bi bi-laptop"></i></span>
+                        <div class="sess-body">
+                            <strong>MacBook Pro · Chrome</strong>
+                            <span>Lagos, Nigeria · Current session</span>
+                            <span class="badge"><i class="bi bi-check-circle-fill"></i> This device</span>
+                        </div>
+                    </div>
+
+                    <div class="sess-item">
+                        <span class="sess-ic past"><i class="bi bi-phone"></i></span>
+                        <div class="sess-body">
+                            <strong>iPhone 15 · Knotwork App</strong>
+                            <span>Lagos, Nigeria · Active 2 hours ago</span>
+                        </div>
+                        <button type="button" class="btn-ghost" data-toast="Device signed out" data-toast-type="warning">
+                            <i class="bi bi-box-arrow-right"></i> Sign out
+                        </button>
+                    </div>
+
+                    <div class="sess-item">
+                        <span class="sess-ic past"><i class="bi bi-tablet"></i></span>
+                        <div class="sess-body">
+                            <strong>iPad Air · Safari</strong>
+                            <span>Abuja, Nigeria · Active 3 days ago</span>
+                        </div>
+                        <button type="button" class="btn-ghost" data-toast="Device signed out" data-toast-type="warning">
+                            <i class="bi bi-box-arrow-right"></i> Sign out
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password change -->
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-key-fill"></i> Password</h3>
+                        <p>Last changed <strong>42 days ago</strong>. We recommend changing every 90 days.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="currPw">Current password</label>
+                        <input id="currPw" type="password" placeholder="Enter current password">
+                    </div>
+                    <div class="field"></div>
+                    <div class="field">
+                        <label for="newPw">New password</label>
+                        <input id="newPw" type="password" placeholder="At least 12 characters">
+                        <p class="field-hint">Use a mix of letters, numbers, and symbols.</p>
+                    </div>
+                    <div class="field">
+                        <label for="confPw">Confirm new password</label>
+                        <input id="confPw" type="password" placeholder="Repeat new password">
+                    </div>
+                </div>
+
+                <div style="margin-top: 18px;">
+                    <button type="button" class="btn-gold" data-toast="Password updated successfully" data-toast-type="success">
+                        <i class="bi bi-check-lg"></i> Update password
+                    </button>
+                </div>
+            </div>
+
+            <!-- Danger zone -->
+            <div class="danger-card">
+                <h4><i class="bi bi-exclamation-triangle-fill"></i> Danger Zone</h4>
+                <p>
+                    These actions are <strong>irreversible</strong>. Your data will be
+                    permanently removed after a 30-day retention window.
+                </p>
+                <div class="danger-actions">
+                    <button type="button" class="btn-ghost" data-toast="Opening deactivation flow…" data-toast-type="warning">
+                        <i class="bi bi-pause-circle"></i> Deactivate account
+                    </button>
+                    <button type="button" class="btn-ghost" data-toast="Opening deletion confirmation…" data-toast-type="warning">
+                        <i class="bi bi-trash3"></i> Delete account
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ─────────────── AVAILABILITY ─────────────── -->
+        <div class="settings-panel" id="panel-availability">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-calendar-week-fill"></i> Availability</h3>
+                        <p>Define when mentees can book sessions with you.</p>
+                    </div>
+                    <span class="so-trend"><i class="bi bi-check-circle-fill"></i> Open</span>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Accepting new mentees</strong>
+                        <p>When off, you appear as <strong>not accepting requests</strong> in the directory.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Auto-accept matching requests <em>Beta</em></strong>
+                        <p>Automatically accept mentees with a match score above 90%.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-clock-fill"></i> Weekly Hours</h3>
+                        <p>Set your standard weekly availability. Mentees can only book inside these windows.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid full">
+                    <div class="field">
+                        <label>Monday</label>
+                        <input type="text" value="09:00 – 12:00, 14:00 – 18:00">
+                    </div>
+                    <div class="field">
+                        <label>Tuesday</label>
+                        <input type="text" value="09:00 – 12:00, 14:00 – 18:00">
+                    </div>
+                    <div class="field">
+                        <label>Wednesday</label>
+                        <input type="text" value="09:00 – 12:00">
+                    </div>
+                    <div class="field">
+                        <label>Thursday</label>
+                        <input type="text" value="09:00 – 12:00, 14:00 – 18:00">
+                    </div>
+                    <div class="field">
+                        <label>Friday</label>
+                        <input type="text" value="09:00 – 12:00, 14:00 – 17:00">
+                    </div>
+                    <div class="field">
+                        <label>Saturday</label>
+                        <input type="text" value="Closed" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="save-bar">
+                <div class="sb-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Changes update your <strong>public booking page</strong> within 1 minute.</span>
+                </div>
+                <div class="sb-actions">
+                    <button type="button" class="btn-ghost" data-toast="Reverted to last saved" data-toast-type="info">
+                        <i class="bi bi-arrow-counterclockwise"></i> Discard
+                    </button>
+                    <button type="button" class="btn-gold" data-toast="Availability saved" data-toast-type="success">
+                        <i class="bi bi-check-lg"></i> Save availability
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ─────────────── BILLING ─────────────── -->
+        <div class="settings-panel" id="panel-billing">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-wallet2"></i> Payout Method</h3>
+                        <p>Where your earnings are sent on each payout cycle.</p>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic"><i class="bi bi-bank"></i></span>
+                    <div class="mr-body">
+                        <strong>Chase ··4291</strong>
+                        <span>ACH · Free · 1–3 business days · Verified</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening edit flow…" data-toast-type="info">Edit</button>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic"><i class="bi bi-paypal"></i></span>
+                    <div class="mr-body">
+                        <strong>PayPal · d***@knotwork.io</strong>
+                        <span>Instant · 1.5% fee · 24 hours</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening edit flow…" data-toast-type="info">Edit</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 14px;">
+                    <button type="button" class="btn-ghost" data-toast="Opening add payout method flow…" data-toast-type="info">
+                        <i class="bi bi-plus-lg"></i> Add new method
+                    </button>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-calendar-check-fill"></i> Payout Schedule</h3>
+                        <p>Choose when your available balance is auto-transferred.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="payoutFreq">Frequency</label>
+                        <select id="payoutFreq">
+                            <option>Monthly · 1st of each month</option>
+                            <option>Biweekly · Every 2 weeks</option>
+                            <option>Weekly · Every Monday</option>
+                            <option>Manual · I withdraw when ready</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="payoutMin">Minimum balance to auto-pay</label>
+                        <select id="payoutMin">
+                            <option>$50</option>
+                            <option selected>$100</option>
+                            <option>$250</option>
+                            <option>$500</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-receipt"></i> Tax Information</h3>
+                        <p>We don't withhold tax automatically — keep these details up to date for your annual statement.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="taxCountry">Tax residence</label>
+                        <select id="taxCountry">
+                            <option selected>Nigeria</option>
+                            <option>United States</option>
+                            <option>United Kingdom</option>
+                            <option>Germany</option>
+                            <option>Canada</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="taxId">Tax ID <span class="optional">Optional</span></label>
+                        <input id="taxId" type="text" value="TIN-8841-0092">
+                    </div>
+                </div>
+
+                <p class="field-hint" style="margin-top: 14px;">
+                    Download your annual tax summary from the <strong>Earnings</strong> page at any time.
+                </p>
+            </div>
+        </div>
+
+
+        <!-- ─────────────── INTEGRATIONS ─────────────── -->
+        <div class="settings-panel" id="panel-integrations">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-link-45deg"></i> Connected Apps</h3>
+                        <p>Let Knotwork sync with the tools you already use.</p>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic" style="background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff;">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </span>
+                    <div class="mr-body">
+                        <strong>Google Calendar</strong>
+                        <span>Sync sessions automatically · daniel.okafor@gmail.com</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening integration settings…" data-toast-type="info">Manage</button>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic" style="background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff;">
+                        <i class="bi bi-camera-video-fill"></i>
+                    </span>
+                    <div class="mr-body">
+                        <strong>Zoom</strong>
+                        <span>Sessions auto-generate Zoom links · Connected</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening integration settings…" data-toast-type="info">Manage</button>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic" style="background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03;">
+                        <i class="bi bi-slack"></i>
+                    </span>
+                    <div class="mr-body">
+                        <strong>Slack</strong>
+                        <span>Not connected · Get session notifications in Slack</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm solid" data-toast="Opening Slack OAuth flow…" data-toast-type="info">Connect</button>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic" style="background: linear-gradient(135deg, #86EFAC, #22C55E); color: #fff;">
+                        <i class="bi bi-github"></i>
+                    </span>
+                    <div class="mr-body">
+                        <strong>GitHub</strong>
+                        <span>Link code snippets in forum answers · daniel-okafor</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening integration settings…" data-toast-type="info">Manage</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-code-slash"></i> API Access</h3>
+                        <p>Programmatic access for reporting and analytics tools.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid full">
+                    <div class="field">
+                        <label>Personal API key</label>
+                        <input type="text" value="kw_live_••••••••••••••••••••••4a91" disabled>
+                        <p class="field-hint">Last used 5 days ago. Regenerate to invalidate the current key.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-ghost" data-toast="New API key generated" data-toast-type="success">
+                        <i class="bi bi-arrow-repeat"></i> Regenerate key
+                    </button>
+                    <button type="button" class="btn-ghost" data-toast="API key revoked" data-toast-type="warning">
+                        <i class="bi bi-trash3"></i> Revoke
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ─────────────── PRIVACY ─────────────── -->
+        <div class="settings-panel" id="panel-privacy">
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-eye-slash-fill"></i> Privacy &amp; Visibility</h3>
+                        <p>Control what's public, who can reach you, and how your data is used.</p>
+                    </div>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Show my profile in the public mentor directory</strong>
+                        <p>When off, only mentees with a direct link can find you.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Show my mentee count publicly</strong>
+                        <p>Your public dossier displays "<strong>24 active mentees</strong>".</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Show my earnings tier publicly <em>Tier shown</em></strong>
+                        <p>Displays an earnings bracket ("Top 3% of faculty") without exact figures.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Allow mentees to download session recordings</strong>
+                        <p>Mentees can download recordings from past sessions for personal review.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-body">
+                        <strong>Allow AI training on my answers</strong>
+                        <p>Help improve Knotwork's answer suggestions. Your name is never exposed.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-box-arrow-up-right"></i> Data Portability</h3>
+                        <p>Take your data with you at any time.</p>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic"><i class="bi bi-file-earmark-zip-fill"></i></span>
+                    <div class="mr-body">
+                        <strong>Download full account archive</strong>
+                        <span>All sessions, messages, resources, reviews, and earnings history.</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm solid" data-toast="Preparing archive · check your email" data-toast-type="success">
+                            Request
+                        </button>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic"><i class="bi bi-filetype-csv"></i></span>
+                    <div class="mr-body">
+                        <strong>Export earnings only (CSV)</strong>
+                        <span>Every transaction, filtered by date range.</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Preparing CSV export…" data-toast-type="info">
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="set-card">
+                <div class="set-card-head">
+                    <div>
+                        <h3><i class="bi bi-shield-check"></i> Consent &amp; Agreements</h3>
+                        <p>You can review any legal agreement you've accepted.</p>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic"><i class="bi bi-file-earmark-text-fill"></i></span>
+                    <div class="mr-body">
+                        <strong>Mentor Agreement v3.2</strong>
+                        <span>Accepted 4 Aug 2025 · Currently in effect</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening agreement…" data-toast-type="info">
+                            View
+                        </button>
+                    </div>
+                </div>
+
+                <div class="method-row">
+                    <span class="mr-ic"><i class="bi bi-file-earmark-lock-fill"></i></span>
+                    <div class="mr-body">
+                        <strong>Privacy Policy v4.1</strong>
+                        <span>Accepted 4 Aug 2025 · Last updated 15 Sep 2025</span>
+                    </div>
+                    <div class="mr-actions">
+                        <button type="button" class="btn-sm line" data-toast="Opening policy…" data-toast-type="info">
+                            View
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           SETTINGS SIDE NAV — panel switching
+           ====================================================== */
+        const settingsNavLinks = document.querySelectorAll('.settings-nav-link');
+        const settingsPanels = document.querySelectorAll('.settings-panel');
+
+        function activatePanel(name) {
+            settingsNavLinks.forEach(l => l.classList.toggle('active', l.dataset.panel === name));
+            settingsPanels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+            if (history.replaceState) {
+                history.replaceState(null, '', '#' + name);
+            }
+        }
+
+        settingsNavLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                activatePanel(this.dataset.panel);
+            });
+        });
+
+        /* Deep-link via hash */
+        if (location.hash) {
+            const slug = location.hash.replace('#', '');
+            if (document.getElementById('panel-' + slug)) {
+                activatePanel(slug);
+            }
+        }
+
+        /* ======================================================
+           TOGGLE SWITCH — visual feedback on change
+           ====================================================== */
+        document.querySelectorAll('.switch input[type="checkbox"]').forEach(function (input) {
+            input.addEventListener('change', function () {
+                const label = this.closest('.toggle-row')?.querySelector('strong')?.textContent.trim() || 'Setting';
+                if (window.showKnotToast) {
+                    window.showKnotToast(label + ' ' + (this.checked ? 'enabled' : 'disabled'), this.checked ? 'success' : 'info');
+                }
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

@@ -1,0 +1,1643 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Analytics{% endblock %}
+{% block breadcrumb %}Analytics{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .ana-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .ana-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .ana-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .ah-text { position: relative; z-index: 2; max-width: 660px; }
+    .ah-text .hero-badge { margin-bottom: 14px; }
+    .ah-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .ah-text h1 span { color: var(--secondary); font-style: italic; }
+    .ah-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        margin-bottom: 22px;
+        max-width: 540px;
+    }
+    .ah-text p strong { color: var(--white); font-weight: 600; }
+    .ah-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    /* Hero metric tiles */
+    .ah-metrics {
+        position: relative; z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        flex-shrink: 0;
+        width: 340px;
+    }
+    .ah-tile {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        transition: var(--transition);
+        min-width: 0;
+    }
+    .ah-tile:hover {
+        background: rgba(190, 242, 100, 0.08);
+        border-color: rgba(190, 242, 100, 0.30);
+        transform: translateY(-2px);
+    }
+    .ah-tile .tile-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .ah-tile .tile-ic {
+        width: 30px; height: 30px;
+        border-radius: 9px;
+        display: grid; place-items: center;
+        font-size: 0.8rem;
+        background: rgba(190, 242, 100, 0.16);
+        color: var(--secondary);
+        flex-shrink: 0;
+    }
+    .ah-tile .tile-ic.accent { background: rgba(56, 189, 248, 0.16); color: var(--accent); }
+    .ah-tile .tile-ic.violet { background: rgba(139, 92, 246, 0.18); color: #C4B5FD; }
+    .ah-tile .tile-ic.amber  { background: rgba(245, 158, 11, 0.16); color: #FCD34D; }
+    .ah-tile .tile-trend {
+        font-size: 0.58rem;
+        font-weight: 800;
+        color: var(--secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+    .ah-tile .tile-trend.down { color: #FCA5A5; }
+    .ah-tile .tile-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+    .ah-tile .tile-value em {
+        font-style: normal;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 600;
+        margin-left: 3px;
+    }
+    .ah-tile .tile-label {
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        margin-top: 5px;
+    }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .ana-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ao-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ao-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ao-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .ao-card:hover::before { opacity: 1; }
+    .ao-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .ao-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .ao-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ao-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ao-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ao-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ao-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .ao-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .ao-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ao-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .ao-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+    .ao-sparkline {
+        display: flex; align-items: flex-end;
+        gap: 3px;
+        height: 26px;
+        margin-top: 10px;
+    }
+    .ao-sparkline i {
+        flex: 1;
+        border-radius: 3px 3px 2px 2px;
+        background: linear-gradient(180deg, var(--secondary), #7ED321);
+        transition: var(--transition);
+        min-height: 10%;
+    }
+    .ao-sparkline i.dim { background: var(--gray-200); }
+    .ao-sparkline.accent i { background: linear-gradient(180deg, var(--accent), #0284C7); }
+    .ao-sparkline.violet i { background: linear-gradient(180deg, #A78BFA, #7C3AED); }
+    .ao-sparkline.amber i  { background: linear-gradient(180deg, #FCD34D, #F59E0B); }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-range {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 50px;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        height: 42px;
+    }
+    .tool-range button {
+        padding: 7px 14px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-range button:hover { color: var(--primary-dark); }
+    .tool-range button.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 14px rgba(190, 242, 100, 0.30);
+    }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 18px;
+        border-radius: 50px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.30);
+        margin-left: auto;
+    }
+    .tool-export:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(190, 242, 100, 0.45);
+    }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .ana-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 26px;
+        align-items: start;
+    }
+    .col-stack {
+        display: flex; flex-direction: column;
+        gap: 26px; min-width: 0;
+    }
+
+    /* ============================================================
+       CHART CARDS (shared)
+       ============================================================ */
+    .chart-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 24px 20px;
+        transition: var(--transition);
+    }
+    .chart-card:hover { box-shadow: var(--shadow-md); }
+    .cc-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .cc-title {
+        min-width: 0;
+    }
+    .cc-title h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.06rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        line-height: 1.2;
+    }
+    .cc-title h3 i { color: var(--secondary-deep); font-size: 0.92rem; }
+    .cc-title p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+    .cc-legend {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .cc-legend .item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .cc-legend .swatch {
+        width: 10px; height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+    .cc-legend .swatch.lime { background: linear-gradient(180deg, var(--secondary), #7ED321); }
+    .cc-legend .swatch.sky { background: linear-gradient(180deg, var(--accent), #0284C7); }
+    .cc-legend .swatch.violet { background: linear-gradient(180deg, #A78BFA, #7C3AED); }
+    .cc-legend .swatch.amber { background: linear-gradient(180deg, #FCD34D, #F59E0B); }
+    .cc-legend .swatch.gray { background: var(--gray-200); }
+
+    /* ============================================================
+       LINE CHART (SVG based)
+       ============================================================ */
+    .line-chart {
+        position: relative;
+        width: 100%;
+        height: 240px;
+    }
+    .line-chart svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+    .line-chart .grid-line {
+        stroke: var(--gray-100);
+        stroke-width: 1;
+    }
+    .line-chart .grid-line.dashed {
+        stroke-dasharray: 4 4;
+    }
+    .line-chart .axis-label {
+        font-size: 9px;
+        font-weight: 700;
+        fill: var(--gray-300);
+        font-family: 'Inter', sans-serif;
+        letter-spacing: 0.05em;
+    }
+    .line-chart .axis-label.right {
+        text-anchor: end;
+    }
+    .line-chart .area {
+        fill: url(#areaLime);
+        opacity: 0.55;
+    }
+    .line-chart .area.accent {
+        fill: url(#areaAccent);
+    }
+    .line-chart .area.violet {
+        fill: url(#areaViolet);
+    }
+    .line-chart .data-line {
+        fill: none;
+        stroke: var(--secondary);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 4px 8px rgba(190, 242, 100, 0.35));
+    }
+    .line-chart .data-line.accent {
+        stroke: var(--accent);
+        filter: drop-shadow(0 4px 8px rgba(56, 189, 248, 0.35));
+    }
+    .line-chart .data-line.violet {
+        stroke: var(--violet);
+        filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.35));
+    }
+    .line-chart .data-line.dashed {
+        stroke-dasharray: 6 4;
+        opacity: 0.65;
+    }
+    .line-chart .data-dot {
+        fill: var(--white);
+        stroke: var(--secondary);
+        stroke-width: 2.5;
+        transition: var(--transition);
+    }
+    .line-chart .data-dot.accent { stroke: var(--accent); }
+    .line-chart .data-dot.violet { stroke: var(--violet); }
+    .line-chart .data-dot.highlight {
+        fill: var(--secondary);
+        r: 5.5;
+    }
+
+    /* Data point labels */
+    .line-chart .point-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 9px;
+        font-weight: 800;
+        fill: var(--primary-dark);
+    }
+    .line-chart .point-label-box {
+        fill: var(--white);
+        stroke: var(--gray-200);
+        stroke-width: 1;
+        rx: 4;
+    }
+
+    /* Axis labels row */
+    .chart-x-axis {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 4px 0;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    /* ============================================================
+       BAR CHART (Session hours)
+       ============================================================ */
+    .bar-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        height: 200px;
+        padding-top: 12px;
+    }
+    .bar-chart .col {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .bar-chart .track {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        position: relative;
+    }
+    .bar-chart .bar-v {
+        width: 100%;
+        max-width: 36px;
+        height: 0;
+        border-radius: 9px 9px 5px 5px;
+        background: linear-gradient(180deg, var(--secondary), #7ED321);
+        transition: height 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        position: relative;
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.22);
+    }
+    .bar-chart .col.dim .bar-v {
+        background: var(--gray-200);
+        box-shadow: none;
+    }
+    .bar-chart .col.today .bar-v {
+        background: linear-gradient(180deg, var(--accent), #0284C7);
+        box-shadow: 0 6px 18px rgba(56, 189, 248, 0.32);
+    }
+    .bar-chart .bar-v::after {
+        content: attr(data-val);
+        position: absolute;
+        top: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.66rem;
+        font-weight: 800;
+        color: var(--primary-dark);
+        opacity: 0;
+        transition: var(--transition);
+        white-space: nowrap;
+        padding: 3px 7px;
+        background: var(--white);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(11, 17, 33, 0.10);
+    }
+    .bar-chart .col:hover .bar-v::after { opacity: 1; }
+    .bar-chart .day {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--gray-600);
+    }
+    .bar-chart .col.today .day { color: var(--accent); }
+
+    /* ============================================================
+       EARNINGS TREND — dual series line chart
+       ============================================================ */
+    .earnings-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding-top: 16px;
+        margin-top: 16px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .earnings-stats div { text-align: left; }
+    .earnings-stats div + div {
+        padding-left: 14px;
+        border-left: 1px solid var(--gray-100);
+    }
+    .earnings-stats strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .earnings-stats strong em {
+        color: var(--secondary-deep);
+        font-style: normal;
+        font-size: 0.8rem;
+    }
+    .earnings-stats span {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       MENTEE GROWTH — stacked area style
+       ============================================================ */
+    .growth-chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        padding-top: 16px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .growth-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        background: var(--cream);
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .growth-chip .chip-dot {
+        width: 10px; height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+    .growth-chip .chip-dot.lime { background: linear-gradient(180deg, var(--secondary), #7ED321); }
+    .growth-chip .chip-dot.sky { background: linear-gradient(180deg, var(--accent), #0284C7); }
+    .growth-chip .chip-dot.violet { background: linear-gradient(180deg, #A78BFA, #7C3AED); }
+    .growth-chip strong { color: var(--primary-dark); font-weight: 800; }
+
+    /* ============================================================
+       FUNNEL CHART
+       ============================================================ */
+    .funnel-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .funnel-row {
+        position: relative;
+    }
+    .funnel-row .fr-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+        gap: 8px;
+    }
+    .funnel-row .fr-head span {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .funnel-row .fr-head strong {
+        font-size: 0.82rem;
+        color: var(--primary-dark);
+        font-weight: 800;
+    }
+    .funnel-row .fr-head strong em {
+        color: var(--gray-600);
+        font-style: normal;
+        font-size: 0.68rem;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+    .funnel-row .fr-track {
+        height: 30px;
+        border-radius: 10px;
+        background: var(--gray-100);
+        overflow: hidden;
+        position: relative;
+    }
+    .funnel-row .fr-fill {
+        height: 100%;
+        width: 0;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: var(--primary-dark);
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .funnel-row .fr-fill.lime { background: linear-gradient(90deg, #D9F99D, #BEF264); }
+    .funnel-row .fr-fill.sky { background: linear-gradient(90deg, #BAE6FD, #38BDF8); color: #0C4A6E; }
+    .funnel-row .fr-fill.violet { background: linear-gradient(90deg, #DDD6FE, #A78BFA); color: #4C1D95; }
+    .funnel-row .fr-fill.amber { background: linear-gradient(90deg, #FDE68A, #FCD34D); color: #78350F; }
+    .funnel-row .fr-fill.gray { background: linear-gradient(90deg, #F1F5F9, #E2E8F0); color: var(--gray-600); }
+
+    /* ============================================================
+       TOP PLANS / MENTEES TABLES
+       ============================================================ */
+    .top-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .top-row:first-of-type { padding-top: 0; }
+    .top-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .top-rank {
+        width: 22px;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-300);
+        flex-shrink: 0;
+    }
+    .top-row:nth-child(1) .top-rank { color: #4D7C0F; }
+    .top-row:nth-child(2) .top-rank { color: var(--accent); }
+    .top-row:nth-child(3) .top-rank { color: var(--violet); }
+    .top-avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 0.72rem;
+        flex-shrink: 0;
+    }
+    .top-avatar.lime { background: var(--gold); color: var(--primary-dark); }
+    .top-avatar.sky { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; }
+    .top-avatar.violet { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .top-avatar.amber { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03; }
+    .top-body { flex: 1; min-width: 0; }
+    .top-body strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .top-body .track {
+        height: 4px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    .top-body .track i {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 50px;
+        background: linear-gradient(90deg, #A3FF00, #7ED321);
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .top-body .track.accent i { background: linear-gradient(90deg, var(--accent), #0284C7); }
+    .top-body .track.violet i { background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .top-score {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .top-score strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+    }
+    .top-score span {
+        display: block;
+        font-size: 0.56rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    /* ============================================================
+       INSIGHTS
+       ============================================================ */
+    .insight-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .insight-item:first-of-type { padding-top: 0; }
+    .insight-item:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .insight-ic {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        display: grid; place-items: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .insight-ic.lime { background: rgba(190, 242, 100, 0.18); color: #4D7C0F; }
+    .insight-ic.accent { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .insight-ic.violet { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .insight-ic.amber { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .insight-ic.danger { background: rgba(239, 68, 68, 0.12); color: #DC2626; }
+    .insight-body { flex: 1; min-width: 0; }
+    .insight-body strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .insight-body p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .insight-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .ana-grid { grid-template-columns: 1fr; }
+        .ana-overview { grid-template-columns: repeat(2, 1fr); }
+        .ah-metrics { width: 300px; }
+    }
+    @media (max-width: 1180px) {
+        .ah-metrics { width: 280px; }
+    }
+    @media (max-width: 900px) {
+        .ana-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .ah-metrics { width: 100%; }
+        .bar-chart { height: 180px; }
+        .line-chart { height: 200px; }
+    }
+    @media (max-width: 640px) {
+        .ana-overview { grid-template-columns: 1fr; }
+        .ah-metrics { grid-template-columns: 1fr 1fr; }
+        .toolbar { padding: 14px 16px; }
+        .tool-export { margin-left: 0; width: 100%; justify-content: center; }
+        .chart-card { padding: 18px 18px 16px; }
+        .bar-chart { gap: 6px; height: 160px; }
+        .line-chart { height: 180px; }
+        .earnings-stats { gap: 6px; }
+        .earnings-stats div + div { padding-left: 8px; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+        .cc-legend { gap: 10px; }
+    }
+    @media (max-width: 420px) {
+        .ah-metrics { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="ana-hero fade-up">
+    <div class="ah-text">
+        <span class="hero-badge">
+            <i class="bi bi-graph-up-arrow"></i> Verified Mentor · Last 90 days
+        </span>
+        <h1>Your <span>Analytics</span></h1>
+        <p>
+            Every metric that matters to your mentoring practice —
+            <strong>response rate</strong>, <strong>session hours</strong>,
+            <strong>earnings trend</strong>, and <strong>mentee growth</strong>.
+            All verified against real sessions and payouts.
+        </p>
+        <div class="ah-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening full analytics report…" data-toast-type="info">
+                <i class="bi bi-file-earmark-bar-graph"></i> Full report
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening comparison tool…" data-toast-type="info">
+                <i class="bi bi-people-fill"></i> Compare to peers
+            </button>
+        </div>
+    </div>
+
+    <aside class="ah-metrics" aria-label="Key metrics">
+        <div class="ah-tile">
+            <div class="tile-top">
+                <span class="tile-ic"><i class="bi bi-lightning-charge-fill"></i></span>
+                <span class="tile-trend"><i class="bi bi-arrow-up-short"></i> +2%</span>
+            </div>
+            <div class="tile-value">96<em>%</em></div>
+            <div class="tile-label">Response rate</div>
+        </div>
+
+        <div class="ah-tile">
+            <div class="tile-top">
+                <span class="tile-ic accent"><i class="bi bi-clock-history"></i></span>
+                <span class="tile-trend"><i class="bi bi-arrow-up-short"></i> +18h</span>
+            </div>
+            <div class="tile-value">142<em>h</em></div>
+            <div class="tile-label">Session hours · 90d</div>
+        </div>
+
+        <div class="ah-tile">
+            <div class="tile-top">
+                <span class="tile-ic violet"><i class="bi bi-people-fill"></i></span>
+                <span class="tile-trend"><i class="bi bi-arrow-up-short"></i> +4</span>
+            </div>
+            <div class="tile-value">24</div>
+            <div class="tile-label">Active mentees</div>
+        </div>
+
+        <div class="ah-tile">
+            <div class="tile-top">
+                <span class="tile-ic amber"><i class="bi bi-cash-coin"></i></span>
+                <span class="tile-trend"><i class="bi bi-arrow-up-short"></i> 12%</span>
+            </div>
+            <div class="tile-value">$1,840</div>
+            <div class="tile-label">This month</div>
+        </div>
+    </aside>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="ana-overview fade-up">
+
+    <div class="ao-card">
+        <div class="ao-top">
+            <span class="ao-ic"><i class="bi bi-lightning-charge-fill"></i></span>
+            <span class="ao-trend"><i class="bi bi-arrow-up-short"></i> +2%</span>
+        </div>
+        <div class="ao-value">96<span>%</span></div>
+        <div class="ao-label">Response rate</div>
+        <div class="ao-sparkline">
+            <i style="height: 62%"></i>
+            <i style="height: 74%"></i>
+            <i style="height: 68%"></i>
+            <i style="height: 88%"></i>
+            <i style="height: 82%"></i>
+            <i style="height: 90%"></i>
+            <i style="height: 96%"></i>
+        </div>
+    </div>
+
+    <div class="ao-card">
+        <div class="ao-top">
+            <span class="ao-ic accent"><i class="bi bi-clock-history"></i></span>
+            <span class="ao-trend"><i class="bi bi-arrow-up-short"></i> +18h</span>
+        </div>
+        <div class="ao-value">142<span>h</span></div>
+        <div class="ao-label">Session hours · 90d</div>
+        <div class="ao-sparkline accent">
+            <i style="height: 42%"></i>
+            <i style="height: 58%"></i>
+            <i style="height: 72%"></i>
+            <i style="height: 64%"></i>
+            <i style="height: 82%"></i>
+            <i style="height: 88%"></i>
+            <i style="height: 92%"></i>
+        </div>
+    </div>
+
+    <div class="ao-card">
+        <div class="ao-top">
+            <span class="ao-ic violet"><i class="bi bi-people-fill"></i></span>
+            <span class="ao-trend"><i class="bi bi-arrow-up-short"></i> +4</span>
+        </div>
+        <div class="ao-value" data-count="24">24</div>
+        <div class="ao-label">Active mentees</div>
+        <div class="ao-sparkline violet">
+            <i style="height: 52%"></i>
+            <i style="height: 58%"></i>
+            <i style="height: 62%"></i>
+            <i style="height: 70%"></i>
+            <i style="height: 76%"></i>
+            <i style="height: 82%"></i>
+            <i style="height: 88%"></i>
+        </div>
+    </div>
+
+    <div class="ao-card">
+        <div class="ao-top">
+            <span class="ao-ic amber"><i class="bi bi-cash-coin"></i></span>
+            <span class="ao-trend"><i class="bi bi-arrow-up-short"></i> 12%</span>
+        </div>
+        <div class="ao-value">$5,280</div>
+        <div class="ao-label">Earnings · 90d</div>
+        <div class="ao-sparkline amber">
+            <i style="height: 48%"></i>
+            <i style="height: 62%"></i>
+            <i style="height: 58%"></i>
+            <i style="height: 76%"></i>
+            <i style="height: 84%"></i>
+            <i style="height: 78%"></i>
+            <i style="height: 92%"></i>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-range" role="group" aria-label="Date range">
+        <button type="button">7d</button>
+        <button type="button">30d</button>
+        <button type="button" class="active">90d</button>
+        <button type="button">1y</button>
+        <button type="button">All</button>
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All plans
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-filter" data-toast="Cohort selector opened" data-toast-type="info">
+        <i class="bi bi-people-fill"></i> All mentees
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-export" data-toast="Preparing export…" data-toast-type="success">
+        <i class="bi bi-download"></i> Export CSV
+    </button>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Metrics are verified against real events</strong>
+        <p>
+            Every number here is derived from <strong>recorded sessions</strong>,
+            <strong>confirmed payments</strong>, and <strong>mentee actions</strong> —
+            never estimated. If a metric looks off, you can drill into the raw
+            underlying events.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     ANALYTICS GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="ana-grid">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- 1. Response rate over time -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-lightning-charge-fill"></i> Response Rate</h3>
+                    <p>Percentage of mentee messages replied to within 24 hours</p>
+                </div>
+                <div class="cc-legend">
+                    <span class="item"><span class="swatch lime"></span> Your rate</span>
+                    <span class="item"><span class="swatch gray"></span> Platform avg (81%)</span>
+                </div>
+            </div>
+
+            <div class="line-chart">
+                <svg viewBox="0 0 720 240" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="areaLime" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#BEF264" stop-opacity="0.55"/>
+                            <stop offset="100%" stop-color="#BEF264" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Grid lines -->
+                    <line class="grid-line" x1="0" y1="40" x2="720" y2="40"/>
+                    <line class="grid-line" x1="0" y1="80" x2="720" y2="80"/>
+                    <line class="grid-line" x1="0" y1="120" x2="720" y2="120"/>
+                    <line class="grid-line" x1="0" y1="160" x2="720" y2="160"/>
+                    <line class="grid-line dashed" x1="0" y1="200" x2="720" y2="200"/>
+
+                    <!-- Y axis labels -->
+                    <text class="axis-label" x="0" y="35">100%</text>
+                    <text class="axis-label" x="0" y="75">90%</text>
+                    <text class="axis-label" x="0" y="115">80%</text>
+                    <text class="axis-label" x="0" y="155">70%</text>
+                    <text class="axis-label" x="0" y="195">60%</text>
+
+                    <!-- Area fill -->
+                    <path class="area"
+                          d="M20,140 L120,120 L220,128 L320,100 L420,108 L520,84 L620,88 L700,72
+                             L700,220 L20,220 Z"/>
+
+                    <!-- Data line -->
+                    <path class="data-line"
+                          d="M20,140 L120,120 L220,128 L320,100 L420,108 L520,84 L620,88 L700,72"/>
+
+                    <!-- Data points -->
+                    <circle class="data-dot" cx="20"  cy="140" r="4"/>
+                    <circle class="data-dot" cx="120" cy="120" r="4"/>
+                    <circle class="data-dot" cx="220" cy="128" r="4"/>
+                    <circle class="data-dot" cx="320" cy="100" r="4"/>
+                    <circle class="data-dot" cx="420" cy="108" r="4"/>
+                    <circle class="data-dot" cx="520" cy="84"  r="4"/>
+                    <circle class="data-dot" cx="620" cy="88"  r="4"/>
+                    <circle class="data-dot highlight" cx="700" cy="72" r="5.5"/>
+
+                    <!-- Highlight label -->
+                    <rect class="point-label-box" x="660" y="42" width="46" height="18"/>
+                    <text class="point-label" x="683" y="55" text-anchor="middle">96%</text>
+                </svg>
+            </div>
+
+            <div class="chart-x-axis">
+                <span>Wk 1</span><span>Wk 2</span><span>Wk 3</span><span>Wk 4</span>
+                <span>Wk 5</span><span>Wk 6</span><span>Wk 7</span><span>Wk 8</span>
+            </div>
+
+            <div class="earnings-stats">
+                <div>
+                    <strong>96<em>%</em></strong>
+                    <span>Current</span>
+                </div>
+                <div>
+                    <strong>+15<em>pts</em></strong>
+                    <span>vs platform avg</span>
+                </div>
+                <div>
+                    <strong>2.4<em>h</em></strong>
+                    <span>Avg response time</span>
+                </div>
+            </div>
+        </article>
+
+        <!-- 2. Session hours by week -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-clock-history"></i> Session Hours · Weekly</h3>
+                    <p>Hours taught per week across all mentees and plans</p>
+                </div>
+                <div class="cc-legend">
+                    <span class="item"><span class="swatch lime"></span> Completed</span>
+                    <span class="item"><span class="swatch sky"></span> This week</span>
+                </div>
+            </div>
+
+            <div class="bar-chart">
+                <div class="col">
+                    <div class="track"><div class="bar-v" data-h="62" data-val="9.4h"></div></div>
+                    <span class="day">W1</span>
+                </div>
+                <div class="col">
+                    <div class="track"><div class="bar-v" data-h="74" data-val="11.2h"></div></div>
+                    <span class="day">W2</span>
+                </div>
+                <div class="col">
+                    <div class="track"><div class="bar-v" data-h="58" data-val="8.8h"></div></div>
+                    <span class="day">W3</span>
+                </div>
+                <div class="col">
+                    <div class="track"><div class="bar-v" data-h="88" data-val="13.4h"></div></div>
+                    <span class="day">W4</span>
+                </div>
+                <div class="col">
+                    <div class="track"><div class="bar-v" data-h="72" data-val="11.0h"></div></div>
+                    <span class="day">W5</span>
+                </div>
+                <div class="col">
+                    <div class="track"><div class="bar-v" data-h="94" data-val="14.2h"></div></div>
+                    <span class="day">W6</span>
+                </div>
+                <div class="col today">
+                    <div class="track"><div class="bar-v" data-h="68" data-val="10.4h"></div></div>
+                    <span class="day">W7</span>
+                </div>
+                <div class="col dim">
+                    <div class="track"><div class="bar-v" data-h="30" data-val="4.6h"></div></div>
+                    <span class="day">W8</span>
+                </div>
+            </div>
+
+            <div class="earnings-stats">
+                <div>
+                    <strong>142<em>h</em></strong>
+                    <span>Total · 90d</span>
+                </div>
+                <div>
+                    <strong>11.2<em>h</em></strong>
+                    <span>Avg per week</span>
+                </div>
+                <div>
+                    <strong>+18<em>h</em></strong>
+                    <span>vs prior 90d</span>
+                </div>
+            </div>
+        </article>
+
+        <!-- 3. Mentee growth -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-people-fill"></i> Mentee Growth</h3>
+                    <p>Active mentees over time, broken down by plan status</p>
+                </div>
+                <div class="cc-legend">
+                    <span class="item"><span class="swatch lime"></span> Active</span>
+                    <span class="item"><span class="swatch sky"></span> New</span>
+                    <span class="item"><span class="swatch violet"></span> Graduated</span>
+                </div>
+            </div>
+
+            <div class="line-chart">
+                <svg viewBox="0 0 720 240" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="areaAccent" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.40"/>
+                            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="areaViolet" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Grid lines -->
+                    <line class="grid-line" x1="0" y1="40" x2="720" y2="40"/>
+                    <line class="grid-line" x1="0" y1="80" x2="720" y2="80"/>
+                    <line class="grid-line" x1="0" y1="120" x2="720" y2="120"/>
+                    <line class="grid-line" x1="0" y1="160" x2="720" y2="160"/>
+                    <line class="grid-line dashed" x1="0" y1="200" x2="720" y2="200"/>
+
+                    <!-- Y axis labels -->
+                    <text class="axis-label" x="0" y="35">32</text>
+                    <text class="axis-label" x="0" y="75">24</text>
+                    <text class="axis-label" x="0" y="115">16</text>
+                    <text class="axis-label" x="0" y="155">8</text>
+                    <text class="axis-label" x="0" y="195">0</text>
+
+                    <!-- Graduated (violet, dashed) -->
+                    <path class="area violet"
+                          d="M20,196 L120,192 L220,188 L320,184 L420,178 L520,172 L620,164 L700,156
+                             L700,220 L20,220 Z"/>
+                    <path class="data-line violet dashed"
+                          d="M20,196 L120,192 L220,188 L320,184 L420,178 L520,172 L620,164 L700,156"/>
+
+                    <!-- Active (lime, main) -->
+                    <path class="area"
+                          d="M20,148 L120,136 L220,128 L320,116 L420,108 L520,96 L620,84 L700,72
+                             L700,220 L20,220 Z"/>
+                    <path class="data-line"
+                          d="M20,148 L120,136 L220,128 L320,116 L420,108 L520,96 L620,84 L700,72"/>
+
+                    <!-- Active data dots -->
+                    <circle class="data-dot" cx="20"  cy="148" r="4"/>
+                    <circle class="data-dot" cx="120" cy="136" r="4"/>
+                    <circle class="data-dot" cx="220" cy="128" r="4"/>
+                    <circle class="data-dot" cx="320" cy="116" r="4"/>
+                    <circle class="data-dot" cx="420" cy="108" r="4"/>
+                    <circle class="data-dot" cx="520" cy="96"  r="4"/>
+                    <circle class="data-dot" cx="620" cy="84"  r="4"/>
+                    <circle class="data-dot highlight" cx="700" cy="72" r="5.5"/>
+
+                    <!-- Highlight label -->
+                    <rect class="point-label-box" x="660" y="42" width="46" height="18"/>
+                    <text class="point-label" x="683" y="55" text-anchor="middle">24</text>
+                </svg>
+            </div>
+
+            <div class="chart-x-axis">
+                <span>Wk 1</span><span>Wk 2</span><span>Wk 3</span><span>Wk 4</span>
+                <span>Wk 5</span><span>Wk 6</span><span>Wk 7</span><span>Wk 8</span>
+            </div>
+
+            <div class="growth-chips">
+                <span class="growth-chip">
+                    <span class="chip-dot lime"></span> <strong>24</strong> active
+                </span>
+                <span class="growth-chip">
+                    <span class="chip-dot sky"></span> <strong>+6</strong> new
+                </span>
+                <span class="growth-chip">
+                    <span class="chip-dot violet"></span> <strong>4</strong> graduated
+                </span>
+            </div>
+        </article>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- 4. Earnings trend -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-cash-coin"></i> Earnings Trend</h3>
+                    <p>Monthly earnings from confirmed payouts</p>
+                </div>
+            </div>
+
+            <div class="line-chart" style="height: 200px;">
+                <svg viewBox="0 0 340 200" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="areaAmber" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#FCD34D" stop-opacity="0.45"/>
+                            <stop offset="100%" stop-color="#FCD34D" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    <line class="grid-line" x1="0" y1="40" x2="340" y2="40"/>
+                    <line class="grid-line" x1="0" y1="80" x2="340" y2="80"/>
+                    <line class="grid-line" x1="0" y1="120" x2="340" y2="120"/>
+                    <line class="grid-line dashed" x1="0" y1="160" x2="340" y2="160"/>
+
+                    <text class="axis-label" x="0" y="35">$2k</text>
+                    <text class="axis-label" x="0" y="75">$1.5k</text>
+                    <text class="axis-label" x="0" y="115">$1k</text>
+                    <text class="axis-label" x="0" y="155">$500</text>
+
+                    <path class="area"
+                          style="fill: url(#areaAmber); opacity: 0.55;"
+                          d="M15,128 L65,110 L115,118 L165,88 L215,96 L265,72 L320,58
+                             L320,180 L15,180 Z"/>
+                    <path class="data-line"
+                          style="stroke: #FCD34D; filter: drop-shadow(0 4px 8px rgba(252, 211, 77, 0.35));"
+                          d="M15,128 L65,110 L115,118 L165,88 L215,96 L265,72 L320,58"/>
+
+                    <circle class="data-dot" style="stroke:#FCD34D;" cx="15"  cy="128" r="3.5"/>
+                    <circle class="data-dot" style="stroke:#FCD34D;" cx="65"  cy="110" r="3.5"/>
+                    <circle class="data-dot" style="stroke:#FCD34D;" cx="115" cy="118" r="3.5"/>
+                    <circle class="data-dot" style="stroke:#FCD34D;" cx="165" cy="88"  r="3.5"/>
+                    <circle class="data-dot" style="stroke:#FCD34D;" cx="215" cy="96"  r="3.5"/>
+                    <circle class="data-dot" style="stroke:#FCD34D;" cx="265" cy="72"  r="3.5"/>
+                    <circle class="data-dot highlight" style="fill:#FCD34D; stroke:#FCD34D;" cx="320" cy="58" r="5"/>
+
+                    <rect class="point-label-box" x="272" y="34" width="52" height="18"/>
+                    <text class="point-label" x="298" y="47" text-anchor="middle">$1,840</text>
+                </svg>
+            </div>
+
+            <div class="chart-x-axis">
+                <span>Apr</span><span>May</span><span>Jun</span>
+                <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span>
+            </div>
+
+            <div class="earnings-stats">
+                <div>
+                    <strong>$1,840</strong>
+                    <span>This month</span>
+                </div>
+                <div>
+                    <strong>$5,280<em>+12%</em></strong>
+                    <span>Last 90d</span>
+                </div>
+                <div>
+                    <strong>$880</strong>
+                    <span>Next payout</span>
+                </div>
+            </div>
+        </article>
+
+        <!-- 5. Conversion funnel -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-funnel-fill"></i> Mentee Funnel</h3>
+                    <p>From request to active mentee</p>
+                </div>
+            </div>
+
+            <div class="funnel-list">
+                <div class="funnel-row">
+                    <div class="fr-head">
+                        <span>Requests received</span>
+                        <strong>142<em>100%</em></strong>
+                    </div>
+                    <div class="fr-track">
+                        <div class="fr-fill lime" data-w="100">142</div>
+                    </div>
+                </div>
+                <div class="funnel-row">
+                    <div class="fr-head">
+                        <span>Accepted</span>
+                        <strong>124<em>87%</em></strong>
+                    </div>
+                    <div class="fr-track">
+                        <div class="fr-fill sky" data-w="87">124</div>
+                    </div>
+                </div>
+                <div class="funnel-row">
+                    <div class="fr-head">
+                        <span>Started plan</span>
+                        <strong>108<em>76%</em></strong>
+                    </div>
+                    <div class="fr-track">
+                        <div class="fr-fill violet" data-w="76">108</div>
+                    </div>
+                </div>
+                <div class="funnel-row">
+                    <div class="fr-head">
+                        <span>Completed first milestone</span>
+                        <strong>96<em>68%</em></strong>
+                    </div>
+                    <div class="fr-track">
+                        <div class="fr-fill amber" data-w="68">96</div>
+                    </div>
+                </div>
+                <div class="funnel-row">
+                    <div class="fr-head">
+                        <span>Still active</span>
+                        <strong>24<em>17%</em></strong>
+                    </div>
+                    <div class="fr-track">
+                        <div class="fr-fill gray" data-w="17">24</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- 6. Top performing plans -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-trophy-fill"></i> Top Plans</h3>
+                    <p>Ranked by mentee rating and completion</p>
+                </div>
+                <a href="#" class="link" style="font-size:0.72rem; color: var(--gray-600); font-weight: 700;">
+                    All plans <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="top-row">
+                <span class="top-rank">01</span>
+                <span class="top-avatar lime">AR</span>
+                <div class="top-body">
+                    <strong>Advanced React Patterns</strong>
+                    <div class="track"><i data-w="92"></i></div>
+                </div>
+                <div class="top-score">
+                    <strong>4.9</strong>
+                    <span>18 mentees</span>
+                </div>
+            </div>
+
+            <div class="top-row">
+                <span class="top-rank">02</span>
+                <span class="top-avatar sky">BM</span>
+                <div class="top-body">
+                    <strong>Backend Mastery</strong>
+                    <div class="track accent"><i data-w="84"></i></div>
+                </div>
+                <div class="top-score">
+                    <strong>4.8</strong>
+                    <span>12 mentees</span>
+                </div>
+            </div>
+
+            <div class="top-row">
+                <span class="top-rank">03</span>
+                <span class="top-avatar violet">DD</span>
+                <div class="top-body">
+                    <strong>Design → Dev Bridge</strong>
+                    <div class="track violet"><i data-w="78"></i></div>
+                </div>
+                <div class="top-score">
+                    <strong>4.9</strong>
+                    <span>8 mentees</span>
+                </div>
+            </div>
+
+            <div class="top-row">
+                <span class="top-rank">04</span>
+                <span class="top-avatar amber">ML</span>
+                <div class="top-body">
+                    <strong>ML Foundations</strong>
+                    <div class="track"><i data-w="62"></i></div>
+                </div>
+                <div class="top-score">
+                    <strong>4.7</strong>
+                    <span>6 mentees</span>
+                </div>
+            </div>
+        </article>
+
+        <!-- 7. Insights -->
+        <article class="chart-card fade-up">
+            <div class="cc-head">
+                <div class="cc-title">
+                    <h3><i class="bi bi-lightbulb-fill"></i> Insights</h3>
+                    <p>What the numbers suggest</p>
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <span class="insight-ic lime"><i class="bi bi-arrow-up-short"></i></span>
+                <div class="insight-body">
+                    <strong>Response rate trending up</strong>
+                    <p>You improved from 82% to 96% over 8 weeks — likely driven by your <strong>2.4h average reply time</strong>.</p>
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <span class="insight-ic accent"><i class="bi bi-clock-history"></i></span>
+                <div class="insight-body">
+                    <strong>Session hours plateauing</strong>
+                    <p>Your weekly hours have hovered near <strong>11h</strong> for 4 weeks. Consider opening 1 more slot per week.</p>
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <span class="insight-ic violet"><i class="bi bi-people-fill"></i></span>
+                <div class="insight-body">
+                    <strong>Strong mentee retention</strong>
+                    <p><strong>17%</strong> of accepted mentees stay active long-term — well above the platform average of 11%.</p>
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <span class="insight-ic amber"><i class="bi bi-cash-coin"></i></span>
+                <div class="insight-body">
+                    <strong>Earnings growth is healthy</strong>
+                    <p>Earnings rose <strong>12%</strong> in 90 days, largely from the Advanced React Patterns plan which drives <strong>42%</strong> of revenue.</p>
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <span class="insight-ic danger"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                <div class="insight-body">
+                    <strong>Funnel drop-off at first milestone</strong>
+                    <p><strong>12 mentees</strong> accepted but never completed their first milestone. Consider an onboarding check-in.</p>
+                </div>
+            </div>
+        </article>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           BAR CHART + FUNNEL + TOP PLANS + SPARKLINES
+           ====================================================== */
+        window.addEventListener('load', function () {
+            /* Bar chart heights */
+            document.querySelectorAll('.bar-chart .bar-v[data-h]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.height = el.dataset.h + '%';
+                }, 320);
+            });
+
+            /* Funnel widths */
+            document.querySelectorAll('.funnel-row .fr-fill[data-w]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.width = el.dataset.w + '%';
+                }, 380);
+            });
+
+            /* Top plan bars */
+            document.querySelectorAll('.top-body .track i[data-w]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.width = el.dataset.w + '%';
+                }, 420);
+            });
+
+            /* Sparklines — subtle growth animation */
+            document.querySelectorAll('.ao-sparkline i').forEach(function (el, i) {
+                setTimeout(function () {
+                    el.style.transform = 'scaleY(1)';
+                    el.style.transformOrigin = 'bottom';
+                }, 200 + i * 40);
+            });
+        });
+
+        /* ======================================================
+           DATE RANGE TOGGLE (visual only)
+           ====================================================== */
+        document.querySelectorAll('.tool-range button').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.tool-range button').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+                if (window.showKnotToast) {
+                    window.showKnotToast('Date range: ' + this.textContent.trim(), 'info');
+                }
+            });
+        });
+
+        /* ======================================================
+           Y AXIS SCALE — readapts to container height
+           ====================================================== */
+        function adaptYAxis() {
+            document.querySelectorAll('.line-chart svg').forEach(function (svg) {
+                const rect = svg.getBoundingClientRect();
+                const vh = svg.viewBox.baseVal.height;
+                // preserve aspect ratio is set to none, so no-op
+            });
+        }
+        window.addEventListener('resize', adaptYAxis);
+        adaptYAxis();
+
+    })();
+</script>
+{% endblock extra_js %}

@@ -1,0 +1,2485 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Courses{% endblock %}
+{% block page_title %}Courses{% endblock %}
+{% block breadcrumb %}Content · Curriculum Oversight{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   COURSES — CURRICULUM OVERSIGHT COMMAND
+   Improvised palette: scholarly-indigo + parchment-gold + quill-emerald
+   ============================================================ */
+
+:root {
+    --cr-indigo: #6366F1;
+    --cr-indigo-deep: #4338CA;
+    --cr-indigo-dim: rgba(99, 102, 241, 0.12);
+    --cr-indigo-glow: rgba(99, 102, 241, 0.42);
+
+    --cr-parchment: #D4A574;
+    --cr-parchment-deep: #92400E;
+    --cr-parchment-dim: rgba(212, 165, 116, 0.14);
+    --cr-parchment-glow: rgba(212, 165, 116, 0.42);
+
+    --cr-emerald: #059669;
+    --cr-emerald-deep: #065F46;
+    --cr-emerald-dim: rgba(5, 150, 105, 0.12);
+    --cr-emerald-glow: rgba(5, 150, 105, 0.42);
+
+    --cr-rose: #F43F5E;
+    --cr-rose-deep: #BE123C;
+    --cr-rose-dim: rgba(244, 63, 94, 0.12);
+    --cr-rose-glow: rgba(244, 63, 94, 0.42);
+
+    --cr-gold: #FBBF24;
+    --cr-gold-deep: #B45309;
+    --cr-gold-dim: rgba(251, 191, 36, 0.14);
+
+    --cr-mesh-1: radial-gradient(circle at 12% 20%, rgba(99, 102, 241, 0.16), transparent 42%);
+    --cr-mesh-2: radial-gradient(circle at 88% 78%, rgba(212, 165, 116, 0.14), transparent 44%);
+    --cr-mesh-3: radial-gradient(circle at 62% 12%, rgba(5, 150, 105, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   COURSES WIRE — MARQUEE
+   ============================================================ */
+.cr-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(99, 102, 241, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(212, 165, 116, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(99, 102, 241, 0.28);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.cr-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cr-indigo), var(--cr-parchment), var(--cr-emerald), var(--crown-2));
+    box-shadow: 0 0 22px rgba(99, 102, 241, 0.5);
+    z-index: 5;
+}
+.cr-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.cr-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.cr-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.cr-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.cr-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--cr-indigo);
+    pointer-events: none;
+}
+.cr-wire-label .cr-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--cr-indigo);
+    box-shadow: 0 0 0 0 var(--cr-indigo-glow);
+    animation: crPulse 1.6s infinite;
+}
+@keyframes crPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+.cr-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 160px;
+    animation: crWireRoll 52s linear infinite;
+}
+.cr-wire:hover .cr-wire-track { animation-play-state: paused; }
+@keyframes crWireRoll { to { transform: translateX(-50%); } }
+
+.cr-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.cr-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cr-indigo);
+    box-shadow: 0 0 8px var(--cr-indigo-glow);
+    flex-shrink: 0;
+    animation: crSpark 1.8s ease-in-out infinite;
+}
+.cr-wire-item.indigo    .wdot { background: var(--cr-indigo);    box-shadow: 0 0 8px var(--cr-indigo-glow); }
+.cr-wire-item.parchment .wdot { background: var(--cr-parchment); box-shadow: 0 0 8px var(--cr-parchment-glow); }
+.cr-wire-item.emerald   .wdot { background: var(--cr-emerald);   box-shadow: 0 0 8px var(--cr-emerald-glow); }
+.cr-wire-item.rose      .wdot { background: var(--cr-rose);      box-shadow: 0 0 8px var(--cr-rose-glow); }
+.cr-wire-item.gold      .wdot { background: var(--cr-gold);      box-shadow: 0 0 8px rgba(251,191,36,0.75); }
+@keyframes crSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.cr-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.cr-wire-item em {
+    font-style: normal;
+    color: var(--cr-indigo);
+    font-weight: 700;
+}
+
+/* ============================================================
+   COURSES HERO
+   ============================================================ */
+.cr-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--cr-mesh-1), var(--cr-mesh-2), var(--cr-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(99, 102, 241, 0.22);
+}
+.cr-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cr-indigo), var(--cr-parchment) 40%, var(--cr-emerald) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(99, 102, 241, 0.5);
+    z-index: 5;
+}
+.cr-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.cr-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.cr-hero-left { min-width: 0; flex: 1 1 520px; }
+.cr-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.42);
+    color: var(--cr-indigo);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.cr-hero-kicker i { font-size: 0.7rem; }
+.cr-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.cr-hero-title em { color: var(--cr-indigo); font-style: italic; }
+.cr-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 620px;
+    line-height: 1.62;
+}
+.cr-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.cr-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.cr-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.cr-hero-meta .hm:hover {
+    background: rgba(99, 102, 241, 0.10);
+    border-color: rgba(99, 102, 241, 0.42);
+    color: var(--cr-indigo);
+    transform: translateY(-2px);
+}
+.cr-hero-meta .hm i { color: var(--cr-indigo); font-size: 0.78rem; }
+.cr-hero-meta .hm.warn {
+    background: rgba(244, 63, 94, 0.10);
+    border-color: rgba(244, 63, 94, 0.42);
+    color: var(--cr-rose);
+}
+.cr-hero-meta .hm.warn i { color: var(--cr-rose); }
+
+.cr-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(99, 102, 241, 0.16), rgba(212, 165, 116, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(99, 102, 241, 0.42);
+    box-shadow:
+        0 18px 44px rgba(99, 102, 241, 0.18),
+        0 0 0 1px rgba(99, 102, 241, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--cr-indigo) 120deg,
+                var(--cr-parchment) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--cr-indigo);
+    display: grid;
+    place-items: center;
+    color: var(--cr-indigo);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(99, 102, 241, 0.55), 0 0 0 3px rgba(99, 102, 241, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--cr-indigo), var(--cr-parchment));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(99, 102, 241, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.cr-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.cr-tabs::-webkit-scrollbar { display: none; }
+
+.cr-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.cr-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.cr-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.cr-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.cr-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.cr-tab .tab-badge.glow {
+    background: var(--cr-parchment-dim);
+    color: var(--cr-parchment-deep);
+    border: 1px solid rgba(212, 165, 116, 0.42);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(212, 165, 116, 0); }
+}
+.cr-tab .tab-badge.alert {
+    background: var(--cr-rose-dim);
+    color: var(--cr-rose-deep);
+    border: 1px solid rgba(244, 63, 94, 0.32);
+}
+
+.cr-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.cr-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.cr-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.cr-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.cr-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.cr-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.cr-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.cr-panels { position: relative; }
+.cr-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: crPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.cr-panel.active { display: flex; }
+@keyframes crPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.cr-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.cr-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.cr-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--cs-accent, linear-gradient(90deg, var(--cr-indigo), var(--cr-indigo-deep)));
+}
+.cr-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.cr-stat.indigo    { --cs-accent: linear-gradient(90deg, #6366F1, #4338CA); }
+.cr-stat.parchment { --cs-accent: linear-gradient(90deg, #D4A574, #92400E); }
+.cr-stat.emerald   { --cs-accent: linear-gradient(90deg, #059669, #065F46); }
+.cr-stat.rose      { --cs-accent: linear-gradient(90deg, #F43F5E, #BE123C); }
+.cr-stat.gold      { --cs-accent: linear-gradient(90deg, #FBBF24, #B45309); }
+
+.cr-stat .cs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.cr-stat .cs-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.cr-stat.indigo    .cs-ic { background: var(--cr-indigo-dim);    color: var(--cr-indigo-deep); }
+.cr-stat.parchment .cs-ic { background: var(--cr-parchment-dim); color: var(--cr-parchment-deep); }
+.cr-stat.emerald   .cs-ic { background: var(--cr-emerald-dim);   color: var(--cr-emerald-deep); }
+.cr-stat.rose      .cs-ic { background: var(--cr-rose-dim);      color: var(--cr-rose-deep); }
+.cr-stat.gold      .cs-ic { background: var(--cr-gold-dim);      color: var(--cr-gold-deep); }
+
+.cr-stat .cs-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.cr-stat .cs-trend.warn { background: var(--cr-parchment-dim); color: var(--cr-parchment-deep); }
+.cr-stat .cs-trend.down { background: var(--cr-rose-dim); color: var(--cr-rose-deep); }
+
+.cr-stat .cs-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.cr-stat .cs-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.cr-stat .cs-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.cr-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.cr-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.cr-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.cr-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.cr-search:focus-within i { color: var(--tab-accent-deep); }
+.cr-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.cr-search input::placeholder { color: var(--gray-400); }
+.cr-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.cr-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.cr-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.cr-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.cr-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+.cr-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   COURSE CARDS — GRID
+   ============================================================ */
+.cr-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.cr-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.cr-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--cc-accent, linear-gradient(180deg, var(--cr-indigo), var(--cr-indigo-deep)));
+    z-index: 2;
+}
+.cr-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.cr-card.live     { --cc-accent: linear-gradient(180deg, #059669, #065F46); }
+.cr-card.pending  { --cc-accent: linear-gradient(180deg, #D4A574, #92400E); }
+.cr-card.flagged  { --cc-accent: linear-gradient(180deg, #F43F5E, #BE123C); }
+
+.cr-card-grid {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    gap: 22px;
+    padding: 22px 24px 22px 28px;
+    align-items: stretch;
+}
+
+/* ---- Course thumbnail ---- */
+.cc-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1E293B, #0F172A);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    isolation: isolate;
+}
+.cc-thumb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 14px 14px;
+    opacity: 0.6;
+    z-index: 1;
+}
+.cc-thumb .th-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: rgba(2, 6, 23, 0.72);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.14);
+    z-index: 3;
+}
+.cc-thumb .th-badge.live    { background: rgba(5, 150, 105, 0.72); border-color: rgba(16,185,129,0.5); }
+.cc-thumb .th-badge.pending { background: rgba(212, 165, 116, 0.72); color: var(--primary-deep); border-color: rgba(212,165,116,0.6); }
+.cc-thumb .th-badge.flagged { background: rgba(244, 63, 94, 0.72); border-color: rgba(244,63,94,0.5); }
+
+.cc-thumb .th-icon {
+    position: relative;
+    z-index: 2;
+    font-size: 2.2rem;
+}
+.cc-thumb .th-play {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: rgba(2, 6, 23, 0.75);
+    backdrop-filter: blur(4px);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 0.86rem;
+    border: 1px solid rgba(255,255,255,0.14);
+    z-index: 3;
+}
+
+/* ---- Course info ---- */
+.cc-info { min-width: 0; display: flex; flex-direction: column; }
+.cc-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 50px;
+    background: var(--cr-indigo-dim);
+    color: var(--cr-indigo-deep);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    width: fit-content;
+    margin-bottom: 8px;
+}
+.cc-category i { font-size: 0.6rem; }
+.cc-category.web     { background: var(--cr-indigo-dim);    color: var(--cr-indigo-deep); }
+.cc-category.data    { background: var(--cr-emerald-dim);   color: var(--cr-emerald-deep); }
+.cc-category.design  { background: var(--cr-parchment-dim); color: var(--cr-parchment-deep); }
+.cc-category.mobile  { background: rgba(56, 189, 248, 0.12); color: #0369A1; }
+
+.cc-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.14rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.25;
+    margin-bottom: 6px;
+}
+.cc-desc {
+    font-size: 0.76rem;
+    color: var(--gray-600);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.cc-instructor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 8px 8px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    width: fit-content;
+    max-width: 100%;
+}
+.cc-instructor .in-av {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cr-indigo), var(--cr-parchment));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.cc-instructor .in-meta { min-width: 0; line-height: 1.2; }
+.cc-instructor .in-meta strong {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cc-instructor .in-meta small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
+
+.cc-meta-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.cc-meta-row .mr-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 7px;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--gray-600);
+}
+.cc-meta-row .mr-tag i { font-size: 0.62rem; }
+.cc-meta-row .mr-tag.live     { background: var(--cr-emerald-dim); color: var(--cr-emerald-deep); border-color: rgba(5,150,105,0.3); }
+.cc-meta-row .mr-tag.pending  { background: var(--cr-parchment-dim); color: var(--cr-parchment-deep); border-color: rgba(212,165,116,0.4); }
+.cc-meta-row .mr-tag.flagged  { background: var(--cr-rose-dim); color: var(--cr-rose-deep); border-color: rgba(244,63,94,0.3); }
+
+/* ---- Course metrics ---- */
+.cc-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding-left: 22px;
+    border-left: 1px dashed var(--gray-200);
+    align-content: flex-start;
+}
+.cc-metric {
+    line-height: 1.15;
+}
+.cc-metric .mt-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.cc-metric .mt-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.cc-metric .mt-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+}
+.cc-metric .mt-value.good { color: var(--cr-emerald-deep); }
+.cc-metric .mt-value.warn { color: var(--cr-parchment-deep); }
+.cc-metric .mt-bar {
+    height: 4px;
+    background: var(--gray-100);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+.cc-metric .mt-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--cr-indigo), var(--cr-indigo-deep));
+    transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.cc-metric .mt-bar.good > span { background: linear-gradient(90deg, var(--cr-emerald), var(--cr-emerald-deep)); }
+.cc-metric .mt-bar.warn > span { background: linear-gradient(90deg, var(--cr-parchment), var(--cr-parchment-deep)); }
+.cc-metric .mt-bar.rose > span { background: linear-gradient(90deg, var(--cr-rose), var(--cr-rose-deep)); }
+
+/* ---- Course actions ---- */
+.cc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 180px;
+    padding-top: 4px;
+}
+.cc-actions .cc-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.cc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.cc-btn i { font-size: 0.86rem; }
+
+.cc-btn.approve {
+    background: linear-gradient(135deg, var(--cr-emerald), var(--cr-emerald-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.32);
+}
+.cc-btn.approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(5, 150, 105, 0.44);
+}
+.cc-btn.review {
+    background: linear-gradient(135deg, var(--cr-indigo), var(--cr-indigo-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.32);
+}
+.cc-btn.review:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(99, 102, 241, 0.44);
+}
+.cc-btn.ghost {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.cc-btn.ghost:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.cc-btn.reject {
+    background: var(--white);
+    color: var(--cr-rose-deep);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+}
+.cc-btn.reject:hover {
+    background: var(--cr-rose-dim);
+    border-color: var(--cr-rose);
+    transform: translateY(-2px);
+}
+.cc-btn.override {
+    background: transparent;
+    color: var(--cr-parchment-deep);
+    border: 1px dashed rgba(212, 165, 116, 0.6);
+    font-size: 0.7rem;
+    padding: 8px 14px;
+}
+.cc-btn.override:hover {
+    background: var(--cr-parchment-dim);
+    border-style: solid;
+    border-color: var(--cr-parchment);
+}
+
+/* Flagged card variant — add reason block */
+.cc-flag-reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--cr-rose-dim);
+    border-left: 3px solid var(--cr-rose);
+    margin-bottom: 12px;
+}
+.cc-flag-reason i { color: var(--cr-rose-deep); font-size: 0.86rem; flex-shrink: 0; margin-top: 1px; }
+.cc-flag-reason div { flex: 1; min-width: 0; }
+.cc-flag-reason strong {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--cr-rose-deep);
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'JetBrains Mono', monospace;
+}
+.cc-flag-reason p {
+    font-size: 0.72rem;
+    color: var(--gray-800);
+    line-height: 1.5;
+}
+
+/* ============================================================
+   ADMIN EXCLUSIVE — CURRICULUM GOVERNANCE CONSOLE
+   ============================================================ */
+.curriculum-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(99, 102, 241, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(212, 165, 116, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(99, 102, 241, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.curriculum-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cr-indigo), var(--cr-parchment) 50%, var(--cr-emerald) 100%);
+    box-shadow: 0 0 22px rgba(99, 102, 241, 0.5);
+}
+.curriculum-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.cc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.cc-head .cc-h-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--cr-indigo), var(--cr-parchment));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.cc-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.cc-head h2 em { color: var(--cr-indigo); font-style: italic; }
+.cc-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.cc-head .cc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.42);
+    color: var(--cr-indigo);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.cc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.cc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.cc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.cc-tool:hover {
+    background: rgba(99, 102, 241, 0.10);
+    border-color: rgba(99, 102, 241, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(99, 102, 241, 0.18);
+}
+.cc-tool:hover::before { transform: translateX(120%); }
+.cc-tool .cc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--cr-indigo);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.cc-tool:hover .cc-t-ic {
+    background: linear-gradient(135deg, var(--cr-indigo), var(--cr-parchment));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.42);
+}
+.cc-tool.danger .cc-t-ic { color: var(--cr-rose); }
+.cc-tool.danger:hover {
+    background: rgba(244, 63, 94, 0.10);
+    border-color: rgba(244, 63, 94, 0.42);
+}
+.cc-tool.danger:hover .cc-t-ic {
+    background: linear-gradient(135deg, var(--cr-rose), var(--cr-rose-deep));
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.42);
+}
+.cc-tool.emerald .cc-t-ic { color: var(--cr-emerald); }
+.cc-tool.emerald:hover { background: rgba(5, 150, 105, 0.10); border-color: rgba(5, 150, 105, 0.42); }
+.cc-tool.emerald:hover .cc-t-ic {
+    background: linear-gradient(135deg, var(--cr-emerald), var(--cr-emerald-deep));
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.42);
+}
+.cc-tool .cc-t-body { flex: 1; min-width: 0; }
+.cc-tool .cc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.cc-tool .cc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.cc-tool .cc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.cc-tool:hover .cc-t-arrow { color: var(--cr-indigo); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .cr-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cr-card-grid { grid-template-columns: 180px minmax(0, 1.3fr) minmax(0, 1fr); }
+    .cc-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .cc-actions .cc-action-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .cr-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .cc-metrics { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 14px; grid-template-columns: repeat(4, 1fr); }
+    .cr-card-grid { grid-template-columns: 180px 1fr; }
+    .cc-info { grid-column: 2 / 3; }
+    .cc-metrics { grid-column: 1 / -1; }
+    .cc-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+    .cr-hero { padding: 24px 20px; }
+    .cr-hero-title { font-size: 1.55rem; }
+    .cr-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .cr-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .cr-stat-strip { grid-template-columns: 1fr; }
+    .cr-hero { padding: 22px 18px; }
+    .cr-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .cr-toolbar { padding: 12px 14px; }
+    .cr-search { min-width: 100%; }
+    .cc-actions { flex-direction: column; align-items: stretch; }
+    .cc-actions .cc-action-label { display: block; text-align: left; }
+    .cr-card-grid { grid-template-columns: 1fr; padding: 20px; }
+    .cc-info { grid-column: auto; }
+    .cc-metrics { grid-column: auto; grid-template-columns: repeat(2, 1fr); }
+    .cc-actions { grid-column: auto; }
+    .cc-thumb { aspect-ratio: 16 / 9; }
+}
+@media (max-width: 560px) {
+    .cr-tabs { padding: 6px; gap: 3px; }
+    .cr-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .cr-tab .tab-badge { display: none; }
+    .cr-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .cr-wire-label { display: none; }
+    .cr-wire-track { padding-left: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cr-wire-track, .acb-avatar::before, .cr-wire-label .cr-dot,
+    .cr-wire-item .wdot, .admin-crown-badge::before, .cr-tab .tab-badge.glow {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     COURSES WIRE — MARQUEE
+     ============================================================ -->
+<div class="cr-wire" aria-label="Courses pulse">
+    <span class="cr-wire-edge left"></span>
+    <span class="cr-wire-edge right"></span>
+    <div class="cr-wire-label"><span class="cr-dot"></span> Courses Wire</div>
+    <div class="cr-wire-track">
+        <!-- Set A -->
+        <span class="cr-wire-item indigo"><span class="wdot"></span><strong>248</strong> published courses · <em>+42 in last 30 days</em></span>
+        <span class="cr-wire-item parchment"><span class="wdot"></span><strong>5</strong> pending approval · awaiting your review</span>
+        <span class="cr-wire-item rose"><span class="wdot"></span><strong>3</strong> flagged courses · moderator attention</span>
+        <span class="cr-wire-item emerald"><span class="wdot"></span>Average rating <strong>4.72 / 5</strong> across 18,428 reviews</span>
+        <span class="cr-wire-item gold"><span class="wdot"></span>Top course <strong>Advanced React Patterns</strong> · 2,841 enrolls</span>
+        <span class="cr-wire-item indigo"><span class="wdot"></span>Course completion <strong>+11.4%</strong> vs. last quarter</span>
+        <span class="cr-wire-item emerald"><span class="wdot"></span><strong>84%</strong> of pending courses approved within SLA (48h)</span>
+        <span class="cr-wire-item parchment"><span class="wdot"></span>Oldest pending <strong>2d 4h</strong> · near SLA</span>
+        <span class="cr-wire-item rose"><span class="wdot"></span><strong>2</strong> flagged for quality · 1 for policy</span>
+        <span class="cr-wire-item gold"><span class="wdot"></span>New category <strong>AI &amp; Prompt Engineering</strong> launching soon</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="cr-wire-item indigo"><span class="wdot"></span><strong>248</strong> published courses · <em>+42 in last 30 days</em></span>
+        <span class="cr-wire-item parchment"><span class="wdot"></span><strong>5</strong> pending approval · awaiting your review</span>
+        <span class="cr-wire-item rose"><span class="wdot"></span><strong>3</strong> flagged courses · moderator attention</span>
+        <span class="cr-wire-item emerald"><span class="wdot"></span>Average rating <strong>4.72 / 5</strong> across 18,428 reviews</span>
+        <span class="cr-wire-item gold"><span class="wdot"></span>Top course <strong>Advanced React Patterns</strong> · 2,841 enrolls</span>
+        <span class="cr-wire-item indigo"><span class="wdot"></span>Course completion <strong>+11.4%</strong> vs. last quarter</span>
+        <span class="cr-wire-item emerald"><span class="wdot"></span><strong>84%</strong> of pending courses approved within SLA (48h)</span>
+        <span class="cr-wire-item parchment"><span class="wdot"></span>Oldest pending <strong>2d 4h</strong> · near SLA</span>
+        <span class="cr-wire-item rose"><span class="wdot"></span><strong>2</strong> flagged for quality · 1 for policy</span>
+        <span class="cr-wire-item gold"><span class="wdot"></span>New category <strong>AI &amp; Prompt Engineering</strong> launching soon</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     COURSES HERO
+     ============================================================ -->
+<section class="cr-hero fade-up">
+    <div class="cr-hero-inner">
+        <div class="cr-hero-left">
+            <span class="cr-hero-kicker">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                Curriculum Oversight · Root Access
+            </span>
+            <h1 class="cr-hero-title">
+                Every lesson, <em>curated</em>.
+            </h1>
+            <p class="cr-hero-sub">
+                Approve, review, and moderate courses submitted by <strong>Teachers</strong>.
+                <strong>5</strong> pending review · <strong>3</strong> flagged for moderation ·
+                <strong>248</strong> published and live. SLA <strong>48 hours</strong> from
+                submission to first review.
+            </p>
+            <div class="cr-hero-meta">
+                <span class="hm"><i class="bi bi-journal-bookmark-fill"></i> 248 live</span>
+                <span class="hm"><i class="bi bi-hourglass-split"></i> 5 pending</span>
+                <span class="hm warn"><i class="bi bi-flag-fill"></i> 3 flagged</span>
+                <span class="hm"><i class="bi bi-star-fill"></i> 4.72 avg rating</span>
+            </div>
+        </div>
+
+        <div class="cr-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · CURRICULUM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="cr-tabs" role="tablist" aria-label="Course sections">
+    <button class="cr-tab active" data-tab="all" role="tab" style="--tab-accent: #6366F1; --tab-accent-deep: #4338CA; --tab-accent-dim: rgba(99,102,241,0.10); --tab-accent-glow: rgba(99,102,241,0.42);">
+        <span class="tab-ic"><i class="bi bi-collection-fill"></i></span>
+        <span class="tab-label">
+            All Courses
+            <small>Directory</small>
+        </span>
+        <span class="tab-badge">248</span>
+    </button>
+    <button class="cr-tab" data-tab="pending" role="tab" style="--tab-accent: #D4A574; --tab-accent-deep: #92400E; --tab-accent-dim: rgba(212,165,116,0.10); --tab-accent-glow: rgba(212,165,116,0.42);">
+        <span class="tab-ic"><i class="bi bi-hourglass-split"></i></span>
+        <span class="tab-label">
+            Pending Approval
+            <small>Awaiting</small>
+        </span>
+        <span class="tab-badge glow">5</span>
+    </button>
+    <button class="cr-tab" data-tab="flagged" role="tab" style="--tab-accent: #F43F5E; --tab-accent-deep: #BE123C; --tab-accent-dim: rgba(244,63,94,0.10); --tab-accent-glow: rgba(244,63,94,0.42);">
+        <span class="tab-ic"><i class="bi bi-flag-fill"></i></span>
+        <span class="tab-label">
+            Flagged
+            <small>Moderation</small>
+        </span>
+        <span class="tab-badge alert">3</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="cr-panels">
+
+    <!-- =================================================
+         PANEL 1 — ALL COURSES
+         ================================================= -->
+    <div class="cr-panel active" id="panel-all" role="tabpanel">
+
+        <div class="cr-stat-strip">
+            <div class="cr-stat indigo fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-journal-bookmark-fill"></i></span><span class="cs-trend"><i class="bi bi-arrow-up-short"></i> 42</span></div>
+                <span class="cs-label">Published Courses</span>
+                <div class="cs-value"><span data-count="248">0</span></div>
+            </div>
+            <div class="cr-stat emerald fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-people-fill"></i></span><span class="cs-trend"><i class="bi bi-arrow-up-short"></i> 8.4%</span></div>
+                <span class="cs-label">Total Enrollments</span>
+                <div class="cs-value"><span data-count="18420">0</span></div>
+            </div>
+            <div class="cr-stat gold fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-star-fill"></i></span><span class="cs-trend"><i class="bi bi-arrow-up-short"></i> 0.2</span></div>
+                <span class="cs-label">Avg Course Rating</span>
+                <div class="cs-value"><span data-count="4">0</span><small>.72 / 5</small></div>
+            </div>
+            <div class="cr-stat parchment fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-check2-circle"></i></span><span class="cs-trend"><i class="bi bi-arrow-up-short"></i> 11.4%</span></div>
+                <span class="cs-label">Avg Completion</span>
+                <div class="cs-value"><span data-count="78">0</span><small>%</small></div>
+            </div>
+        </div>
+
+        <div class="cr-toolbar">
+            <div class="cr-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search courses by title, teacher, or category…" aria-label="Search courses">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="cr-select" data-toast="Filter by category" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>All Categories</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="cr-select" data-toast="Sort by: Most enrollments" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Most Enrolled</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="cr-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="cr-list">
+
+            <!-- Live Course #1 -->
+            <article class="cr-card live fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #0F172A, #312E81);">
+                        <span class="th-badge live"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Live</span>
+                        <span class="th-icon"><i class="bi bi-code-slash"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category web"><i class="bi bi-code-slash"></i> Web Development</span>
+                        <h3 class="cc-title">Advanced React Patterns</h3>
+                        <p class="cc-desc">Deep-dive into advanced React patterns: compound components, render props, hooks composition, and performance optimization.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">AN</span>
+                            <div class="in-meta">
+                                <strong>Amara Nwosu</strong>
+                                <small>Senior Mobile &amp; Web Engineer</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag live"><i class="bi bi-check2-circle"></i> Live</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 4h 22m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 42 lessons</span>
+                            <span class="mr-tag"><i class="bi bi-star-fill"></i> 4.9</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Enrollments</span>
+                            <div class="mt-value">2,841</div>
+                            <div class="mt-bar"><span data-value="100"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Completion</span>
+                            <div class="mt-value good">82<small>%</small></div>
+                            <div class="mt-bar good"><span data-value="82"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Revenue</span>
+                            <div class="mt-value"><small>₦</small>3.42M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviews</span>
+                            <div class="mt-value">648</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Actions</span>
+                        <button class="cc-btn review" data-toast="Opening Advanced React Patterns" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="cc-btn ghost" data-toast="Opening edit composer" data-toast-type="info"><i class="bi bi-pencil"></i> Edit</button>
+                        <button class="cc-btn ghost" data-toast="Opening analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="cc-btn reject" data-toast="⚠ Unpublish requires MFA" data-toast-type="error"><i class="bi bi-pause-circle"></i> Unpublish</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Live Course #2 -->
+            <article class="cr-card live fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #0F172A, #064E3B);">
+                        <span class="th-badge live"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Live</span>
+                        <span class="th-icon"><i class="bi bi-filetype-py"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category data"><i class="bi bi-database-fill"></i> Data &amp; AI</span>
+                        <h3 class="cc-title">Python Mastery Track</h3>
+                        <p class="cc-desc">From fundamentals to advanced: decorators, generators, async, and real-world projects including automation and data pipelines.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">CO</span>
+                            <div class="in-meta">
+                                <strong>Chinedu Okafor</strong>
+                                <small>Staff Backend Engineer</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag live"><i class="bi bi-check2-circle"></i> Live</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 12h 04m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 84 lessons</span>
+                            <span class="mr-tag"><i class="bi bi-star-fill"></i> 4.8</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Enrollments</span>
+                            <div class="mt-value">2,594</div>
+                            <div class="mt-bar"><span data-value="91"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Completion</span>
+                            <div class="mt-value good">76<small>%</small></div>
+                            <div class="mt-bar good"><span data-value="76"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Revenue</span>
+                            <div class="mt-value"><small>₦</small>2.98M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviews</span>
+                            <div class="mt-value">582</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Actions</span>
+                        <button class="cc-btn review" data-toast="Opening Python Mastery Track" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="cc-btn ghost" data-toast="Opening edit composer" data-toast-type="info"><i class="bi bi-pencil"></i> Edit</button>
+                        <button class="cc-btn ghost" data-toast="Opening analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="cc-btn reject" data-toast="⚠ Unpublish requires MFA" data-toast-type="error"><i class="bi bi-pause-circle"></i> Unpublish</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Live Course #3 -->
+            <article class="cr-card live fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #0F172A, #7C2D12);">
+                        <span class="th-badge live"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Live</span>
+                        <span class="th-icon"><i class="bi bi-palette-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category design"><i class="bi bi-palette-fill"></i> Design</span>
+                        <h3 class="cc-title">UI/UX Foundations</h3>
+                        <p class="cc-desc">Design thinking, typography, color theory, and modern interface design — from Figma to shipped product with real case studies.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">ZI</span>
+                            <div class="in-meta">
+                                <strong>Zainab Ibrahim</strong>
+                                <small>Senior Product Designer</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag live"><i class="bi bi-check2-circle"></i> Live</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 8h 42m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 56 lessons</span>
+                            <span class="mr-tag"><i class="bi bi-star-fill"></i> 4.8</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Enrollments</span>
+                            <div class="mt-value">2,348</div>
+                            <div class="mt-bar"><span data-value="82"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Completion</span>
+                            <div class="mt-value good">84<small>%</small></div>
+                            <div class="mt-bar good"><span data-value="84"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Revenue</span>
+                            <div class="mt-value"><small>₦</small>2.68M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviews</span>
+                            <div class="mt-value">528</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Actions</span>
+                        <button class="cc-btn review" data-toast="Opening UI/UX Foundations" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="cc-btn ghost" data-toast="Opening edit composer" data-toast-type="info"><i class="bi bi-pencil"></i> Edit</button>
+                        <button class="cc-btn ghost" data-toast="Opening analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="cc-btn reject" data-toast="⚠ Unpublish requires MFA" data-toast-type="error"><i class="bi bi-pause-circle"></i> Unpublish</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Live Course #4 -->
+            <article class="cr-card live fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #0F172A, #4C1D95);">
+                        <span class="th-badge live"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Live</span>
+                        <span class="th-icon"><i class="bi bi-phone-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category mobile"><i class="bi bi-phone-fill"></i> Mobile</span>
+                        <h3 class="cc-title">Mobile Dev with React Native</h3>
+                        <p class="cc-desc">Build production mobile apps with React Native — navigation, native modules, offline-first, and app store deployment.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">AN</span>
+                            <div class="in-meta">
+                                <strong>Amara Nwosu</strong>
+                                <small>Senior Mobile Engineer</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag live"><i class="bi bi-check2-circle"></i> Live</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 6h 18m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 38 lessons</span>
+                            <span class="mr-tag"><i class="bi bi-star-fill"></i> 4.7</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Enrollments</span>
+                            <div class="mt-value">1,218</div>
+                            <div class="mt-bar"><span data-value="43"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Completion</span>
+                            <div class="mt-value good">74<small>%</small></div>
+                            <div class="mt-bar good"><span data-value="74"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Revenue</span>
+                            <div class="mt-value"><small>₦</small>1.32M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviews</span>
+                            <div class="mt-value">284</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Actions</span>
+                        <button class="cc-btn review" data-toast="Opening Mobile Dev" data-toast-type="info"><i class="bi bi-eye"></i> Preview</button>
+                        <button class="cc-btn ghost" data-toast="Opening edit composer" data-toast-type="info"><i class="bi bi-pencil"></i> Edit</button>
+                        <button class="cc-btn ghost" data-toast="Opening analytics" data-toast-type="info"><i class="bi bi-graph-up"></i> Analytics</button>
+                        <button class="cc-btn reject" data-toast="⚠ Unpublish requires MFA" data-toast-type="error"><i class="bi bi-pause-circle"></i> Unpublish</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — PENDING APPROVAL
+         ================================================= -->
+    <div class="cr-panel" id="panel-pending" role="tabpanel">
+
+        <div class="cr-stat-strip">
+            <div class="cr-stat parchment fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-hourglass-split"></i></span><span class="cs-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="cs-label">Pending Courses</span>
+                <div class="cs-value"><span data-count="5">0</span></div>
+            </div>
+            <div class="cr-stat indigo fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-person-workspace"></i></span><span class="cs-trend"><i class="bi bi-arrow-up-short"></i> 3</span></div>
+                <span class="cs-label">By Teachers</span>
+                <div class="cs-value"><span data-count="3">0</span></div>
+            </div>
+            <div class="cr-stat gold fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-clock-history"></i></span><span class="cs-trend"><i class="bi bi-dash"></i> fast</span></div>
+                <span class="cs-label">Avg Review Time</span>
+                <div class="cs-value"><span data-count="18">0</span><small>h</small></div>
+            </div>
+            <div class="cr-stat rose fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-alarm-fill"></i></span><span class="cs-trend down"><i class="bi bi-exclamation-triangle-fill"></i> urgent</span></div>
+                <span class="cs-label">Near SLA (&gt;40h)</span>
+                <div class="cs-value"><span data-count="2">0</span></div>
+            </div>
+        </div>
+
+        <div class="cr-toolbar">
+            <div class="cr-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search pending courses…" aria-label="Search pending">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="cr-select" data-toast="Sort by: Oldest first" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Oldest First</span><i class="bi bi-chevron-down"></i></button>
+            <button class="cr-select" data-toast="Category filter opened" data-toast-type="info"><i class="bi bi-funnel-fill"></i><span>Any Category</span><i class="bi bi-chevron-down"></i></button>
+            <div class="cr-toolbar-right">
+                <button class="btn-sm solid" data-toast="Bulk approve queued" data-toast-type="success"><i class="bi bi-check2-all"></i> Bulk Approve</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="cr-list">
+
+            <!-- Pending #1 -->
+            <article class="cr-card pending fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #1E293B, #7C2D12);">
+                        <span class="th-badge pending"><i class="bi bi-clock-fill" style="font-size:0.5rem;"></i> Pending</span>
+                        <span class="th-icon"><i class="bi bi-brain"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category data"><i class="bi bi-database-fill"></i> Data &amp; AI</span>
+                        <h3 class="cc-title">Data Science with Pandas</h3>
+                        <p class="cc-desc">Hands-on data manipulation, cleaning, and analysis with Pandas — from basic operations to advanced time-series and multi-index workflows.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">IA</span>
+                            <div class="in-meta">
+                                <strong>Dr. Ifeoma Adeyemi</strong>
+                                <small>PhD · Data Scientist</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag pending"><i class="bi bi-clock-fill"></i> Submitted 18h ago</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 9h 24m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 62 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Sample Lesson</span>
+                            <div class="mt-value good">Ready</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Curriculum</span>
+                            <div class="mt-value good">Complete</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Estimated Value</span>
+                            <div class="mt-value"><small>₦</small>2.1M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviewer</span>
+                            <div class="mt-value warn">—</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Review</span>
+                        <button class="cc-btn approve" data-toast="Data Science with Pandas approved · going live" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="cc-btn review" data-toast="Opening review panel" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="cc-btn override" data-toast="⚠ Override · publish without review" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #2 - urgent -->
+            <article class="cr-card pending fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #1E293B, #4C1D95);">
+                        <span class="th-badge pending"><i class="bi bi-clock-fill" style="font-size:0.5rem;"></i> Pending · Urgent</span>
+                        <span class="th-icon"><i class="bi bi-cpu-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category web"><i class="bi bi-code-slash"></i> Web Development</span>
+                        <h3 class="cc-title">Backend Engineering Pro</h3>
+                        <p class="cc-desc">Distributed systems, API design, message queues, and production patterns for scaling backend services.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">TB</span>
+                            <div class="in-meta">
+                                <strong>Tunde Bakare</strong>
+                                <small>Staff Backend Engineer</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag pending" style="background:var(--cr-rose-dim); color:var(--cr-rose-deep); border-color:rgba(244,63,94,0.32);"><i class="bi bi-alarm-fill"></i> Submitted 44h ago · SLA 4h</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 14h 42m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 96 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Sample Lesson</span>
+                            <div class="mt-value good">Ready</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Curriculum</span>
+                            <div class="mt-value good">Complete</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Estimated Value</span>
+                            <div class="mt-value"><small>₦</small>3.4M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviewer</span>
+                            <div class="mt-value warn">—</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Review</span>
+                        <button class="cc-btn approve" data-toast="Backend Engineering Pro approved" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="cc-btn review" data-toast="Opening review panel" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="cc-btn override" data-toast="⚠ Override · publish without review" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #3 -->
+            <article class="cr-card pending fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #1E293B, #164E63);">
+                        <span class="th-badge pending"><i class="bi bi-clock-fill" style="font-size:0.5rem;"></i> Pending</span>
+                        <span class="th-icon"><i class="bi bi-rocket-takeoff-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category web"><i class="bi bi-code-slash"></i> Product</span>
+                        <h3 class="cc-title">Product Management 101</h3>
+                        <p class="cc-desc">From user research to roadmap execution — product discovery, prioritization, and cross-functional leadership.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">TB</span>
+                            <div class="in-meta">
+                                <strong>Tunde Bakare</strong>
+                                <small>Senior Product Manager</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag pending"><i class="bi bi-clock-fill"></i> Submitted 8h ago</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 6h 12m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 32 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Sample Lesson</span>
+                            <div class="mt-value good">Ready</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Curriculum</span>
+                            <div class="mt-value good">Complete</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Estimated Value</span>
+                            <div class="mt-value"><small>₦</small>1.6M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviewer</span>
+                            <div class="mt-value warn">—</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Review</span>
+                        <button class="cc-btn approve" data-toast="Product Management 101 approved" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="cc-btn review" data-toast="Opening review panel" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="cc-btn override" data-toast="⚠ Override · publish without review" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Pending #4 -->
+            <article class="cr-card pending fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #1E293B, #7C2D12);">
+                        <span class="th-badge pending"><i class="bi bi-clock-fill" style="font-size:0.5rem;"></i> Pending</span>
+                        <span class="th-icon"><i class="bi bi-brush-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category design"><i class="bi bi-palette-fill"></i> Design</span>
+                        <h3 class="cc-title">Design Systems Masterclass</h3>
+                        <p class="cc-desc">Build, scale, and maintain design systems — tokens, components, documentation, and governance at enterprise scale.</p>
+                        <div class="cc-instructor">
+                            <span class="in-av">ZI</span>
+                            <div class="in-meta">
+                                <strong>Zainab Ibrahim</strong>
+                                <small>Senior Product Designer</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag pending"><i class="bi bi-clock-fill"></i> Submitted 6h ago</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 7h 48m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 28 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Sample Lesson</span>
+                            <div class="mt-value good">Ready</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Curriculum</span>
+                            <div class="mt-value good">Complete</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Estimated Value</span>
+                            <div class="mt-value"><small>₦</small>1.8M</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Reviewer</span>
+                            <div class="mt-value warn">—</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Review</span>
+                        <button class="cc-btn approve" data-toast="Design Systems Masterclass approved" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="cc-btn review" data-toast="Opening review panel" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="cc-btn override" data-toast="⚠ Override · publish without review" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — FLAGGED
+         ================================================= -->
+    <div class="cr-panel" id="panel-flagged" role="tabpanel">
+
+        <div class="cr-stat-strip">
+            <div class="cr-stat rose fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-flag-fill"></i></span><span class="cs-trend down"><i class="bi bi-dash"></i> flagged</span></div>
+                <span class="cs-label">Flagged Courses</span>
+                <div class="cs-value"><span data-count="3">0</span></div>
+            </div>
+            <div class="cr-stat parchment fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-file-earmark-break"></i></span><span class="cs-trend warn"><i class="bi bi-dash"></i> quality</span></div>
+                <span class="cs-label">Quality Issues</span>
+                <div class="cs-value"><span data-count="2">0</span></div>
+            </div>
+            <div class="cr-stat indigo fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-shield-exclamation"></i></span><span class="cs-trend warn"><i class="bi bi-dash"></i> policy</span></div>
+                <span class="cs-label">Policy Violations</span>
+                <div class="cs-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="cr-stat gold fade-up">
+                <div class="cs-head"><span class="cs-ic"><i class="bi bi-clock-history"></i></span><span class="cs-trend"><i class="bi bi-arrow-up-short"></i> fast</span></div>
+                <span class="cs-label">Avg Resolution</span>
+                <div class="cs-value"><span data-count="6">0</span><small>h</small></div>
+            </div>
+        </div>
+
+        <div class="cr-toolbar">
+            <div class="cr-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search flagged courses or reports…" aria-label="Search flagged">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="cr-select" data-toast="Sort by: Most recent flag" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Most Recent</span><i class="bi bi-chevron-down"></i></button>
+            <button class="cr-select" data-toast="Reason filter opened" data-toast-type="info"><i class="bi bi-funnel-fill"></i><span>Any Reason</span><i class="bi bi-chevron-down"></i></button>
+            <div class="cr-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="cr-list">
+
+            <!-- Flagged #1 - Policy -->
+            <article class="cr-card flagged fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #4C0519, #881337);">
+                        <span class="th-badge flagged"><i class="bi bi-flag-fill" style="font-size:0.5rem;"></i> Flagged</span>
+                        <span class="th-icon"><i class="bi bi-exclamation-octagon-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category web"><i class="bi bi-code-slash"></i> Web Development</span>
+                        <h3 class="cc-title">Rapid Crypto Trading Signals</h3>
+                        <div class="cc-flag-reason">
+                            <i class="bi bi-shield-exclamation"></i>
+                            <div>
+                                <strong>Policy Violation · Financial Solicitation</strong>
+                                <p>Course promotes paid crypto signals and financial advice, violating the platform's Education-Only policy (section 4.2).</p>
+                            </div>
+                        </div>
+                        <div class="cc-instructor">
+                            <span class="in-av">UK</span>
+                            <div class="in-meta">
+                                <strong>Unknown Applicant</strong>
+                                <small>Unverified teacher · 2 days on platform</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag flagged"><i class="bi bi-flag-fill"></i> 3 reports</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 4h 12m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 18 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Reports</span>
+                            <div class="mt-value warn">3</div>
+                            <div class="mt-bar rose"><span data-value="60"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Enrollments</span>
+                            <div class="mt-value">42</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Refunds</span>
+                            <div class="mt-value warn">8</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Severity</span>
+                            <div class="mt-value warn">High</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Moderate</span>
+                        <button class="cc-btn reject" data-toast="Course rejected · notify teacher with reason" data-toast-type="error"><i class="bi bi-x-octagon"></i> Reject</button>
+                        <button class="cc-btn review" data-toast="Opening moderator review" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn ghost" data-toast="Sending strike notice to teacher" data-toast-type="warning"><i class="bi bi-exclamation-triangle"></i> Warn</button>
+                        <button class="cc-btn ghost" data-toast="Opening full report thread" data-toast-type="info"><i class="bi bi-chat-left-text"></i> Reports</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Flagged #2 - Quality -->
+            <article class="cr-card flagged fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #4C0519, #881337);">
+                        <span class="th-badge flagged"><i class="bi bi-flag-fill" style="font-size:0.5rem;"></i> Flagged</span>
+                        <span class="th-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category design"><i class="bi bi-palette-fill"></i> Design</span>
+                        <h3 class="cc-title">Intro to Photoshop Basics</h3>
+                        <div class="cc-flag-reason">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>
+                                <strong>Quality Issue · Low Completion</strong>
+                                <p>Course has 34% completion rate (below 60% platform minimum). Multiple student complaints about audio quality and unclear delivery.</p>
+                            </div>
+                        </div>
+                        <div class="cc-instructor">
+                            <span class="in-av">EP</span>
+                            <div class="in-meta">
+                                <strong>Emeka Peters</strong>
+                                <small>Design teacher · 4 months</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag flagged"><i class="bi bi-flag-fill"></i> 5 reports</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 2h 24m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 22 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Reports</span>
+                            <div class="mt-value warn">5</div>
+                            <div class="mt-bar rose"><span data-value="80"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Completion</span>
+                            <div class="mt-value warn">34<small>%</small></div>
+                            <div class="mt-bar rose"><span data-value="34"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Rating</span>
+                            <div class="mt-value warn">3.8</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Severity</span>
+                            <div class="mt-value warn">Med</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Moderate</span>
+                        <button class="cc-btn reject" data-toast="Course paused pending review" data-toast-type="warning"><i class="bi bi-pause-circle"></i> Pause</button>
+                        <button class="cc-btn review" data-toast="Opening moderator review" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn ghost" data-toast="Sending improvement notice to teacher" data-toast-type="info"><i class="bi bi-envelope-fill"></i> Notify</button>
+                        <button class="cc-btn ghost" data-toast="Opening student reports thread" data-toast-type="info"><i class="bi bi-chat-left-text"></i> Reports</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Flagged #3 - Quality -->
+            <article class="cr-card flagged fade-up">
+                <div class="cr-card-grid">
+                    <div class="cc-thumb" style="background: linear-gradient(135deg, #4C0519, #881337);">
+                        <span class="th-badge flagged"><i class="bi bi-flag-fill" style="font-size:0.5rem;"></i> Flagged</span>
+                        <span class="th-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                        <span class="th-play"><i class="bi bi-play-fill"></i></span>
+                    </div>
+
+                    <div class="cc-info">
+                        <span class="cc-category data"><i class="bi bi-database-fill"></i> Data &amp; AI</span>
+                        <h3 class="cc-title">Advanced Excel Formulas</h3>
+                        <div class="cc-flag-reason">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>
+                                <strong>Quality Issue · Outdated Content</strong>
+                                <p>Course content references Excel 2016 features only. Students report half the curriculum is outdated for modern workflows.</p>
+                            </div>
+                        </div>
+                        <div class="cc-instructor">
+                            <span class="in-av">RK</span>
+                            <div class="in-meta">
+                                <strong>Ravi Kumar</strong>
+                                <small>Data teacher · 8 months</small>
+                            </div>
+                        </div>
+                        <div class="cc-meta-row">
+                            <span class="mr-tag flagged"><i class="bi bi-flag-fill"></i> 2 reports</span>
+                            <span class="mr-tag"><i class="bi bi-clock-history"></i> 1h 12m</span>
+                            <span class="mr-tag"><i class="bi bi-collection-play-fill"></i> 24 lessons</span>
+                        </div>
+                    </div>
+
+                    <div class="cc-metrics">
+                        <div class="cc-metric">
+                            <span class="mt-label">Reports</span>
+                            <div class="mt-value warn">2</div>
+                            <div class="mt-bar rose"><span data-value="40"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Completion</span>
+                            <div class="mt-value good">68<small>%</small></div>
+                            <div class="mt-bar good"><span data-value="68"></span></div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Rating</span>
+                            <div class="mt-value warn">4.1</div>
+                        </div>
+                        <div class="cc-metric">
+                            <span class="mt-label">Severity</span>
+                            <div class="mt-value warn">Low</div>
+                        </div>
+                    </div>
+
+                    <div class="cc-actions">
+                        <span class="cc-action-label">Moderate</span>
+                        <button class="cc-btn review" data-toast="Opening moderator review" data-toast-type="info"><i class="bi bi-eye"></i> Review</button>
+                        <button class="cc-btn ghost" data-toast="Sending update request to teacher" data-toast-type="info"><i class="bi bi-envelope-fill"></i> Request Update</button>
+                        <button class="cc-btn ghost" data-toast="Dismissing flags with reason" data-toast-type="warning"><i class="bi bi-check2"></i> Dismiss</button>
+                        <button class="cc-btn ghost" data-toast="Opening student reports thread" data-toast-type="info"><i class="bi bi-chat-left-text"></i> Reports</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — CURRICULUM GOVERNANCE CONSOLE
+     ============================================================ -->
+<div class="curriculum-console fade-up">
+    <div class="cc-head">
+        <span class="cc-h-ic"><i class="bi bi-journal-bookmark-fill"></i></span>
+        <div>
+            <h2>Curriculum <em>Governance</em></h2>
+            <p>ROOT-ONLY · QUALITY CONTROL · POLICY ENFORCEMENT · AUDIT-LOGGED</p>
+        </div>
+        <span class="cc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="cc-grid">
+        <button class="cc-tool" data-toast="Bulk approve tool opened — 5 courses pending" data-toast-type="info">
+            <span class="cc-t-ic"><i class="bi bi-check2-all"></i></span>
+            <div class="cc-t-body">
+                <strong>Bulk Approve</strong>
+                <p>Approve multiple pending courses at once with one review pass.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool" data-toast="Curriculum standards opened — 4 pillars" data-toast-type="info">
+            <span class="cc-t-ic"><i class="bi bi-list-check"></i></span>
+            <div class="cc-t-body">
+                <strong>Quality Standards</strong>
+                <p>Define minimum completion rate, rating, and content freshness thresholds.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool emerald" data-toast="Category manager opened — 5 categories" data-toast-type="info">
+            <span class="cc-t-ic"><i class="bi bi-grid-3x3-gap-fill"></i></span>
+            <div class="cc-t-body">
+                <strong>Category Manager</strong>
+                <p>Add, rename, or merge course categories. Set featured categories.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool" data-toast="Featured slots opened — 6 active features" data-toast-type="info">
+            <span class="cc-t-ic"><i class="bi bi-star-fill"></i></span>
+            <div class="cc-t-body">
+                <strong>Featured Courses</strong>
+                <p>Pin courses to homepage &amp; category banners. Schedule rotations.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool" data-toast="SLA policy editor opened" data-toast-type="info">
+            <span class="cc-t-ic"><i class="bi bi-alarm-fill"></i></span>
+            <div class="cc-t-body">
+                <strong>Review SLA Policy</strong>
+                <p>Configure 48h review window · auto-escalation to senior reviewers.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool" data-toast="Teacher scoreboard opened" data-toast-type="info">
+            <span class="cc-t-ic"><i class="bi bi-trophy-fill"></i></span>
+            <div class="cc-t-body">
+                <strong>Teacher Scoreboard</strong>
+                <p>Rank teachers by course quality, completion, and student satisfaction.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool danger" data-toast="⚠ Bulk unpublish requires MFA + reason" data-toast-type="error">
+            <span class="cc-t-ic"><i class="bi bi-pause-circle-fill"></i></span>
+            <div class="cc-t-body">
+                <strong>Bulk Unpublish</strong>
+                <p>Emergency unpublish multiple courses during incidents or policy breaches.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+
+        <button class="cc-tool danger" data-toast="⚠ Freeze submissions — no new courses until unfrozen" data-toast-type="error">
+            <span class="cc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="cc-t-body">
+                <strong>Freeze Submissions</strong>
+                <p>Pause all incoming course submissions during review backlog or incidents.</p>
+            </div>
+            <i class="bi bi-arrow-right cc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       MAIN TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.cr-tab');
+    const panels = document.querySelectorAll('.cr-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+            setTimeout(() => paintBars(panel || document), 60);
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       ANIMATE METRIC BARS
+       ============================================================ */
+    function paintBars(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.mt-bar > span[data-value], .bar > span[data-value]').forEach(el => {
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 80));
+        });
+    }
+    window.addEventListener('load', () => paintBars(document));
+
+    /* ============================================================
+       APPROVE / REJECT — animate card removal
+       ============================================================ */
+    document.querySelectorAll('.cc-btn.approve').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.cr-card');
+            if (!card) return;
+            card.style.transition = 'all .45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(32px) scale(0.98)';
+            setTimeout(() => card.remove(), 460);
+        });
+    });
+    document.querySelectorAll('.cc-btn.reject').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.cr-card');
+            if (!card) return;
+            // Only auto-remove in the flagged panel; in others, just toast
+            if (card.classList.contains('flagged')) {
+                card.style.transition = 'all .45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(-32px) scale(0.98)';
+                setTimeout(() => card.remove(), 460);
+            }
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.cc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

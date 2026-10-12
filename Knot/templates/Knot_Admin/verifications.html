@@ -1,0 +1,2729 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Verifications{% endblock %}
+{% block page_title %}Verifications{% endblock %}
+{% block breadcrumb %}People · Trust &amp; Safety{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   VERIFICATIONS — TRUST & SAFETY COMMAND CENTER
+   Improvised palette: verification-gold + trust-teal + seal-violet
+   ============================================================ */
+
+:root {
+    --vf-gold: #FBBF24;
+    --vf-gold-deep: #D97706;
+    --vf-gold-dim: rgba(251, 191, 36, 0.12);
+    --vf-gold-glow: rgba(251, 191, 36, 0.42);
+
+    --vf-teal: #2DD4BF;
+    --vf-teal-deep: #0D9488;
+    --vf-teal-dim: rgba(45, 212, 191, 0.12);
+    --vf-teal-glow: rgba(45, 212, 191, 0.42);
+
+    --vf-violet: #A78BFA;
+    --vf-violet-deep: #7C3AED;
+    --vf-violet-dim: rgba(167, 139, 250, 0.12);
+    --vf-violet-glow: rgba(167, 139, 250, 0.42);
+
+    --vf-rose: #FB7185;
+    --vf-rose-deep: #BE123C;
+    --vf-rose-dim: rgba(251, 113, 133, 0.12);
+    --vf-rose-glow: rgba(251, 113, 133, 0.42);
+
+    --vf-mesh-1: radial-gradient(circle at 12% 20%, rgba(251, 191, 36, 0.14), transparent 42%);
+    --vf-mesh-2: radial-gradient(circle at 88% 78%, rgba(45, 212, 191, 0.14), transparent 44%);
+    --vf-mesh-3: radial-gradient(circle at 62% 12%, rgba(167, 139, 250, 0.12), transparent 38%);
+
+    --tab-accent: var(--vf-gold);
+    --tab-accent-deep: var(--vf-gold-deep);
+    --tab-accent-dim: var(--vf-gold-dim);
+    --tab-accent-glow: var(--vf-gold-glow);
+}
+
+/* ============================================================
+   VERIFICATIONS WIRE — MARQUEE
+   ============================================================ */
+.vf-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(251, 191, 36, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(45, 212, 191, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(251, 191, 36, 0.28);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.vf-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--vf-gold), var(--vf-teal), var(--vf-violet), var(--vf-rose));
+    box-shadow: 0 0 22px rgba(251, 191, 36, 0.5);
+    z-index: 5;
+}
+.vf-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.vf-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.vf-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.vf-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.vf-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--vf-gold);
+    pointer-events: none;
+}
+.vf-wire-label .vf-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--vf-gold);
+    box-shadow: 0 0 0 0 var(--vf-gold-glow);
+    animation: vfPulse 1.6s infinite;
+}
+@keyframes vfPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+}
+
+.vf-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 160px;
+    animation: vfWireRoll 52s linear infinite;
+}
+.vf-wire:hover .vf-wire-track { animation-play-state: paused; }
+@keyframes vfWireRoll { to { transform: translateX(-50%); } }
+
+.vf-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.vf-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--vf-gold);
+    box-shadow: 0 0 8px var(--vf-gold-glow);
+    flex-shrink: 0;
+    animation: vfSpark 1.8s ease-in-out infinite;
+}
+.vf-wire-item.gold   .wdot { background: var(--vf-gold);   box-shadow: 0 0 8px var(--vf-gold-glow); }
+.vf-wire-item.teal   .wdot { background: var(--vf-teal);   box-shadow: 0 0 8px var(--vf-teal-glow); }
+.vf-wire-item.violet .wdot { background: var(--vf-violet); box-shadow: 0 0 8px var(--vf-violet-glow); }
+.vf-wire-item.rose   .wdot { background: var(--vf-rose);   box-shadow: 0 0 8px var(--vf-rose-glow); }
+.vf-wire-item.lime   .wdot { background: var(--secondary); box-shadow: 0 0 8px rgba(190,242,100,0.75); }
+@keyframes vfSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.vf-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.vf-wire-item em {
+    font-style: normal;
+    color: var(--vf-gold);
+    font-weight: 700;
+}
+
+/* ============================================================
+   VERIFICATIONS HERO
+   ============================================================ */
+.vf-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--vf-mesh-1), var(--vf-mesh-2), var(--vf-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(251, 191, 36, 0.20);
+}
+.vf-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--vf-gold), var(--vf-teal) 40%, var(--vf-violet) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(251, 191, 36, 0.5);
+    z-index: 5;
+}
+.vf-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.vf-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.vf-hero-left { min-width: 0; flex: 1 1 520px; }
+.vf-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.42);
+    color: var(--vf-gold);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.vf-hero-kicker i { font-size: 0.7rem; }
+.vf-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.vf-hero-title em { color: var(--vf-gold); font-style: italic; }
+.vf-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 620px;
+    line-height: 1.62;
+}
+.vf-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.vf-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.vf-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.vf-hero-meta .hm:hover {
+    background: rgba(251, 191, 36, 0.10);
+    border-color: rgba(251, 191, 36, 0.42);
+    color: var(--vf-gold);
+    transform: translateY(-2px);
+}
+.vf-hero-meta .hm i { color: var(--vf-gold); font-size: 0.78rem; }
+.vf-hero-meta .hm.warn {
+    background: rgba(251, 113, 133, 0.10);
+    border-color: rgba(251, 113, 133, 0.42);
+    color: var(--vf-rose);
+}
+.vf-hero-meta .hm.warn i { color: var(--vf-rose); }
+
+.vf-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(251, 191, 36, 0.16), rgba(45, 212, 191, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(251, 191, 36, 0.42);
+    box-shadow:
+        0 18px 44px rgba(251, 191, 36, 0.18),
+        0 0 0 1px rgba(251, 191, 36, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--vf-gold) 120deg,
+                var(--vf-teal) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(251, 191, 36, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--vf-gold);
+    display: grid;
+    place-items: center;
+    color: var(--vf-gold);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(251, 191, 36, 0.55), 0 0 0 3px rgba(251, 191, 36, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--vf-gold), var(--vf-gold-deep));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(251, 191, 36, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   MAIN TAB SYSTEM
+   ============================================================ */
+.vf-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.vf-tabs::-webkit-scrollbar { display: none; }
+
+.vf-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.vf-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.vf-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.vf-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.vf-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.vf-tab .tab-badge.pending {
+    background: var(--vf-gold-dim);
+    color: var(--vf-gold-deep);
+    border: 1px solid rgba(251, 191, 36, 0.32);
+}
+.vf-tab .tab-badge.glow {
+    background: var(--vf-rose-dim);
+    color: var(--vf-rose-deep);
+    border: 1px solid rgba(251, 113, 133, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 113, 133, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(251, 113, 133, 0); }
+}
+
+.vf-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.vf-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.vf-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.vf-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.vf-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.vf-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.vf-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* ============================================================
+   SUB-TAB SYSTEM (nested)
+   ============================================================ */
+.sub-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--gray-100);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.sub-tabs::-webkit-scrollbar { display: none; }
+
+.sub-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.005em;
+}
+.sub-tab .st-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px; height: 20px;
+    padding: 0 7px;
+    border-radius: 50px;
+    background: var(--white);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    box-shadow: inset 0 0 0 1px var(--gray-200);
+    transition: var(--transition);
+}
+.sub-tab .st-count.pending { color: var(--vf-gold-deep); }
+.sub-tab .st-count.approved { color: var(--vf-teal-deep); }
+.sub-tab .st-count.rejected { color: var(--vf-rose-deep); }
+
+.sub-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(255, 255, 255, 0.6);
+}
+.sub-tab.active {
+    background: var(--white);
+    color: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(11, 17, 33, 0.08);
+}
+.sub-tab.active .st-count {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: none;
+}
+.sub-tab.active.sub-pending .st-count { background: var(--vf-gold); color: var(--primary-deep); }
+.sub-tab.active.sub-approved .st-count { background: var(--vf-teal); color: var(--primary-deep); }
+.sub-tab.active.sub-rejected .st-count { background: var(--vf-rose); color: #fff; }
+
+/* ============================================================
+   MAIN PANEL SYSTEM
+   ============================================================ */
+.vf-panels { position: relative; }
+.vf-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: vfPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.vf-panel.active { display: flex; }
+@keyframes vfPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.vf-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.vf-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.vf-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--vs-accent, linear-gradient(90deg, var(--vf-gold), var(--vf-gold-deep)));
+}
+.vf-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.vf-stat.gold   { --vs-accent: linear-gradient(90deg, #FBBF24, #D97706); }
+.vf-stat.teal   { --vs-accent: linear-gradient(90deg, #2DD4BF, #0D9488); }
+.vf-stat.violet { --vs-accent: linear-gradient(90deg, #A78BFA, #7C3AED); }
+.vf-stat.rose   { --vs-accent: linear-gradient(90deg, #FB7185, #BE123C); }
+.vf-stat.lime   { --vs-accent: linear-gradient(90deg, #BEF264, #7ED321); }
+
+.vf-stat .vs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.vf-stat .vs-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.vf-stat.gold   .vs-ic { background: var(--vf-gold-dim);   color: var(--vf-gold-deep); }
+.vf-stat.teal   .vs-ic { background: var(--vf-teal-dim);   color: var(--vf-teal-deep); }
+.vf-stat.violet .vs-ic { background: var(--vf-violet-dim); color: var(--vf-violet-deep); }
+.vf-stat.rose   .vs-ic { background: var(--vf-rose-dim);   color: var(--vf-rose-deep); }
+
+.vf-stat .vs-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.vf-stat .vs-trend.down { background: rgba(225, 29, 72, 0.10); color: var(--admin-crimson); }
+.vf-stat .vs-trend.warn { background: var(--vf-gold-dim); color: var(--vf-gold-deep); }
+
+.vf-stat .vs-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.vf-stat .vs-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.vf-stat .vs-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.vf-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.vf-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.vf-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.vf-search i {
+    color: var(--gray-400);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.vf-search:focus-within i { color: var(--tab-accent-deep); }
+.vf-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.vf-search input::placeholder { color: var(--gray-400); }
+.vf-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.vf-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.vf-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.vf-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.vf-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+
+.vf-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   VERIFICATION CARDS
+   ============================================================ */
+.vf-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.vf-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.vf-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--vc-accent, linear-gradient(180deg, var(--vf-gold), var(--vf-gold-deep)));
+    z-index: 2;
+}
+.vf-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.vf-card.pending  { --vc-accent: linear-gradient(180deg, #FBBF24, #D97706); }
+.vf-card.approved { --vc-accent: linear-gradient(180deg, #2DD4BF, #0D9488); }
+.vf-card.rejected { --vc-accent: linear-gradient(180deg, #FB7185, #BE123C); }
+
+.vf-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* ---- Card left: applicant ---- */
+.vc-applicant {
+    display: flex;
+    gap: 14px;
+    min-width: 0;
+}
+.vc-avatar-wrap {
+    position: relative;
+    width: 64px; height: 64px;
+    flex-shrink: 0;
+}
+.vc-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.14);
+}
+.vc-avatar.teacher { background: linear-gradient(135deg, var(--vf-teal), var(--vf-teal-deep)); }
+.vc-avatar.mentor  { background: linear-gradient(135deg, var(--vf-violet), var(--vf-violet-deep)); }
+
+.vc-avatar-wrap .vc-type {
+    position: absolute;
+    bottom: -4px; left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 9px;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    box-shadow: 0 4px 10px rgba(11,17,33,0.08);
+    z-index: 3;
+    white-space: nowrap;
+}
+.vc-avatar-wrap .vc-type.teacher { color: var(--vf-teal-deep); border-color: rgba(45,212,191,0.4); }
+.vc-avatar-wrap .vc-type.mentor  { color: var(--vf-violet-deep); border-color: rgba(167,139,250,0.4); }
+
+.vc-meta { min-width: 0; flex: 1; }
+.vc-meta .vc-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+.vc-meta .vc-name .vc-verified {
+    color: var(--vf-teal);
+    font-size: 0.86rem;
+}
+.vc-meta .vc-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.76rem;
+    color: var(--gray-600);
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+}
+.vc-meta .vc-line i {
+    color: var(--gray-400);
+    font-size: 0.76rem;
+    flex-shrink: 0;
+}
+.vc-meta .vc-line .v-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--gray-600);
+}
+.vc-meta .vc-line .v-tag.gold { background: var(--vf-gold-dim); color: var(--vf-gold-deep); border-color: rgba(251,191,36,0.3); }
+
+.vc-meta .vc-bio {
+    margin-top: 8px;
+    font-size: 0.74rem;
+    line-height: 1.55;
+    color: var(--gray-600);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.vc-submitted {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--gray-600);
+}
+.vc-submitted.urgent {
+    background: var(--vf-rose-dim);
+    color: var(--vf-rose-deep);
+    border-color: rgba(251,113,133,0.34);
+    animation: badgePulse 2.4s ease-in-out infinite;
+}
+.vc-submitted i { font-size: 0.66rem; }
+
+/* ---- Card middle: checklist ---- */
+.vc-checks {
+    padding: 4px 0;
+    border-left: 1px dashed var(--gray-200);
+    padding-left: 24px;
+}
+.vc-checks-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.vc-checks-head h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+.vc-checks-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.vc-checks-progress .vc-ratio {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--gray-600);
+}
+.vc-checks-progress .vc-ratio b { color: var(--vf-teal-deep); font-weight: 800; }
+.vc-checks-progress .vc-bar {
+    width: 54px; height: 5px;
+    background: var(--gray-100);
+    border-radius: 50px;
+    overflow: hidden;
+}
+.vc-checks-progress .vc-bar > span {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--vf-teal), var(--vf-teal-deep));
+    border-radius: 50px;
+    transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.vc-check-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+}
+.vc-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 11px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    transition: var(--transition);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+}
+.vc-check:hover {
+    background: var(--white);
+    border-color: var(--vf-teal);
+    transform: translateX(3px);
+}
+.vc-check .vc-check-ic {
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    font-size: 0.66rem;
+    flex-shrink: 0;
+    background: var(--white);
+    box-shadow: inset 0 0 0 1px var(--gray-200);
+    color: var(--gray-400);
+    transition: var(--transition);
+}
+.vc-check.done .vc-check-ic {
+    background: linear-gradient(135deg, var(--vf-teal), var(--vf-teal-deep));
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(45,212,191,0.35);
+}
+.vc-check .vc-check-body { flex: 1; min-width: 0; }
+.vc-check .vc-check-body strong {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 1px;
+    line-height: 1.2;
+}
+.vc-check .vc-check-body span {
+    display: block;
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+}
+.vc-check .vc-check-state {
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--white);
+    color: var(--gray-400);
+    border: 1px solid var(--gray-200);
+}
+.vc-check.done .vc-check-state {
+    background: var(--vf-teal-dim);
+    color: var(--vf-teal-deep);
+    border-color: rgba(45,212,191,0.32);
+}
+.vc-check .vc-check-state.missing {
+    background: var(--vf-rose-dim);
+    color: var(--vf-rose-deep);
+    border-color: rgba(251,113,133,0.32);
+}
+
+/* ---- Card right: actions ---- */
+.vc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 180px;
+    padding-top: 4px;
+}
+.vc-actions .vc-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.vc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.vc-btn i { font-size: 0.86rem; }
+
+.vc-btn.approve {
+    background: linear-gradient(135deg, var(--vf-teal), var(--vf-teal-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(45,212,191,0.32);
+}
+.vc-btn.approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(45,212,191,0.44);
+}
+.vc-btn.reject {
+    background: var(--white);
+    color: var(--vf-rose-deep);
+    border: 1px solid rgba(251,113,133,0.4);
+}
+.vc-btn.reject:hover {
+    background: var(--vf-rose-dim);
+    border-color: var(--vf-rose);
+    transform: translateY(-2px);
+}
+.vc-btn.preview {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.vc-btn.preview:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.vc-btn.override {
+    background: transparent;
+    color: var(--vf-gold-deep);
+    border: 1px dashed rgba(251,191,36,0.5);
+    font-size: 0.7rem;
+    padding: 8px 14px;
+}
+.vc-btn.override:hover {
+    background: var(--vf-gold-dim);
+    border-style: solid;
+    border-color: var(--vf-gold);
+}
+
+.vc-actions-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    color: var(--gray-400);
+    text-align: right;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   DECISION LOG (approved/rejected cards)
+   ============================================================ */
+.vc-decision {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+.vc-decision .vd-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.vc-decision .vd-tag.approved {
+    background: var(--vf-teal-dim);
+    color: var(--vf-teal-deep);
+    border: 1px solid rgba(45,212,191,0.34);
+}
+.vc-decision .vd-tag.rejected {
+    background: var(--vf-rose-dim);
+    color: var(--vf-rose-deep);
+    border: 1px solid rgba(251,113,133,0.34);
+}
+.vc-decision .vd-by {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.vc-decision .vd-by b { color: var(--gray-600); font-weight: 800; }
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.vf-empty {
+    position: relative;
+    padding: 64px 32px;
+    text-align: center;
+    background: var(--white);
+    border: 1px dashed var(--gray-200);
+    border-radius: 22px;
+}
+.vf-empty .ve-ic {
+    width: 72px; height: 72px;
+    margin: 0 auto 18px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--vf-teal-dim), var(--vf-gold-dim));
+    display: grid;
+    place-items: center;
+    font-size: 1.8rem;
+    color: var(--vf-teal-deep);
+}
+.vf-empty h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+}
+.vf-empty p {
+    font-size: 0.84rem;
+    color: var(--gray-600);
+    max-width: 420px;
+    margin: 0 auto 18px;
+    line-height: 1.6;
+}
+.vf-empty .ve-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 50px;
+    background: var(--vf-teal-dim);
+    color: var(--vf-teal-deep);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ============================================================
+   ADMIN EXCLUSIVE — TRUST & SAFETY CONSOLE
+   ============================================================ */
+.trust-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(251, 191, 36, 0.12), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(45, 212, 191, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(251, 191, 36, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.trust-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--vf-gold), var(--vf-teal) 50%, var(--vf-violet) 100%);
+    box-shadow: 0 0 22px rgba(251, 191, 36, 0.5);
+}
+.trust-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.tc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.tc-head .tc-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--vf-gold), var(--vf-teal));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.tc-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.tc-head h2 em { color: var(--vf-gold); font-style: italic; }
+.tc-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.tc-head .tc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.42);
+    color: var(--vf-gold);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.tc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.tc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.tc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.tc-tool:hover {
+    background: rgba(251, 191, 36, 0.10);
+    border-color: rgba(251, 191, 36, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(251, 191, 36, 0.18);
+}
+.tc-tool:hover::before { transform: translateX(120%); }
+.tc-tool .tc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--vf-gold);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.tc-tool:hover .tc-t-ic {
+    background: linear-gradient(135deg, var(--vf-gold), var(--vf-teal));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(251, 191, 36, 0.42);
+}
+.tc-tool.danger .tc-t-ic { color: var(--vf-rose); }
+.tc-tool.danger:hover {
+    background: rgba(251, 113, 133, 0.10);
+    border-color: rgba(251, 113, 133, 0.42);
+}
+.tc-tool.danger:hover .tc-t-ic {
+    background: linear-gradient(135deg, var(--vf-rose), var(--vf-rose-deep));
+    box-shadow: 0 8px 20px rgba(251, 113, 133, 0.42);
+}
+.tc-tool .tc-t-body { flex: 1; min-width: 0; }
+.tc-tool .tc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.tc-tool .tc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.tc-tool .tc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.tc-tool:hover .tc-t-arrow { color: var(--vf-gold); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .vf-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vf-card-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .vc-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .vc-actions .vc-action-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .vf-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .vc-checks { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .vf-card-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .vc-actions { grid-column: auto; }
+}
+@media (max-width: 900px) {
+    .vf-hero { padding: 24px 20px; }
+    .vf-hero-title { font-size: 1.55rem; }
+    .vf-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .vf-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .vf-stat-strip { grid-template-columns: 1fr; }
+    .vf-hero { padding: 22px 18px; }
+    .vf-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .vf-toolbar { padding: 12px 14px; }
+    .vf-search { min-width: 100%; }
+    .vc-actions { flex-direction: column; align-items: stretch; }
+    .vc-actions .vc-action-label { display: block; text-align: left; }
+}
+@media (max-width: 560px) {
+    .vf-tabs { padding: 6px; gap: 3px; }
+    .vf-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .vf-tab .tab-badge { display: none; }
+    .vf-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .vf-wire-label { display: none; }
+    .vf-wire-track { padding-left: 24px; }
+    .vf-card-grid { padding: 18px 16px 18px 20px; }
+    .vc-avatar-wrap, .vc-avatar { width: 52px; height: 52px; }
+    .vc-avatar { font-size: 0.98rem; }
+    .vc-meta .vc-name { font-size: 1rem; }
+    .sub-tab { padding: 7px 12px; font-size: 0.72rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .vf-wire-track, .acb-avatar::before, .vf-wire-label .vf-dot,
+    .vf-wire-item .wdot, .vc-submitted.urgent, .vf-tab .tab-badge.glow {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     VERIFICATIONS WIRE — MARQUEE
+     ============================================================ -->
+<div class="vf-wire" aria-label="Verifications pulse">
+    <span class="vf-wire-edge left"></span>
+    <span class="vf-wire-edge right"></span>
+    <div class="vf-wire-label"><span class="vf-dot"></span> Trust Wire</div>
+    <div class="vf-wire-track">
+        <!-- Set A -->
+        <span class="vf-wire-item gold"><span class="wdot"></span><strong>12</strong> pending verifications · <em>5 teachers + 7 mentors</em></span>
+        <span class="vf-wire-item teal"><span class="wdot"></span><strong>1,204</strong> teachers verified · 84% of roster</span>
+        <span class="vf-wire-item violet"><span class="wdot"></span><strong>158</strong> mentors verified · 94% pass rate</span>
+        <span class="vf-wire-item rose"><span class="wdot"></span><strong>3</strong> rejected this week · fraud suspicion</span>
+        <span class="vf-wire-item gold"><span class="wdot"></span>SLA compliance <strong>96.4%</strong> · avg 18h turnaround</span>
+        <span class="vf-wire-item teal"><span class="wdot"></span><strong>8</strong> approved in last 24h</span>
+        <span class="vf-wire-item violet"><span class="wdot"></span>Oldest pending <strong>2d 4h</strong> · near SLA</span>
+        <span class="vf-wire-item rose"><span class="wdot"></span><strong>1</strong> re-verification requested by user</span>
+        <span class="vf-wire-item gold"><span class="wdot"></span>Avg CV review <strong>12m 18s</strong></span>
+        <span class="vf-wire-item teal"><span class="wdot"></span>Background checks automated <strong>72%</strong></span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="vf-wire-item gold"><span class="wdot"></span><strong>12</strong> pending verifications · <em>5 teachers + 7 mentors</em></span>
+        <span class="vf-wire-item teal"><span class="wdot"></span><strong>1,204</strong> teachers verified · 84% of roster</span>
+        <span class="vf-wire-item violet"><span class="wdot"></span><strong>158</strong> mentors verified · 94% pass rate</span>
+        <span class="vf-wire-item rose"><span class="wdot"></span><strong>3</strong> rejected this week · fraud suspicion</span>
+        <span class="vf-wire-item gold"><span class="wdot"></span>SLA compliance <strong>96.4%</strong> · avg 18h turnaround</span>
+        <span class="vf-wire-item teal"><span class="wdot"></span><strong>8</strong> approved in last 24h</span>
+        <span class="vf-wire-item violet"><span class="wdot"></span>Oldest pending <strong>2d 4h</strong> · near SLA</span>
+        <span class="vf-wire-item rose"><span class="wdot"></span><strong>1</strong> re-verification requested by user</span>
+        <span class="vf-wire-item gold"><span class="wdot"></span>Avg CV review <strong>12m 18s</strong></span>
+        <span class="vf-wire-item teal"><span class="wdot"></span>Background checks automated <strong>72%</strong></span>
+    </div>
+</div>
+
+<!-- ============================================================
+     VERIFICATIONS HERO
+     ============================================================ -->
+<section class="vf-hero fade-up">
+    <div class="vf-hero-inner">
+        <div class="vf-hero-left">
+            <span class="vf-hero-kicker">
+                <i class="bi bi-patch-check-fill"></i>
+                Trust &amp; Safety · Root Access
+            </span>
+            <h1 class="vf-hero-title">
+                Trust, <em>verified</em>.
+            </h1>
+            <p class="vf-hero-sub">
+                Two-track review: <strong>Teachers</strong> pass 2 checks (CV + Certificate + Sample Course) ·
+                <strong>Mentors</strong> pass 4 checks (Government ID + Background + Skills + Agreement).
+                SLA <strong>48 hours</strong> · compliance <strong>96.4%</strong>.
+            </p>
+            <div class="vf-hero-meta">
+                <span class="hm"><i class="bi bi-hourglass-split"></i> 12 pending</span>
+                <span class="hm"><i class="bi bi-check2-circle"></i> 8 approved · 24h</span>
+                <span class="hm warn"><i class="bi bi-x-octagon"></i> 3 rejected · 7d</span>
+                <span class="hm"><i class="bi bi-alarm"></i> Oldest · 2d 4h</span>
+            </div>
+        </div>
+
+        <div class="vf-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · TRUST &amp; SAFETY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     MAIN TABS — ALL PENDING / TEACHERS / MENTORS
+     ============================================================ -->
+<nav class="vf-tabs" role="tablist" aria-label="Verification tracks">
+    <button class="vf-tab active" data-tab="all" role="tab" style="--tab-accent: #FBBF24; --tab-accent-deep: #D97706; --tab-accent-dim: rgba(251,191,36,0.10); --tab-accent-glow: rgba(251,191,36,0.42);">
+        <span class="tab-ic"><i class="bi bi-inboxes-fill"></i></span>
+        <span class="tab-label">
+            All Pending
+            <small>Everything</small>
+        </span>
+        <span class="tab-badge glow">12</span>
+    </button>
+    <button class="vf-tab" data-tab="teachers" role="tab" style="--tab-accent: #2DD4BF; --tab-accent-deep: #0D9488; --tab-accent-dim: rgba(45,212,191,0.10); --tab-accent-glow: rgba(45,212,191,0.42);">
+        <span class="tab-ic"><i class="bi bi-person-workspace"></i></span>
+        <span class="tab-label">
+            Teachers
+            <small>2 checks</small>
+        </span>
+        <span class="tab-badge pending">5</span>
+    </button>
+    <button class="vf-tab" data-tab="mentors" role="tab" style="--tab-accent: #A78BFA; --tab-accent-deep: #7C3AED; --tab-accent-dim: rgba(167,139,250,0.10); --tab-accent-glow: rgba(167,139,250,0.42);">
+        <span class="tab-ic"><i class="bi bi-person-badge-fill"></i></span>
+        <span class="tab-label">
+            Mentors
+            <small>4 checks</small>
+        </span>
+        <span class="tab-badge pending">7</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     MAIN PANELS
+     ============================================================ -->
+<div class="vf-panels">
+
+    <!-- =================================================
+         PANEL 1 — ALL PENDING (merged view)
+         ================================================= -->
+    <div class="vf-panel active" id="panel-all" role="tabpanel">
+
+        <div class="vf-stat-strip">
+            <div class="vf-stat gold fade-up">
+                <div class="vs-head">
+                    <span class="vs-ic"><i class="bi bi-hourglass-split"></i></span>
+                    <span class="vs-trend warn"><i class="bi bi-dash"></i> total</span>
+                </div>
+                <span class="vs-label">Pending · All Tracks</span>
+                <div class="vs-value"><span data-count="12">0</span></div>
+            </div>
+            <div class="vf-stat teal fade-up">
+                <div class="vs-head">
+                    <span class="vs-ic"><i class="bi bi-person-workspace"></i></span>
+                    <span class="vs-trend"><i class="bi bi-arrow-up-short"></i> 2 new</span>
+                </div>
+                <span class="vs-label">Teachers Pending</span>
+                <div class="vs-value"><span data-count="5">0</span></div>
+            </div>
+            <div class="vf-stat violet fade-up">
+                <div class="vs-head">
+                    <span class="vs-ic"><i class="bi bi-person-badge-fill"></i></span>
+                    <span class="vs-trend"><i class="bi bi-arrow-up-short"></i> 3 new</span>
+                </div>
+                <span class="vs-label">Mentors Pending</span>
+                <div class="vs-value"><span data-count="7">0</span></div>
+            </div>
+            <div class="vf-stat rose fade-up">
+                <div class="vs-head">
+                    <span class="vs-ic"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                    <span class="vs-trend down"><i class="bi bi-arrow-up-short"></i> 2</span>
+                </div>
+                <span class="vs-label">Near SLA Breach</span>
+                <div class="vs-value"><span data-count="2">0</span><small>&gt; 40h</small></div>
+            </div>
+        </div>
+
+        <div class="vf-toolbar">
+            <div class="vf-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search applicants by name, email, or role…" aria-label="Search verifications">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="vf-select" data-toast="Sort by: Oldest first" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Oldest First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="vf-select" data-toast="Priority filter opened" data-toast-type="info">
+                <i class="bi bi-lightning-fill"></i>
+                <span>Any Priority</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="vf-toolbar-right">
+                <button class="btn-sm solid" data-toast="Opening bulk approve…" data-toast-type="success"><i class="bi bi-check2-all"></i> Bulk Approve</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="vf-list">
+
+            <!-- Teacher pending #1 -->
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap">
+                            <span class="vc-avatar teacher">AN</span>
+                            <span class="vc-type teacher">Teacher</span>
+                        </div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Amara Nwosu</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> amara.nwosu@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-mortarboard-fill"></i> Mobile Dev · 7 yrs <span class="v-tag gold">ex-Google</span></div>
+                            <p class="vc-bio">Senior mobile engineer with 7 years of React Native &amp; native iOS experience. Wants to publish a mobile development track.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 2h ago · SLA 46h left</span>
+                        </div>
+                    </div>
+
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress">
+                                <span class="vc-ratio"><b>2</b>/2 done</span>
+                                <div class="vc-bar"><span data-value="100"></span></div>
+                            </div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV for Amara Nwosu" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>Uploaded · PDF · 482 KB</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Opening certificate + sample lesson" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>Course link · 12 min sample</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" data-toast="Amara Nwosu · Teacher approved — welcome email queued" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="vc-btn preview" data-toast="Opening full dossier for Amara Nwosu" data-toast-type="info"><i class="bi bi-eye"></i> Full Dossier</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened for Amara Nwosu" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Admin override — bypass 2 checks with justification" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Mentor pending #1 -->
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap">
+                            <span class="vc-avatar mentor">CO</span>
+                            <span class="vc-type mentor">Mentor</span>
+                        </div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Chinedu Okafor</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> chinedu.okafor@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-cpu-fill"></i> Backend Engineering · 8 yrs <span class="v-tag gold">ex-Stripe</span></div>
+                            <p class="vc-bio">Staff engineer focused on distributed systems and payment infrastructure. Wants to mentor backend &amp; system design learners.</p>
+                            <span class="vc-submitted urgent"><i class="bi bi-alarm-fill"></i> Submitted 44h ago · SLA 4h left</span>
+                        </div>
+                    </div>
+
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress">
+                                <span class="vc-ratio"><b>3</b>/4 done</span>
+                                <div class="vc-bar"><span data-value="75"></span></div>
+                            </div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing Government ID for Chinedu Okafor" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Government ID</strong><span>Verified via Dojah · NIN match</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Viewing background check" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Background Check</strong><span>Sterling · clean record</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Viewing skills assessment" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Skills Assessment</strong><span>Score 94/100 · backend</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check" data-toast="Agreement not yet signed — nudge applicant" data-toast-type="warning">
+                                <span class="vc-check-ic"><i class="bi bi-dot"></i></span>
+                                <span class="vc-check-body"><strong>Agreement Signed</strong><span>Awaiting e-signature</span></span>
+                                <span class="vc-check-state missing">Missing</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" disabled style="opacity:.45; cursor:not-allowed; box-shadow:none;" title="Cannot approve — 1 check missing"><i class="bi bi-lock-fill"></i> Approve Locked</button>
+                        <button class="vc-btn preview" data-toast="Nudge sent to Chinedu Okafor to sign agreement" data-toast-type="warning"><i class="bi bi-bell-fill"></i> Nudge Signer</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened for Chinedu Okafor" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Admin override — force-approve missing agreement" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Teacher pending #2 -->
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap">
+                            <span class="vc-avatar teacher">IA</span>
+                            <span class="vc-type teacher">Teacher</span>
+                        </div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Dr. Ifeoma Adeyemi</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> ifeoma.adeyemi@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Abuja, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-mortarboard-fill"></i> Data Science · PhD <span class="v-tag gold">10+ yrs</span></div>
+                            <p class="vc-bio">PhD in Statistics, formerly lectured at University of Lagos. Wants to publish a data science track with practical pandas &amp; ML curriculum.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 9h ago · SLA 39h left</span>
+                        </div>
+                    </div>
+
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress">
+                                <span class="vc-ratio"><b>1</b>/2 done</span>
+                                <div class="vc-bar"><span data-value="50"></span></div>
+                            </div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV for Dr. Ifeoma Adeyemi" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>PhD verified · UNILAG</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check" data-toast="Awaiting sample course upload" data-toast-type="warning">
+                                <span class="vc-check-ic"><i class="bi bi-dot"></i></span>
+                                <span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>Sample course not uploaded yet</span></span>
+                                <span class="vc-check-state missing">Missing</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" disabled style="opacity:.45; cursor:not-allowed; box-shadow:none;" title="Cannot approve — 1 check missing"><i class="bi bi-lock-fill"></i> Approve Locked</button>
+                        <button class="vc-btn preview" data-toast="Nudge sent to Dr. Ifeoma Adeyemi" data-toast-type="warning"><i class="bi bi-bell-fill"></i> Nudge Signer</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Admin override — force-approve missing sample" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Mentor pending #2 -->
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap">
+                            <span class="vc-avatar mentor">ZI</span>
+                            <span class="vc-type mentor">Mentor</span>
+                        </div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Zainab Ibrahim</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> zainab.ibrahim@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> London, UK <span class="v-tag">GB</span></div>
+                            <div class="vc-line"><i class="bi bi-palette-fill"></i> Product Design · 6 yrs <span class="v-tag gold">ex-Google</span></div>
+                            <p class="vc-bio">Senior product designer with experience shipping design systems at Google. Wants to mentor UX &amp; design-system learners.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 5h ago · SLA 43h left</span>
+                        </div>
+                    </div>
+
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress">
+                                <span class="vc-ratio"><b>4</b>/4 done</span>
+                                <div class="vc-bar"><span data-value="100"></span></div>
+                            </div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing Government ID" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Government ID</strong><span>Passport · verified</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Viewing background check" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Background Check</strong><span>DBS · clean record</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Viewing skills assessment" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Skills Assessment</strong><span>Score 97/100 · design</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Viewing signed agreement" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Agreement Signed</strong><span>Signed 4h ago · SHA verified</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" data-toast="Zainab Ibrahim · Mentor approved — welcome email queued" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="vc-btn preview" data-toast="Opening full dossier" data-toast-type="info"><i class="bi bi-eye"></i> Full Dossier</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Admin override — revoke checks and re-run" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Teacher pending #3 -->
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap">
+                            <span class="vc-avatar teacher">RJ</span>
+                            <span class="vc-type teacher">Teacher</span>
+                        </div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Rohan Joshi</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> rohan.joshi@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Bengaluru, India <span class="v-tag">IN</span></div>
+                            <div class="vc-line"><i class="bi bi-server"></i> Backend · 9 yrs <span class="v-tag gold">ex-Atlassian</span></div>
+                            <p class="vc-bio">Backend engineer with 9 years at Atlassian. Wants to teach system design and cloud architecture.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 18h ago · SLA 30h left</span>
+                        </div>
+                    </div>
+
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress">
+                                <span class="vc-ratio"><b>2</b>/2 done</span>
+                                <div class="vc-bar"><span data-value="100"></span></div>
+                            </div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>Verified · NIT Trichy</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                            <button class="vc-check done" data-toast="Opening sample course" data-toast-type="info">
+                                <span class="vc-check-ic"><i class="bi bi-check2"></i></span>
+                                <span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>25-min sample · high quality</span></span>
+                                <span class="vc-check-state">Done</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" data-toast="Rohan Joshi · Teacher approved — welcome email queued" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="vc-btn preview" data-toast="Opening full dossier" data-toast-type="info"><i class="bi bi-eye"></i> Full Dossier</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Admin override — rerun checks" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — TEACHERS (with sub-tabs)
+         ================================================= -->
+    <div class="vf-panel" id="panel-teachers" role="tabpanel">
+
+        <div class="vf-stat-strip">
+            <div class="vf-stat teal fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-person-workspace"></i></span><span class="vs-trend"><i class="bi bi-arrow-up-short"></i> 168</span></div>
+                <span class="vs-label">Total Teachers</span>
+                <div class="vs-value"><span data-count="1428">0</span></div>
+            </div>
+            <div class="vf-stat gold fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-hourglass-split"></i></span><span class="vs-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="vs-label">Pending · Teacher Track</span>
+                <div class="vs-value"><span data-count="5">0</span></div>
+            </div>
+            <div class="vf-stat lime fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-check2-circle"></i></span><span class="vs-trend"><i class="bi bi-arrow-up-short"></i> 12</span></div>
+                <span class="vs-label">Approved · 30d</span>
+                <div class="vs-value"><span data-count="184">0</span></div>
+            </div>
+            <div class="vf-stat rose fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-x-octagon"></i></span><span class="vs-trend down"><i class="bi bi-arrow-down-short"></i> 2</span></div>
+                <span class="vs-label">Rejected · 30d</span>
+                <div class="vs-value"><span data-count="12">0</span></div>
+            </div>
+        </div>
+
+        <div class="vf-toolbar">
+            <div class="vf-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search teachers by name, email, or subject…" aria-label="Search teachers">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="vf-select" data-toast="Sort by: Oldest first" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Oldest First</span><i class="bi bi-chevron-down"></i></button>
+            <button class="vf-select" data-toast="Subject filter opened" data-toast-type="info"><i class="bi bi-bookmark-fill"></i><span>Any Subject</span><i class="bi bi-chevron-down"></i></button>
+            <div class="vf-toolbar-right">
+                <button class="btn-sm solid" data-toast="Opening bulk approve…" data-toast-type="success"><i class="bi bi-check2-all"></i> Bulk Approve</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <!-- Teacher sub-tabs -->
+        <nav class="sub-tabs" role="tablist" aria-label="Teacher verification status">
+            <button class="sub-tab active sub-pending" data-subtab="t-pending">
+                <i class="bi bi-hourglass-split" style="font-size:0.72rem; color: var(--vf-gold-deep);"></i>
+                Pending
+                <span class="st-count pending">5</span>
+            </button>
+            <button class="sub-tab sub-approved" data-subtab="t-approved">
+                <i class="bi bi-check2-circle" style="font-size:0.72rem; color: var(--vf-teal-deep);"></i>
+                Approved
+                <span class="st-count approved">1,204</span>
+            </button>
+            <button class="sub-tab sub-rejected" data-subtab="t-rejected">
+                <i class="bi bi-x-octagon" style="font-size:0.72rem; color: var(--vf-rose-deep);"></i>
+                Rejected
+                <span class="st-count rejected">12</span>
+            </button>
+        </nav>
+
+        <!-- Teacher sub-panels -->
+        <div class="vf-list sub-panel active" id="sub-t-pending">
+            <!-- Reuse of the 2 teacher cards, focused -->
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar teacher">AN</span><span class="vc-type teacher">Teacher</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Amara Nwosu</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> amara.nwosu@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-mortarboard-fill"></i> Mobile Dev · 7 yrs <span class="v-tag gold">ex-Google</span></div>
+                            <p class="vc-bio">Senior mobile engineer with 7 years of React Native &amp; native iOS experience.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 2h ago · SLA 46h left</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>2</b>/2 done</span><div class="vc-bar"><span data-value="100"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>PDF · 482 KB</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Opening sample course" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>12 min sample</span></span><span class="vc-check-state">Done</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" data-toast="Amara Nwosu approved" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="vc-btn preview" data-toast="Opening dossier" data-toast-type="info"><i class="bi bi-eye"></i> Full Dossier</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Override checks" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar teacher">IA</span><span class="vc-type teacher">Teacher</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Dr. Ifeoma Adeyemi</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> ifeoma.adeyemi@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Abuja, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-mortarboard-fill"></i> Data Science · PhD</div>
+                            <p class="vc-bio">PhD in Statistics, formerly lectured at UNILAG. Wants to publish a data science track.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 9h ago · SLA 39h left</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>1</b>/2 done</span><div class="vc-bar"><span data-value="50"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>PhD verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check" data-toast="Awaiting sample course" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>Not uploaded</span></span><span class="vc-check-state missing">Missing</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" disabled style="opacity:.45; cursor:not-allowed; box-shadow:none;"><i class="bi bi-lock-fill"></i> Approve Locked</button>
+                        <button class="vc-btn preview" data-toast="Nudge sent" data-toast-type="warning"><i class="bi bi-bell-fill"></i> Nudge Signer</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Override checks" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar teacher">RJ</span><span class="vc-type teacher">Teacher</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Rohan Joshi</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> rohan.joshi@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Bengaluru, India <span class="v-tag">IN</span></div>
+                            <div class="vc-line"><i class="bi bi-server"></i> Backend · 9 yrs <span class="v-tag gold">ex-Atlassian</span></div>
+                            <p class="vc-bio">Backend engineer with 9 years at Atlassian. Teaching system design and cloud architecture.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 18h ago · SLA 30h left</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>2</b>/2 done</span><div class="vc-bar"><span data-value="100"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>Verified · NIT Trichy</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Opening sample" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>25-min sample</span></span><span class="vc-check-state">Done</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" data-toast="Rohan Joshi approved" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="vc-btn preview" data-toast="Opening dossier" data-toast-type="info"><i class="bi bi-eye"></i> Full Dossier</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Override checks" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="vf-list sub-panel" id="sub-t-approved">
+            <article class="vf-card approved fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar teacher">AN</span><span class="vc-type teacher">Teacher</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Amara Nwosu <i class="bi bi-patch-check-fill vc-verified"></i></div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> amara.nwosu@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-mortarboard-fill"></i> Mobile Dev · 7 yrs</div>
+                            <span class="vc-submitted"><i class="bi bi-check2-circle"></i> Approved · 2 courses published</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>2</b>/2 done</span><div class="vc-bar"><span data-value="100"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>PDF · verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Opening sample" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>Verified</span></span><span class="vc-check-state">Done</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-decision">
+                        <span class="vd-tag approved"><i class="bi bi-check2-circle"></i> Approved</span>
+                        <span class="vd-by">by <b>You</b> · Mar 12</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="vf-card approved fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar teacher">EM</span><span class="vc-type teacher">Teacher</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Elena Marchetti <i class="bi bi-patch-check-fill vc-verified"></i></div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> elena.m@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Milan, Italy <span class="v-tag">IT</span></div>
+                            <div class="vc-line"><i class="bi bi-palette-fill"></i> UI/UX · 8 yrs</div>
+                            <span class="vc-submitted"><i class="bi bi-check2-circle"></i> Approved · 5 courses published</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>2</b>/2 done</span><div class="vc-bar"><span data-value="100"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>Verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Opening sample" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>Verified</span></span><span class="vc-check-state">Done</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-decision">
+                        <span class="vd-tag approved"><i class="bi bi-check2-circle"></i> Approved</span>
+                        <span class="vd-by">by <b>You</b> · Mar 04</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="vf-list sub-panel" id="sub-t-rejected">
+            <article class="vf-card rejected fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar teacher">??</span><span class="vc-type teacher">Teacher</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Unverified Applicant 4821</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> temp_4821@tempmail.com</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Unknown</div>
+                            <div class="vc-line"><i class="bi bi-exclamation-triangle-fill" style="color:var(--vf-rose-deep);"></i> Reason: credentials unverifiable</div>
+                            <span class="vc-submitted" style="background:var(--vf-rose-dim); color:var(--vf-rose-deep); border-color:rgba(251,113,133,0.32);">
+                                <i class="bi bi-x-octagon-fill"></i> Rejected · 4 days ago
+                            </span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Teacher Checks · 2 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>1</b>/2 done</span><div class="vc-bar"><span data-value="50"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Opening CV (disputed)" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>CV &amp; Credentials</strong><span>Disputed · forged</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check" data-toast="Not provided" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Certificate + Sample Course</strong><span>Never uploaded</span></span><span class="vc-check-state missing">Missing</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-decision">
+                        <span class="vd-tag rejected"><i class="bi bi-x-octagon"></i> Rejected</span>
+                        <span class="vd-by">by <b>You</b> · Mar 26</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — MENTORS (with sub-tabs)
+         ================================================= -->
+    <div class="vf-panel" id="panel-mentors" role="tabpanel">
+
+        <div class="vf-stat-strip">
+            <div class="vf-stat violet fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-person-badge-fill"></i></span><span class="vs-trend"><i class="bi bi-arrow-up-short"></i> 18</span></div>
+                <span class="vs-label">Total Mentors</span>
+                <div class="vs-value"><span data-count="168">0</span></div>
+            </div>
+            <div class="vf-stat gold fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-hourglass-split"></i></span><span class="vs-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="vs-label">Pending · Mentor Track</span>
+                <div class="vs-value"><span data-count="7">0</span></div>
+            </div>
+            <div class="vf-stat lime fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-patch-check-fill"></i></span><span class="vs-trend"><i class="bi bi-arrow-up-short"></i> 18</span></div>
+                <span class="vs-label">Verified · 30d</span>
+                <div class="vs-value"><span data-count="158">0</span></div>
+            </div>
+            <div class="vf-stat rose fade-up">
+                <div class="vs-head"><span class="vs-ic"><i class="bi bi-x-octagon"></i></span><span class="vs-trend down"><i class="bi bi-arrow-down-short"></i> 1</span></div>
+                <span class="vs-label">Rejected · 30d</span>
+                <div class="vs-value"><span data-count="6">0</span></div>
+            </div>
+        </div>
+
+        <div class="vf-toolbar">
+            <div class="vf-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search mentors by name, email, or specialty…" aria-label="Search mentors">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="vf-select" data-toast="Sort by: Oldest first" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Oldest First</span><i class="bi bi-chevron-down"></i></button>
+            <button class="vf-select" data-toast="Specialty filter opened" data-toast-type="info"><i class="bi bi-bookmark-fill"></i><span>Any Specialty</span><i class="bi bi-chevron-down"></i></button>
+            <div class="vf-toolbar-right">
+                <button class="btn-sm solid" data-toast="Opening bulk approve…" data-toast-type="success"><i class="bi bi-check2-all"></i> Bulk Approve</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <!-- Mentor sub-tabs -->
+        <nav class="sub-tabs" role="tablist" aria-label="Mentor verification status">
+            <button class="sub-tab active sub-pending" data-subtab="m-pending">
+                <i class="bi bi-hourglass-split" style="font-size:0.72rem; color: var(--vf-gold-deep);"></i>
+                Pending
+                <span class="st-count pending">7</span>
+            </button>
+            <button class="sub-tab sub-approved" data-subtab="m-approved">
+                <i class="bi bi-patch-check-fill" style="font-size:0.72rem; color: var(--vf-teal-deep);"></i>
+                Verified
+                <span class="st-count approved">158</span>
+            </button>
+            <button class="sub-tab sub-rejected" data-subtab="m-rejected">
+                <i class="bi bi-x-octagon" style="font-size:0.72rem; color: var(--vf-rose-deep);"></i>
+                Rejected
+                <span class="st-count rejected">6</span>
+            </button>
+        </nav>
+
+        <!-- Mentor sub-panels -->
+        <div class="vf-list sub-panel active" id="sub-m-pending">
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar mentor">CO</span><span class="vc-type mentor">Mentor</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Chinedu Okafor</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> chinedu.okafor@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-cpu-fill"></i> Backend Engineering · 8 yrs <span class="v-tag gold">ex-Stripe</span></div>
+                            <p class="vc-bio">Staff engineer focused on distributed systems and payment infrastructure.</p>
+                            <span class="vc-submitted urgent"><i class="bi bi-alarm-fill"></i> Submitted 44h ago · SLA 4h left</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>3</b>/4 done</span><div class="vc-bar"><span data-value="75"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing ID" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Government ID</strong><span>Dojah · NIN match</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing background" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Background Check</strong><span>Sterling · clean</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing skills" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Skills Assessment</strong><span>94/100</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check" data-toast="Awaiting signature" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Agreement Signed</strong><span>Awaiting e-signature</span></span><span class="vc-check-state missing">Missing</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" disabled style="opacity:.45; cursor:not-allowed; box-shadow:none;"><i class="bi bi-lock-fill"></i> Approve Locked</button>
+                        <button class="vc-btn preview" data-toast="Nudge sent to sign" data-toast-type="warning"><i class="bi bi-bell-fill"></i> Nudge Signer</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Override missing check" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar mentor">ZI</span><span class="vc-type mentor">Mentor</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Zainab Ibrahim</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> zainab.ibrahim@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> London, UK <span class="v-tag">GB</span></div>
+                            <div class="vc-line"><i class="bi bi-palette-fill"></i> Product Design · 6 yrs <span class="v-tag gold">ex-Google</span></div>
+                            <p class="vc-bio">Senior product designer with experience shipping design systems at Google.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 5h ago · SLA 43h left</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>4</b>/4 done</span><div class="vc-bar"><span data-value="100"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing ID" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Government ID</strong><span>Passport · verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing background" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Background Check</strong><span>DBS · clean</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing skills" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Skills Assessment</strong><span>97/100</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing agreement" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Agreement Signed</strong><span>Signed 4h ago</span></span><span class="vc-check-state">Done</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" data-toast="Zainab Ibrahim · Mentor approved" data-toast-type="success"><i class="bi bi-check2-circle"></i> Approve</button>
+                        <button class="vc-btn preview" data-toast="Opening dossier" data-toast-type="info"><i class="bi bi-eye"></i> Full Dossier</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Override — revoke and re-run" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="vf-card pending fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar mentor">TB</span><span class="vc-type mentor">Mentor</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Tunde Bakare</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> tunde.bakare@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria <span class="v-tag">NG</span></div>
+                            <div class="vc-line"><i class="bi bi-server"></i> Backend · 10 yrs <span class="v-tag gold">ex-Stripe</span></div>
+                            <p class="vc-bio">Distributed systems engineer with 10 years scaling payment infrastructure.</p>
+                            <span class="vc-submitted"><i class="bi bi-clock-history"></i> Submitted 12h ago · SLA 36h left</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>2</b>/4 done</span><div class="vc-bar"><span data-value="50"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing ID" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Government ID</strong><span>Verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing background" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Background Check</strong><span>Sterling · clean</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check" data-toast="Skills assessment in progress" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Skills Assessment</strong><span>In progress · 60% complete</span></span><span class="vc-check-state missing">Pending</span></button>
+                            <button class="vc-check" data-toast="Awaiting signature" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Agreement Signed</strong><span>Awaiting e-signature</span></span><span class="vc-check-state missing">Missing</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-actions">
+                        <span class="vc-action-label">Review &amp; Decide</span>
+                        <button class="vc-btn approve" disabled style="opacity:.45; cursor:not-allowed; box-shadow:none;"><i class="bi bi-lock-fill"></i> Approve Locked</button>
+                        <button class="vc-btn preview" data-toast="2 reminders sent" data-toast-type="warning"><i class="bi bi-bell-fill"></i> Nudge Signer</button>
+                        <button class="vc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle"></i> Reject</button>
+                        <button class="vc-btn override" data-toast="⚠ Override — force approve 2 missing checks" data-toast-type="violet"><i class="bi bi-shield-lock-fill"></i> Override</button>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="vf-list sub-panel" id="sub-m-approved">
+            <article class="vf-card approved fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar mentor">ZI</span><span class="vc-type mentor">Mentor</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Zainab Ibrahim <i class="bi bi-patch-check-fill vc-verified"></i></div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> zainab.ibrahim@knotwork.io</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> London, UK <span class="v-tag">GB</span></div>
+                            <div class="vc-line"><i class="bi bi-palette-fill"></i> Product Design · 6 yrs</div>
+                            <span class="vc-submitted"><i class="bi bi-patch-check-fill"></i> Verified · 248 sessions delivered</span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>4</b>/4 done</span><div class="vc-bar"><span data-value="100"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing ID" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Government ID</strong><span>Passport · verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing background" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Background Check</strong><span>DBS · clean</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing skills" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Skills Assessment</strong><span>97/100</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check done" data-toast="Viewing agreement" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Agreement Signed</strong><span>Signed</span></span><span class="vc-check-state">Done</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-decision">
+                        <span class="vd-tag approved"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                        <span class="vd-by">by <b>You</b> · Feb 28</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="vf-list sub-panel" id="sub-m-rejected">
+            <article class="vf-card rejected fade-up">
+                <div class="vf-card-grid">
+                    <div class="vc-applicant">
+                        <div class="vc-avatar-wrap"><span class="vc-avatar mentor">??</span><span class="vc-type mentor">Mentor</span></div>
+                        <div class="vc-meta">
+                            <div class="vc-name">Unverified Applicant 1129</div>
+                            <div class="vc-line"><i class="bi bi-envelope-fill"></i> u_1129@tempmail.com</div>
+                            <div class="vc-line"><i class="bi bi-geo-alt-fill"></i> Unknown</div>
+                            <div class="vc-line"><i class="bi bi-exclamation-triangle-fill" style="color:var(--vf-rose-deep);"></i> Reason: failed background check</div>
+                            <span class="vc-submitted" style="background:var(--vf-rose-dim); color:var(--vf-rose-deep); border-color:rgba(251,113,133,0.32);">
+                                <i class="bi bi-x-octagon-fill"></i> Rejected · 6 days ago
+                            </span>
+                        </div>
+                    </div>
+                    <div class="vc-checks">
+                        <div class="vc-checks-head">
+                            <h5>Mentor Checks · 4 required</h5>
+                            <div class="vc-checks-progress"><span class="vc-ratio"><b>2</b>/4 done</span><div class="vc-bar"><span data-value="50"></span></div></div>
+                        </div>
+                        <div class="vc-check-list">
+                            <button class="vc-check done" data-toast="Viewing ID (disputed)" data-toast-type="info"><span class="vc-check-ic"><i class="bi bi-check2"></i></span><span class="vc-check-body"><strong>Government ID</strong><span>Verified</span></span><span class="vc-check-state">Done</span></button>
+                            <button class="vc-check" data-toast="Background check failed" data-toast-type="error"><span class="vc-check-ic"><i class="bi bi-x"></i></span><span class="vc-check-body"><strong>Background Check</strong><span>Failed · flag</span></span><span class="vc-check-state missing">Failed</span></button>
+                            <button class="vc-check" data-toast="Not provided" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Skills Assessment</strong><span>Never submitted</span></span><span class="vc-check-state missing">Missing</span></button>
+                            <button class="vc-check" data-toast="Not provided" data-toast-type="warning"><span class="vc-check-ic"><i class="bi bi-dot"></i></span><span class="vc-check-body"><strong>Agreement Signed</strong><span>Never submitted</span></span><span class="vc-check-state missing">Missing</span></button>
+                        </div>
+                    </div>
+                    <div class="vc-decision">
+                        <span class="vd-tag rejected"><i class="bi bi-x-octagon"></i> Rejected</span>
+                        <span class="vd-by">by <b>You</b> · Mar 22</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — TRUST & SAFETY CONSOLE
+     ============================================================ -->
+<div class="trust-console fade-up">
+    <div class="tc-head">
+        <span class="tc-ic"><i class="bi bi-shield-fill-check"></i></span>
+        <div>
+            <h2>Trust &amp; Safety <em>Console</em></h2>
+            <p>ROOT-ONLY · VERIFICATION OVERRIDE · AUDIT-LOGGED</p>
+        </div>
+        <span class="tc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="tc-grid">
+        <button class="tc-tool" data-toast="Opening bulk override — you'll select applicants & provide justification" data-toast-type="violet">
+            <span class="tc-t-ic"><i class="bi bi-lightning-charge-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>Bulk Override</strong>
+                <p>Force-approve multiple applicants at once with audit trail.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Opening re-verification trigger — will notify applicants to re-submit" data-toast-type="warning">
+            <span class="tc-t-ic"><i class="bi bi-arrow-repeat"></i></span>
+            <div class="tc-t-body">
+                <strong>Trigger Re-Verification</strong>
+                <p>Ask verified accounts to re-submit documents (annual review).</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Opening document vault — encrypted access log required" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-folder-lock-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>Document Vault</strong>
+                <p>Access stored IDs, CVs &amp; agreements with encryption audit.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Opening fraud pattern report — 3 suspicious accounts flagged" data-toast-type="warning">
+            <span class="tc-t-ic"><i class="bi bi-graph-up-arrow"></i></span>
+            <div class="tc-t-body">
+                <strong>Fraud Patterns</strong>
+                <p>ML-flagged applicants with unusual document signatures.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="SLA escalation rules opened" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-alarm-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>SLA Rules</strong>
+                <p>Configure auto-escalation when reviews exceed 40h.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Reviewer workload panel opened" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-people-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>Reviewer Workload</strong>
+                <p>Balance queue across 8 reviewers · avg 1.5 pending each.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool danger" data-toast="⚠ Revoke verification requires MFA + reason" data-toast-type="error">
+            <span class="tc-t-ic"><i class="bi bi-shield-slash-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>Revoke Verification</strong>
+                <p>Pull trust status from a verified account. Emergency use.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool danger" data-toast="⚠ Freeze verification queue — no new submissions will be accepted" data-toast-type="error">
+            <span class="tc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="tc-t-body">
+                <strong>Freeze Queue</strong>
+                <p>Pause all incoming verification submissions during incidents.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       MAIN TABS — ALL PENDING / TEACHERS / MENTORS
+       ============================================================ */
+    const mainTabs = document.querySelectorAll('.vf-tab');
+    const mainPanels = document.querySelectorAll('.vf-panel');
+
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            mainTabs.forEach(t => t.classList.remove('active'));
+            mainPanels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+        });
+    });
+
+    /* ============================================================
+       SUB-TABS — Pending / Approved / Rejected inside Teachers & Mentors
+       ============================================================ */
+    document.querySelectorAll('.sub-tab').forEach(subTab => {
+        subTab.addEventListener('click', function () {
+            const parentPanel = this.closest('.vf-panel');
+            if (!parentPanel) return;
+            const target = this.dataset.subtab;
+
+            // Reset all sub-tabs within this panel
+            parentPanel.querySelectorAll('.sub-tab').forEach(st => st.classList.remove('active'));
+            this.classList.add('active');
+
+            // Reset all sub-panels within this panel
+            parentPanel.querySelectorAll('.sub-panel').forEach(sp => sp.classList.remove('active'));
+            const targetPanel = document.getElementById('sub-' + target);
+            if (targetPanel) targetPanel.classList.add('active');
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP (runs on newly visible panels too)
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const duration = 1300;
+            const start = performance.now();
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       ANIMATE PROGRESS BARS (in verification cards)
+       ============================================================ */
+    function paintBars(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.vc-bar > span[data-value], .bar > span[data-value]').forEach(el => {
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 80));
+        });
+    }
+    window.addEventListener('load', () => paintBars(document));
+
+    /* Re-paint bars when tabs change */
+    mainTabs.forEach(tab => tab.addEventListener('click', () => setTimeout(() => paintBars(document), 60)));
+    document.querySelectorAll('.sub-tab').forEach(st => st.addEventListener('click', () => setTimeout(() => paintBars(document), 60)));
+
+    /* ============================================================
+       CHECKLIST TOGGLE — clicking a check shows detail
+       ============================================================ */
+    document.querySelectorAll('.vc-check').forEach(chk => {
+        chk.addEventListener('click', function (e) {
+            e.preventDefault();
+            // Small pulse to acknowledge
+            this.style.transform = 'translateX(3px) scale(0.99)';
+            setTimeout(() => { this.style.transform = ''; }, 160);
+        });
+    });
+
+    /* ============================================================
+       APPROVE / REJECT actions — animate card removal
+       ============================================================ */
+    document.querySelectorAll('.vc-btn.approve').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.vf-card');
+            if (!card || card.classList.contains('approved') || card.classList.contains('rejected')) return;
+            if (btn.disabled) return;
+            card.style.transition = 'all .4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(28px) scale(0.98)';
+            setTimeout(() => card.remove(), 420);
+        });
+    });
+
+    document.querySelectorAll('.vc-btn.reject').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.vf-card');
+            if (!card || card.classList.contains('approved') || card.classList.contains('rejected')) return;
+            card.style.transition = 'all .4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(-28px) scale(0.98)';
+            setTimeout(() => card.remove(), 420);
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER (dynamically added nodes)
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.tc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'violet';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       LIVE BADGE LOGIC — update "All Pending" badge from sub-counts
+       ============================================================ */
+    function updateAllPendingBadge() {
+        const teacherPending = document.querySelector('[data-subtab="t-pending"] .st-count');
+        const mentorPending  = document.querySelector('[data-subtab="m-pending"] .st-count');
+        const t = teacherPending ? parseInt(teacherPending.textContent, 10) || 0 : 0;
+        const m = mentorPending  ? parseInt(mentorPending.textContent, 10) || 0 : 0;
+        const total = t + m;
+        const allBadge = document.querySelector('.vf-tab[data-tab="all"] .tab-badge');
+        if (allBadge) allBadge.textContent = total;
+        const tBadge = document.querySelector('.vf-tab[data-tab="teachers"] .tab-badge');
+        if (tBadge) tBadge.textContent = t;
+        const mBadge = document.querySelector('.vf-tab[data-tab="mentors"] .tab-badge');
+        if (mBadge) mBadge.textContent = m;
+    }
+    updateAllPendingBadge();
+
+})();
+</script>
+{% endblock %}

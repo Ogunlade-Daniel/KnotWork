@@ -1,0 +1,2212 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Network{% endblock %}
+{% block breadcrumb %}Network{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .net-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .net-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .net-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .nh-text { position: relative; z-index: 2; max-width: 660px; }
+    .nh-text .hero-badge { margin-bottom: 14px; }
+    .nh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .nh-text h1 span { color: var(--secondary); font-style: italic; }
+    .nh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        margin-bottom: 22px;
+        max-width: 540px;
+    }
+    .nh-text p strong { color: var(--white); font-weight: 600; }
+    .nh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    .nh-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .nh-metric { text-align: center; }
+    .nh-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .nh-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.15rem; }
+    .nh-metric span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .nh-sep { width: 1px; background: rgba(255, 255, 255, 0.12); }
+
+    /* ============================================================
+       FACULTY AUTHORITY STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .net-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .no-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .no-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .no-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .no-card:hover::before { opacity: 1; }
+    .no-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .no-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .no-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .no-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .no-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .no-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .no-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .no-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .no-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .no-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .no-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    .tool-view {
+        display: inline-flex;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        overflow: hidden;
+        background: var(--white);
+        height: 42px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .tool-view button {
+        width: 36px;
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        display: grid; place-items: center;
+    }
+    .tool-view button:hover { color: var(--primary-dark); }
+    .tool-view button.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 14px rgba(190, 242, 100, 0.3);
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+
+    .tab-panels { padding: 18px 26px 24px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       PERSON CARD — Grid (default view for peers)
+       ============================================================ */
+    .person-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+    }
+    .person-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .person-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .person-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .person-card:hover::before { opacity: 1; }
+
+    /* Head */
+    .pc-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+    .pc-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .pc-avatar-wrap .avatar {
+        width: 54px; height: 54px;
+        font-size: 1rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .pc-avatar-wrap .online {
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.16);
+    }
+    .pc-avatar-wrap .online.away { background: var(--amber); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16); }
+    .pc-avatar-wrap .online.offline { background: var(--gray-300); box-shadow: none; }
+
+    .pc-head-info { min-width: 0; flex: 1; }
+    .pc-head-info h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .pc-head-info p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Faculty / mentor role badges */
+    .pc-role-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+    .pc-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .pc-role.faculty {
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.22), rgba(56, 189, 248, 0.14));
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        color: #4D7C0F;
+    }
+    .pc-role.senior {
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.32);
+        color: #0369A1;
+    }
+    .pc-role.mentor {
+        background: rgba(139, 92, 246, 0.12);
+        border: 1px solid rgba(139, 92, 246, 0.32);
+        color: #6D28D9;
+    }
+    .pc-role.teacher {
+        background: rgba(245, 158, 11, 0.14);
+        border: 1px solid rgba(245, 158, 11, 0.34);
+        color: #B45309;
+    }
+    .pc-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 9px 3px 3px;
+        border-radius: 50px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.22), rgba(56, 189, 248, 0.14));
+        border: 1px solid rgba(190, 242, 100, 0.4);
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+        white-space: nowrap;
+    }
+    .pc-verified .mc-dot {
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.56rem;
+        flex-shrink: 0;
+    }
+
+    /* Bio */
+    .pc-bio {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Expertise tags */
+    .pc-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 14px;
+    }
+
+    /* Stats strip */
+    .pc-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 12px 0;
+        border-top: 1px solid var(--gray-100);
+        border-bottom: 1px solid var(--gray-100);
+        margin-bottom: 14px;
+    }
+    .pc-stats div { text-align: center; }
+    .pc-stats strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .pc-stats strong em { color: var(--secondary-deep); font-style: normal; }
+    .pc-stats span {
+        font-size: 0.56rem;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+    }
+
+    /* Actions */
+    .pc-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: auto;
+    }
+    .pc-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        flex: 1;
+    }
+    .pc-action-btn i { font-size: 0.8rem; }
+    .pc-action-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .pc-action-btn.primary {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+    .pc-action-btn.primary:hover {
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.45);
+    }
+
+    /* ============================================================
+       PERSON LIST (alternate view)
+       ============================================================ */
+    .person-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .person-list .person-card {
+        display: grid;
+        grid-template-columns: 68px minmax(0, 1.6fr) minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+        padding: 18px 22px;
+    }
+    .person-list .pc-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 0;
+    }
+    .person-list .pc-avatar-wrap .avatar {
+        width: 60px; height: 60px;
+        font-size: 1.1rem;
+    }
+    .person-list .pc-head-info h4 { font-size: 1.02rem; }
+    .person-list .pc-bio { margin-bottom: 0; }
+    .person-list .pc-stats {
+        margin-bottom: 0;
+        border: none;
+        padding: 0;
+    }
+    .person-list .pc-actions {
+        flex-direction: column;
+        min-width: 140px;
+    }
+    .person-list .pc-actions .pc-action-btn { width: 100%; }
+
+    @media (max-width: 1180px) {
+        .person-list .person-card {
+            grid-template-columns: 68px minmax(0, 1.6fr) auto;
+        }
+        .person-list .pc-stats {
+            grid-column: 1 / -1;
+            padding-top: 12px;
+            border-top: 1px dashed var(--gray-100);
+        }
+        .person-list .pc-actions {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            padding-top: 12px;
+            border-top: 1px dashed var(--gray-100);
+        }
+    }
+
+    /* ============================================================
+       RIGHT RAIL
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Faculty leaderboard */
+    .faculty-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .faculty-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .faculty-row:first-of-type { padding-top: 0; }
+    .faculty-row .avatar {
+        width: 38px; height: 38px;
+        font-size: 0.78rem;
+        font-family: 'Playfair Display', serif;
+        position: relative;
+    }
+    .faculty-row .avatar.rank-1 { box-shadow: 0 0 0 2px var(--secondary); }
+    .faculty-row .avatar.rank-2 { box-shadow: 0 0 0 2px var(--accent); }
+    .faculty-row .avatar.rank-3 { box-shadow: 0 0 0 2px var(--violet); }
+    .faculty-info { flex: 1; min-width: 0; }
+    .faculty-info strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .faculty-info .contrib-tags {
+        display: flex; gap: 5px;
+        flex-wrap: wrap;
+    }
+    .faculty-info .mini-tag {
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .faculty-info .mini-tag.mentor {
+        background: rgba(190, 242, 100, 0.22);
+        color: #4D7C0F;
+    }
+    .faculty-score {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .faculty-score strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+    }
+    .faculty-score span {
+        display: block;
+        font-size: 0.58rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+    }
+
+    /* Suggested mentor card */
+    .sugg-card {
+        border-radius: 14px;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.08), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        margin-bottom: 12px;
+        position: relative;
+        transition: var(--transition);
+    }
+    .sugg-card:hover {
+        border-color: rgba(190, 242, 100, 0.4);
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.12);
+    }
+    .sugg-card:last-child { margin-bottom: 0; }
+    .sugg-head {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 10px;
+    }
+    .sugg-head .avatar {
+        width: 40px; height: 40px;
+        font-size: 0.82rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .sugg-head-info { flex: 1; min-width: 0; }
+    .sugg-head-info strong {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sugg-head-info span {
+        display: block;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sugg-reason {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .sugg-reason strong { color: var(--primary-dark); font-weight: 700; }
+    .sugg-actions { display: flex; gap: 6px; }
+    .sugg-actions button {
+        flex: 1;
+        padding: 7px 12px;
+        border-radius: 50px;
+        border: none;
+        font-family: inherit;
+        font-size: 0.68rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .sugg-actions .connect {
+        background: var(--secondary);
+        color: var(--primary-dark);
+    }
+    .sugg-actions .connect:hover {
+        background: var(--secondary-light);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.4);
+    }
+    .sugg-actions .skip {
+        background: rgba(255,255,255,0.75);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+    .sugg-actions .skip:hover { background: var(--white); color: var(--primary-dark); }
+
+    /* Guidelines card */
+    .guide-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .guide-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .guide-item i {
+        flex-shrink: 0;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.6rem;
+        margin-top: 2px;
+    }
+    .guide-item strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls { display: flex; align-items: center; gap: 4px; }
+    .pg-btn {
+        min-width: 38px; height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .net-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .nh-metrics { gap: 18px; }
+        .nh-metric strong { font-size: 1.6rem; }
+    }
+    @media (max-width: 900px) {
+        .net-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .nh-metrics { width: 100%; justify-content: space-between; }
+    }
+    @media (max-width: 640px) {
+        .net-overview { grid-template-columns: 1fr; }
+        .nh-metrics { flex-wrap: wrap; gap: 14px; }
+        .nh-sep { display: none; }
+        .nh-metric { flex: 1; min-width: 80px; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+        .person-card { padding: 18px 18px 16px; }
+    }
+    @media (max-width: 420px) {
+        .pc-actions { flex-direction: column; }
+        .pc-action-btn { width: 100%; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="net-hero fade-up">
+    <div class="nh-text">
+        <span class="hero-badge">
+            <i class="bi bi-patch-check-fill"></i> Verified Mentor · Faculty Network
+        </span>
+        <h1>Your <span>Network</span></h1>
+        <p>
+            You are connected to <strong>48 faculty members</strong> across
+            <strong>12 specialisations</strong>. <strong>3 invitations</strong> are
+            waiting for your response, and <strong>12 mentor suggestions</strong>
+            are aligned with your expertise. Peers here refer learners to each other.
+        </p>
+        <div class="nh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening mentor directory…" data-toast-type="info">
+                <i class="bi bi-people-fill"></i> Explore faculty
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening invite composer…" data-toast-type="info">
+                <i class="bi bi-person-plus"></i> Invite a mentor
+            </button>
+        </div>
+    </div>
+
+    <div class="nh-metrics">
+        <div class="nh-metric">
+            <strong data-count="48">48</strong>
+            <span>Connections</span>
+        </div>
+        <div class="nh-sep"></div>
+        <div class="nh-metric">
+            <strong data-count="3">3</strong>
+            <span>Invitations</span>
+        </div>
+        <div class="nh-sep"></div>
+        <div class="nh-metric">
+            <strong>#3</strong>
+            <span>Faculty rank</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-patch-check-fill"></i></span>
+    <div class="as-body">
+        <strong>Faculty-only directory · every connection is verified</strong>
+        <p>
+            Every profile in this directory is a <strong>verified mentor, teacher, or faculty member</strong>
+            — cleared by Knotwork's review board. You can endorse peers, refer learners, or
+            co-host sessions. Endorsements are public and visible to mentees.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening faculty charter…" data-toast-type="info">
+            <i class="bi bi-file-earmark-text"></i> Faculty charter
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="net-overview fade-up">
+
+    <div class="no-card">
+        <div class="no-top">
+            <span class="no-ic"><i class="bi bi-people-fill"></i></span>
+            <span class="no-trend"><i class="bi bi-arrow-up-short"></i> +4</span>
+        </div>
+        <div class="no-value" data-count="48">48</div>
+        <div class="no-label">Faculty connections</div>
+    </div>
+
+    <div class="no-card">
+        <div class="no-top">
+            <span class="no-ic accent"><i class="bi bi-envelope-paper-fill"></i></span>
+            <span class="no-trend warn"><i class="bi bi-clock-history"></i> Waiting</span>
+        </div>
+        <div class="no-value" data-count="3">3</div>
+        <div class="no-label">Pending invitations</div>
+    </div>
+
+    <div class="no-card">
+        <div class="no-top">
+            <span class="no-ic violet"><i class="bi bi-award-fill"></i></span>
+            <span class="no-trend"><i class="bi bi-arrow-up-short"></i> +12</span>
+        </div>
+        <div class="no-value" data-count="142">142</div>
+        <div class="no-label">Endorsements received</div>
+    </div>
+
+    <div class="no-card">
+        <div class="no-top">
+            <span class="no-ic amber"><i class="bi bi-shuffle"></i></span>
+            <span class="no-trend"><i class="bi bi-arrow-up-short"></i> +8</span>
+        </div>
+        <div class="no-value" data-count="24">24</div>
+        <div class="no-label">Learner referrals sent</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="networkSearch" placeholder="Search mentors, teachers, expertise…" aria-label="Search network">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All roles
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Recently active" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Recently active
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <div class="tool-view" role="tablist" aria-label="View mode">
+        <button type="button" id="viewGrid" class="active" aria-label="Grid view" title="Grid view">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </button>
+        <button type="button" id="viewList" aria-label="List view" title="List view">
+            <i class="bi bi-list-ul"></i>
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Every profile in this directory is verified</strong>
+        <p>
+            Faculty members pass the same ID, background, and skills review as you.
+            <strong>Endorsements are mutual</strong> — when you endorse a peer, they
+            can endorse you back, and both endorsements appear on your public dossier.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     NETWORK GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="grid-2">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-people-fill"></i> Faculty Directory</h3>
+                <a href="#" class="link">Export connections <i class="bi bi-download"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="connections">
+                    My Network <span class="count">48</span>
+                </button>
+                <button class="tab" data-tab="suggestions">
+                    Suggestions <span class="count">12</span>
+                </button>
+                <button class="tab" data-tab="invitations">
+                    Invitations <span class="count">3</span>
+                </button>
+                <button class="tab" data-tab="faculty">
+                    Faculty <span class="count">24</span>
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ─────── MY NETWORK ─────── -->
+                <div class="tab-panel active" id="tab-connections">
+                    <div class="person-grid" id="gridConnections">
+
+                        <!-- Person 1 -->
+                        <article class="person-card" data-searchable="amara okoye react typescript frontend mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar sky">AO</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Amara Okoye</h4>
+                                    <p>Mentor · Frontend Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role senior"><i class="bi bi-award-fill"></i> Senior</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Ships production React and TypeScript. Mentors 18 learners on
+                                design-systems and accessibility.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">React</span>
+                                <span class="tag learn">TypeScript</span>
+                                <span class="tag violet">a11y</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>12</strong><span>Mutual</span></div>
+                                <div><strong>84</strong><span>Endorse</span></div>
+                                <div><strong>142</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Amara…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Endorsed Amara · React" data-toast-type="success">
+                                    <i class="bi bi-award-fill"></i> Endorse
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Person 2 -->
+                        <article class="person-card" data-searchable="tunde kayode postgres node backend mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar">TK</span>
+                                    <span class="online away" title="Away"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Tunde Kayode</h4>
+                                    <p>Mentor · Backend Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role mentor"><i class="bi bi-mortarboard-fill"></i> Mentor</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Runs the 30-day Backend Mastery template. Deep on Postgres,
+                                Node.js, and AWS deployment patterns.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">PostgreSQL</span>
+                                <span class="tag learn">Node.js</span>
+                                <span class="tag amber">AWS</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>8</strong><span>Mutual</span></div>
+                                <div><strong>52</strong><span>Endorse</span></div>
+                                <div><strong>98</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Tunde…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Endorsed Tunde · PostgreSQL" data-toast-type="success">
+                                    <i class="bi bi-award-fill"></i> Endorse
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Person 3 -->
+                        <article class="person-card" data-searchable="maya rahman design ui ux mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar violet">MR</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Maya Rahman</h4>
+                                    <p>Mentor · Design → Dev Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role senior"><i class="bi bi-award-fill"></i> Senior</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Bridges design systems into production React. Hosts the
+                                Design → Dev Bridge template.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">UI/UX</span>
+                                <span class="tag learn">React</span>
+                                <span class="tag green">Design Systems</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>14</strong><span>Mutual</span></div>
+                                <div><strong>96</strong><span>Endorse</span></div>
+                                <div><strong>142</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Maya…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Endorsed Maya · UI/UX" data-toast-type="success">
+                                    <i class="bi bi-award-fill"></i> Endorse
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Person 4 -->
+                        <article class="person-card" data-searchable="james oduya python ml machine learning mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar amber">JO</span>
+                                    <span class="online offline" title="Offline"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>James Oduya</h4>
+                                    <p>Mentor · Data / ML Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role mentor"><i class="bi bi-mortarboard-fill"></i> Mentor</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Production ML and MLOps. Runs the ML Foundations template
+                                for analysts moving into engineering.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">Python</span>
+                                <span class="tag learn">Machine Learning</span>
+                                <span class="tag amber">MLOps</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>6</strong><span>Mutual</span></div>
+                                <div><strong>48</strong><span>Endorse</span></div>
+                                <div><strong>76</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to James…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Endorsed James · Python" data-toast-type="success">
+                                    <i class="bi bi-award-fill"></i> Endorse
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Person 5 -->
+                        <article class="person-card" data-searchable="nadia bello react testing mentor alumni">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar sky">NB</span>
+                                    <span class="online offline" title="Offline"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Nadia Bello</h4>
+                                    <p>Mentor · Frontend Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role mentor"><i class="bi bi-mortarboard-fill"></i> Mentor</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Frontend specialist focused on React testing patterns and
+                                component-library ergonomics.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">React</span>
+                                <span class="tag learn">Testing</span>
+                                <span class="tag violet">Jest</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>9</strong><span>Mutual</span></div>
+                                <div><strong>64</strong><span>Endorse</span></div>
+                                <div><strong>64</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Nadia…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Endorsed Nadia · Testing" data-toast-type="success">
+                                    <i class="bi bi-award-fill"></i> Endorse
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Person 6 -->
+                        <article class="person-card" data-searchable="samuel chen postgres backend systems mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar">SC</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Samuel Chen</h4>
+                                    <p>Mentor · Backend Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role senior"><i class="bi bi-award-fill"></i> Senior</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Postgres internals, row-level locking, and distributed
+                                transactional systems. Mentor to 22 learners.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">PostgreSQL</span>
+                                <span class="tag learn">System Design</span>
+                                <span class="tag amber">Distributed Systems</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>10</strong><span>Mutual</span></div>
+                                <div><strong>72</strong><span>Endorse</span></div>
+                                <div><strong>58</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Samuel…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Endorsed Samuel · System Design" data-toast-type="success">
+                                    <i class="bi bi-award-fill"></i> Endorse
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── SUGGESTIONS ─────── -->
+                <div class="tab-panel" id="tab-suggestions">
+                    <div class="person-grid" id="gridSuggestions">
+
+                        <article class="person-card" data-searchable="chidi eze rust systems programming mentor suggested">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar violet">CE</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Chidi Eze</h4>
+                                    <p>Mentor · Systems Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role senior"><i class="bi bi-award-fill"></i> Senior</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Rust and low-latency systems. <strong>Suggested because you mentor 4
+                                learners working on performance-heavy React.</strong>
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">Rust</span>
+                                <span class="tag learn">Performance</span>
+                                <span class="tag amber">WASM</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>2</strong><span>Mutual</span></div>
+                                <div><strong>34</strong><span>Endorse</span></div>
+                                <div><strong>42</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Skipped suggestion" data-toast-type="warning">
+                                    <i class="bi bi-x-lg"></i> Skip
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Invitation sent to Chidi" data-toast-type="success">
+                                    <i class="bi bi-person-plus-fill"></i> Connect
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="person-card" data-searchable="layla mansour graphql api backend mentor suggested">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar amber">LM</span>
+                                    <span class="online away" title="Away"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Layla Mansour</h4>
+                                    <p>Mentor · API Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role mentor"><i class="bi bi-mortarboard-fill"></i> Mentor</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                GraphQL at scale and API schema design.
+                                <strong>Suggested because your mentee James is moving into API work.</strong>
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">GraphQL</span>
+                                <span class="tag learn">Node.js</span>
+                                <span class="tag violet">Schema Design</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>3</strong><span>Mutual</span></div>
+                                <div><strong>28</strong><span>Endorse</span></div>
+                                <div><strong>36</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Skipped suggestion" data-toast-type="warning">
+                                    <i class="bi bi-x-lg"></i> Skip
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Invitation sent to Layla" data-toast-type="success">
+                                    <i class="bi bi-person-plus-fill"></i> Connect
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── INVITATIONS ─────── -->
+                <div class="tab-panel" id="tab-invitations">
+                    <div class="person-grid" id="gridInvitations">
+
+                        <article class="person-card" data-searchable="ahmed hassan frontend react mentor invitation">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar sky">AH</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Ahmed Hassan</h4>
+                                    <p>Mentor · Frontend Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role mentor"><i class="bi bi-mortarboard-fill"></i> Mentor</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                <strong>Invited you 2 days ago</strong> — React performance
+                                and rendering pipelines. Wants to co-host a workshop on
+                                React 19 Server Components.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">React</span>
+                                <span class="tag learn">Performance</span>
+                                <span class="tag amber">React 19</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>4</strong><span>Mutual</span></div>
+                                <div><strong>46</strong><span>Endorse</span></div>
+                                <div><strong>52</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Invitation declined" data-toast-type="warning">
+                                    <i class="bi bi-x-lg"></i> Decline
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Accepted — you are now connected with Ahmed" data-toast-type="success">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="person-card" data-searchable="sophie laurent data science python mentor invitation">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar amber">SL</span>
+                                    <span class="online away" title="Away"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Sophie Laurent</h4>
+                                    <p>Mentor · Data Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role senior"><i class="bi bi-award-fill"></i> Senior</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                <strong>Invited you 1 week ago</strong> — Data pipelines
+                                and Python for analytics. Wants to refer learners
+                                into your full-stack programmes.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">Python</span>
+                                <span class="tag learn">Pandas</span>
+                                <span class="tag green">Data Pipelines</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>5</strong><span>Mutual</span></div>
+                                <div><strong>68</strong><span>Endorse</span></div>
+                                <div><strong>62</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Invitation declined" data-toast-type="warning">
+                                    <i class="bi bi-x-lg"></i> Decline
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Accepted — you are now connected with Sophie" data-toast-type="success">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="person-card" data-searchable="martin parker devops kubernetes mentor invitation">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar violet">MP</span>
+                                    <span class="online offline" title="Offline"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Martin Parker</h4>
+                                    <p>Mentor · DevOps Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified mentor
+                                </span>
+                                <span class="pc-role mentor"><i class="bi bi-mortarboard-fill"></i> Mentor</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                <strong>Invited you 3 days ago</strong> — Kubernetes and
+                                cloud deployments. Interested in referring his DevOps
+                                learners to your React programmes.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">Kubernetes</span>
+                                <span class="tag learn">AWS</span>
+                                <span class="tag amber">Terraform</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>3</strong><span>Mutual</span></div>
+                                <div><strong>54</strong><span>Endorse</span></div>
+                                <div><strong>44</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Invitation declined" data-toast-type="warning">
+                                    <i class="bi bi-x-lg"></i> Decline
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Accepted — you are now connected with Martin" data-toast-type="success">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── FACULTY ─────── -->
+                <div class="tab-panel" id="tab-faculty">
+                    <div class="person-grid" id="gridFaculty">
+
+                        <article class="person-card" data-searchable="elena vasquez faculty director mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar sky">EV</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Elena Vasquez</h4>
+                                    <p>Faculty Director · Curriculum</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified faculty
+                                </span>
+                                <span class="pc-role faculty"><i class="bi bi-shield-fill-check"></i> Director</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Oversees curriculum across all mentoring tracks.
+                                Approves faculty onboarding and template reviews.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">Curriculum</span>
+                                <span class="tag learn">Pedagogy</span>
+                                <span class="tag violet">Faculty Ops</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>32</strong><span>Mutual</span></div>
+                                <div><strong>184</strong><span>Endorse</span></div>
+                                <div><strong>210</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Elena…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Opening Elena's profile…" data-toast-type="info">
+                                    <i class="bi bi-person-badge"></i> View profile
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="person-card" data-searchable="hassan rahman faculty lead mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar violet">HR</span>
+                                    <span class="online away" title="Away"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Hassan Rahman</h4>
+                                    <p>Faculty Lead · Systems Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified faculty
+                                </span>
+                                <span class="pc-role faculty"><i class="bi bi-shield-fill-check"></i> Faculty lead</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Lead mentor for backend and systems tracks. Runs
+                                monthly faculty reviews and template vetting.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">Systems</span>
+                                <span class="tag learn">PostgreSQL</span>
+                                <span class="tag amber">Distributed</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>24</strong><span>Mutual</span></div>
+                                <div><strong>142</strong><span>Endorse</span></div>
+                                <div><strong>168</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Hassan…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Opening Hassan's profile…" data-toast-type="info">
+                                    <i class="bi bi-person-badge"></i> View profile
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="person-card" data-searchable="marie dupont teacher frontend curriculum">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar amber">MD</span>
+                                    <span class="online" title="Online"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Marie Dupont</h4>
+                                    <p>Teacher · Frontend Foundations</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified teacher
+                                </span>
+                                <span class="pc-role teacher"><i class="bi bi-mortarboard-fill"></i> Teacher</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Teaches foundational HTML/CSS/JS. Refers advanced learners
+                                into your React programmes.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">HTML/CSS</span>
+                                <span class="tag learn">JavaScript</span>
+                                <span class="tag green">Foundations</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>18</strong><span>Mutual</span></div>
+                                <div><strong>96</strong><span>Endorse</span></div>
+                                <div><strong>124</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Marie…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Opening Marie's profile…" data-toast-type="info">
+                                    <i class="bi bi-person-badge"></i> View profile
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="person-card" data-searchable="kenji tanaka faculty lead frontend mentor">
+                            <div class="pc-head">
+                                <div class="pc-avatar-wrap">
+                                    <span class="avatar">KT</span>
+                                    <span class="online away" title="Away"></span>
+                                </div>
+                                <div class="pc-head-info">
+                                    <h4>Kenji Tanaka</h4>
+                                    <p>Faculty Lead · Frontend Track</p>
+                                </div>
+                            </div>
+
+                            <div class="pc-role-row">
+                                <span class="pc-verified">
+                                    <span class="mc-dot"><i class="bi bi-patch-check-fill"></i></span>
+                                    Verified faculty
+                                </span>
+                                <span class="pc-role faculty"><i class="bi bi-shield-fill-check"></i> Faculty lead</span>
+                            </div>
+
+                            <p class="pc-bio">
+                                Sets the frontend curriculum track and reviews new
+                                React patterns before they enter your templates.
+                            </p>
+
+                            <div class="pc-tags">
+                                <span class="tag teach">React</span>
+                                <span class="tag learn">TypeScript</span>
+                                <span class="tag violet">Design Systems</span>
+                            </div>
+
+                            <div class="pc-stats">
+                                <div><strong>28</strong><span>Mutual</span></div>
+                                <div><strong>156</strong><span>Endorse</span></div>
+                                <div><strong>188</strong><span>Answers</span></div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <button type="button" class="pc-action-btn" data-toast="Opening message to Kenji…" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="pc-action-btn primary" data-toast="Opening Kenji's profile…" data-toast-type="info">
+                                    <i class="bi bi-person-badge"></i> View profile
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <section class="pagination fade-up">
+            <div class="pg-info">
+                Showing <strong>1–6</strong> of <strong>48</strong> faculty connections
+            </div>
+            <div class="pg-controls">
+                <button type="button" class="pg-btn" disabled>
+                    <i class="bi bi-chevron-left"></i> Prev
+                </button>
+                <button type="button" class="pg-btn active">1</button>
+                <button type="button" class="pg-btn">2</button>
+                <button type="button" class="pg-btn">3</button>
+                <button type="button" class="pg-btn">4</button>
+                <button type="button" class="pg-btn">5</button>
+                <button type="button" class="pg-btn">
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- FACULTY LEADERBOARD -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-trophy-fill"></i> Faculty Leaders</h4>
+                <a href="#" class="link">This month <i class="bi bi-chevron-down"></i></a>
+            </div>
+
+            <div class="faculty-row">
+                <span class="avatar rank-1 sky">EV</span>
+                <div class="faculty-info">
+                    <strong>Elena Vasquez</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag mentor">Faculty Director</span>
+                    </div>
+                </div>
+                <div class="faculty-score">
+                    <strong>210</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="faculty-row">
+                <span class="avatar rank-2">KT</span>
+                <div class="faculty-info">
+                    <strong>Kenji Tanaka</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag mentor">Faculty Lead</span>
+                    </div>
+                </div>
+                <div class="faculty-score">
+                    <strong>188</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="faculty-row">
+                <span class="avatar rank-3 violet">HR</span>
+                <div class="faculty-info">
+                    <strong>Hassan Rahman</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag mentor">Faculty Lead</span>
+                    </div>
+                </div>
+                <div class="faculty-score">
+                    <strong>168</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="faculty-row">
+                <span class="avatar amber">MD</span>
+                <div class="faculty-info">
+                    <strong>Marie Dupont</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag">Teacher</span>
+                    </div>
+                </div>
+                <div class="faculty-score">
+                    <strong>124</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+            <div class="faculty-row">
+                <span class="avatar sky">DO</span>
+                <div class="faculty-info">
+                    <strong>Daniel Okafor</strong>
+                    <div class="contrib-tags">
+                        <span class="mini-tag mentor">You · Mentor</span>
+                    </div>
+                </div>
+                <div class="faculty-score">
+                    <strong>184</strong>
+                    <span>Answers</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SUGGESTED CONNECTIONS -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-lightning-charge-fill"></i> Suggested for You</h4>
+                <a href="#" class="link">All 12 <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="sugg-card">
+                <div class="sugg-head">
+                    <span class="avatar violet">CE</span>
+                    <div class="sugg-head-info">
+                        <strong>Chidi Eze</strong>
+                        <span>Senior Mentor · Systems</span>
+                    </div>
+                </div>
+                <p class="sugg-reason">
+                    <strong>2 mutual connections.</strong> Suggested because you mentor 4
+                    learners working on performance-heavy React.
+                </p>
+                <div class="sugg-actions">
+                    <button type="button" class="skip" data-toast="Skipped Chidi" data-toast-type="warning">
+                        <i class="bi bi-x-lg"></i> Skip
+                    </button>
+                    <button type="button" class="connect" data-toast="Invitation sent to Chidi" data-toast-type="success">
+                        <i class="bi bi-person-plus-fill"></i> Connect
+                    </button>
+                </div>
+            </div>
+
+            <div class="sugg-card">
+                <div class="sugg-head">
+                    <span class="avatar amber">LM</span>
+                    <div class="sugg-head-info">
+                        <strong>Layla Mansour</strong>
+                        <span>Mentor · API Track</span>
+                    </div>
+                </div>
+                <p class="sugg-reason">
+                    <strong>3 mutual connections.</strong> Suggested because your mentee
+                    James is moving into API work.
+                </p>
+                <div class="sugg-actions">
+                    <button type="button" class="skip" data-toast="Skipped Layla" data-toast-type="warning">
+                        <i class="bi bi-x-lg"></i> Skip
+                    </button>
+                    <button type="button" class="connect" data-toast="Invitation sent to Layla" data-toast-type="success">
+                        <i class="bi bi-person-plus-fill"></i> Connect
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- NETWORK GUIDELINES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-shield-check"></i> Network Guidelines</h4>
+            </div>
+
+            <div class="guide-list">
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Refer honestly</strong> — send learners to the right mentor, not the easiest one.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Endorse only what you know</strong> — endorsements are public trust signals.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Keep mentoring relationships separate</strong> — your mentees cannot see your peer messages.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Report inappropriate profiles</strong> — faculty is verified, but not infallible.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('networkSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.person-card').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           VIEW MODE TOGGLE (grid ↔ list)
+           ====================================================== */
+        const viewGrid = document.getElementById('viewGrid');
+        const viewList = document.getElementById('viewList');
+        const gridContainers = document.querySelectorAll('.person-grid');
+
+        function applyView(mode) {
+            if (mode === 'list') {
+                viewList.classList.add('active');
+                viewGrid.classList.remove('active');
+                gridContainers.forEach(function (el) {
+                    el.classList.remove('person-grid');
+                    el.classList.add('person-list');
+                });
+            } else {
+                viewGrid.classList.add('active');
+                viewList.classList.remove('active');
+                gridContainers.forEach(function (el) {
+                    el.classList.remove('person-list');
+                    el.classList.add('person-grid');
+                });
+            }
+        }
+
+        if (viewGrid) viewGrid.addEventListener('click', function () { applyView('grid'); });
+        if (viewList) viewList.addEventListener('click', function () { applyView('list'); });
+
+        /* ======================================================
+           PAGINATION (visual only)
+           ====================================================== */
+        document.querySelectorAll('.pg-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.disabled || this.classList.contains('active')) return;
+                const label = this.textContent.trim().toLowerCase();
+                if (label.startsWith('prev') || label.startsWith('next')) return;
+
+                document.querySelectorAll('.pg-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (window.showKnotToast) {
+                    window.showKnotToast('Loading page ' + this.textContent.trim() + '…', 'info');
+                }
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

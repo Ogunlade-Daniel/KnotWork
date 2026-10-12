@@ -41,6 +41,7 @@
 
     --r:           var(--radius, 16px);
     --r-xl:        var(--radius-xl, 24px);
+    --transition:  all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     display: flex;
@@ -1340,11 +1341,11 @@
             </span>
             <h1>Your <em>cohort of scholars.</em></h1>
             <p class="cm-sub">
-                <strong>148</strong> students
+                <strong>{{ cohort_metrics.total_students|default:0 }}</strong> students
                 <span class="sep"></span>
-                Avg tenure <strong>14 months</strong>
+                Avg tenure <strong>{{ cohort_metrics.avg_tenure_months|default:0 }} months</strong>
                 <span class="sep"></span>
-                Joined <strong>Sept 2024</strong>
+                Joined <strong>{% if cohort_metrics.joined_label %}{{ cohort_metrics.joined_label|date:"M Y" }}{% else %}0{% endif %}</strong>
             </p>
         </div>
         <div class="c-mast-right">
@@ -1370,7 +1371,7 @@
                 <span class="pt-icon"><i class="bi bi-people-fill"></i></span>
                 <span class="pt-micro">Cohort</span>
             </div>
-            <div class="pt-val" data-count="148">0</div>
+            <div class="pt-val" data-count="{{ cohort_metrics.total_students|default:0 }}">{{ cohort_metrics.total_students|default:0 }}</div>
             <div class="pt-label">Total students</div>
         </article>
 
@@ -1379,7 +1380,7 @@
                 <span class="pt-icon"><i class="bi bi-activity"></i></span>
                 <span class="pt-micro">This week</span>
             </div>
-            <div class="pt-val" data-count="92">0</div>
+            <div class="pt-val" data-count="{{ cohort_metrics.active_learners|default:0 }}">{{ cohort_metrics.active_learners|default:0 }}</div>
             <div class="pt-label">Active learners</div>
         </article>
 
@@ -1388,7 +1389,7 @@
                 <span class="pt-icon"><i class="bi bi-stars"></i></span>
                 <span class="pt-micro">Fresh</span>
             </div>
-            <div class="pt-val" data-count="12">0</div>
+            <div class="pt-val" data-count="{{ cohort_metrics.new_students|default:0 }}">{{ cohort_metrics.new_students|default:0 }}</div>
             <div class="pt-label">New this month</div>
         </article>
 
@@ -1397,7 +1398,7 @@
                 <span class="pt-icon"><i class="bi bi-exclamation-circle"></i></span>
                 <span class="pt-micro">Attention</span>
             </div>
-            <div class="pt-val" data-count="5">0</div>
+            <div class="pt-val" data-count="{{ cohort_metrics.needs_attention|default:0 }}">{{ cohort_metrics.needs_attention|default:0 }}</div>
             <div class="pt-label">Need a nudge</div>
         </article>
 
@@ -1406,7 +1407,7 @@
                 <span class="pt-icon"><i class="bi bi-mortarboard-fill"></i></span>
                 <span class="pt-micro">Soon</span>
             </div>
-            <div class="pt-val" data-count="8">0</div>
+            <div class="pt-val" data-count="{{ cohort_metrics.graduating|default:0 }}">{{ cohort_metrics.graduating|default:0 }}</div>
             <div class="pt-label">Graduating</div>
         </article>
     </section>
@@ -1415,39 +1416,39 @@
     <!-- ====================================================
          3 · SPOTLIGHT
          ==================================================== -->
+    {% if cohort_metrics.total_students %}
     <section class="spotlight c-rise">
         <div class="sp-left">
-            <span class="sp-kicker"><i class="bi bi-star-fill"></i> Student of the Month · March</span>
+            <span class="sp-kicker"><i class="bi bi-star-fill"></i> Cohort spotlight</span>
 
             <div class="sp-profile">
                 <div class="sp-avatar">
-                    SK
+                    {{ spotlight_enrollment.student.initials }}
                     <span class="presence" aria-label="Online"></span>
                 </div>
                 <div class="sp-name">
-                    <h2>Sara Kim</h2>
+                    <h2>{{ spotlight_enrollment.student.user.get_full_name|default:spotlight_enrollment.student.user.username }}</h2>
                     <p>
-                        <strong>18 months</strong> with you
+                        <strong>{{ spotlight_enrollment.progress_percent }}% progress</strong>
                         <span class="sep"></span>
-                        Lagos, Nigeria
+                        {{ spotlight_enrollment.course.get_category_display }}
                         <span class="sep"></span>
-                        Cohort since Sep 2024
+                        Joined {{ spotlight_enrollment.enrolled_at|date:"M Y" }}
                     </p>
                 </div>
             </div>
 
             <div class="sp-note">
-                Remarkable <strong>clarity and consistency</strong>. Sara has completed every module ahead of schedule
-                and now mentors two other students in the cohort. A natural teacher — consider her for the
-                advanced mentor track.
+                {{ spotlight_enrollment.course.title }} is currently at <strong>{{ spotlight_enrollment.progress_percent }}% progress</strong>.
+                {% if spotlight_enrollment.is_completed %}This learner has completed the course.{% else %}Keep the momentum going with the next learning milestone.{% endif %}
             </div>
 
             <div class="sp-actions">
-                <button class="btn-gold" data-toast="Opening conversation with Sara…">
-                    <i class="bi bi-chat-dots-fill"></i> Message Sara
+                <button class="btn-gold" data-toast="Opening learner conversation…">
+                    <i class="bi bi-chat-dots-fill"></i> Message learner
                 </button>
-                <button class="btn-outline" data-toast="Opening Sara's full journey…">
-                    <i class="bi bi-journal-text"></i> Full journey
+                <button class="btn-outline" data-toast="Opening learner journey…">
+                    <i class="bi bi-journal-text"></i> View journey
                 </button>
             </div>
         </div>
@@ -1455,21 +1456,21 @@
         <div class="sp-right">
             <div class="sp-journey-head">
                 <span class="k">Journey with you</span>
-                <span class="v">68% complete</span>
+                <span class="v">{{ spotlight_enrollment.progress_percent }}% complete</span>
             </div>
 
             <div class="sp-metrics">
                 <div class="sp-metric">
                     <div class="k">Rating</div>
-                    <div class="v gold">4.9<em style="font-style:normal;font-size:0.6rem;">★</em></div>
+                    <div class="v gold">0<em style="font-style:normal;font-size:0.6rem;">★</em></div>
                 </div>
                 <div class="sp-metric">
                     <div class="k">Streak</div>
-                    <div class="v">28<em style="font-style:normal;font-size:0.6rem;">d</em></div>
+                    <div class="v">0<em style="font-style:normal;font-size:0.6rem;">d</em></div>
                 </div>
                 <div class="sp-metric">
                     <div class="k">Modules</div>
-                    <div class="v">42</div>
+                    <div class="v">{{ spotlight_enrollment.progress_percent }}</div>
                 </div>
             </div>
 
@@ -1477,52 +1478,58 @@
                 <div class="sp-milestone">
                     <span class="ms-dot"></span>
                     <div class="ms-body">
-                        <h6>Finished <strong>Advanced React Patterns</strong> with distinction</h6>
-                        <span>2 days ago</span>
+                        <h6>Progressed through <strong>{{ spotlight_enrollment.course.title }}</strong></h6>
+                        <span>Current enrollment</span>
                     </div>
                 </div>
                 <div class="sp-milestone sky">
                     <span class="ms-dot"></span>
                     <div class="ms-body">
-                        <h6>Became a <strong>peer mentor</strong> for two students</h6>
-                        <span>2 weeks ago</span>
+                        <h6>Learning in <strong>{{ spotlight_enrollment.course.get_level_display }}</strong> level</h6>
+                        <span>{{ spotlight_enrollment.course.get_category_display }}</span>
                     </div>
                 </div>
                 <div class="sp-milestone violet">
                     <span class="ms-dot"></span>
                     <div class="ms-body">
-                        <h6>18-month <strong>anniversary</strong> with your cohort</h6>
-                        <span>1 month ago</span>
+                        <h6>Enrollment <strong>milestone</strong></h6>
+                        <span>Since {{ spotlight_enrollment.enrolled_at|date:"M Y" }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    {% else %}
+    <section class="spotlight c-rise">
+        <div class="sp-left"><span class="sp-kicker"><i class="bi bi-stars"></i> Cohort spotlight</span><h2>No students in your cohort yet.</h2><p>Enrolled students and their progress will appear here automatically.</p></div>
+    </section>
+    {% endif %}
 
 
     <!-- ====================================================
          4 · TOOLBAR
          ==================================================== -->
     <div class="c-toolbar c-rise">
-        <div class="ct-search">
+        <form class="ct-search" method="get">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search by name, city or course…" aria-label="Search students">
-        </div>
+            <input type="text" name="q" value="{{ cohort_query }}" placeholder="Search by name, city or course…" aria-label="Search students">
+            <input type="hidden" name="segment" value="{{ cohort_segment }}">
+        </form>
 
-        <button class="ct-chip active" data-segment="all">
-            <i class="bi bi-grid-fill"></i> All <span class="cnt">148</span>
+        <button class="ct-chip{% if cohort_segment == 'all' %} active{% endif %}" data-segment="all">
+            <i class="bi bi-grid-fill"></i> All <span class="cnt">{{ cohort_segment_counts.all|default:0 }}</span>
         </button>
-        <button class="ct-chip" data-segment="thriving">
-            <i class="bi bi-emoji-smile"></i> Thriving <span class="cnt">86</span>
+        <button class="ct-chip{% if cohort_segment == 'thriving' %} active{% endif %}" data-segment="thriving">
+            <i class="bi bi-emoji-smile"></i> Thriving <span class="cnt">{{ cohort_segment_counts.thriving|default:0 }}</span>
         </button>
-        <button class="ct-chip" data-segment="steady">
-            <i class="bi bi-emoji-neutral"></i> Steady <span class="cnt">44</span>
+        <button class="ct-chip{% if cohort_segment == 'steady' %} active{% endif %}" data-segment="steady">
+            <i class="bi bi-emoji-neutral"></i> Steady <span class="cnt">{{ cohort_segment_counts.steady|default:0 }}</span>
         </button>
-        <button class="ct-chip" data-segment="new">
-            <i class="bi bi-stars"></i> New <span class="cnt">12</span>
+        <button class="ct-chip{% if cohort_segment == 'new' %} active{% endif %}" data-segment="new">
+            <i class="bi bi-stars"></i> New <span class="cnt">{{ cohort_segment_counts.new|default:0 }}</span>
         </button>
-        <button class="ct-chip" data-segment="needs">
-            <i class="bi bi-exclamation-circle"></i> Needs attention <span class="cnt">5</span>
+        <button class="ct-chip{% if cohort_segment == 'needs' %} active{% endif %}" data-segment="needs">
+            <i class="bi bi-exclamation-circle"></i> Needs attention <span class="cnt">{{ cohort_segment_counts.needs|default:0 }}</span>
         </button>
 
         <div class="ct-divider" aria-hidden="true"></div>
@@ -1539,7 +1546,18 @@
     <section class="c-rise">
         <div class="roster" id="roster">
 
-            <!-- THRIVING · Sara Kim -->
+            {% if cohort_enrollments %}
+                {% for enrollment in cohort_enrollments %}
+                    <article class="student {% if enrollment.progress_percent >= 70 %}thriving{% elif enrollment.progress_percent < 35 %}needs{% else %}steady{% endif %}">
+                        <div class="st-head"><div class="st-avatar">{{ enrollment.student.initials }}</div><div class="st-info"><h4>{{ enrollment.student.user.get_full_name|default:enrollment.student.user.username }}</h4><p><i class="bi bi-calendar3"></i> Joined {{ enrollment.enrolled_at|date:"M Y" }}</p></div></div>
+                        <div class="st-course"><div class="st-course-head"><span class="k">Currently in</span><span class="v">{{ enrollment.course.title }}</span></div><div class="st-pbar"><span data-value="{{ enrollment.progress_percent }}"></span></div></div>
+                        <div class="st-stats"><div class="st-stat"><div class="k">Progress</div><div class="v">{{ enrollment.progress_percent }}%</div></div><div class="st-stat"><div class="k">Level</div><div class="v">{{ enrollment.course.get_level_display }}</div></div><div class="st-stat"><div class="k">Status</div><div class="v">{% if enrollment.is_completed %}Done{% else %}Active{% endif %}</div></div></div>
+                        <div class="st-foot"><span class="st-mood"><i class="bi bi-person-check"></i> {{ enrollment.course.get_category_display }}</span></div>
+                    </article>
+                {% endfor %}
+            {% else %}
+            {% comment %}
+            <!-- Legacy demo roster retained only as a design reference. -->
             <article class="student thriving" data-mood="thriving" data-toast="Opening Sara Kim's journey…">
                 <span class="st-note-flag" title="You have a personal note" aria-label="Has note">
                     <i class="bi bi-bookmark-fill"></i>
@@ -1888,10 +1906,18 @@
                 </button>
             </div>
 
+            {% endcomment %}
+                <div class="empty-state" id="rosterEmpty">
+                    <div class="es-ic"><i class="bi bi-people"></i></div>
+                    <h3>No students match this view</h3>
+                    <p>Students will appear here after they enrol in one of your published courses.</p>
+                </div>
+            {% endif %}
+
         </div>
 
         <div class="c-foot">
-            <span>Showing <strong>9</strong> of <strong>148</strong> students · sorted by tenure</span>
+            <span>Showing <strong>{{ cohort_enrollments|length }}</strong> of <strong>{{ cohort_metrics.total_students|default:0 }}</strong> students · sorted by tenure</span>
             <div class="foot-actions">
                 <button class="btn-ghost" data-toast="Loading more students…">
                     <i class="bi bi-arrow-down-circle"></i> Load more
@@ -2029,7 +2055,7 @@
                         <div class="milestone">
                             <span class="ms-marker rose"><i class="bi bi-heart-fill"></i></span>
                             <div class="ms-body">
-                                <h5>You've mentored <strong>148 students</strong> across 14 months</h5>
+                                <h5>You've mentored <strong>{{ cohort_metrics.total_students|default:0 }} students</strong> across {{ cohort_metrics.avg_tenure_months|default:0 }} months</h5>
                                 <div class="when"><i class="bi bi-clock"></i> Ongoing</div>
                             </div>
                         </div>
@@ -2123,10 +2149,10 @@
 
     chips.forEach(function (chip) {
         chip.addEventListener('click', function () {
-            chips.forEach(function (c) { c.classList.remove('active'); });
-            chip.classList.add('active');
             activeSegment = chip.dataset.segment || 'all';
-            applyFilters();
+            var params = new URLSearchParams(window.location.search);
+            params.set('segment', activeSegment);
+            window.location.search = params.toString();
         });
     });
 

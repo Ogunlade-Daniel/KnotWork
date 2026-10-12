@@ -1,0 +1,2368 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Moderation{% endblock %}
+{% block page_title %}Moderation{% endblock %}
+{% block breadcrumb %}Trust &amp; Safety · Content Review{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   MODERATION — JUDICIAL COMMAND CENTER
+   Improvised palette: gavel-amber + judicial-indigo + verdict-emerald
+   ============================================================ */
+
+:root {
+    --md-amber: #F59E0B;
+    --md-amber-deep: #92400E;
+    --md-amber-dim: rgba(245, 158, 11, 0.12);
+    --md-amber-glow: rgba(245, 158, 11, 0.42);
+
+    --md-indigo: #6366F1;
+    --md-indigo-deep: #4338CA;
+    --md-indigo-dim: rgba(99, 102, 241, 0.12);
+    --md-indigo-glow: rgba(99, 102, 241, 0.42);
+
+    --md-emerald: #059669;
+    --md-emerald-deep: #065F46;
+    --md-emerald-dim: rgba(5, 150, 105, 0.12);
+    --md-emerald-glow: rgba(5, 150, 105, 0.42);
+
+    --md-crimson: #E11D48;
+    --md-crimson-deep: #9F1239;
+    --md-crimson-dim: rgba(225, 29, 72, 0.12);
+    --md-crimson-glow: rgba(225, 29, 72, 0.42);
+
+    --md-slate: #64748B;
+    --md-slate-deep: #334155;
+    --md-slate-dim: rgba(100, 116, 139, 0.12);
+
+    --md-mesh-1: radial-gradient(circle at 12% 20%, rgba(245, 158, 11, 0.14), transparent 42%);
+    --md-mesh-2: radial-gradient(circle at 88% 78%, rgba(99, 102, 241, 0.16), transparent 44%);
+    --md-mesh-3: radial-gradient(circle at 62% 12%, rgba(225, 29, 72, 0.10), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   MODERATION WIRE — MARQUEE
+   ============================================================ */
+.md-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(245, 158, 11, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(99, 102, 241, 0.20), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(245, 158, 11, 0.26);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.md-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--md-amber), var(--md-indigo), var(--md-crimson), var(--crown-2));
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.5);
+    z-index: 5;
+}
+.md-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.md-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.md-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.md-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.md-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--md-amber);
+    pointer-events: none;
+}
+.md-wire-label .md-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--md-amber);
+    box-shadow: 0 0 0 0 var(--md-amber-glow);
+    animation: mdPulse 1.6s infinite;
+}
+@keyframes mdPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+.md-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 170px;
+    animation: mdWireRoll 50s linear infinite;
+}
+.md-wire:hover .md-wire-track { animation-play-state: paused; }
+@keyframes mdWireRoll { to { transform: translateX(-50%); } }
+
+.md-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.md-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--md-amber);
+    box-shadow: 0 0 8px var(--md-amber-glow);
+    flex-shrink: 0;
+    animation: mdSpark 1.8s ease-in-out infinite;
+}
+.md-wire-item.amber    .wdot { background: var(--md-amber);   box-shadow: 0 0 8px var(--md-amber-glow); }
+.md-wire-item.indigo   .wdot { background: var(--md-indigo);  box-shadow: 0 0 8px var(--md-indigo-glow); }
+.md-wire-item.crimson  .wdot { background: var(--md-crimson); box-shadow: 0 0 8px var(--md-crimson-glow); }
+.md-wire-item.emerald  .wdot { background: var(--md-emerald); box-shadow: 0 0 8px var(--md-emerald-glow); }
+.md-wire-item.slate    .wdot { background: var(--md-slate);   box-shadow: 0 0 8px rgba(100,116,139,0.6); }
+@keyframes mdSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.md-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.md-wire-item em {
+    font-style: normal;
+    color: var(--md-amber);
+    font-weight: 700;
+}
+
+/* ============================================================
+   MODERATION HERO
+   ============================================================ */
+.md-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--md-mesh-1), var(--md-mesh-2), var(--md-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(245, 158, 11, 0.20);
+}
+.md-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--md-amber), var(--md-indigo) 40%, var(--md-crimson) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(245, 158, 11, 0.5);
+    z-index: 5;
+}
+.md-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.md-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.md-hero-left { min-width: 0; flex: 1 1 520px; }
+.md-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.42);
+    color: var(--md-amber);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.md-hero-kicker i { font-size: 0.7rem; }
+.md-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.md-hero-title em { color: var(--md-amber); font-style: italic; }
+.md-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 620px;
+    line-height: 1.62;
+}
+.md-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.md-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.md-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.md-hero-meta .hm:hover {
+    background: rgba(245, 158, 11, 0.10);
+    border-color: rgba(245, 158, 11, 0.42);
+    color: var(--md-amber);
+    transform: translateY(-2px);
+}
+.md-hero-meta .hm i { color: var(--md-amber); font-size: 0.78rem; }
+.md-hero-meta .hm.warn {
+    background: rgba(225, 29, 72, 0.10);
+    border-color: rgba(225, 29, 72, 0.42);
+    color: var(--md-crimson);
+}
+.md-hero-meta .hm.warn i { color: var(--md-crimson); }
+
+.md-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(245, 158, 11, 0.16), rgba(99, 102, 241, 0.16)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(245, 158, 11, 0.42);
+    box-shadow:
+        0 18px 44px rgba(245, 158, 11, 0.18),
+        0 0 0 1px rgba(245, 158, 11, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--md-amber) 120deg,
+                var(--md-indigo) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(245, 158, 11, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--md-amber);
+    display: grid;
+    place-items: center;
+    color: var(--md-amber);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(245, 158, 11, 0.55), 0 0 0 3px rgba(245, 158, 11, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--md-amber), var(--md-indigo));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(245, 158, 11, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.md-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.md-tabs::-webkit-scrollbar { display: none; }
+
+.md-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.md-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.md-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.md-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.md-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.md-tab .tab-badge.glow {
+    background: var(--md-amber-dim);
+    color: var(--md-amber-deep);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+}
+.md-tab .tab-badge.alert {
+    background: var(--md-crimson-dim);
+    color: var(--md-crimson-deep);
+    border: 1px solid rgba(225, 29, 72, 0.32);
+}
+
+.md-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.md-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.md-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.md-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.md-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.md-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.md-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.md-panels { position: relative; }
+.md-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: mdPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.md-panel.active { display: flex; }
+@keyframes mdPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.md-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.md-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.md-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--ms-accent, linear-gradient(90deg, var(--md-amber), var(--md-amber-deep)));
+}
+.md-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.md-stat.amber   { --ms-accent: linear-gradient(90deg, #F59E0B, #92400E); }
+.md-stat.indigo  { --ms-accent: linear-gradient(90deg, #6366F1, #4338CA); }
+.md-stat.emerald { --ms-accent: linear-gradient(90deg, #059669, #065F46); }
+.md-stat.crimson { --ms-accent: linear-gradient(90deg, #E11D48, #9F1239); }
+.md-stat.slate   { --ms-accent: linear-gradient(90deg, #64748B, #334155); }
+
+.md-stat .ms-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.md-stat .ms-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.md-stat.amber   .ms-ic { background: var(--md-amber-dim);   color: var(--md-amber-deep); }
+.md-stat.indigo  .ms-ic { background: var(--md-indigo-dim);  color: var(--md-indigo-deep); }
+.md-stat.emerald .ms-ic { background: var(--md-emerald-dim); color: var(--md-emerald-deep); }
+.md-stat.crimson .ms-ic { background: var(--md-crimson-dim); color: var(--md-crimson-deep); }
+.md-stat.slate   .ms-ic { background: var(--md-slate-dim);   color: var(--md-slate-deep); }
+
+.md-stat .ms-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.md-stat .ms-trend.warn { background: var(--md-amber-dim); color: var(--md-amber-deep); }
+.md-stat .ms-trend.down { background: var(--md-crimson-dim); color: var(--md-crimson-deep); }
+
+.md-stat .ms-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.md-stat .ms-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.md-stat .ms-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.md-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.md-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.md-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.md-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.md-search:focus-within i { color: var(--tab-accent-deep); }
+.md-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.md-search input::placeholder { color: var(--gray-400); }
+.md-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.md-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.md-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.md-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.md-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+.md-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   MODERATION CARDS
+   ============================================================ */
+.md-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.md-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.md-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--mc-accent, linear-gradient(180deg, var(--md-amber), var(--md-amber-deep)));
+    z-index: 2;
+}
+.md-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.md-card.critical { --mc-accent: linear-gradient(180deg, #E11D48, #9F1239); }
+.md-card.warning  { --mc-accent: linear-gradient(180deg, #F59E0B, #92400E); }
+.md-card.notice   { --mc-accent: linear-gradient(180deg, #6366F1, #4338CA); }
+
+.md-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* ---- Left: content ---- */
+.mc-content { min-width: 0; flex: 1; }
+
+.mc-head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.mc-severity {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.mc-severity.critical { background: var(--md-crimson-dim); color: var(--md-crimson-deep); border: 1px solid rgba(225,29,72,0.32); }
+.mc-severity.warning  { background: var(--md-amber-dim); color: var(--md-amber-deep); border: 1px solid rgba(245,158,11,0.32); }
+.mc-severity.notice   { background: var(--md-indigo-dim); color: var(--md-indigo-deep); border: 1px solid rgba(99,102,241,0.32); }
+
+.mc-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.mc-type i { font-size: 0.62rem; }
+
+.mc-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    margin-left: auto;
+    letter-spacing: 0.02em;
+}
+
+/* Content preview box */
+.mc-preview {
+    position: relative;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--cream), var(--white));
+    border: 1px solid var(--gray-200);
+    border-left: 3px solid var(--mc-accent);
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+.mc-preview::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 20px; height: 20px;
+    background: linear-gradient(135deg, var(--gray-200) 50%, transparent 50%);
+    opacity: 0.5;
+}
+.mc-preview p {
+    font-size: 0.84rem;
+    color: var(--gray-800);
+    line-height: 1.62;
+    margin: 0;
+}
+.mc-preview p em {
+    font-style: italic;
+    color: var(--md-crimson-deep);
+    font-weight: 700;
+    background: var(--md-crimson-dim);
+    padding: 0 4px;
+    border-radius: 3px;
+}
+.mc-preview .mc-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.88rem;
+    font-style: italic;
+    color: var(--primary-dark);
+    line-height: 1.55;
+}
+.mc-preview .mc-thread {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+}
+.mc-preview .mc-thread i { color: var(--md-indigo-deep); font-size: 0.7rem; }
+.mc-preview .mc-thread a {
+    color: var(--md-indigo-deep);
+    font-weight: 700;
+    text-decoration: none;
+}
+.mc-preview .mc-thread a:hover { text-decoration: underline; }
+
+/* Reporter info */
+.mc-reporter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.74rem;
+    color: var(--gray-600);
+}
+.mc-reporter .rp-av {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--md-indigo), var(--md-amber));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.6rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.mc-reporter .rp-av.system { background: linear-gradient(135deg, var(--md-slate), var(--md-slate-deep)); }
+.mc-reporter .rp-av.verified { background: var(--crown-gradient); color: var(--primary-deep); }
+.mc-reporter b { color: var(--primary-dark); font-weight: 700; }
+.mc-reporter .rp-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--md-amber-dim);
+    color: var(--md-amber-deep);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+}
+
+/* ---- Right: meta + evidence ---- */
+.mc-meta {
+    padding: 4px 0 4px 24px;
+    border-left: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.mc-meta-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+}
+
+.mc-evidence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mc-evidence {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    font-size: 0.72rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.mc-evidence:hover {
+    background: var(--white);
+    box-shadow: 0 4px 12px rgba(11,17,33,0.06);
+    transform: translateX(3px);
+}
+.mc-evidence .ev-ic {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: var(--white);
+    display: grid;
+    place-items: center;
+    color: var(--md-indigo-deep);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(11,17,33,0.06);
+}
+.mc-evidence .ev-info { flex: 1; min-width: 0; }
+.mc-evidence .ev-info strong {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mc-evidence .ev-info span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.mc-evidence .ev-arrow {
+    color: var(--gray-300);
+    font-size: 0.68rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.mc-evidence:hover .ev-arrow {
+    color: var(--md-amber-deep);
+    transform: translateX(3px);
+}
+
+/* Aggregation block (used in dossier) */
+.mc-aggregate {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px 0;
+    border-top: 1px dashed var(--gray-200);
+    border-bottom: 1px dashed var(--gray-200);
+    margin-bottom: 12px;
+}
+.mc-aggregate > div {
+    text-align: center;
+    line-height: 1.15;
+}
+.mc-aggregate b {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+.mc-aggregate b.critical { color: var(--md-crimson-deep); }
+.mc-aggregate b.warning  { color: var(--md-amber-deep); }
+.mc-aggregate b.emerald  { color: var(--md-emerald-deep); }
+.mc-aggregate span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 3px;
+}
+
+/* Trust score bar */
+.mc-trust {
+    margin-bottom: 12px;
+}
+.mc-trust-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.mc-trust-head span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+.mc-trust-head b {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+.mc-trust-head b.ok   { color: var(--md-emerald-deep); }
+.mc-trust-head b.warn { color: var(--md-amber-deep); }
+.mc-trust-head b.bad  { color: var(--md-crimson-deep); }
+.mc-trust-bar {
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 50px;
+    overflow: hidden;
+}
+.mc-trust-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--md-emerald), var(--md-emerald-deep));
+    transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.mc-trust-bar.warn > span { background: linear-gradient(90deg, var(--md-amber), var(--md-amber-deep)); }
+.mc-trust-bar.bad  > span { background: linear-gradient(90deg, var(--md-crimson), var(--md-crimson-deep)); }
+
+/* ---- Actions ---- */
+.mc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 200px;
+    padding-top: 4px;
+}
+.mc-actions .mc-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+
+.mc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.mc-btn i { font-size: 0.86rem; }
+
+.mc-btn.approve {
+    background: linear-gradient(135deg, var(--md-emerald), var(--md-emerald-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.32);
+}
+.mc-btn.approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(5, 150, 105, 0.44);
+}
+.mc-btn.dismiss {
+    background: var(--white);
+    color: var(--md-slate-deep);
+    border: 1px solid var(--gray-200);
+}
+.mc-btn.dismiss:hover {
+    background: var(--gray-100);
+    border-color: var(--md-slate);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.mc-btn.remove {
+    background: linear-gradient(135deg, var(--md-crimson), var(--md-crimson-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.32);
+}
+.mc-btn.remove:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(225, 29, 72, 0.44);
+}
+.mc-btn.warn-user {
+    background: var(--white);
+    color: var(--md-amber-deep);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.mc-btn.warn-user:hover {
+    background: var(--md-amber-dim);
+    border-color: var(--md-amber);
+    transform: translateY(-2px);
+}
+.mc-btn.escalate {
+    background: transparent;
+    color: var(--md-indigo-deep);
+    border: 1px dashed rgba(99, 102, 241, 0.5);
+    font-size: 0.72rem;
+    padding: 9px 14px;
+}
+.mc-btn.escalate:hover {
+    background: var(--md-indigo-dim);
+    border-style: solid;
+    border-color: var(--md-indigo);
+}
+
+/* Verdict banner (for dismissed/removed items, not really used but available) */
+.mc-verdict {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.mc-verdict.dismissed {
+    background: var(--md-slate-dim);
+    color: var(--md-slate-deep);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+}
+.mc-verdict.removed {
+    background: var(--md-crimson-dim);
+    color: var(--md-crimson-deep);
+    border: 1px solid rgba(225, 29, 72, 0.34);
+}
+
+/* ============================================================
+   ADMIN EXCLUSIVE — MODERATION CONSOLE
+   ============================================================ */
+.moderation-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(245, 158, 11, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(99, 102, 241, 0.16), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(245, 158, 11, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.moderation-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--md-amber), var(--md-indigo) 50%, var(--md-crimson) 100%);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.5);
+}
+.moderation-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.mdc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.mdc-head .mdc-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--md-amber), var(--md-indigo));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.mdc-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.mdc-head h2 em { color: var(--md-amber); font-style: italic; }
+.mdc-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.mdc-head .mdc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.42);
+    color: var(--md-amber);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.mdc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.mdc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.mdc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.mdc-tool:hover {
+    background: rgba(245, 158, 11, 0.10);
+    border-color: rgba(245, 158, 11, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(245, 158, 11, 0.18);
+}
+.mdc-tool:hover::before { transform: translateX(120%); }
+.mdc-tool .mdc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--md-amber);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.mdc-tool:hover .mdc-t-ic {
+    background: linear-gradient(135deg, var(--md-amber), var(--md-indigo));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.42);
+}
+.mdc-tool.danger .mdc-t-ic { color: var(--md-crimson); }
+.mdc-tool.danger:hover {
+    background: rgba(225, 29, 72, 0.10);
+    border-color: rgba(225, 29, 72, 0.42);
+}
+.mdc-tool.danger:hover .mdc-t-ic {
+    background: linear-gradient(135deg, var(--md-crimson), var(--md-crimson-deep));
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.42);
+}
+.mdc-tool.emerald .mdc-t-ic { color: var(--md-emerald); }
+.mdc-tool.emerald:hover { background: rgba(5, 150, 105, 0.10); border-color: rgba(5, 150, 105, 0.42); }
+.mdc-tool.emerald:hover .mdc-t-ic {
+    background: linear-gradient(135deg, var(--md-emerald), var(--md-emerald-deep));
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.42);
+}
+.mdc-tool .mdc-t-body { flex: 1; min-width: 0; }
+.mdc-tool .mdc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.mdc-tool .mdc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.mdc-tool .mdc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.mdc-tool:hover .mdc-t-arrow { color: var(--md-amber); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .md-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .md-card-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+    .mc-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .mc-actions .mc-action-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .md-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .mc-meta { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .md-card-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .mc-actions { grid-column: auto; }
+}
+@media (max-width: 900px) {
+    .md-hero { padding: 24px 20px; }
+    .md-hero-title { font-size: 1.55rem; }
+    .md-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .md-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .md-stat-strip { grid-template-columns: 1fr; }
+    .md-hero { padding: 22px 18px; }
+    .md-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .md-toolbar { padding: 12px 14px; }
+    .md-search { min-width: 100%; }
+    .mc-actions { flex-direction: column; align-items: stretch; }
+    .mc-actions .mc-action-label { display: block; text-align: left; }
+}
+@media (max-width: 560px) {
+    .md-tabs { padding: 6px; gap: 3px; }
+    .md-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .md-tab .tab-badge { display: none; }
+    .md-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .md-wire-label { display: none; }
+    .md-wire-track { padding-left: 24px; }
+    .mc-aggregate { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .md-wire-track, .acb-avatar::before, .md-wire-label .md-dot,
+    .md-wire-item .wdot, .admin-crown-badge::before, .md-tab .tab-badge.glow {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     MODERATION WIRE — MARQUEE
+     ============================================================ -->
+<div class="md-wire" aria-label="Moderation pulse">
+    <span class="md-wire-edge left"></span>
+    <span class="md-wire-edge right"></span>
+    <div class="md-wire-label"><span class="md-dot"></span> Moderation Wire</div>
+    <div class="md-wire-track">
+        <!-- Set A -->
+        <span class="md-wire-item amber"><span class="wdot"></span><strong>2</strong> items in queue · <em>1 forum · 1 review</em></span>
+        <span class="md-wire-item crimson"><span class="wdot"></span><strong>1</strong> critical severity · requires immediate review</span>
+        <span class="md-wire-item indigo"><span class="wdot"></span><strong>3</strong> dossiers aggregated · repeat offenders</span>
+        <span class="md-wire-item emerald"><span class="wdot"></span><strong>94.2%</strong> dismissal accuracy · moderator precision</span>
+        <span class="md-wire-item slate"><span class="wdot"></span>Avg resolution <strong>18m 42s</strong> · within SLA</span>
+        <span class="md-wire-item amber"><span class="wdot"></span>Forum flags <strong>↓ 24%</strong> vs. last week</span>
+        <span class="md-wire-item crimson"><span class="wdot"></span><strong>1</strong> account suspended in last 24h</span>
+        <span class="md-wire-item emerald"><span class="wdot"></span><strong>248</strong> items resolved this month</span>
+        <span class="md-wire-item indigo"><span class="wdot"></span>Fake review detection <strong>+18%</strong> ML precision</span>
+        <span class="md-wire-item slate"><span class="wdot"></span>Appeals upheld <strong>4.2%</strong> · best on record</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="md-wire-item amber"><span class="wdot"></span><strong>2</strong> items in queue · <em>1 forum · 1 review</em></span>
+        <span class="md-wire-item crimson"><span class="wdot"></span><strong>1</strong> critical severity · requires immediate review</span>
+        <span class="md-wire-item indigo"><span class="wdot"></span><strong>3</strong> dossiers aggregated · repeat offenders</span>
+        <span class="md-wire-item emerald"><span class="wdot"></span><strong>94.2%</strong> dismissal accuracy · moderator precision</span>
+        <span class="md-wire-item slate"><span class="wdot"></span>Avg resolution <strong>18m 42s</strong> · within SLA</span>
+        <span class="md-wire-item amber"><span class="wdot"></span>Forum flags <strong>↓ 24%</strong> vs. last week</span>
+        <span class="md-wire-item crimson"><span class="wdot"></span><strong>1</strong> account suspended in last 24h</span>
+        <span class="md-wire-item emerald"><span class="wdot"></span><strong>248</strong> items resolved this month</span>
+        <span class="md-wire-item indigo"><span class="wdot"></span>Fake review detection <strong>+18%</strong> ML precision</span>
+        <span class="md-wire-item slate"><span class="wdot"></span>Appeals upheld <strong>4.2%</strong> · best on record</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODERATION HERO
+     ============================================================ -->
+<section class="md-hero fade-up">
+    <div class="md-hero-inner">
+        <div class="md-hero-left">
+            <span class="md-hero-kicker">
+                <i class="bi bi-shield-fill-exclamation"></i>
+                Trust &amp; Safety · Root Access
+            </span>
+            <h1 class="md-hero-title">
+                Content, <em>judged fairly</em>.
+            </h1>
+            <p class="md-hero-sub">
+                Flagged <strong>forum posts</strong>, <strong>fake reviews</strong>, and
+                <strong>aggregated dossiers</strong> — all in one review queue. Every verdict
+                is audit-logged. Verdict precision: <strong>94.2%</strong>. SLA:
+                <strong>1 hour</strong> for critical, <strong>24 hours</strong> for standard.
+            </p>
+            <div class="md-hero-meta">
+                <span class="hm"><i class="bi bi-inboxes-fill"></i> 2 in queue</span>
+                <span class="hm warn"><i class="bi bi-exclamation-octagon-fill"></i> 1 critical</span>
+                <span class="hm"><i class="bi bi-person-badge-fill"></i> 3 dossiers</span>
+                <span class="hm"><i class="bi bi-clock-history"></i> 18m avg resolve</span>
+            </div>
+        </div>
+
+        <div class="md-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · MODERATION</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="md-tabs" role="tablist" aria-label="Moderation sections">
+    <button class="md-tab active" data-tab="forum" role="tab" style="--tab-accent: #F59E0B; --tab-accent-deep: #92400E; --tab-accent-dim: rgba(245,158,11,0.10); --tab-accent-glow: rgba(245,158,11,0.42);">
+        <span class="tab-ic"><i class="bi bi-chat-square-quote-fill"></i></span>
+        <span class="tab-label">
+            Forum
+            <small>Posts</small>
+        </span>
+        <span class="tab-badge glow">2</span>
+    </button>
+    <button class="md-tab" data-tab="reviews" role="tab" style="--tab-accent: #6366F1; --tab-accent-deep: #4338CA; --tab-accent-dim: rgba(99,102,241,0.10); --tab-accent-glow: rgba(99,102,241,0.42);">
+        <span class="tab-ic"><i class="bi bi-star-half"></i></span>
+        <span class="tab-label">
+            Reviews
+            <small>Ratings</small>
+        </span>
+        <span class="tab-badge glow">1</span>
+    </button>
+    <button class="md-tab" data-tab="dossiers" role="tab" style="--tab-accent: #E11D48; --tab-accent-deep: #9F1239; --tab-accent-dim: rgba(225,29,72,0.10); --tab-accent-glow: rgba(225,29,72,0.42);">
+        <span class="tab-ic"><i class="bi bi-person-vcard-fill"></i></span>
+        <span class="tab-label">
+            Dossiers
+            <small>Repeat offenders</small>
+        </span>
+        <span class="tab-badge alert">3</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="md-panels">
+
+    <!-- =================================================
+         PANEL 1 — FORUM
+         ================================================= -->
+    <div class="md-panel active" id="panel-forum" role="tabpanel">
+
+        <div class="md-stat-strip">
+            <div class="md-stat amber fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-flag-fill"></i></span><span class="ms-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="ms-label">Flagged Posts</span>
+                <div class="ms-value"><span data-count="2">0</span></div>
+            </div>
+            <div class="md-stat crimson fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-exclamation-octagon-fill"></i></span><span class="ms-trend down"><i class="bi bi-dash"></i> urgent</span></div>
+                <span class="ms-label">Critical Severity</span>
+                <div class="ms-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="md-stat emerald fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-check2-circle"></i></span><span class="ms-trend"><i class="bi bi-arrow-up-short"></i> today</span></div>
+                <span class="ms-label">Resolved Today</span>
+                <div class="ms-value"><span data-count="18">0</span></div>
+            </div>
+            <div class="md-stat slate fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-clock-history"></i></span><span class="ms-trend"><i class="bi bi-dash"></i> fast</span></div>
+                <span class="ms-label">Avg Resolution</span>
+                <div class="ms-value"><span data-count="18">0</span><small>m</small></div>
+            </div>
+        </div>
+
+        <div class="md-toolbar">
+            <div class="md-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search flagged posts, reporters, or threads…" aria-label="Search forum">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="md-select" data-toast="Sort by: Oldest first" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Oldest First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="md-select" data-toast="Severity filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Severity</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="md-toolbar-right">
+                <button class="btn-sm line" data-toast="Bulk dismiss queued" data-toast-type="info"><i class="bi bi-check2-all"></i> Bulk Dismiss</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="md-list">
+
+            <!-- Forum Flag #1 — CRITICAL -->
+            <article class="md-card critical fade-up">
+                <div class="md-card-grid">
+                    <div class="mc-content">
+                        <div class="mc-head-row">
+                            <span class="mc-severity critical"><i class="bi bi-exclamation-octagon-fill"></i> Critical</span>
+                            <span class="mc-type"><i class="bi bi-chat-square-quote-fill"></i> Forum Post</span>
+                            <span class="mc-id">#FP-4821 · 2 min ago</span>
+                        </div>
+
+                        <div class="mc-preview">
+                            <p class="mc-quote">
+                                "...honestly, <em>these scammer mentors</em> are all just taking your money and ghosting. Total fraud — you'd be an idiot to trust any of them. I have their addresses if anyone wants to..."
+                            </p>
+                            <div class="mc-thread">
+                                <i class="bi bi-diagram-3-fill"></i>
+                                <span>Thread: <a href="#">"Mentor accountability — share your experience"</a></span>
+                                <span>·</span>
+                                <span>Reply #14 of 42</span>
+                            </div>
+                        </div>
+
+                        <div class="mc-reporter">
+                            <span class="rp-av">BS</span>
+                            Reported by <b>Bola Sanni</b>
+                            <span class="rp-count"><i class="bi bi-flag-fill"></i> 3 reports</span>
+                            <span>·</span>
+                            Reason: <b>Harassment + Doxxing threat</b>
+                        </div>
+                    </div>
+
+                    <div class="mc-meta">
+                        <div>
+                            <span class="mc-meta-head">Evidence &amp; Context</span>
+                            <div class="mc-evidence-list">
+                                <div class="mc-evidence" data-toast="Opening full thread #4821" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-chat-left-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>View full thread</strong>
+                                        <span>42 replies · 248 views</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Loading author history" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-person-lines-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Author history</strong>
+                                        <span>@user_4821 · 2 prior flags</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Viewing 3 report details" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-flag-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>3 reports filed</strong>
+                                        <span>Harassment · Doxxing · False info</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-actions">
+                        <span class="mc-action-label">Verdict</span>
+                        <button class="mc-btn remove" data-toast="⚠ Post removed · author warned · abuse logged" data-toast-type="error"><i class="bi bi-trash3-fill"></i> Remove</button>
+                        <button class="mc-btn warn-user" data-toast="Warning sent to @user_4821" data-toast-type="warning"><i class="bi bi-exclamation-triangle-fill"></i> Warn Author</button>
+                        <button class="mc-btn dismiss" data-toast="Flag dismissed · reporters notified" data-toast-type="info"><i class="bi bi-check2"></i> Dismiss</button>
+                        <button class="mc-btn escalate" data-toast="Escalated to senior moderator" data-toast-type="violet"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Forum Flag #2 — WARNING -->
+            <article class="md-card warning fade-up">
+                <div class="md-card-grid">
+                    <div class="mc-content">
+                        <div class="mc-head-row">
+                            <span class="mc-severity warning"><i class="bi bi-exclamation-triangle-fill"></i> Warning</span>
+                            <span class="mc-type"><i class="bi bi-chat-square-quote-fill"></i> Forum Post</span>
+                            <span class="mc-id">#FP-4816 · 18 min ago</span>
+                        </div>
+
+                        <div class="mc-preview">
+                            <p class="mc-quote">
+                                "Has anyone tried <em>that paid promo tool</em> from <em>promo-shop.xyz</em>? I got 500 signups overnight using their service — DM me for the discount code."
+                            </p>
+                            <div class="mc-thread">
+                                <i class="bi bi-diagram-3-fill"></i>
+                                <span>Thread: <a href="#">"How do you grow your course audience?"</a></span>
+                                <span>·</span>
+                                <span>Reply #7 of 18</span>
+                            </div>
+                        </div>
+
+                        <div class="mc-reporter">
+                            <span class="rp-av verified">ZI</span>
+                            Reported by <b>Zainab Ibrahim</b> (Teacher)
+                            <span class="rp-count"><i class="bi bi-flag-fill"></i> 1 report</span>
+                            <span>·</span>
+                            Reason: <b>Solicitation / spam</b>
+                        </div>
+                    </div>
+
+                    <div class="mc-meta">
+                        <div>
+                            <span class="mc-meta-head">Evidence &amp; Context</span>
+                            <div class="mc-evidence-list">
+                                <div class="mc-evidence" data-toast="Opening thread" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-chat-left-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>View full thread</strong>
+                                        <span>18 replies · 84 views</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Analyzing author history" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-person-lines-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Author history</strong>
+                                        <span>@promoter_j · 1 prior warning</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Checking link safety" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-link-45deg"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Link safety scan</strong>
+                                        <span>promo-shop.xyz · flagged</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-actions">
+                        <span class="mc-action-label">Verdict</span>
+                        <button class="mc-btn remove" data-toast="⚠ Post removed · spam pattern logged" data-toast-type="error"><i class="bi bi-trash3-fill"></i> Remove</button>
+                        <button class="mc-btn warn-user" data-toast="Warning sent to @promoter_j" data-toast-type="warning"><i class="bi bi-exclamation-triangle-fill"></i> Warn Author</button>
+                        <button class="mc-btn dismiss" data-toast="Flag dismissed" data-toast-type="info"><i class="bi bi-check2"></i> Dismiss</button>
+                        <button class="mc-btn escalate" data-toast="Escalated to senior moderator" data-toast-type="violet"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — REVIEWS
+         ================================================= -->
+    <div class="md-panel" id="panel-reviews" role="tabpanel">
+
+        <div class="md-stat-strip">
+            <div class="md-stat indigo fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-star-half"></i></span><span class="ms-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="ms-label">Flagged Reviews</span>
+                <div class="ms-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="md-stat crimson fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-robot"></i></span><span class="ms-trend down"><i class="bi bi-dash"></i> ML flag</span></div>
+                <span class="ms-label">Suspected Fake</span>
+                <div class="ms-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="md-stat emerald fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-check2-circle"></i></span><span class="ms-trend"><i class="bi bi-arrow-up-short"></i> today</span></div>
+                <span class="ms-label">Resolved Today</span>
+                <div class="ms-value"><span data-count="12">0</span></div>
+            </div>
+            <div class="md-stat slate fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-graph-down-arrow"></i></span><span class="ms-trend"><i class="bi bi-dash"></i> net</span></div>
+                <span class="ms-label">Avg Rating Impact</span>
+                <div class="ms-value">-0.4<small>★</small></div>
+            </div>
+        </div>
+
+        <div class="md-toolbar">
+            <div class="md-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search reviews by course, reviewer, or content…" aria-label="Search reviews">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="md-select" data-toast="Sort by: Most recent flag" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Most Recent</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="md-select" data-toast="Rating filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Rating</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="md-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="md-list">
+
+            <!-- Review Flag #1 -->
+            <article class="md-card critical fade-up">
+                <div class="md-card-grid">
+                    <div class="mc-content">
+                        <div class="mc-head-row">
+                            <span class="mc-severity critical"><i class="bi bi-robot"></i> Suspected Fake</span>
+                            <span class="mc-type"><i class="bi bi-star-half"></i> Course Review</span>
+                            <span class="mc-id">#RV-2291 · 42 min ago</span>
+                        </div>
+
+                        <div class="mc-preview">
+                            <p class="mc-quote">
+                                "Best course ever!!! <em>★★★★★</em> totally changed my life, the instructor is a genius, buy now, must take, absolutely amazing!!!"
+                            </p>
+                            <div class="mc-thread">
+                                <i class="bi bi-journal-bookmark-fill"></i>
+                                <span>Course: <a href="#">"Intro to Photoshop Basics"</a></span>
+                                <span>·</span>
+                                <span>by Emeka Peters</span>
+                            </div>
+                        </div>
+
+                        <div class="mc-reporter">
+                            <span class="rp-av system">ML</span>
+                            Flagged by <b>ML Fake Review Detector v2.4</b>
+                            <span class="rp-count"><i class="bi bi-shield-fill-exclamation"></i> 92% confidence</span>
+                            <span>·</span>
+                            Reason: <b>Paid review / review farm pattern</b>
+                        </div>
+
+                        <div class="mc-aggregate">
+                            <div><b class="warning">1.0★</b><span>Review Rating</span></div>
+                            <div><b>3.8★</b><span>Course Avg</span></div>
+                            <div><b class="critical">92%</b><span>ML Confidence</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mc-meta">
+                        <div>
+                            <span class="mc-meta-head">Signals &amp; Context</span>
+                            <div class="mc-evidence-list">
+                                <div class="mc-evidence" data-toast="Opening ML analysis" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-robot"></i></span>
+                                    <div class="ev-info">
+                                        <strong>ML analysis</strong>
+                                        <span>92% fake · review farm pattern</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Checking reviewer profile" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-person-lines-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Reviewer profile</strong>
+                                        <span>Joined 2h ago · 0 enrollments</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Found 4 similar reviews from same IP" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-diagram-2-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Similar reviews</strong>
+                                        <span>4 from same IP / device</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-actions">
+                        <span class="mc-action-label">Verdict</span>
+                        <button class="mc-btn remove" data-toast="⚠ Review removed · flagged for review farm" data-toast-type="error"><i class="bi bi-trash3-fill"></i> Remove</button>
+                        <button class="mc-btn warn-user" data-toast="Warning sent to reviewer" data-toast-type="warning"><i class="bi bi-exclamation-triangle-fill"></i> Warn Reviewer</button>
+                        <button class="mc-btn dismiss" data-toast="Flag dismissed · review kept" data-toast-type="info"><i class="bi bi-check2"></i> Dismiss</button>
+                        <button class="mc-btn escalate" data-toast="Escalated to fraud team" data-toast-type="violet"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — DOSSIERS
+         ================================================= -->
+    <div class="md-panel" id="panel-dossiers" role="tabpanel">
+
+        <div class="md-stat-strip">
+            <div class="md-stat crimson fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-person-vcard-fill"></i></span><span class="ms-trend down"><i class="bi bi-dash"></i> repeat</span></div>
+                <span class="ms-label">Active Dossiers</span>
+                <div class="ms-value"><span data-count="3">0</span></div>
+            </div>
+            <div class="md-stat amber fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-flag-fill"></i></span><span class="ms-trend warn"><i class="bi bi-arrow-up-short"></i> total</span></div>
+                <span class="ms-label">Aggregated Flags</span>
+                <div class="ms-value"><span data-count="14">0</span></div>
+            </div>
+            <div class="md-stat emerald fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-shield-check"></i></span><span class="ms-trend"><i class="bi bi-arrow-up-short"></i> clean</span></div>
+                <span class="ms-label">Accounts Cleared</span>
+                <div class="ms-value"><span data-count="42">0</span><small>30d</small></div>
+            </div>
+            <div class="md-stat slate fade-up">
+                <div class="ms-head"><span class="ms-ic"><i class="bi bi-hourglass-split"></i></span><span class="ms-trend"><i class="bi bi-dash"></i> avg</span></div>
+                <span class="ms-label">Dossier Lifetime</span>
+                <div class="ms-value"><span data-count="42">0</span><small>d</small></div>
+            </div>
+        </div>
+
+        <div class="md-toolbar">
+            <div class="md-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search dossiers by user, email, or KW-ID…" aria-label="Search dossiers">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="md-select" data-toast="Sort by: Highest trust risk" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Highest Risk</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="md-select" data-toast="Role filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Role</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="md-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="md-list">
+
+            <!-- Dossier #1 -->
+            <article class="md-card critical fade-up">
+                <div class="md-card-grid">
+                    <div class="mc-content">
+                        <div class="mc-head-row">
+                            <span class="mc-severity critical"><i class="bi bi-exclamation-octagon-fill"></i> High Risk</span>
+                            <span class="mc-type"><i class="bi bi-person-vcard-fill"></i> Dossier</span>
+                            <span class="mc-id">KW-STU-08412 · 4 incidents</span>
+                        </div>
+
+                        <div class="mc-preview">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                                <span class="rp-av" style="width:36px;height:36px;font-size:0.86rem;background:linear-gradient(135deg,var(--md-crimson),var(--md-crimson-deep));">S4</span>
+                                <div>
+                                    <strong style="display:block;font-size:0.92rem;color:var(--primary-dark);">Spam Account 4821</strong>
+                                    <span style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--gray-400);">spam_4821@tempmail.com · Suspended 3 days ago</span>
+                                </div>
+                            </div>
+                            <p class="mc-quote">
+                                Aggregated dossier: 4 independent flags across <em>forum posts</em>, <em>reviews</em>, and <em>support tickets</em> in the last 14 days. All consistent with a coordinated spam/fraud pattern.
+                            </p>
+                        </div>
+
+                        <div class="mc-reporter">
+                            <span class="rp-av system">SYS</span>
+                            Auto-aggregated by <b>Trust &amp; Safety Engine</b>
+                            <span class="rp-count"><i class="bi bi-shield-fill-exclamation"></i> 4 incidents</span>
+                            <span>·</span>
+                            Window: <b>Last 14 days</b>
+                        </div>
+                    </div>
+
+                    <div class="mc-meta">
+                        <div>
+                            <span class="mc-meta-head">Trust Signals</span>
+                            <div class="mc-trust">
+                                <div class="mc-trust-head">
+                                    <span>Trust Score</span>
+                                    <b class="bad">12 / 100</b>
+                                </div>
+                                <div class="mc-trust-bar bad"><span data-value="12"></span></div>
+                            </div>
+                            <div class="mc-aggregate" style="border-top:none;padding-top:0;">
+                                <div><b class="critical">4</b><span>Forum</span></div>
+                                <div><b class="warning">2</b><span>Reviews</span></div>
+                                <div><b class="critical">1</b><span>Tickets</span></div>
+                            </div>
+                            <div class="mc-evidence-list">
+                                <div class="mc-evidence" data-toast="Opening aggregated flags timeline" data-toast-type="error">
+                                    <span class="ev-ic"><i class="bi bi-clock-history"></i></span>
+                                    <div class="ev-info">
+                                        <strong>All 4 incidents</strong>
+                                        <span>Mar 28 – Apr 08 · timeline</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Opening IP & device analysis" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-diagram-2-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Linked accounts</strong>
+                                        <span>3 accounts · 2 IPs</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-actions">
+                        <span class="mc-action-label">Action</span>
+                        <button class="mc-btn remove" data-toast="⚠ Permanent ban issued · 3 linked accounts flagged" data-toast-type="error"><i class="bi bi-slash-circle-fill"></i> Permanent Ban</button>
+                        <button class="mc-btn warn-user" data-toast="Extending suspension 30d · appeal option enabled" data-toast-type="warning"><i class="bi bi-hourglass-split"></i> Extend 30d</button>
+                        <button class="mc-btn dismiss" data-toast="Dossier closed · monitoring mode" data-toast-type="info"><i class="bi bi-check2"></i> Close Dossier</button>
+                        <button class="mc-btn escalate" data-toast="Sent to legal team · evidence packaged" data-toast-type="violet"><i class="bi bi-shield-fill-exclamation"></i> Legal Escalate</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Dossier #2 -->
+            <article class="md-card warning fade-up">
+                <div class="md-card-grid">
+                    <div class="mc-content">
+                        <div class="mc-head-row">
+                            <span class="mc-severity warning"><i class="bi bi-exclamation-triangle-fill"></i> Medium Risk</span>
+                            <span class="mc-type"><i class="bi bi-person-vcard-fill"></i> Dossier</span>
+                            <span class="mc-id">KW-STU-11342 · 2 incidents</span>
+                        </div>
+
+                        <div class="mc-preview">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                                <span class="rp-av" style="width:36px;height:36px;font-size:0.86rem;background:linear-gradient(135deg,var(--md-amber),var(--md-amber-deep));">DO</span>
+                                <div>
+                                    <strong style="display:block;font-size:0.92rem;color:var(--primary-dark);">Daniel Okonkwo</strong>
+                                    <span style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--gray-400);">daniel.okonkwo@knotwork.io · Active</span>
+                                </div>
+                            </div>
+                            <p class="mc-quote">
+                                Aggregated dossier: 2 flags in last 30 days, both <em>low-severity forum disagreements</em> that escalated past the tone threshold. No policy violations, but pattern warrants monitoring.
+                            </p>
+                        </div>
+
+                        <div class="mc-reporter">
+                            <span class="rp-av system">SYS</span>
+                            Auto-aggregated by <b>Trust &amp; Safety Engine</b>
+                            <span class="rp-count"><i class="bi bi-shield-fill-exclamation"></i> 2 incidents</span>
+                            <span>·</span>
+                            Window: <b>Last 30 days</b>
+                        </div>
+                    </div>
+
+                    <div class="mc-meta">
+                        <div>
+                            <span class="mc-meta-head">Trust Signals</span>
+                            <div class="mc-trust">
+                                <div class="mc-trust-head">
+                                    <span>Trust Score</span>
+                                    <b class="warn">58 / 100</b>
+                                </div>
+                                <div class="mc-trust-bar warn"><span data-value="58"></span></div>
+                            </div>
+                            <div class="mc-aggregate" style="border-top:none;padding-top:0;">
+                                <div><b class="warning">2</b><span>Forum</span></div>
+                                <div><b class="emerald">0</b><span>Reviews</span></div>
+                                <div><b class="emerald">0</b><span>Tickets</span></div>
+                            </div>
+                            <div class="mc-evidence-list">
+                                <div class="mc-evidence" data-toast="Opening flagged posts" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-chat-left-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>2 forum flags</strong>
+                                        <span>Tone · both dismissed with note</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                                <div class="mc-evidence" data-toast="Opening activity summary" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-activity"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Activity summary</strong>
+                                        <span>248 posts · 42 helpful votes</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-actions">
+                        <span class="mc-action-label">Action</span>
+                        <button class="mc-btn warn-user" data-toast="Nudge sent · tone reminder" data-toast-type="warning"><i class="bi bi-bell-fill"></i> Nudge User</button>
+                        <button class="mc-btn dismiss" data-toast="Dossier marked reviewed · no action" data-toast-type="info"><i class="bi bi-check2"></i> Close Dossier</button>
+                        <button class="mc-btn escalate" data-toast="Sending to human moderator" data-toast-type="violet"><i class="bi bi-arrow-up-circle-fill"></i> Human Review</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Dossier #3 — minor -->
+            <article class="md-card notice fade-up">
+                <div class="md-card-grid">
+                    <div class="mc-content">
+                        <div class="mc-head-row">
+                            <span class="mc-severity notice"><i class="bi bi-info-circle-fill"></i> Low Risk</span>
+                            <span class="mc-type"><i class="bi bi-person-vcard-fill"></i> Dossier</span>
+                            <span class="mc-id">KW-TCH-0084 · 1 incident</span>
+                        </div>
+
+                        <div class="mc-preview">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                                <span class="rp-av" style="width:36px;height:36px;font-size:0.86rem;background:linear-gradient(135deg,var(--md-indigo),var(--md-indigo-deep));">AN</span>
+                                <div>
+                                    <strong style="display:block;font-size:0.92rem;color:var(--primary-dark);">Amara Nwosu</strong>
+                                    <span style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--gray-400);">amara.nwosu@knotwork.io · Verified Teacher</span>
+                                </div>
+                            </div>
+                            <p class="mc-quote">
+                                Aggregated dossier: 1 flag in last 90 days, an <em>unwarranted review dispute</em> filed by a student. Already resolved in favor of the teacher. Dossier retained for pattern monitoring only.
+                            </p>
+                        </div>
+
+                        <div class="mc-reporter">
+                            <span class="rp-av system">SYS</span>
+                            Auto-aggregated by <b>Trust &amp; Safety Engine</b>
+                            <span class="rp-count"><i class="bi bi-shield-fill-check"></i> 1 resolved</span>
+                            <span>·</span>
+                            Window: <b>Last 90 days</b>
+                        </div>
+                    </div>
+
+                    <div class="mc-meta">
+                        <div>
+                            <span class="mc-meta-head">Trust Signals</span>
+                            <div class="mc-trust">
+                                <div class="mc-trust-head">
+                                    <span>Trust Score</span>
+                                    <b class="ok">94 / 100</b>
+                                </div>
+                                <div class="mc-trust-bar"><span data-value="94"></span></div>
+                            </div>
+                            <div class="mc-aggregate" style="border-top:none;padding-top:0;">
+                                <div><b class="emerald">0</b><span>Forum</span></div>
+                                <div><b class="emerald">1</b><span>Reviews</span></div>
+                                <div><b class="emerald">0</b><span>Tickets</span></div>
+                            </div>
+                            <div class="mc-evidence-list">
+                                <div class="mc-evidence" data-toast="Opening resolved incident" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-check2-circle"></i></span>
+                                    <div class="ev-info">
+                                        <strong>1 resolved dispute</strong>
+                                        <span>Resolved Mar 04 · in teacher's favor</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-actions">
+                        <span class="mc-action-label">Action</span>
+                        <button class="mc-btn dismiss" data-toast="Dossier archived · no further action" data-toast-type="info"><i class="bi bi-archive-fill"></i> Archive</button>
+                        <button class="mc-btn dismiss" data-toast="Dossier marked reviewed" data-toast-type="info"><i class="bi bi-check2"></i> Mark Reviewed</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — MODERATION CONSOLE
+     ============================================================ -->
+<div class="moderation-console fade-up">
+    <div class="mdc-head">
+        <span class="mdc-ic"><i class="bi bi-shield-fill-exclamation"></i></span>
+        <div>
+            <h2>Moderation <em>Console</em></h2>
+            <p>ROOT-ONLY · VERDICT OVERRIDE · PATTERN ENFORCEMENT · AUDIT-LOGGED</p>
+        </div>
+        <span class="mdc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="mdc-grid">
+        <button class="mdc-tool" data-toast="Bulk verdict tool opened — 2 items queued" data-toast-type="info">
+            <span class="mdc-t-ic"><i class="bi bi-check2-all"></i></span>
+            <div class="mdc-t-body">
+                <strong>Bulk Dismiss</strong>
+                <p>Dismiss multiple flags at once with a shared verdict rationale.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool" data-toast="Moderation policy editor opened — 12 rules" data-toast-type="info">
+            <span class="mdc-t-ic"><i class="bi bi-list-check"></i></span>
+            <div class="mdc-t-body">
+                <strong>Policy Rules</strong>
+                <p>Configure auto-flag thresholds for tone, spam, and solicitation.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool emerald" data-toast="Moderator scoreboard opened — 4 moderators" data-toast-type="info">
+            <span class="mdc-t-ic"><i class="bi bi-trophy-fill"></i></span>
+            <div class="mdc-t-body">
+                <strong>Moderator Scoreboard</strong>
+                <p>Track verdict accuracy, response time, and appeal rate per moderator.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool emerald" data-toast="ML model tuning opened — v2.4 live" data-toast-type="info">
+            <span class="mdc-t-ic"><i class="bi bi-robot"></i></span>
+            <div class="mdc-t-body">
+                <strong>ML Tuning</strong>
+                <p>Review and adjust fake-content detection thresholds and confidence bands.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool" data-toast="User warning templates opened" data-toast-type="info">
+            <span class="mdc-t-ic"><i class="bi bi-envelope-exclamation-fill"></i></span>
+            <div class="mdc-t-body">
+                <strong>Warning Templates</strong>
+                <p>Edit warning, suspension, and ban notification copy across channels.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool" data-toast="Appeals queue opened — 2 pending appeals" data-toast-type="info">
+            <span class="mdc-t-ic"><i class="bi bi-arrow-counterclockwise"></i></span>
+            <div class="mdc-t-body">
+                <strong>Appeals Queue</strong>
+                <p>Review user appeals of prior verdicts. 4.2% upheld rate.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool danger" data-toast="⚠ Emergency purge requires MFA + reason" data-toast-type="error">
+            <span class="mdc-t-ic"><i class="bi bi-fire"></i></span>
+            <div class="mdc-t-body">
+                <strong>Emergency Purge</strong>
+                <p>Mass-remove content matching a pattern. Coordinated attack response.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+
+        <button class="mdc-tool danger" data-toast="⚠ Freeze moderation queue — no new flags accepted" data-toast-type="error">
+            <span class="mdc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="mdc-t-body">
+                <strong>Freeze Queue</strong>
+                <p>Pause incoming flags during incidents or moderation-team handoff.</p>
+            </div>
+            <i class="bi bi-arrow-right mdc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       MAIN TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.md-tab');
+    const panels = document.querySelectorAll('.md-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+            setTimeout(() => paintBars(panel || document), 60);
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       ANIMATE TRUST BARS
+       ============================================================ */
+    function paintBars(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.mc-trust-bar > span[data-value], .bar > span[data-value]').forEach(el => {
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 80));
+        });
+    }
+    window.addEventListener('load', () => paintBars(document));
+
+    /* ============================================================
+       VERDICT ACTIONS — remove card on Remove verdict
+       ============================================================ */
+    document.querySelectorAll('.mc-btn.remove').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.md-card');
+            if (!card) return;
+            card.style.transition = 'all .45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(-32px) scale(0.98)';
+            setTimeout(() => card.remove(), 460);
+        });
+    });
+
+    /* Dismiss — apply a subtle dismissed visual but keep card */
+    document.querySelectorAll('.mc-btn.dismiss').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.md-card');
+            if (!card) return;
+            const grid = card.querySelector('.md-card-grid');
+            const actions = card.querySelector('.mc-actions');
+            if (!actions) return;
+            // Replace actions with a verdict banner
+            actions.innerHTML = `
+                <span class="mc-action-label">Verdict</span>
+                <span class="mc-verdict dismissed"><i class="bi bi-check2-circle"></i> Dismissed</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);text-align:right;">by You · just now</span>
+            `;
+            card.style.opacity = '0.72';
+            // Update the strip line to match
+            const strip = card.querySelector('.md-card::before');
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.mdc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

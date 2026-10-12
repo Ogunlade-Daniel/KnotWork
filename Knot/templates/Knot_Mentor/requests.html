@@ -1,0 +1,1261 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Requests{% endblock %}
+{% block breadcrumb %}Requests{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO — REQUESTS OVERVIEW
+       ============================================================ */
+    .req-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .req-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .req-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .rh-text { position: relative; z-index: 2; max-width: 640px; }
+    .rh-text .hero-badge { margin-bottom: 14px; }
+    .rh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .rh-text h1 span { color: var(--secondary); font-style: italic; }
+    .rh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        max-width: 540px;
+    }
+    .rh-text p strong { color: var(--white); font-weight: 600; }
+
+    .rh-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .rh-metric { text-align: center; }
+    .rh-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .rh-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.15rem; }
+    .rh-metric span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .rh-sep { width: 1px; background: rgba(255, 255, 255, 0.12); }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .req-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ro-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ro-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ro-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .ro-card:hover::before { opacity: 1; }
+    .ro-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .ro-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .ro-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ro-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ro-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ro-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ro-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .ro-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .ro-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ro-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .ro-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+    .tool-filter .badge-mini {
+        background: var(--secondary);
+        color: var(--primary-dark);
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 1px 7px;
+        border-radius: 50px;
+        margin-left: 2px;
+    }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    /* ============================================================
+       REQUEST CARDS
+       ============================================================ */
+    .req-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .req-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .req-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 22px; bottom: 22px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .req-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .req-card:hover::before { opacity: 1; }
+    .req-card.accepted::before { background: var(--green); }
+    .req-card.declined::before { background: var(--gray-300); }
+    .req-card.declined { opacity: 0.85; }
+
+    .rc-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .rc-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .rc-avatar-wrap .avatar {
+        width: 58px; height: 58px;
+        font-size: 1.05rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .rc-online {
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 13px; height: 13px;
+        border-radius: 50%;
+        background: var(--green);
+        border: 2.5px solid var(--white);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.16);
+    }
+    .rc-online.away { background: var(--amber); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16); }
+    .rc-online.offline { background: var(--gray-300); box-shadow: none; }
+
+    .rc-id { flex: 1; min-width: 0; }
+    .rc-name-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+    .rc-name-row h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .rc-match {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.24);
+        border: 1px solid rgba(190, 242, 100, 0.42);
+        padding: 3px 10px;
+        border-radius: 50px;
+    }
+    .rc-match i { font-size: 0.6rem; }
+    .rc-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        margin-bottom: 6px;
+    }
+    .rc-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .rc-meta i { color: var(--gray-300); font-size: 0.75rem; }
+    .rc-meta .dot-sep {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--gray-300);
+    }
+
+    /* Status stamp (top-right of card) */
+    .rc-stamp {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .rc-stamp.pending {
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        border: 1px solid rgba(190, 242, 100, 0.4);
+    }
+    .rc-stamp.urgent {
+        background: rgba(239, 68, 68, 0.12);
+        color: #DC2626;
+        border: 1px solid rgba(239, 68, 68, 0.32);
+    }
+    .rc-stamp.accepted {
+        background: rgba(34, 197, 94, 0.14);
+        color: #15803D;
+        border: 1px solid rgba(34, 197, 94, 0.34);
+    }
+    .rc-stamp.declined {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+
+    /* Message block */
+    .rc-message {
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        line-height: 1.68;
+        padding: 14px 16px;
+        background: var(--cream);
+        border-radius: 12px;
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 16px;
+        position: relative;
+    }
+    .rc-message::before {
+        content: '\201C';
+        position: absolute;
+        top: -6px;
+        left: 8px;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: rgba(190, 242, 100, 0.6);
+        line-height: 1;
+    }
+    .rc-message strong { font-weight: 600; color: var(--primary-dark); }
+
+    /* Skill tags row */
+    .rc-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    /* Goal strip */
+    .rc-goal {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.06), rgba(139, 92, 246, 0.05));
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        margin-bottom: 16px;
+    }
+    .rc-goal .rg-ic {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        background: rgba(56, 189, 248, 0.16);
+        color: #0369A1;
+        display: grid; place-items: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .rc-goal div { min-width: 0; }
+    .rc-goal div strong {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .rc-goal div span {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        margin-top: 1px;
+    }
+
+    /* Actions */
+    .rc-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding-top: 16px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .rc-actions .btn {
+        padding: 10px 22px;
+        font-size: 0.82rem;
+    }
+    .rc-actions .btn-ghost {
+        padding: 10px 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+    .rc-actions .rc-note {
+        margin-left: auto;
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .rc-actions .rc-note i { color: var(--amber); }
+
+    /* Review state (accepted/declined) */
+    .rc-review-note {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--gray-100);
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        margin-bottom: 14px;
+    }
+    .rc-review-note i { font-size: 1rem; flex-shrink: 0; }
+    .rc-review-note.accepted {
+        background: rgba(34, 197, 94, 0.08);
+        color: #15803D;
+    }
+    .rc-review-note.declined {
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+    .rc-review-note strong { font-weight: 700; color: inherit; }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+    }
+    .empty-state .em-ic {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        margin: 0 auto 18px;
+        display: grid; place-items: center;
+        background: rgba(190, 242, 100, 0.14);
+        color: var(--secondary-deep);
+        font-size: 1.8rem;
+    }
+    .empty-state h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+    .empty-state p {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        max-width: 400px;
+        margin: 0 auto 20px;
+        line-height: 1.65;
+    }
+
+    /* ============================================================
+       TRUST HINT STRIP
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.06), rgba(190, 242, 100, 0.05));
+        border: 1px solid rgba(56, 189, 248, 0.20);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(56, 189, 248, 0.16);
+        color: #0369A1;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .req-overview { grid-template-columns: repeat(2, 1fr); }
+        .rh-metrics { gap: 18px; }
+        .rh-metric strong { font-size: 1.6rem; }
+    }
+    @media (max-width: 900px) {
+        .req-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .rh-metrics { width: 100%; justify-content: space-between; }
+        .rc-head { flex-wrap: wrap; }
+    }
+    @media (max-width: 640px) {
+        .req-overview { grid-template-columns: 1fr; }
+        .rh-metrics { flex-wrap: wrap; gap: 14px; }
+        .rh-sep { display: none; }
+        .rh-metric { flex: 1; min-width: 80px; }
+        .req-card { padding: 20px 18px; }
+        .rc-actions { flex-direction: column; align-items: stretch; }
+        .rc-actions .btn, .rc-actions .btn-ghost { width: 100%; justify-content: center; }
+        .rc-actions .rc-note { margin-left: 0; justify-content: center; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 420px) {
+        .rc-name-row h3 { font-size: 0.98rem; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO — REQUESTS OVERVIEW
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="req-hero fade-up">
+    <div class="rh-text">
+        <span class="hero-badge">
+            <i class="bi bi-inbox-fill"></i> 8 requests awaiting your review
+        </span>
+        <h1>Mentorship <span>Requests</span></h1>
+        <p>
+            New students have asked for you as their mentor. Your
+            <strong>94% match score</strong> filter keeps the list focused on
+            learners aligned with your skills. <strong>3 requests</strong> have
+            been waiting more than 2 days.
+        </p>
+    </div>
+
+    <div class="rh-metrics">
+        <div class="rh-metric">
+            <strong data-count="8">8</strong>
+            <span>New</span>
+        </div>
+        <div class="rh-sep"></div>
+        <div class="rh-metric">
+            <strong>2.4<em>h</em></strong>
+            <span>Avg response</span>
+        </div>
+        <div class="rh-sep"></div>
+        <div class="rh-metric">
+            <strong>96<em>%</em></strong>
+            <span>Accept rate</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="req-overview fade-up">
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic"><i class="bi bi-inbox-fill"></i></span>
+            <span class="ro-trend warn"><i class="bi bi-clock-history"></i> 3 urgent</span>
+        </div>
+        <div class="ro-value" data-count="8">8</div>
+        <div class="ro-label">New requests</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic accent"><i class="bi bi-lightning-charge-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> 2.4h</span>
+        </div>
+        <div class="ro-value">2.4<span>h</span></div>
+        <div class="ro-label">Avg response time</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic violet"><i class="bi bi-check-circle-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> +5</span>
+        </div>
+        <div class="ro-value" data-count="124">124</div>
+        <div class="ro-label">Accepted lifetime</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic amber"><i class="bi bi-patch-check-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-shield-check"></i> 94% avg</span>
+        </div>
+        <div class="ro-value">94<span>%</span></div>
+        <div class="ro-label">Average match score</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="requestSearch" placeholder="Search by name, skill, or message…" aria-label="Search requests">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> Match &ge; 90%
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Newest first" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Newest first
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Trust-first reviewing</strong>
+        <p>
+            Every request shows a verified match score, learner identity, and
+            stated goal. <strong>Declining is confidential</strong> — the learner
+            sees a polite auto-message but never sees who declined.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TABS + REQUEST LIST
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="card tabs-card fade-up" style="padding: 0;">
+    <div class="tabs-head">
+        <h3><i class="bi bi-inbox-fill"></i> All Requests</h3>
+        <a href="#" class="link">Archived requests <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="new">
+            New <span class="count">8</span>
+        </button>
+        <button class="tab" data-tab="accepted">
+            Accepted <span class="count">124</span>
+        </button>
+        <button class="tab" data-tab="declined">
+            Declined <span class="count">18</span>
+        </button>
+    </div>
+
+    <div class="tab-panels">
+
+        <!-- ───────────── NEW ───────────── -->
+        <div class="tab-panel active" id="tab-new">
+            <div class="req-list">
+
+                <!-- Request 1 -->
+                <article class="req-card" data-searchable="sara kim react system design">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar sky">SK</span>
+                            <span class="rc-online" title="Online"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Sara Kim</h3>
+                                <span class="rc-match"><i class="bi bi-lightning-charge-fill"></i> 94% Match</span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Berlin, DE</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Senior Frontend Dev</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> 20 min ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp pending">
+                            <i class="bi bi-hourglass-split"></i> Pending
+                        </span>
+                    </div>
+
+                    <blockquote class="rc-message">
+                        Hi Daniel — I've been following your React Patterns sessions and
+                        would love to go deeper into <strong>custom hooks</strong> and
+                        render optimisation. I'm targeting a senior role this year.
+                    </blockquote>
+
+                    <div class="rc-goal">
+                        <span class="rg-ic"><i class="bi bi-bullseye"></i></span>
+                        <div>
+                            <strong>Goal · Ship production-grade React patterns in 8 weeks</strong>
+                            <span>Committed · 4 hours per week · Available weekday evenings</span>
+                        </div>
+                    </div>
+
+                    <div class="rc-tags">
+                        <span class="tag teach">React</span>
+                        <span class="tag learn">System Design</span>
+                        <span class="tag violet">TypeScript</span>
+                        <span class="tag amber">Performance</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn btn-gold"
+                                data-toast="Sara Kim accepted · welcome message sent" data-toast-type="success">
+                            <i class="bi bi-check-lg"></i> Accept request
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer with Sara" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message first
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Request declined confidentially" data-toast-type="warning"
+                                style="color:#DC2626; border-color: rgba(239,68,68,0.24);">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-clock-history"></i> Waited 20 min
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Request 2 -->
+                <article class="req-card" data-searchable="tunde kayode node postgres aws fullstack">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar violet">TK</span>
+                            <span class="rc-online away" title="Away"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Tunde Kayode</h3>
+                                <span class="rc-match"><i class="bi bi-lightning-charge-fill"></i> 88% Match</span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Lagos, NG</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Backend Engineer</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> 3 hours ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp urgent">
+                            <i class="bi bi-exclamation-triangle-fill"></i> 3d waiting
+                        </span>
+                    </div>
+
+                    <blockquote class="rc-message">
+                        I have 4 years of Node experience and want to make the jump to
+                        <strong>full-stack</strong>. Specifically interested in your
+                        approach to architecting React + PostgreSQL apps at scale.
+                    </blockquote>
+
+                    <div class="rc-goal">
+                        <span class="rg-ic"><i class="bi bi-bullseye"></i></span>
+                        <div>
+                            <strong>Goal · 6-week structured transition to full-stack</strong>
+                            <span>Committed · 6 hours per week · Available weekends + Tuesday</span>
+                        </div>
+                    </div>
+
+                    <div class="rc-tags">
+                        <span class="tag learn">Node.js</span>
+                        <span class="tag teach">PostgreSQL</span>
+                        <span class="tag amber">AWS</span>
+                        <span class="tag green">Architecture</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn btn-gold"
+                                data-toast="Tunde Kayode accepted · welcome message sent" data-toast-type="success">
+                            <i class="bi bi-check-lg"></i> Accept request
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer with Tunde" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message first
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Request declined confidentially" data-toast-type="warning"
+                                style="color:#DC2626; border-color: rgba(239,68,68,0.24);">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Urgent · 3 days waiting
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Request 3 -->
+                <article class="req-card" data-searchable="maya rahman ui ux react portfolio">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar amber">MR</span>
+                            <span class="rc-online" title="Online"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Maya Rahman</h3>
+                                <span class="rc-match"><i class="bi bi-lightning-charge-fill"></i> 81% Match</span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Toronto, CA</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Product Designer</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> 6 hours ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp pending">
+                            <i class="bi bi-hourglass-split"></i> Pending
+                        </span>
+                    </div>
+
+                    <blockquote class="rc-message">
+                        I'm a designer learning to code and want to ship a
+                        <strong>React portfolio</strong> that showcases my design work.
+                        Your blend of craft + engineering is exactly what I need.
+                    </blockquote>
+
+                    <div class="rc-goal">
+                        <span class="rg-ic"><i class="bi bi-bullseye"></i></span>
+                        <div>
+                            <strong>Goal · Ship a React portfolio in 8 weeks</strong>
+                            <span>Committed · 3 hours per week · Available Sat + Sun mornings</span>
+                        </div>
+                    </div>
+
+                    <div class="rc-tags">
+                        <span class="tag teach">React</span>
+                        <span class="tag learn">UI/UX</span>
+                        <span class="tag green">Tailwind</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn btn-gold"
+                                data-toast="Maya Rahman accepted · welcome message sent" data-toast-type="success">
+                            <i class="bi bi-check-lg"></i> Accept request
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer with Maya" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message first
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Request declined confidentially" data-toast-type="warning"
+                                style="color:#DC2626; border-color: rgba(239,68,68,0.24);">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-clock-history"></i> Waited 6 hours
+                        </span>
+                    </div>
+                </article>
+
+                <!-- Request 4 -->
+                <article class="req-card" data-searchable="james oduya python machine learning ml">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar">JO</span>
+                            <span class="rc-online offline" title="Offline"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>James Oduya</h3>
+                                <span class="rc-match"><i class="bi bi-lightning-charge-fill"></i> 76% Match</span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Nairobi, KE</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Data Analyst</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> 1 day ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp pending">
+                            <i class="bi bi-hourglass-split"></i> Pending
+                        </span>
+                    </div>
+
+                    <blockquote class="rc-message">
+                        Looking to move from analytics into <strong>ML engineering</strong>.
+                        Your background in production ML systems is what I'm missing.
+                    </blockquote>
+
+                    <div class="rc-goal">
+                        <span class="rg-ic"><i class="bi bi-bullseye"></i></span>
+                        <div>
+                            <strong>Goal · Ship first production ML model in 10 weeks</strong>
+                            <span>Committed · 5 hours per week · Available weekday mornings</span>
+                        </div>
+                    </div>
+
+                    <div class="rc-tags">
+                        <span class="tag teach">Python</span>
+                        <span class="tag learn">Machine Learning</span>
+                        <span class="tag amber">MLOps</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn btn-gold"
+                                data-toast="James Oduya accepted · welcome message sent" data-toast-type="success">
+                            <i class="bi bi-check-lg"></i> Accept request
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer with James" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message first
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Request declined confidentially" data-toast-type="warning"
+                                style="color:#DC2626; border-color: rgba(239,68,68,0.24);">
+                            <i class="bi bi-x-lg"></i> Decline
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-clock-history"></i> Waited 1 day
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── ACCEPTED ───────────── -->
+        <div class="tab-panel" id="tab-accepted">
+            <div class="req-list">
+
+                <article class="req-card accepted">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar sky">NB</span>
+                            <span class="rc-online" title="Online"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Nadia Bello</h3>
+                                <span class="rc-match" style="background: rgba(34,197,94,0.14); color:#15803D; border-color: rgba(34,197,94,0.34);">
+                                    <i class="bi bi-check-circle-fill"></i> Active mentee
+                                </span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> London, UK</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Frontend Engineer</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> Accepted 8 days ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp accepted">
+                            <i class="bi bi-check-circle-fill"></i> Accepted
+                        </span>
+                    </div>
+
+                    <div class="rc-review-note accepted">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>You accepted <strong>Nadia Bello</strong> on 12 Sept · welcome message sent · first session scheduled</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn btn-gold"
+                                data-toast="Opening Nadia's plan" data-toast-type="success">
+                            <i class="bi bi-map"></i> Open plan
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Sessions with Nadia" data-toast-type="info">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 5.0 rating so far
+                        </span>
+                    </div>
+                </article>
+
+                <article class="req-card accepted">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar violet">RK</span>
+                            <span class="rc-online away"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Rahul Kapoor</h3>
+                                <span class="rc-match" style="background: rgba(34,197,94,0.14); color:#15803D; border-color: rgba(34,197,94,0.34);">
+                                    <i class="bi bi-check-circle-fill"></i> Active mentee
+                                </span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Bangalore, IN</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Backend Engineer</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> Accepted 2 weeks ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp accepted">
+                            <i class="bi bi-check-circle-fill"></i> Accepted
+                        </span>
+                    </div>
+
+                    <div class="rc-review-note accepted">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>You accepted <strong>Rahul Kapoor</strong> · currently 68% through System Design track</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn btn-gold"
+                                data-toast="Opening Rahul's plan" data-toast-type="success">
+                            <i class="bi bi-map"></i> Open plan
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Message
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Sessions with Rahul" data-toast-type="info">
+                            <i class="bi bi-calendar-week"></i> Sessions
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-star-fill" style="color: var(--secondary-deep);"></i> 4.9 rating
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+        <!-- ───────────── DECLINED ───────────── -->
+        <div class="tab-panel" id="tab-declined">
+            <div class="req-list">
+
+                <article class="req-card declined">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar" style="background: var(--gray-200); color: var(--gray-600);">PC</span>
+                            <span class="rc-online offline"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Priya Chandra</h3>
+                                <span class="rc-match" style="background: var(--gray-100); color: var(--gray-600); border-color: var(--gray-200);">
+                                    <i class="bi bi-slash-circle"></i> Declined
+                                </span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Delhi, IN</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Data Scientist</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> Declined 5 days ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp declined">
+                            <i class="bi bi-x-lg"></i> Declined
+                        </span>
+                    </div>
+
+                    <div class="rc-review-note declined">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>You declined <strong>Priya Chandra</strong> · your note: <em>"Currently at capacity — happy to revisit in Q1."</em> This message was private.</span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn-ghost"
+                                data-toast="Priya has been restored to New requests" data-toast-type="success">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore to New
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Send polite message
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-shield-check"></i> Declined confidentially
+                        </span>
+                    </div>
+                </article>
+
+                <article class="req-card declined">
+                    <div class="rc-head">
+                        <div class="rc-avatar-wrap">
+                            <span class="avatar" style="background: var(--gray-200); color: var(--gray-600);">HN</span>
+                            <span class="rc-online offline"></span>
+                        </div>
+                        <div class="rc-id">
+                            <div class="rc-name-row">
+                                <h3>Hassan Nasser</h3>
+                                <span class="rc-match" style="background: var(--gray-100); color: var(--gray-600); border-color: var(--gray-200);">
+                                    <i class="bi bi-slash-circle"></i> Declined
+                                </span>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-geo-alt"></i> Cairo, EG</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-briefcase"></i> Mobile Dev</span>
+                                <span class="dot-sep"></span>
+                                <span><i class="bi bi-clock"></i> Declined 3 weeks ago</span>
+                            </div>
+                        </div>
+                        <span class="rc-stamp declined">
+                            <i class="bi bi-x-lg"></i> Declined
+                        </span>
+                    </div>
+
+                    <div class="rc-review-note declined">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>You declined <strong>Hassan Nasser</strong> · your note: <em>"Flutter is outside my mentoring scope."</em></span>
+                    </div>
+
+                    <div class="rc-actions">
+                        <button type="button" class="btn-ghost"
+                                data-toast="Hassan has been restored to New requests" data-toast-type="success">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore to New
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                data-toast="Opening message composer" data-toast-type="info">
+                            <i class="bi bi-chat-left-text"></i> Send polite message
+                        </button>
+                        <span class="rc-note">
+                            <i class="bi bi-shield-check"></i> Declined confidentially
+                        </span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('requestSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.req-card').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+    })();
+</script>
+{% endblock extra_js %}

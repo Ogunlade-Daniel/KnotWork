@@ -1,0 +1,1878 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Help Centre{% endblock %}
+{% block breadcrumb %}Help Centre{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .help-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 34px 38px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 36px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .help-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .help-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .hh-text { position: relative; z-index: 2; max-width: 640px; }
+    .hh-text .hero-badge { margin-bottom: 14px; }
+    .hh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.9rem, 3.4vw, 2.55rem);
+        font-weight: 700; line-height: 1.15; margin-bottom: 12px;
+    }
+    .hh-text h1 span { color: var(--secondary); font-style: italic; }
+    .hh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.98rem; line-height: 1.75;
+        margin-bottom: 22px; max-width: 520px;
+    }
+    .hh-text p strong { color: var(--white); font-weight: 600; }
+    .hh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    /* Support status panel */
+    .support-panel {
+        position: relative;
+        z-index: 2;
+        flex-shrink: 0;
+        width: 320px;
+        padding: 22px 22px 20px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
+        position: relative;
+        overflow: hidden;
+    }
+    .support-panel::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: var(--gold);
+    }
+    .support-panel::after {
+        content: '';
+        position: absolute; top: -50%; right: -30%;
+        width: 80%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.16), transparent 62%);
+        pointer-events: none;
+    }
+    .sp-head {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .sp-head .sp-ic {
+        width: 46px; height: 46px;
+        border-radius: 13px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 24px rgba(190, 242, 100, 0.35);
+        position: relative;
+    }
+    .sp-head .sp-ic::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 11px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .sp-head .sp-info { min-width: 0; line-height: 1.25; }
+    .sp-head .sp-info strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--white);
+    }
+    .sp-head .sp-info span {
+        display: block;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.55);
+        margin-top: 2px;
+    }
+
+    .sp-status {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px 5px 10px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.14);
+        border: 1px solid rgba(190, 242, 100, 0.34);
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--secondary-light);
+        margin-bottom: 16px;
+    }
+    .sp-status .pulse {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--secondary);
+        box-shadow: 0 0 0 0 rgba(190, 242, 100, 0.6);
+        animation: availPulse 2s infinite;
+    }
+    @keyframes availPulse {
+        0%   { box-shadow: 0 0 0 0 rgba(190, 242, 100, 0.55); }
+        70%  { box-shadow: 0 0 0 7px rgba(190, 242, 100, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(190, 242, 100, 0); }
+    }
+
+    .sp-stats {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+    }
+    .sp-stat div:first-child {
+        font-size: 0.55rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 3px;
+    }
+    .sp-stat strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+    }
+    .sp-stat strong em {
+        font-style: normal;
+        font-size: 0.72rem;
+        color: var(--secondary);
+        margin-left: 3px;
+        font-weight: 700;
+    }
+
+    /* ============================================================
+       AUTHORITY STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .help-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ho-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ho-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ho-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .ho-card:hover::before { opacity: 1; }
+    .ho-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .ho-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .ho-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ho-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ho-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ho-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ho-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .ho-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .ho-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ho-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .ho-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       SEARCH CARD
+       ============================================================ */
+    .search-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px;
+        transition: var(--transition);
+    }
+    .search-card:hover { box-shadow: var(--shadow-md); }
+    .search-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 6px;
+    }
+    .search-card h3 i { color: var(--secondary-deep); font-size: 0.92rem; }
+    .search-card > p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        margin-bottom: 18px;
+    }
+
+    .help-search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 52px;
+        padding: 0 18px 0 20px;
+        transition: var(--transition);
+    }
+    .help-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .help-search i {
+        color: var(--gray-300);
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .help-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.92rem;
+        color: var(--gray-800);
+        padding: 0 12px;
+        min-width: 0;
+    }
+    .help-search input::placeholder { color: var(--gray-300); }
+
+    .search-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 14px;
+        align-items: center;
+    }
+    .search-suggestions .lbl {
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-right: 4px;
+    }
+    .search-suggestions button {
+        padding: 6px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .search-suggestions button:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.10);
+        transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       QUICK ACTIONS
+       ============================================================ */
+    .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+    }
+    .quick-tile {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px 18px 16px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .quick-tile::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .quick-tile:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .quick-tile:hover::before { opacity: 1; }
+    .quick-tile .qt-ic {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1.05rem;
+        background: rgba(190, 242, 100, 0.16);
+        color: #4D7C0F;
+        flex-shrink: 0;
+    }
+    .quick-tile .qt-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .quick-tile .qt-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .quick-tile .qt-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .quick-tile .qt-body { flex: 1; min-width: 0; }
+    .quick-tile .qt-body strong {
+        display: block;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .quick-tile .qt-body p {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+
+    .tab-panels { padding: 20px 26px 24px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       FAQ ITEMS
+       ============================================================ */
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .faq-item {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: var(--transition);
+        position: relative;
+    }
+    .faq-item::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        border-radius: 14px 0 0 14px;
+        background: var(--gold);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .faq-item:hover {
+        border-color: rgba(190, 242, 100, 0.4);
+        box-shadow: 0 8px 22px rgba(11, 17, 33, 0.06);
+    }
+    .faq-item.open {
+        border-color: rgba(190, 242, 100, 0.4);
+        box-shadow: 0 12px 32px rgba(11, 17, 33, 0.08);
+        background: linear-gradient(180deg, rgba(190, 242, 100, 0.04), var(--white) 40%);
+    }
+    .faq-item.open::before { opacity: 1; }
+
+    .faq-q {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 20px;
+        cursor: pointer;
+        user-select: none;
+        transition: var(--transition);
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+    }
+    .faq-q .fq-num {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: var(--gray-300);
+        letter-spacing: 0.05em;
+        width: 24px;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .faq-item.open .fq-num,
+    .faq-item:hover .fq-num { color: var(--secondary-deep); }
+    .faq-q .fq-title {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.4;
+    }
+    .faq-q .fq-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 50px;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .faq-q .fq-chip.hot { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .faq-q .fq-chip.new { background: rgba(190, 242, 100, 0.20); color: #4D7C0F; }
+    .faq-q .fq-chip.tip { background: rgba(56, 189, 248, 0.12); color: #0369A1; }
+
+    .faq-q .fq-toggle {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        background: var(--cream);
+        color: var(--gray-600);
+        display: grid; place-items: center;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .faq-item.open .fq-toggle,
+    .faq-item:hover .fq-toggle {
+        background: var(--gold);
+        color: var(--primary-dark);
+    }
+    .faq-item.open .fq-toggle i { transform: rotate(180deg); }
+    .faq-q .fq-toggle i {
+        transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .faq-a {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .faq-item.open .faq-a {
+        max-height: 1000px;
+    }
+    .faq-a-inner {
+        padding: 0 20px 20px 58px;
+        font-size: 0.84rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+    }
+    .faq-a-inner p { margin-bottom: 10px; }
+    .faq-a-inner p:last-child { margin-bottom: 0; }
+    .faq-a-inner p strong { color: var(--primary-dark); font-weight: 700; }
+    .faq-a-inner ul {
+        margin: 10px 0 10px 4px;
+        display: flex; flex-direction: column; gap: 6px;
+    }
+    .faq-a-inner ul li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.82rem;
+        line-height: 1.6;
+    }
+    .faq-a-inner ul li i {
+        color: var(--secondary-deep);
+        font-size: 0.7rem;
+        margin-top: 5px;
+        flex-shrink: 0;
+    }
+    .faq-a-inner code {
+        font-family: 'Inter', monospace;
+        font-size: 0.78rem;
+        background: var(--gray-100);
+        color: var(--primary-dark);
+        padding: 2px 6px;
+        border-radius: 5px;
+        font-weight: 700;
+    }
+    .faq-a-inner .faq-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--gray-200);
+    }
+    .faq-a-inner .faq-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        transition: var(--transition);
+    }
+    .faq-a-inner .faq-links a:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+
+    /* ============================================================
+       RIGHT RAIL
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Contact cards */
+    .contact-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        background: var(--cream);
+        margin-bottom: 10px;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .contact-card:last-of-type { margin-bottom: 0; }
+    .contact-card:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.05);
+        transform: translateX(3px);
+    }
+    .contact-card .cc-ic {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: grid; place-items: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .contact-card .cc-ic.lime { background: var(--gold); color: var(--primary-dark); }
+    .contact-card .cc-ic.accent { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; }
+    .contact-card .cc-ic.violet { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .contact-card .cc-ic.amber { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03; }
+    .contact-card .cc-body { flex: 1; min-width: 0; line-height: 1.3; }
+    .contact-card .cc-body strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .contact-card .cc-body span {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .contact-card .cc-body .cc-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 4px;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #15803D;
+    }
+    .contact-card .cc-body .cc-status i { font-size: 0.5rem; }
+    .contact-card .cc-arrow {
+        color: var(--gray-300);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        align-self: center;
+        transition: var(--transition);
+    }
+    .contact-card:hover .cc-arrow {
+        color: var(--secondary-deep);
+        transform: translateX(3px);
+    }
+
+    /* Popular articles list */
+    .pop-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .pop-row:first-of-type { padding-top: 0; }
+    .pop-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .pop-row:hover .pop-body strong { color: #4D7C0F; }
+    .pop-row .pop-ic {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        display: grid; place-items: center;
+        font-size: 0.85rem;
+        background: rgba(190, 242, 100, 0.16);
+        color: #4D7C0F;
+        flex-shrink: 0;
+    }
+    .pop-row .pop-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .pop-row .pop-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .pop-row .pop-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .pop-body { flex: 1; min-width: 0; }
+    .pop-body strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        line-height: 1.35;
+        transition: var(--transition);
+    }
+    .pop-body span {
+        display: block;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+    }
+    .pop-arrow {
+        color: var(--gray-300);
+        font-size: 0.75rem;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+    .pop-row:hover .pop-arrow {
+        color: var(--secondary-deep);
+        transform: translateX(3px);
+    }
+
+    /* Platform status */
+    .status-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .status-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .status-dot.online {
+        background: var(--green);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+    }
+    .status-dot.warn {
+        background: var(--amber);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+    }
+    .status-row strong {
+        color: var(--primary-dark);
+        font-weight: 700;
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .status-row em {
+        font-style: normal;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #15803D;
+        flex-shrink: 0;
+    }
+    .status-row em.warn { color: #B45309; }
+
+    /* Support response time card */
+    .resp-card {
+        padding: 16px 18px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(190, 242, 100, 0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        margin-bottom: 14px;
+    }
+    .resp-card .resp-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+    }
+    .resp-card .resp-val {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin-bottom: 6px;
+    }
+    .resp-card .resp-sub {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .resp-card .resp-sub strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .help-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 26px;
+        align-items: start;
+    }
+    .col-stack {
+        display: flex; flex-direction: column;
+        gap: 26px; min-width: 0;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .help-grid { grid-template-columns: 1fr; }
+        .help-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .support-panel { width: 290px; }
+    }
+    @media (max-width: 900px) {
+        .help-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .support-panel { width: 100%; }
+        .quick-grid { grid-template-columns: repeat(2, 1fr); }
+        .faq-a-inner { padding-left: 20px; }
+    }
+    @media (max-width: 640px) {
+        .help-overview { grid-template-columns: 1fr; }
+        .tabs-head { padding: 18px 20px 0; }
+        .tab-panels { padding: 18px 20px 22px; }
+        .tabs { padding: 12px 16px 0; }
+        .quick-grid { grid-template-columns: 1fr; }
+        .faq-q { padding: 16px 16px; gap: 10px; }
+        .faq-q .fq-chip { display: none; }
+        .faq-a-inner { padding: 0 16px 18px 16px; }
+        .search-card { padding: 20px 18px; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 420px) {
+        .help-overview { grid-template-columns: 1fr; }
+        .support-panel .sp-stats { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="help-hero fade-up">
+    <div class="hh-text">
+        <span class="hero-badge">
+            <i class="bi bi-life-preserver"></i> 24/7 support · 42 articles · 6 categories
+        </span>
+        <h1>Help <span>Centre</span></h1>
+        <p>
+            Answers to the most common questions, plus direct access to our
+            faculty support team. Our median response time is
+            <strong>under 2 hours</strong> during business hours, and every
+            ticket is handled by a real human.
+        </p>
+        <div class="hh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening ticket composer…" data-toast-type="info">
+                <i class="bi bi-envelope-paper-fill"></i> Contact support
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening live chat…" data-toast-type="success">
+                <i class="bi bi-chat-dots-fill"></i> Start live chat
+            </button>
+        </div>
+    </div>
+
+    <!-- Support status panel -->
+    <aside class="support-panel" aria-label="Support status">
+        <div class="sp-head">
+            <span class="sp-ic"><i class="bi bi-life-preserver"></i></span>
+            <div class="sp-info">
+                <strong>Faculty Support</strong>
+                <span>Available in English · Lagos HQ</span>
+            </div>
+        </div>
+
+        <span class="sp-status">
+            <span class="pulse"></span> All systems operational
+        </span>
+
+        <div class="sp-stats">
+            <div class="sp-stat">
+                <div>Median reply</div>
+                <strong>1.8<em>hr</em></strong>
+            </div>
+            <div class="sp-stat">
+                <div>Satisfaction</div>
+                <strong>4.9<em>/5</em></strong>
+            </div>
+            <div class="sp-stat">
+                <div>Open tickets</div>
+                <strong>0</strong>
+            </div>
+            <div class="sp-stat">
+                <div>Articles</div>
+                <strong>42</strong>
+            </div>
+        </div>
+    </aside>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-patch-check-fill"></i></span>
+    <div class="as-body">
+        <strong>Faculty-grade support — no bots, no outsourced agents</strong>
+        <p>
+            Every support ticket is answered by a <strong>Knotwork faculty
+            team member</strong>. We do not use AI to answer tickets, and we
+            never share your data with third-party support vendors. Your
+            conversations are <strong>encrypted and logged</strong> for your
+            protection.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening support charter…" data-toast-type="info">
+            <i class="bi bi-file-earmark-text"></i> Support charter
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="help-overview fade-up">
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic"><i class="bi bi-journal-text"></i></span>
+            <span class="ho-trend"><i class="bi bi-check-circle-fill"></i> Updated</span>
+        </div>
+        <div class="ho-value" data-count="42">42</div>
+        <div class="ho-label">Help articles</div>
+    </div>
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic accent"><i class="bi bi-clock-history"></i></span>
+            <span class="ho-trend"><i class="bi bi-arrow-down-short"></i> −18%</span>
+        </div>
+        <div class="ho-value">1.8<span>hr</span></div>
+        <div class="ho-label">Median response time</div>
+    </div>
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic violet"><i class="bi bi-emoji-smile-fill"></i></span>
+            <span class="ho-trend"><i class="bi bi-arrow-up-short"></i> +0.1</span>
+        </div>
+        <div class="ho-value">4.9<span>/5</span></div>
+        <div class="ho-label">Satisfaction rating</div>
+    </div>
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic amber"><i class="bi bi-ticket-detailed-fill"></i></span>
+            <span class="ho-trend"><i class="bi bi-check-circle"></i> Cleared</span>
+        </div>
+        <div class="ho-value" data-count="0">0</div>
+        <div class="ho-label">Open tickets from you</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SEARCH CARD
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="search-card fade-up">
+    <h3><i class="bi bi-search"></i> Search the Help Centre</h3>
+    <p>Find answers faster by searching across all 42 articles and FAQs.</p>
+
+    <div class="help-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="helpSearch" placeholder="Try “payout schedule”, “2FA”, “session refund”, “availability”…" aria-label="Search help articles">
+    </div>
+
+    <div class="search-suggestions">
+        <span class="lbl">Popular</span>
+        <button type="button" data-toast="Searching: payouts…" data-toast-type="info">Payout schedule</button>
+        <button type="button" data-toast="Searching: 2FA…" data-toast-type="info">Enable 2FA</button>
+        <button type="button" data-toast="Searching: refunds…" data-toast-type="info">Session refund</button>
+        <button type="button" data-toast="Searching: availability…" data-toast-type="info">Set availability</button>
+        <button type="button" data-toast="Searching: badges…" data-toast-type="info">Level up badge</button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     QUICK ACTIONS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="fade-up" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.08rem;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:9px;">
+            <i class="bi bi-lightning-charge-fill" style="color:var(--secondary-deep);font-size:0.92rem;"></i>
+            Quick Actions
+        </h3>
+        <a href="#" style="font-size:0.78rem;font-weight:600;color:var(--gray-600);display:inline-flex;align-items:center;gap:6px;">
+            All resources <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="quick-grid">
+        <div class="quick-tile" data-toast="Opening ticket composer…" data-toast-type="info">
+            <span class="qt-ic"><i class="bi bi-envelope-paper-fill"></i></span>
+            <div class="qt-body">
+                <strong>Open a support ticket</strong>
+                <p>Describe your issue and get a written reply from our faculty team.</p>
+            </div>
+        </div>
+
+        <div class="quick-tile" data-toast="Opening live chat…" data-toast-type="success">
+            <span class="qt-ic accent"><i class="bi bi-chat-dots-fill"></i></span>
+            <div class="qt-body">
+                <strong>Start live chat</strong>
+                <p>Chat with a faculty member in real time — available 9am–9pm GMT+1.</p>
+            </div>
+        </div>
+
+        <div class="quick-tile" data-toast="Opening scheduler…" data-toast-type="info">
+            <span class="qt-ic violet"><i class="bi bi-calendar-check-fill"></i></span>
+            <div class="qt-body">
+                <strong>Book a 1:1 support call</strong>
+                <p>Schedule a 20-minute walkthrough for complex issues.</p>
+            </div>
+        </div>
+
+        <div class="quick-tile" data-toast="Opening video tutorials…" data-toast-type="info">
+            <span class="qt-ic amber"><i class="bi bi-play-btn-fill"></i></span>
+            <div class="qt-body">
+                <strong>Video walkthroughs</strong>
+                <p>Short, focused tutorials for the most common mentor workflows.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Your support history is private and permanent</strong>
+        <p>
+            Every ticket, chat, and call you've had is retained in your
+            account for <strong>two years</strong> and only visible to you and
+            the faculty team member who handled it. You can <strong>export
+            or delete</strong> this history from the Settings page.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HELP GRID — FAQ + SIDEBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="help-grid">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-question-circle-fill"></i> Frequently Asked Questions</h3>
+                <a href="#" class="link">Full knowledge base <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="all">
+                    All <span class="count">42</span>
+                </button>
+                <button class="tab" data-tab="sessions">
+                    Sessions
+                </button>
+                <button class="tab" data-tab="mentees">
+                    Mentees
+                </button>
+                <button class="tab" data-tab="earnings">
+                    Earnings
+                </button>
+                <button class="tab" data-tab="account">
+                    Account
+                </button>
+                <button class="tab" data-tab="security">
+                    Security
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ─────── ALL / SESSIONS ─────── -->
+                <div class="tab-panel active" id="tab-all">
+                    <div class="faq-list" id="faqListAll">
+
+                        <!-- FAQ 1 -->
+                        <article class="faq-item open" data-searchable="session reschedule cancel refund mentee">
+                            <button type="button" class="faq-q" aria-expanded="true">
+                                <span class="fq-num">01</span>
+                                <span class="fq-title">How do I reschedule or cancel a session with a mentee?</span>
+                                <span class="fq-chip hot"><i class="bi bi-fire"></i> Most read</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>You can reschedule or cancel any session directly from the <strong>Sessions</strong> page. Click the <code>Reschedule</code> or <code>Cancel</code> action on the session card.</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> Reschedules require mentee confirmation — they get 24 hours to accept.</li>
+                                        <li><i class="bi bi-check-lg"></i> Cancellations made <strong>more than 24 hours</strong> before the session incur no fee.</li>
+                                        <li><i class="bi bi-check-lg"></i> Late cancellations (under 24 hours) incur a <strong>10% fee</strong> deducted from the session payout.</li>
+                                        <li><i class="bi bi-check-lg"></i> Emergency cancellations can be reviewed by support and refunded.</li>
+                                    </ul>
+                                    <p>Repeat late cancellations affect your attendance rate, which is displayed on your public dossier.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening sessions page…" data-toast-type="info"><i class="bi bi-calendar-week"></i> Go to Sessions</a>
+                                        <a href="#" data-toast="Opening refund policy…" data-toast-type="info"><i class="bi bi-file-earmark-text"></i> Refund policy</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 2 -->
+                        <article class="faq-item" data-searchable="payout earnings withdraw bank schedule">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">02</span>
+                                <span class="fq-title">When do I get paid, and how do payouts work?</span>
+                                <span class="fq-chip new"><i class="bi bi-star-fill"></i> New</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Payouts are processed automatically on your chosen schedule — by default, <strong>on the 1st of each month</strong>.</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> A session becomes payable once <strong>both you and the mentee mark it complete</strong>.</li>
+                                        <li><i class="bi bi-check-lg"></i> Funds clear into your available balance <strong>24 hours</strong> after completion.</li>
+                                        <li><i class="bi bi-check-lg"></i> Payouts to your verified bank arrive in <strong>1–3 business days</strong> and are free.</li>
+                                        <li><i class="bi bi-check-lg"></i> PayPal payouts arrive within 24 hours with a 1.5% fee.</li>
+                                        <li><i class="bi bi-check-lg"></i> You can also withdraw any time manually from the Earnings page.</li>
+                                    </ul>
+                                    <p>Knotwork charges a <strong>15% platform fee</strong> on every completed session — this is the only deduction and it's shown on every transaction.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening earnings…" data-toast-type="info"><i class="bi bi-wallet2"></i> Go to Earnings</a>
+                                        <a href="#" data-toast="Opening payout schedule…" data-toast-type="info"><i class="bi bi-calendar-check"></i> Change schedule</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 3 -->
+                        <article class="faq-item" data-searchable="2fa two factor authentication security backup codes">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">03</span>
+                                <span class="fq-title">How do I enable or reset two-factor authentication (2FA)?</span>
+                                <span class="fq-chip tip"><i class="bi bi-shield-check"></i> Security</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Two-factor authentication is <strong>strongly recommended</strong> for every mentor, and it's required for anyone with an active payment method.</p>
+                                    <p><strong>To enable 2FA:</strong></p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> Go to <strong>Settings → Security</strong>.</li>
+                                        <li><i class="bi bi-check-lg"></i> Click <code>Manage</code> next to Two-factor authentication.</li>
+                                        <li><i class="bi bi-check-lg"></i> Scan the QR code with Google Authenticator, 1Password, or Authy.</li>
+                                        <li><i class="bi bi-check-lg"></i> Enter the 6-digit code to confirm.</li>
+                                    </ul>
+                                    <p><strong>If you've lost your device:</strong> use one of your 10 backup codes, or open a support ticket from a recognised device. Support will verify your identity before resetting 2FA.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening security settings…" data-toast-type="info"><i class="bi bi-shield-lock-fill"></i> Go to Security</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 4 -->
+                        <article class="faq-item" data-searchable="availability accept mentees new requests capacity">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">04</span>
+                                <span class="fq-title">How do I pause new mentee requests without going offline?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>You can pause new requests while staying visible to current mentees.</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> Go to <strong>Settings → Availability</strong>.</li>
+                                        <li><i class="bi bi-check-lg"></i> Toggle <strong>"Accepting new mentees"</strong> off.</li>
+                                        <li><i class="bi bi-check-lg"></i> Your profile stays public; a small "Not accepting requests" pill appears.</li>
+                                    </ul>
+                                    <p>Any requests received before you paused remain in your queue — you can still accept or decline them.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening availability…" data-toast-type="info"><i class="bi bi-calendar-week-fill"></i> Go to Availability</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 5 -->
+                        <article class="faq-item" data-searchable="level badge honours upgrade mentor tier">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">05</span>
+                                <span class="fq-title">How do I level up my mentor tier and earn more badges?</span>
+                                <span class="fq-chip new"><i class="bi bi-star-fill"></i> New</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Level advancement is based on a <strong>weighted combination</strong> of four factors:</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> <strong>Total session hours</strong> completed.</li>
+                                        <li><i class="bi bi-check-lg"></i> <strong>Average rating</strong> across all reviews (minimum 4.5).</li>
+                                        <li><i class="bi bi-check-lg"></i> <strong>Response rate</strong> — replies to messages within 24 hours.</li>
+                                        <li><i class="bi bi-check-lg"></i> <strong>Community contribution</strong> — forum answers and accepted solutions.</li>
+                                    </ul>
+                                    <p>Badges are issued by the <strong>faculty board</strong> when the criteria for each badge are met. You can see the criteria for every badge on your <strong>Honours</strong> page.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening honours…" data-toast-type="info"><i class="bi bi-trophy"></i> Go to Honours</a>
+                                        <a href="#" data-toast="Opening analytics…" data-toast-type="info"><i class="bi bi-graph-up-arrow"></i> See your metrics</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 6 -->
+                        <article class="faq-item" data-searchable="refund mentee dispute escrow payment">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">06</span>
+                                <span class="fq-title">What happens if a mentee disputes a session?</span>
+                                <span class="fq-chip tip"><i class="bi bi-shield-check"></i> Trust</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Disputes are rare, and they're always handled fairly.</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> When a mentee opens a dispute, the session's payout is <strong>held in escrow</strong> — it is not removed from your account.</li>
+                                        <li><i class="bi bi-check-lg"></i> Support reviews the session recording, chat history, and both parties' notes.</li>
+                                        <li><i class="bi bi-check-lg"></i> You have <strong>48 hours</strong> to submit your side of the story.</li>
+                                        <li><i class="bi bi-check-lg"></i> A decision is issued within <strong>5 business days</strong>, and both parties are notified in writing.</li>
+                                    </ul>
+                                    <p>Earnings that have already cleared into your available balance are <strong>never reversed</strong> except in cases of confirmed fraud.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 7 -->
+                        <article class="faq-item" data-searchable="resources share file upload storage library">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">07</span>
+                                <span class="fq-title">How do I share files and resources with my mentees?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>The <strong>Resources</strong> page is your file library. You can share:</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> PDFs, images, videos, code files, sheets, and external links.</li>
+                                        <li><i class="bi bi-check-lg"></i> Individual files up to <strong>50 MB</strong> each.</li>
+                                        <li><i class="bi bi-check-lg"></i> Each resource with as many mentees as you want, or the whole cohort.</li>
+                                        <li><i class="bi bi-check-lg"></i> Access can be <strong>revoked at any time</strong> — it disappears from their dashboard instantly.</li>
+                                    </ul>
+                                    <p>Files are encrypted at rest and backed up across three regions. Deleted files are retained in an archive for <strong>30 days</strong>.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening resources…" data-toast-type="info"><i class="bi bi-journal-bookmark-fill"></i> Go to Resources</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- FAQ 8 -->
+                        <article class="faq-item" data-searchable="delete account close cancel subscription">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">08</span>
+                                <span class="fq-title">How do I delete my account or close my mentoring practice?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>You have two options, both available from <strong>Settings → Security → Danger Zone</strong>.</p>
+                                    <ul>
+                                        <li><i class="bi bi-check-lg"></i> <strong>Deactivate</strong> — your profile is hidden and you stop receiving requests, but your data is retained. Reactivate any time.</li>
+                                        <li><i class="bi bi-check-lg"></i> <strong>Delete</strong> — your account is permanently removed after a <strong>30-day retention window</strong>.</li>
+                                    </ul>
+                                    <p>Before you can delete, you must have <strong>no pending payouts</strong> and <strong>no active mentees mid-plan</strong>. Support will help you wind down gracefully if needed.</p>
+                                    <p>Some records — completed payouts, signed agreements, and legal disclosures — are retained for <strong>7 years</strong> to comply with tax law.</p>
+                                    <div class="faq-links">
+                                        <a href="#" data-toast="Opening security…" data-toast-type="info"><i class="bi bi-shield-lock-fill"></i> Go to Security</a>
+                                        <a href="#" data-toast="Opening support ticket…" data-toast-type="info"><i class="bi bi-envelope-paper"></i> Ask support</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── SESSIONS ─────── -->
+                <div class="tab-panel" id="tab-sessions">
+                    <div class="faq-list">
+                        <article class="faq-item open">
+                            <button type="button" class="faq-q" aria-expanded="true">
+                                <span class="fq-num">01</span>
+                                <span class="fq-title">How do I reschedule or cancel a session with a mentee?</span>
+                                <span class="fq-chip hot"><i class="bi bi-fire"></i> Most read</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Reschedule or cancel any session from the <strong>Sessions</strong> page. Cancellations more than 24 hours before the session are free; later than that, a 10% fee applies.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">02</span>
+                                <span class="fq-title">Are my sessions recorded, and who can access the recording?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Yes, sessions are recorded by default. You and your mentee both receive a private link, and you control whether they can download it (Settings → Privacy).</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">03</span>
+                                <span class="fq-title">What happens if I don't show up for a scheduled session?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>A no-show is logged and 10 minutes after the scheduled start, the session auto-cancels. Two no-shows in 30 days trigger a review with the faculty team.</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- ─────── MENTEES ─────── -->
+                <div class="tab-panel" id="tab-mentees">
+                    <div class="faq-list">
+                        <article class="faq-item open">
+                            <button type="button" class="faq-q" aria-expanded="true">
+                                <span class="fq-num">01</span>
+                                <span class="fq-title">How do I pause new mentee requests without going offline?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Go to <strong>Settings → Availability</strong> and turn off <strong>"Accepting new mentees"</strong>. Your profile stays public but a "Not accepting requests" pill appears.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">02</span>
+                                <span class="fq-title">Can I mentor the same learner on multiple plans?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Yes. Each plan is independent, and progress on one does not affect the other. Your mentee's dossier displays both plans side by side.</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- ─────── EARNINGS ─────── -->
+                <div class="tab-panel" id="tab-earnings">
+                    <div class="faq-list">
+                        <article class="faq-item open">
+                            <button type="button" class="faq-q" aria-expanded="true">
+                                <span class="fq-num">01</span>
+                                <span class="fq-title">When do I get paid, and how do payouts work?</span>
+                                <span class="fq-chip new"><i class="bi bi-star-fill"></i> New</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Payouts run on the 1st of each month by default. Sessions become payable once both you and the mentee mark them complete.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">02</span>
+                                <span class="fq-title">What is the platform fee, and are there any other deductions?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>A flat <strong>15% platform fee</strong> applies to every completed session — that's the only deduction. Bank payouts are free; PayPal has a 1.5% fee.</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- ─────── ACCOUNT ─────── -->
+                <div class="tab-panel" id="tab-account">
+                    <div class="faq-list">
+                        <article class="faq-item open">
+                            <button type="button" class="faq-q" aria-expanded="true">
+                                <span class="fq-num">01</span>
+                                <span class="fq-title">How do I delete my account or close my mentoring practice?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Both options are in <strong>Settings → Security → Danger Zone</strong>. Deletion requires no pending payouts and no mid-plan mentees.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">02</span>
+                                <span class="fq-title">Can I export all my data before deleting my account?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Yes. From <strong>Settings → Privacy → Data Portability</strong>, request a full account archive. It's prepared within 24 hours and emailed to you as a secure ZIP.</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- ─────── SECURITY ─────── -->
+                <div class="tab-panel" id="tab-security">
+                    <div class="faq-list">
+                        <article class="faq-item open">
+                            <button type="button" class="faq-q" aria-expanded="true">
+                                <span class="fq-num">01</span>
+                                <span class="fq-title">How do I enable or reset two-factor authentication (2FA)?</span>
+                                <span class="fq-chip tip"><i class="bi bi-shield-check"></i> Security</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Go to <strong>Settings → Security</strong> and click Manage next to Two-factor authentication. Scan the QR code with any authenticator app.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button type="button" class="faq-q" aria-expanded="false">
+                                <span class="fq-num">02</span>
+                                <span class="fq-title">What should I do if I notice an unrecognised device on my account?</span>
+                                <span class="fq-toggle"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-a">
+                                <div class="faq-a-inner">
+                                    <p>Sign the device out immediately from <strong>Settings → Security → Active sessions</strong>, change your password, and open a support ticket. Support will audit your account within 2 hours.</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- CONTACT SUPPORT -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-headset"></i> Contact Support</h4>
+                <a href="#" class="link">All channels <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="resp-card">
+                <div class="resp-head">
+                    <i class="bi bi-clock-history"></i> Current response time
+                </div>
+                <div class="resp-val">~1h 50m</div>
+                <div class="resp-sub">
+                    Median first reply for <strong>faculty mentors</strong> right now.
+                </div>
+            </div>
+
+            <div class="contact-card" data-toast="Opening ticket composer…" data-toast-type="info">
+                <span class="cc-ic lime"><i class="bi bi-envelope-paper-fill"></i></span>
+                <div class="cc-body">
+                    <strong>Open a support ticket</strong>
+                    <span>Written reply from a faculty team member, usually within 2 hours.</span>
+                    <span class="cc-status"><i class="bi bi-circle-fill"></i> Available</span>
+                </div>
+                <i class="bi bi-chevron-right cc-arrow"></i>
+            </div>
+
+            <div class="contact-card" data-toast="Opening live chat…" data-toast-type="success">
+                <span class="cc-ic accent"><i class="bi bi-chat-dots-fill"></i></span>
+                <div class="cc-body">
+                    <strong>Live chat</strong>
+                    <span>Real-time chat with a faculty member · 9am–9pm GMT+1.</span>
+                    <span class="cc-status"><i class="bi bi-circle-fill"></i> Online now</span>
+                </div>
+                <i class="bi bi-chevron-right cc-arrow"></i>
+            </div>
+
+            <div class="contact-card" data-toast="Opening support call scheduler…" data-toast-type="info">
+                <span class="cc-ic violet"><i class="bi bi-telephone-fill"></i></span>
+                <div class="cc-body">
+                    <strong>Book a 1:1 support call</strong>
+                    <span>20-minute walkthrough for complex issues · next slot today 16:00.</span>
+                </div>
+                <i class="bi bi-chevron-right cc-arrow"></i>
+            </div>
+
+            <div class="contact-card" data-toast="Opening emergency line…" data-toast-type="warning">
+                <span class="cc-ic amber"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                <div class="cc-body">
+                    <strong>Emergency safety line</strong>
+                    <span>For urgent safety or security concerns only · 24/7.</span>
+                </div>
+                <i class="bi bi-chevron-right cc-arrow"></i>
+            </div>
+        </div>
+
+        <!-- POPULAR ARTICLES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-fire"></i> Popular Articles</h4>
+                <a href="#" class="link">All 42 <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="pop-row" data-toast="Opening article…" data-toast-type="info">
+                <span class="pop-ic"><i class="bi bi-calendar-week"></i></span>
+                <div class="pop-body">
+                    <strong>How to reschedule a session correctly</strong>
+                    <span>3 min read · Sessions</span>
+                </div>
+                <i class="bi bi-chevron-right pop-arrow"></i>
+            </div>
+
+            <div class="pop-row" data-toast="Opening article…" data-toast-type="info">
+                <span class="pop-ic accent"><i class="bi bi-wallet2"></i></span>
+                <div class="pop-body">
+                    <strong>Understanding your payout schedule</strong>
+                    <span>4 min read · Earnings</span>
+                </div>
+                <i class="bi bi-chevron-right pop-arrow"></i>
+            </div>
+
+            <div class="pop-row" data-toast="Opening article…" data-toast-type="info">
+                <span class="pop-ic violet"><i class="bi bi-shield-lock-fill"></i></span>
+                <div class="pop-body">
+                    <strong>Securing your account with 2FA</strong>
+                    <span>5 min read · Security</span>
+                </div>
+                <i class="bi bi-chevron-right pop-arrow"></i>
+            </div>
+
+            <div class="pop-row" data-toast="Opening article…" data-toast-type="info">
+                <span class="pop-ic amber"><i class="bi bi-trophy"></i></span>
+                <div class="pop-body">
+                    <strong>How to level up faster as a mentor</strong>
+                    <span>6 min read · Honours</span>
+                </div>
+                <i class="bi bi-chevron-right pop-arrow"></i>
+            </div>
+
+            <div class="pop-row" data-toast="Opening article…" data-toast-type="info">
+                <span class="pop-ic"><i class="bi bi-journal-bookmark-fill"></i></span>
+                <div class="pop-body">
+                    <strong>Curating a mentor resource library</strong>
+                    <span>5 min read · Resources</span>
+                </div>
+                <i class="bi bi-chevron-right pop-arrow"></i>
+            </div>
+        </div>
+
+        <!-- PLATFORM STATUS -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-broadcast"></i> Platform Status</h4>
+                <a href="#" class="link">Status page <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="status-list">
+                <div class="status-row">
+                    <span class="status-dot online"></span>
+                    <strong>Studio &amp; video sessions</strong>
+                    <em>Operational</em>
+                </div>
+
+                <div class="status-row">
+                    <span class="status-dot online"></span>
+                    <strong>Messaging &amp; notifications</strong>
+                    <em>Operational</em>
+                </div>
+
+                <div class="status-row">
+                    <span class="status-dot online"></span>
+                    <strong>Payouts &amp; billing</strong>
+                    <em>Operational</em>
+                </div>
+
+                <div class="status-row">
+                    <span class="status-dot online"></span>
+                    <strong>Forum &amp; network</strong>
+                    <em>Operational</em>
+                </div>
+
+                <div class="status-row">
+                    <span class="status-dot warn"></span>
+                    <strong>Analytics (rolling window)</strong>
+                    <em class="warn">Slower</em>
+                </div>
+            </div>
+
+            <button type="button" class="btn-ghost"
+                    style="width:100%;justify-content:center;margin-top:14px;padding:10px 16px;font-size:0.76rem;"
+                    data-toast="Opening status history…" data-toast-type="info">
+                <i class="bi bi-clock-history"></i> 90-day uptime history
+            </button>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           FAQ ACCORDION
+           ====================================================== */
+        document.querySelectorAll('.faq-q').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const item = this.closest('.faq-item');
+                const isOpen = item.classList.contains('open');
+
+                /* Close all items in the same faq-list */
+                const list = item.parentElement;
+                list.querySelectorAll('.faq-item.open').forEach(function (openItem) {
+                    openItem.classList.remove('open');
+                    const q = openItem.querySelector('.faq-q');
+                    if (q) q.setAttribute('aria-expanded', 'false');
+                });
+
+                if (!isOpen) {
+                    item.classList.add('open');
+                    this.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        /* ======================================================
+           LIVE SEARCH — FAQ items
+           ====================================================== */
+        const helpSearch = document.getElementById('helpSearch');
+        if (helpSearch) {
+            helpSearch.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+
+                document.querySelectorAll('.faq-item').forEach(function (item) {
+                    const haystack = (item.dataset.searchable || item.textContent || '').toLowerCase();
+                    item.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+    })();
+</script>
+{% endblock extra_js %}

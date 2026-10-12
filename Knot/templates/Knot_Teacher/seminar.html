@@ -2155,9 +2155,9 @@
                 <article class="thread type-live" data-toast="Joining live Q&A…">
                     <div class="th-head">
                         <div class="th-author">
-                            <span class="th-av faculty">DO</span>
+                            <span class="th-av faculty">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</span>
                             <div>
-                                <div class="th-author-name">Daniel Okafor</div>
+                                <div class="th-author-name">{{ request.user.first_name }} {{ request.user.last_name }}</div>
                                 <div class="th-author-meta">Faculty · Hosting</div>
                             </div>
                         </div>
@@ -2199,9 +2199,9 @@
                 <article class="thread type-announcement" data-toast="Opening pinned announcement…">
                     <div class="th-head">
                         <div class="th-author">
-                            <span class="th-av faculty">DO</span>
+                            <span class="th-av faculty">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</span>
                             <div>
-                                <div class="th-author-name">Daniel Okafor</div>
+                                <div class="th-author-name">{{ request.user.first_name }} {{ request.user.last_name}}</div>
                                 <div class="th-author-meta">Faculty · 2 days ago</div>
                             </div>
                         </div>
@@ -2464,7 +2464,7 @@
                                 <div class="d">18</div>
                             </div>
                             <div class="event-body">
-                                <h5>Cohort AMA · Ask Daniel anything</h5>
+                                <h5>Cohort AMA · Ask {{ request.user.first_name}} anything</h5>
                                 <p><strong>Fri · 16:00</strong><span class="sep"></span>Open to all</p>
                                 <span class="rsvp"><i class="bi bi-question-circle"></i> Submit a question</span>
                             </div>

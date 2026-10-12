@@ -1,0 +1,3323 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Finance &amp; Payouts{% endblock %}
+{% block page_title %}Finance &amp; Payouts{% endblock %}
+{% block breadcrumb %}Operations · Treasury{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   FINANCE — TREASURY COMMAND CENTER
+   Improvised palette: treasury-emerald + vault-gold + ledger-slate
+   ============================================================ */
+
+:root {
+    --fn-emerald: #10B981;
+    --fn-emerald-deep: #047857;
+    --fn-emerald-dim: rgba(16, 185, 129, 0.12);
+    --fn-emerald-glow: rgba(16, 185, 129, 0.42);
+
+    --fn-gold: #F59E0B;
+    --fn-gold-deep: #B45309;
+    --fn-gold-dim: rgba(245, 158, 11, 0.12);
+    --fn-gold-glow: rgba(245, 158, 11, 0.42);
+
+    --fn-slate: #64748B;
+    --fn-slate-deep: #334155;
+    --fn-slate-dim: rgba(100, 116, 139, 0.12);
+
+    --fn-red: #DC2626;
+    --fn-red-deep: #991B1B;
+    --fn-red-dim: rgba(220, 38, 38, 0.12);
+    --fn-red-glow: rgba(220, 38, 38, 0.42);
+
+    --fn-violet: #8B5CF6;
+    --fn-violet-deep: #6D28D9;
+    --fn-violet-dim: rgba(139, 92, 246, 0.12);
+
+    --fn-blue: #3B82F6;
+    --fn-blue-deep: #1D4ED8;
+    --fn-blue-dim: rgba(59, 130, 246, 0.12);
+
+    --fn-mesh-1: radial-gradient(circle at 12% 20%, rgba(16, 185, 129, 0.14), transparent 42%);
+    --fn-mesh-2: radial-gradient(circle at 88% 78%, rgba(245, 158, 11, 0.14), transparent 44%);
+    --fn-mesh-3: radial-gradient(circle at 62% 12%, rgba(59, 130, 246, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   FINANCE WIRE — MARQUEE
+   ============================================================ */
+.fn-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(16, 185, 129, 0.20), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(245, 158, 11, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(16, 185, 129, 0.26);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.fn-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--fn-emerald), var(--fn-gold), var(--fn-blue), var(--crown-2));
+    box-shadow: 0 0 22px rgba(16, 185, 129, 0.5);
+    z-index: 5;
+}
+.fn-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.fn-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.fn-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.fn-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.fn-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--fn-emerald);
+    pointer-events: none;
+}
+.fn-wire-label .fn-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--fn-emerald);
+    box-shadow: 0 0 0 0 var(--fn-emerald-glow);
+    animation: fnPulse 1.6s infinite;
+}
+@keyframes fnPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.fn-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 170px;
+    animation: fnWireRoll 54s linear infinite;
+}
+.fn-wire:hover .fn-wire-track { animation-play-state: paused; }
+@keyframes fnWireRoll { to { transform: translateX(-50%); } }
+
+.fn-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.fn-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--fn-emerald);
+    box-shadow: 0 0 8px var(--fn-emerald-glow);
+    flex-shrink: 0;
+    animation: fnSpark 1.8s ease-in-out infinite;
+}
+.fn-wire-item.emerald .wdot { background: var(--fn-emerald); box-shadow: 0 0 8px var(--fn-emerald-glow); }
+.fn-wire-item.gold    .wdot { background: var(--fn-gold);    box-shadow: 0 0 8px var(--fn-gold-glow); }
+.fn-wire-item.red     .wdot { background: var(--fn-red);     box-shadow: 0 0 8px var(--fn-red-glow); }
+.fn-wire-item.blue    .wdot { background: var(--fn-blue);    box-shadow: 0 0 8px rgba(59,130,246,0.65); }
+.fn-wire-item.violet  .wdot { background: var(--fn-violet);  box-shadow: 0 0 8px rgba(139,92,246,0.65); }
+@keyframes fnSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.fn-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.fn-wire-item em {
+    font-style: normal;
+    color: var(--fn-emerald);
+    font-weight: 700;
+}
+
+/* ============================================================
+   FINANCE HERO
+   ============================================================ */
+.fn-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--fn-mesh-1), var(--fn-mesh-2), var(--fn-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(16, 185, 129, 0.20);
+}
+.fn-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--fn-emerald), var(--fn-gold) 40%, var(--fn-blue) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(16, 185, 129, 0.5);
+    z-index: 5;
+}
+.fn-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.fn-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.fn-hero-left { min-width: 0; flex: 1 1 520px; }
+.fn-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.42);
+    color: var(--fn-emerald);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.fn-hero-kicker i { font-size: 0.7rem; }
+.fn-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.fn-hero-title em { color: var(--fn-emerald); font-style: italic; }
+.fn-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 640px;
+    line-height: 1.62;
+}
+.fn-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.fn-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.fn-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.fn-hero-meta .hm:hover {
+    background: rgba(16, 185, 129, 0.10);
+    border-color: rgba(16, 185, 129, 0.42);
+    color: var(--fn-emerald);
+    transform: translateY(-2px);
+}
+.fn-hero-meta .hm i { color: var(--fn-emerald); font-size: 0.78rem; }
+.fn-hero-meta .hm.warn {
+    background: rgba(245, 158, 11, 0.10);
+    border-color: rgba(245, 158, 11, 0.42);
+    color: var(--fn-gold);
+}
+.fn-hero-meta .hm.warn i { color: var(--fn-gold); }
+
+.fn-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(16, 185, 129, 0.16), rgba(245, 158, 11, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(16, 185, 129, 0.42);
+    box-shadow:
+        0 18px 44px rgba(16, 185, 129, 0.18),
+        0 0 0 1px rgba(16, 185, 129, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--fn-emerald) 120deg,
+                var(--fn-gold) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--fn-emerald);
+    display: grid;
+    place-items: center;
+    color: var(--fn-emerald);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.55), 0 0 0 3px rgba(16, 185, 129, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-gold));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(16, 185, 129, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.fn-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.fn-tabs::-webkit-scrollbar { display: none; }
+
+.fn-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.fn-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.fn-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.fn-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.fn-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.fn-tab .tab-badge.glow {
+    background: var(--fn-emerald-dim);
+    color: var(--fn-emerald-deep);
+    border: 1px solid rgba(16, 185, 129, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+.fn-tab .tab-badge.alert {
+    background: var(--fn-red-dim);
+    color: var(--fn-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.32);
+}
+
+.fn-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.fn-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.fn-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.fn-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.fn-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.fn-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.fn-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.fn-panels { position: relative; }
+.fn-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: fnPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.fn-panel.active { display: flex; }
+@keyframes fnPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.fn-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.fn-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.fn-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--fs-accent, linear-gradient(90deg, var(--fn-emerald), var(--fn-emerald-deep)));
+}
+.fn-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.fn-stat.emerald { --fs-accent: linear-gradient(90deg, #10B981, #047857); }
+.fn-stat.gold    { --fs-accent: linear-gradient(90deg, #F59E0B, #B45309); }
+.fn-stat.red     { --fs-accent: linear-gradient(90deg, #DC2626, #991B1B); }
+.fn-stat.blue    { --fs-accent: linear-gradient(90deg, #3B82F6, #1D4ED8); }
+.fn-stat.violet  { --fs-accent: linear-gradient(90deg, #8B5CF6, #6D28D9); }
+
+.fn-stat .fs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.fn-stat .fs-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.fn-stat.emerald .fs-ic { background: var(--fn-emerald-dim); color: var(--fn-emerald-deep); }
+.fn-stat.gold    .fs-ic { background: var(--fn-gold-dim);    color: var(--fn-gold-deep); }
+.fn-stat.red     .fs-ic { background: var(--fn-red-dim);     color: var(--fn-red-deep); }
+.fn-stat.blue    .fs-ic { background: var(--fn-blue-dim);    color: var(--fn-blue-deep); }
+.fn-stat.violet  .fs-ic { background: var(--fn-violet-dim);  color: var(--fn-violet-deep); }
+
+.fn-stat .fs-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.fn-stat .fs-trend.warn { background: var(--fn-gold-dim); color: var(--fn-gold-deep); }
+.fn-stat .fs-trend.down { background: var(--fn-red-dim); color: var(--fn-red-deep); }
+
+.fn-stat .fs-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.fn-stat .fs-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.fn-stat .fs-value .cur {
+    font-size: 1rem;
+    color: var(--gray-400);
+    font-weight: 600;
+    margin-right: 2px;
+}
+.fn-stat .fs-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.fn-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.fn-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.fn-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.fn-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.fn-search:focus-within i { color: var(--tab-accent-deep); }
+.fn-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.fn-search input::placeholder { color: var(--gray-400); }
+.fn-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.fn-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.fn-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.fn-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.fn-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+.fn-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   OVERVIEW PANEL — Revenue Trajectory + Split + KPI
+   ============================================================ */
+.fn-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 20px;
+}
+.fn-ov-4  { grid-column: span 4; }
+.fn-ov-6  { grid-column: span 6; }
+.fn-ov-8  { grid-column: span 8; }
+.fn-ov-12 { grid-column: span 12; }
+
+.fn-panel-card {
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    padding: 24px 26px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.fn-panel-card:hover { box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10); }
+
+.fn-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+.fn-panel-head h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.2;
+}
+.fn-panel-head h3 i { color: var(--tab-accent-deep); font-size: 0.92rem; }
+.fn-panel-head .pp-sub {
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Segmented control */
+.fn-seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    gap: 2px;
+}
+.fn-seg button {
+    padding: 6px 13px;
+    border: none;
+    background: transparent;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition);
+    letter-spacing: 0.02em;
+}
+.fn-seg button.active {
+    background: var(--white);
+    color: var(--primary-dark);
+    box-shadow: 0 3px 10px rgba(11, 17, 33, 0.08);
+}
+.fn-seg button:hover:not(.active) { color: var(--primary-dark); }
+
+/* Revenue bar chart */
+.fn-chart {
+    position: relative;
+    flex: 1;
+    min-height: 220px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--gray-100);
+    margin-top: 6px;
+}
+.fn-chart::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 28px 0;
+    background-image: linear-gradient(180deg, transparent 24%, var(--gray-100) 25%, transparent 25%,
+                                        transparent 49%, var(--gray-100) 50%, transparent 50%,
+                                        transparent 74%, var(--gray-100) 75%, transparent 75%);
+    opacity: 0.7;
+    pointer-events: none;
+}
+.fn-bar {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+}
+.fn-bar-fill {
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    height: 0;
+    transition: height 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    background: linear-gradient(180deg, var(--fn-emerald), var(--fn-emerald-deep));
+    box-shadow: 0 -4px 14px rgba(16, 185, 129, 0.24);
+}
+.fn-bar-fill.gold { background: linear-gradient(180deg, var(--fn-gold), var(--fn-gold-deep)); box-shadow: 0 -4px 14px rgba(245, 158, 11, 0.24); }
+.fn-bar-fill.blue { background: linear-gradient(180deg, var(--fn-blue), var(--fn-blue-deep)); box-shadow: 0 -4px 14px rgba(59, 130, 246, 0.24); }
+.fn-bar-fill.crown { background: var(--crown-gradient); }
+.fn-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 50%;
+    border-radius: 8px 8px 0 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.30), transparent);
+    pointer-events: none;
+}
+.fn-bar .bar-tip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--primary-dark);
+    color: var(--white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+    z-index: 5;
+}
+.fn-bar:hover .bar-tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+.fn-bar .bar-label {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+/* Donut chart */
+.fn-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    flex-wrap: wrap;
+}
+.fn-donut {
+    position: relative;
+    width: 170px; height: 170px;
+    flex-shrink: 0;
+}
+.fn-donut svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.fn-donut .d-seg {
+    fill: none;
+    stroke-width: 22;
+    stroke-linecap: butt;
+    transition: stroke-dashoffset 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform-origin: center;
+}
+.fn-donut .d-seg.s1 { stroke: var(--fn-emerald); filter: drop-shadow(0 0 6px rgba(16,185,129,0.4)); }
+.fn-donut .d-seg.s2 { stroke: var(--fn-gold);    filter: drop-shadow(0 0 6px rgba(245,158,11,0.4)); }
+.fn-donut .d-seg.s3 { stroke: var(--fn-violet);  filter: drop-shadow(0 0 6px rgba(139,92,246,0.4)); }
+.fn-donut .d-seg.s4 { stroke: var(--fn-blue);    filter: drop-shadow(0 0 6px rgba(59,130,246,0.4)); }
+
+.fn-donut-center {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+.fn-donut-center b {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1;
+    letter-spacing: -0.015em;
+}
+.fn-donut-center span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 5px;
+}
+.fn-donut-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-width: 180px;
+}
+.fn-donut-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.fn-donut-row:hover { background: var(--gray-100); transform: translateX(3px); }
+.fn-donut-row .dr-sw {
+    width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+}
+.fn-donut-row .dr-sw.s1 { background: var(--fn-emerald); box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+.fn-donut-row .dr-sw.s2 { background: var(--fn-gold);    box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+.fn-donut-row .dr-sw.s3 { background: var(--fn-violet);  box-shadow: 0 0 8px rgba(139,92,246,0.5); }
+.fn-donut-row .dr-sw.s4 { background: var(--fn-blue);    box-shadow: 0 0 8px rgba(59,130,246,0.5); }
+.fn-donut-row .dr-label { flex: 1; font-size: 0.78rem; color: var(--primary-dark); font-weight: 600; }
+.fn-donut-row .dr-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    letter-spacing: 0.02em;
+}
+
+/* Treasury balance card (special) */
+.fn-balance-card {
+    position: relative;
+    border-radius: 22px;
+    padding: 26px 24px 22px;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(245, 158, 11, 0.20), transparent 55%),
+        radial-gradient(circle at 10% 100%, rgba(16, 185, 129, 0.22), transparent 55%),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #17243D 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+}
+.fn-balance-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.6;
+    pointer-events: none;
+}
+.fn-balance-card .bc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 2;
+}
+.fn-balance-card .bc-head h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+.fn-balance-card .bc-head .bc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.42);
+    color: #86EFAC;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.fn-balance-card .bc-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #22C55E;
+    animation: fnSpark 1.8s infinite;
+}
+.fn-balance-card .bc-value {
+    position: relative;
+    z-index: 2;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.35rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+}
+.fn-balance-card .bc-value .cur {
+    font-size: 1.35rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 600;
+    margin-right: 3px;
+}
+.fn-balance-card .bc-sub {
+    position: relative;
+    z-index: 2;
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+}
+.fn-balance-card .bc-sub b { color: var(--crown-2); font-weight: 800; }
+
+.fn-balance-card .bc-row {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.14);
+}
+.fn-balance-card .bc-cell {
+    text-align: left;
+    line-height: 1.15;
+}
+.fn-balance-card .bc-cell b {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: 0.01em;
+}
+.fn-balance-card .bc-cell b.green { color: #86EFAC; }
+.fn-balance-card .bc-cell b.gold  { color: #FCD34D; }
+.fn-balance-card .bc-cell span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+    margin-top: 4px;
+}
+
+/* Top earners list */
+.fn-earner-list { display: flex; flex-direction: column; gap: 10px; }
+.fn-earner-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    transition: var(--transition);
+    cursor: pointer;
+}
+.fn-earner-row:hover {
+    background: var(--white);
+    box-shadow: 0 8px 22px rgba(11, 17, 33, 0.07);
+    transform: translateX(4px);
+}
+.fn-earner-rank {
+    width: 22px;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--gray-300);
+    text-align: center;
+    flex-shrink: 0;
+}
+.fn-earner-row:nth-child(1) .fn-earner-rank { color: var(--fn-gold); }
+.fn-earner-row:nth-child(2) .fn-earner-rank { color: var(--gray-400); }
+.fn-earner-row:nth-child(3) .fn-earner-rank { color: #B45309; }
+
+.fn-earner-av {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-gold));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.fn-earner-info { flex: 1; min-width: 0; }
+.fn-earner-info strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fn-earner-info span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
+.fn-earner-amt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--fn-emerald-deep);
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   PAYOUT REQUEST CARDS
+   ============================================================ */
+.fn-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.fn-payout-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.fn-payout-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--pc-accent, linear-gradient(180deg, var(--fn-emerald), var(--fn-emerald-deep)));
+    z-index: 2;
+}
+.fn-payout-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.fn-payout-card.urgent { --pc-accent: linear-gradient(180deg, #DC2626, #991B1B); }
+.fn-payout-card.ready  { --pc-accent: linear-gradient(180deg, #10B981, #047857); }
+.fn-payout-card.pending { --pc-accent: linear-gradient(180deg, #F59E0B, #B45309); }
+
+.fn-payout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 260px);
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* Left: teacher + amount */
+.pc-left { min-width: 0; }
+.pc-head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+.pc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.pc-status.urgent  { background: var(--fn-red-dim);    color: var(--fn-red-deep);   border: 1px solid rgba(220,38,38,0.32); }
+.pc-status.ready   { background: var(--fn-emerald-dim); color: var(--fn-emerald-deep); border: 1px solid rgba(16,185,129,0.32); }
+.pc-status.pending { background: var(--fn-gold-dim);    color: var(--fn-gold-deep);   border: 1px solid rgba(245,158,11,0.32); }
+
+.pc-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+    animation: fnSpark 1.8s infinite;
+}
+
+.pc-method {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.pc-method i { font-size: 0.62rem; }
+
+.pc-id {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+
+.pc-person {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.pc-person .pc-av {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-gold));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    position: relative;
+}
+.pc-person .pc-av .pc-role {
+    position: absolute;
+    bottom: -4px; left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.48rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    box-shadow: 0 3px 8px rgba(11,17,33,0.08);
+    white-space: nowrap;
+}
+.pc-person .pc-info { min-width: 0; }
+.pc-person .pc-info h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+.pc-person .pc-info .pc-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.pc-person .pc-info .pc-meta-line b { color: var(--gray-600); font-weight: 800; }
+
+.pc-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(245, 158, 11, 0.08));
+    border: 1px solid rgba(16, 185, 129, 0.20);
+    margin-bottom: 12px;
+}
+.pc-amount .amt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-right: 4px;
+}
+.pc-amount .amt-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.pc-amount .amt-value .cur {
+    font-size: 1rem;
+    color: var(--gray-400);
+    font-weight: 600;
+    margin-right: 2px;
+}
+
+.pc-bank-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--gray-100);
+}
+.pc-bank-cell {
+    font-size: 0.72rem;
+    line-height: 1.3;
+}
+.pc-bank-cell span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 3px;
+}
+.pc-bank-cell b {
+    display: block;
+    color: var(--primary-dark);
+    font-weight: 700;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Middle: breakdown */
+.pc-breakdown {
+    padding: 4px 0 4px 24px;
+    border-left: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pc-breakdown-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.pc-bd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    font-size: 0.74rem;
+    transition: var(--transition);
+}
+.pc-bd-row:hover { background: var(--white); box-shadow: 0 4px 12px rgba(11,17,33,0.06); }
+.pc-bd-row .bd-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray-600);
+    font-weight: 600;
+}
+.pc-bd-row .bd-label i {
+    font-size: 0.72rem;
+    color: var(--fn-emerald-deep);
+    width: 16px;
+}
+.pc-bd-row .bd-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    letter-spacing: 0.01em;
+}
+.pc-bd-row.total {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.10), rgba(245, 158, 11, 0.10));
+    border: 1px solid rgba(16, 185, 129, 0.24);
+}
+.pc-bd-row.total .bd-label { color: var(--primary-dark); font-weight: 800; }
+.pc-bd-row.total .bd-label i { color: var(--fn-gold-deep); }
+.pc-bd-row.total .bd-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    color: var(--fn-emerald-deep);
+}
+
+/* Right: actions */
+.pc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 0;
+}
+.pc-actions .pc-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.pc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.pc-btn i { font-size: 0.88rem; }
+.pc-btn.pay {
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-emerald-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.32);
+    padding: 15px 18px;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
+}
+.pc-btn.pay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(16, 185, 129, 0.44);
+}
+.pc-btn.hold {
+    background: var(--white);
+    color: var(--fn-gold-deep);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.pc-btn.hold:hover {
+    background: var(--fn-gold-dim);
+    border-color: var(--fn-gold);
+    transform: translateY(-2px);
+}
+.pc-btn.reject {
+    background: var(--white);
+    color: var(--fn-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+}
+.pc-btn.reject:hover {
+    background: var(--fn-red-dim);
+    border-color: var(--fn-red);
+    transform: translateY(-2px);
+}
+.pc-btn.ghost {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    padding: 10px 14px;
+    font-size: 0.72rem;
+}
+.pc-btn.ghost:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   LEDGER TABLE
+   ============================================================ */
+.fn-ledger-card {
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow: hidden;
+}
+.fn-ledger-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 26px;
+    border-bottom: 1px solid var(--gray-100);
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, rgba(248,250,252,0.6), var(--white));
+}
+.fn-ledger-head h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fn-ledger-head h3 i { color: var(--tab-accent-deep); font-size: 0.92rem; }
+.fn-ledger-head .ledger-sub {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 4px;
+}
+
+.fn-ledger-wrap { overflow-x: auto; }
+.fn-ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    min-width: 900px;
+}
+.fn-ledger-table thead th {
+    text-align: left;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    background: var(--cream);
+    border-bottom: 1px solid var(--gray-200);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.fn-ledger-table thead th:first-child { padding-left: 26px; }
+.fn-ledger-table thead th:last-child { padding-right: 26px; text-align: right; }
+
+.fn-ledger-table tbody td {
+    padding: 14px;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-800);
+    vertical-align: middle;
+}
+.fn-ledger-table tbody td:first-child { padding-left: 26px; }
+.fn-ledger-table tbody td:last-child { padding-right: 26px; text-align: right; }
+.fn-ledger-table tbody tr { transition: var(--transition); }
+.fn-ledger-table tbody tr:hover { background: var(--cream); }
+.fn-ledger-table tbody tr:last-child td { border-bottom: none; }
+
+.fn-ledger-table td.amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+}
+.fn-ledger-table td.amount.positive { color: var(--fn-emerald-deep); }
+.fn-ledger-table td.amount.negative { color: var(--fn-red-deep); }
+
+.fn-ledger-table .lg-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fn-ledger-table .lg-av {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-gold));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.fn-ledger-table .lg-cell-info { min-width: 0; line-height: 1.15; }
+.fn-ledger-table .lg-cell-info strong {
+    display: block;
+    font-weight: 700;
+    color: var(--primary-dark);
+    font-size: 0.82rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fn-ledger-table .lg-cell-info span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
+
+.lg-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.lg-type.sale      { background: var(--fn-emerald-dim); color: var(--fn-emerald-deep); border: 1px solid rgba(16,185,129,0.30); }
+.lg-type.payout    { background: var(--fn-gold-dim);    color: var(--fn-gold-deep);   border: 1px solid rgba(245,158,11,0.30); }
+.lg-type.refund    { background: var(--fn-red-dim);     color: var(--fn-red-deep);    border: 1px solid rgba(220,38,38,0.30); }
+.lg-type.royalty   { background: var(--fn-violet-dim);  color: var(--fn-violet-deep); border: 1px solid rgba(139,92,246,0.30); }
+
+.lg-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.lg-status .dot { width: 5px; height: 5px; border-radius: 50%; }
+.lg-status.settled .dot { background: var(--fn-emerald); }
+.lg-status.pending .dot { background: var(--fn-gold); animation: fnSpark 1.8s infinite; }
+.lg-status.failed  .dot { background: var(--fn-red); }
+.lg-status.settled { background: rgba(16,185,129,0.10); color: var(--fn-emerald-deep); }
+.lg-status.pending { background: rgba(245,158,11,0.10); color: var(--fn-gold-deep); }
+.lg-status.failed  { background: var(--fn-red-dim);     color: var(--fn-red-deep); }
+
+.lg-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray-600);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.lg-date small { display: block; color: var(--gray-400); font-size: 0.58rem; margin-top: 2px; }
+
+/* ============================================================
+   DISPUTES
+   ============================================================ */
+.dispute-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+.dispute-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    padding: 22px 26px 22px 30px;
+    transition: var(--transition);
+    overflow: hidden;
+}
+.dispute-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--dc-accent, linear-gradient(180deg, var(--fn-red), var(--fn-red-deep)));
+    z-index: 2;
+}
+.dispute-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.dispute-card.open     { --dc-accent: linear-gradient(180deg, #DC2626, #991B1B); }
+.dispute-card.awaiting { --dc-accent: linear-gradient(180deg, #F59E0B, #B45309); }
+.dispute-card.won      { --dc-accent: linear-gradient(180deg, #10B981, #047857); }
+.dispute-card.lost     { --dc-accent: linear-gradient(180deg, #64748B, #334155); }
+
+.dispute-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.dispute-head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+.dispute-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.dispute-status.open     { background: var(--fn-red-dim);     color: var(--fn-red-deep);     border: 1px solid rgba(220,38,38,0.32); }
+.dispute-status.awaiting { background: var(--fn-gold-dim);    color: var(--fn-gold-deep);    border: 1px solid rgba(245,158,11,0.32); }
+.dispute-status.won      { background: var(--fn-emerald-dim); color: var(--fn-emerald-deep); border: 1px solid rgba(16,185,129,0.32); }
+.dispute-status.lost     { background: var(--fn-slate-dim);   color: var(--fn-slate-deep);   border: 1px solid rgba(100,116,139,0.32); }
+
+.dispute-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.dispute-type i { font-size: 0.62rem; }
+
+.dispute-id {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+
+.dispute-narrative {
+    font-size: 0.84rem;
+    color: var(--gray-800);
+    line-height: 1.62;
+    margin-bottom: 14px;
+}
+.dispute-narrative strong { color: var(--primary-dark); font-weight: 700; }
+.dispute-narrative em {
+    font-style: italic;
+    color: var(--fn-red-deep);
+    font-weight: 700;
+    background: var(--fn-red-dim);
+    padding: 0 4px;
+    border-radius: 3px;
+}
+
+.dispute-meta-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px dashed var(--gray-200);
+    border-bottom: 1px dashed var(--gray-200);
+    margin-bottom: 14px;
+}
+.dispute-meta-cell {
+    text-align: center;
+    line-height: 1.15;
+}
+.dispute-meta-cell b {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+.dispute-meta-cell b.critical { color: var(--fn-red-deep); }
+.dispute-meta-cell b.warning  { color: var(--fn-gold-deep); }
+.dispute-meta-cell b.ok       { color: var(--fn-emerald-deep); }
+.dispute-meta-cell span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 3px;
+}
+
+/* Timeline (mini) */
+.dispute-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dispute-tl-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.72rem;
+    color: var(--gray-600);
+}
+.dispute-tl-step .tl-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid var(--white);
+}
+.dispute-tl-step.done  .tl-dot { background: var(--fn-emerald); box-shadow: 0 0 0 2px var(--fn-emerald-dim); }
+.dispute-tl-step.active .tl-dot { background: var(--fn-gold); box-shadow: 0 0 0 2px var(--fn-gold-dim); animation: fnSpark 1.8s infinite; }
+.dispute-tl-step.todo  .tl-dot { background: var(--gray-300); box-shadow: 0 0 0 2px var(--gray-100); }
+.dispute-tl-step b { color: var(--primary-dark); font-weight: 700; }
+.dispute-tl-step span { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--gray-400); }
+
+.dispute-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 200px;
+    padding-top: 4px;
+}
+.dispute-actions .da-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.da-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.da-btn i { font-size: 0.86rem; }
+.da-btn.primary {
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-emerald-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.32);
+}
+.da-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(16, 185, 129, 0.44);
+}
+.da-btn.danger {
+    background: var(--white);
+    color: var(--fn-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+}
+.da-btn.danger:hover {
+    background: var(--fn-red-dim);
+    border-color: var(--fn-red);
+    transform: translateY(-2px);
+}
+.da-btn.ghost {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.da-btn.ghost:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   ADMIN EXCLUSIVE — TREASURY CONSOLE
+   ============================================================ */
+.treasury-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(16, 185, 129, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(245, 158, 11, 0.16), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(16, 185, 129, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.treasury-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--fn-emerald), var(--fn-gold) 50%, var(--fn-blue) 100%);
+    box-shadow: 0 0 22px rgba(16, 185, 129, 0.5);
+}
+.treasury-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.tc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.tc-head .tc-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-gold));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.tc-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.tc-head h2 em { color: var(--fn-emerald); font-style: italic; }
+.tc-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.tc-head .tc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.42);
+    color: var(--fn-emerald);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.tc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.tc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.tc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.tc-tool:hover {
+    background: rgba(16, 185, 129, 0.10);
+    border-color: rgba(16, 185, 129, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(16, 185, 129, 0.18);
+}
+.tc-tool:hover::before { transform: translateX(120%); }
+.tc-tool .tc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--fn-emerald);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.tc-tool:hover .tc-t-ic {
+    background: linear-gradient(135deg, var(--fn-emerald), var(--fn-gold));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.42);
+}
+.tc-tool.gold .tc-t-ic { color: var(--fn-gold); }
+.tc-tool.gold:hover { background: rgba(245, 158, 11, 0.10); border-color: rgba(245, 158, 11, 0.42); }
+.tc-tool.gold:hover .tc-t-ic {
+    background: linear-gradient(135deg, var(--fn-gold), var(--fn-gold-deep));
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.42);
+}
+.tc-tool.danger .tc-t-ic { color: var(--fn-red); }
+.tc-tool.danger:hover {
+    background: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.42);
+}
+.tc-tool.danger:hover .tc-t-ic {
+    background: linear-gradient(135deg, var(--fn-red), var(--fn-red-deep));
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.42);
+}
+.tc-tool .tc-t-body { flex: 1; min-width: 0; }
+.tc-tool .tc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.tc-tool .tc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.tc-tool .tc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.tc-tool:hover .tc-t-arrow { color: var(--fn-emerald); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .fn-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fn-payout-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+    .pc-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .pc-actions .pc-action-label { display: none; }
+    .dispute-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+    .dispute-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .dispute-actions .da-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .fn-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .pc-breakdown { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .fn-payout-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .pc-actions { grid-column: auto; }
+    .dispute-grid { grid-template-columns: 1fr; }
+    .dispute-actions { grid-column: auto; }
+    .fn-ov-4, .fn-ov-6, .fn-ov-8 { grid-column: span 12; }
+}
+@media (max-width: 900px) {
+    .fn-hero { padding: 24px 20px; }
+    .fn-hero-title { font-size: 1.55rem; }
+    .fn-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .fn-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .fn-stat-strip { grid-template-columns: 1fr; }
+    .fn-hero { padding: 22px 18px; }
+    .fn-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .fn-toolbar { padding: 12px 14px; }
+    .fn-search { min-width: 100%; }
+    .pc-actions { flex-direction: column; align-items: stretch; }
+    .pc-actions .pc-action-label { display: block; text-align: left; }
+    .dispute-actions { flex-direction: column; align-items: stretch; }
+    .dispute-actions .da-label { display: block; text-align: left; }
+    .pc-bank-info { grid-template-columns: 1fr; }
+    .fn-balance-card .bc-value { font-size: 1.9rem; }
+}
+@media (max-width: 560px) {
+    .fn-tabs { padding: 6px; gap: 3px; }
+    .fn-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .fn-tab .tab-badge { display: none; }
+    .fn-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .fn-wire-label { display: none; }
+    .fn-wire-track { padding-left: 24px; }
+    .fn-donut-wrap { justify-content: center; }
+    .dispute-meta-row { grid-template-columns: repeat(2, 1fr); }
+    .fn-balance-card .bc-row { grid-template-columns: 1fr; gap: 10px; }
+    .fn-balance-card .bc-cell { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fn-wire-track, .acb-avatar::before, .fn-wire-label .fn-dot,
+    .fn-wire-item .wdot, .admin-crown-badge::before, .fn-tab .tab-badge.glow,
+    .pc-status .dot, .lg-status.pending .dot {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     FINANCE WIRE — MARQUEE
+     ============================================================ -->
+<div class="fn-wire" aria-label="Treasury pulse">
+    <span class="fn-wire-edge left"></span>
+    <span class="fn-wire-edge right"></span>
+    <div class="fn-wire-label"><span class="fn-dot"></span> Treasury Wire</div>
+    <div class="fn-wire-track">
+        <!-- Set A -->
+        <span class="fn-wire-item emerald"><span class="wdot"></span><strong>₦14.28M</strong> in treasury · <em>+18.2% MoM</em></span>
+        <span class="fn-wire-item gold"><span class="wdot"></span><strong>₦4.82M</strong> awaiting payout · 4 requests</span>
+        <span class="fn-wire-item blue"><span class="wdot"></span><strong>₦2.14M</strong> processed in last 24h · 42 payouts</span>
+        <span class="fn-wire-item red"><span class="wdot"></span><strong>1</strong> dispute open · ₦180,000 in question</span>
+        <span class="fn-wire-item violet"><span class="wdot"></span>Avg payout time <strong>4h 42m</strong> · within SLA</span>
+        <span class="fn-wire-item emerald"><span class="wdot"></span>Teacher revenue share <strong>62%</strong> of gross</span>
+        <span class="fn-wire-item gold"><span class="wdot"></span>Next payout batch <strong>#PB-2291</strong> scheduled 14:00</span>
+        <span class="fn-wire-item blue"><span class="wdot"></span>Bank success rate <strong>99.94%</strong> · best on record</span>
+        <span class="fn-wire-item red"><span class="wdot"></span>Failed transfers <strong>2</strong> · retrying</span>
+        <span class="fn-wire-item violet"><span class="wdot"></span>Top earner this month <strong>₦842K</strong> · Zainab Ibrahim</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="fn-wire-item emerald"><span class="wdot"></span><strong>₦14.28M</strong> in treasury · <em>+18.2% MoM</em></span>
+        <span class="fn-wire-item gold"><span class="wdot"></span><strong>₦4.82M</strong> awaiting payout · 4 requests</span>
+        <span class="fn-wire-item blue"><span class="wdot"></span><strong>₦2.14M</strong> processed in last 24h · 42 payouts</span>
+        <span class="fn-wire-item red"><span class="wdot"></span><strong>1</strong> dispute open · ₦180,000 in question</span>
+        <span class="fn-wire-item violet"><span class="wdot"></span>Avg payout time <strong>4h 42m</strong> · within SLA</span>
+        <span class="fn-wire-item emerald"><span class="wdot"></span>Teacher revenue share <strong>62%</strong> of gross</span>
+        <span class="fn-wire-item gold"><span class="wdot"></span>Next payout batch <strong>#PB-2291</strong> scheduled 14:00</span>
+        <span class="fn-wire-item blue"><span class="wdot"></span>Bank success rate <strong>99.94%</strong> · best on record</span>
+        <span class="fn-wire-item red"><span class="wdot"></span>Failed transfers <strong>2</strong> · retrying</span>
+        <span class="fn-wire-item violet"><span class="wdot"></span>Top earner this month <strong>₦842K</strong> · Zainab Ibrahim</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     FINANCE HERO
+     ============================================================ -->
+<section class="fn-hero fade-up">
+    <div class="fn-hero-inner">
+        <div class="fn-hero-left">
+            <span class="fn-hero-kicker">
+                <i class="bi bi-cash-coin"></i>
+                Treasury Command · Root Access
+            </span>
+            <h1 class="fn-hero-title">
+                Money, <em>moved with care</em>.
+            </h1>
+            <p class="fn-hero-sub">
+                Approve, hold, or reject <strong>Teacher &amp; Mentor</strong> payouts in one place.
+                Treasury holds <strong>₦14.28M</strong>, with <strong>₦4.82M</strong> in the
+                current payout queue. All financial actions are dual-signature for amounts ≥
+                <strong>₦5M</strong> and audit-logged to the ledger.
+            </p>
+            <div class="fn-hero-meta">
+                <span class="hm"><i class="bi bi-wallet2"></i> ₦14.28M treasury</span>
+                <span class="hm warn"><i class="bi bi-hourglass-split"></i> ₦4.82M pending</span>
+                <span class="hm"><i class="bi bi-arrow-left-right"></i> 42 payouts · 24h</span>
+                <span class="hm"><i class="bi bi-shield-check"></i> 99.94% bank success</span>
+            </div>
+        </div>
+
+        <div class="fn-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · TREASURY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="fn-tabs" role="tablist" aria-label="Finance sections">
+    <button class="fn-tab active" data-tab="overview" role="tab" style="--tab-accent: #10B981; --tab-accent-deep: #047857; --tab-accent-dim: rgba(16,185,129,0.10); --tab-accent-glow: rgba(16,185,129,0.42);">
+        <span class="tab-ic"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="tab-label">
+            Overview
+            <small>Treasury</small>
+        </span>
+    </button>
+    <button class="fn-tab" data-tab="payouts" role="tab" style="--tab-accent: #F59E0B; --tab-accent-deep: #B45309; --tab-accent-dim: rgba(245,158,11,0.10); --tab-accent-glow: rgba(245,158,11,0.42);">
+        <span class="tab-ic"><i class="bi bi-cash-stack"></i></span>
+        <span class="tab-label">
+            Payout Requests
+            <small>Review</small>
+        </span>
+        <span class="tab-badge glow">4</span>
+    </button>
+    <button class="fn-tab" data-tab="ledger" role="tab" style="--tab-accent: #3B82F6; --tab-accent-deep: #1D4ED8; --tab-accent-dim: rgba(59,130,246,0.10); --tab-accent-glow: rgba(59,130,246,0.42);">
+        <span class="tab-ic"><i class="bi bi-journal-text"></i></span>
+        <span class="tab-label">
+            Ledger
+            <small>Transactions</small>
+        </span>
+        <span class="tab-badge">248</span>
+    </button>
+    <button class="fn-tab" data-tab="disputes" role="tab" style="--tab-accent: #DC2626; --tab-accent-deep: #991B1B; --tab-accent-dim: rgba(220,38,38,0.10); --tab-accent-glow: rgba(220,38,38,0.42);">
+        <span class="tab-ic"><i class="bi bi-exclamation-octagon-fill"></i></span>
+        <span class="tab-label">
+            Disputes
+            <small>Conflicts</small>
+        </span>
+        <span class="tab-badge alert">1</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="fn-panels">
+
+    <!-- =================================================
+         PANEL 1 — OVERVIEW
+         ================================================= -->
+    <div class="fn-panel active" id="panel-overview" role="tabpanel">
+
+        <div class="fn-stat-strip">
+            <div class="fn-stat emerald fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-wallet2"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> 18.2%</span></div>
+                <span class="fs-label">Treasury Balance</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="14280000">0</span></div>
+            </div>
+            <div class="fn-stat gold fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-hourglass-split"></i></span><span class="fs-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="fs-label">Pending Payouts</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="4820000">0</span></div>
+            </div>
+            <div class="fn-stat blue fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-arrow-left-right"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> 24h</span></div>
+                <span class="fs-label">Processed (24h)</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="2140000">0</span></div>
+            </div>
+            <div class="fn-stat red fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-exclamation-octagon-fill"></i></span><span class="fs-trend down"><i class="bi bi-dash"></i> 1 open</span></div>
+                <span class="fs-label">Disputed Funds</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="180000">0</span></div>
+            </div>
+        </div>
+
+        <div class="fn-overview-grid">
+
+            <!-- Revenue Trajectory -->
+            <div class="fn-panel-card fn-ov-8 fade-up">
+                <div class="fn-panel-head">
+                    <div>
+                        <h3><i class="bi bi-bar-chart-line-fill"></i> Revenue Trajectory</h3>
+                        <span class="pp-sub">MONTHLY GROSS · LAST 12 MONTHS</span>
+                    </div>
+                    <div class="fn-seg" data-seg="revenue">
+                        <button data-range="12m" class="active">12M</button>
+                        <button data-range="6m">6M</button>
+                        <button data-range="3m">3M</button>
+                    </div>
+                </div>
+
+                <div class="fn-chart" id="revenueChart">
+                    <div class="fn-bar"><div class="fn-bar-fill" data-h="32%"></div><div class="bar-tip">₦7.8M · Apr</div><span class="bar-label">APR</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill" data-h="38%"></div><div class="bar-tip">₦8.4M · May</div><span class="bar-label">MAY</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill" data-h="44%"></div><div class="bar-tip">₦8.9M · Jun</div><span class="bar-label">JUN</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill" data-h="40%"></div><div class="bar-tip">₦8.5M · Jul</div><span class="bar-label">JUL</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill" data-h="52%"></div><div class="bar-tip">₦9.7M · Aug</div><span class="bar-label">AUG</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill gold" data-h="56%"></div><div class="bar-tip">₦10.1M · Sep</div><span class="bar-label">SEP</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill gold" data-h="62%"></div><div class="bar-tip">₦10.9M · Oct</div><span class="bar-label">OCT</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill gold" data-h="66%"></div><div class="bar-tip">₦11.4M · Nov</div><span class="bar-label">NOV</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill blue" data-h="74%"></div><div class="bar-tip">₦12.1M · Dec</div><span class="bar-label">DEC</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill blue" data-h="80%"></div><div class="bar-tip">₦12.4M · Jan</div><span class="bar-label">JAN</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill crown" data-h="88%"></div><div class="bar-tip">₦13.2M · Feb</div><span class="bar-label">FEB</span></div>
+                    <div class="fn-bar"><div class="fn-bar-fill crown" data-h="100%"></div><div class="bar-tip">₦14.28M · Mar</div><span class="bar-label">MAR</span></div>
+                </div>
+            </div>
+
+            <!-- Treasury Balance Card -->
+            <div class="fn-ov-4 fade-up">
+                <div class="fn-balance-card">
+                    <div class="bc-head">
+                        <h3>Treasury Balance</h3>
+                        <span class="bc-status"><span class="dot"></span> Healthy</span>
+                    </div>
+                    <div class="bc-value"><span class="cur">₦</span>14,280,000</div>
+                    <div class="bc-sub">Updated <b>4 minutes ago</b> · all accounts reconciled</div>
+
+                    <div class="bc-row">
+                        <div class="bc-cell"><b class="green">₦8.42M</b><span>Available</span></div>
+                        <div class="bc-cell"><b class="gold">₦4.82M</b><span>Reserved</span></div>
+                        <div class="bc-cell"><b>₦1.04M</b><span>On Hold</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Split Donut -->
+            <div class="fn-panel-card fn-ov-4 fade-up">
+                <div class="fn-panel-head">
+                    <div>
+                        <h3><i class="bi bi-pie-chart-fill"></i> Revenue Split</h3>
+                        <span class="pp-sub">CURRENT MONTH</span>
+                    </div>
+                </div>
+
+                <div class="fn-donut-wrap">
+                    <div class="fn-donut">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="d-seg s1" cx="50" cy="50" r="38" stroke-dasharray="238.76" stroke-dashoffset="0"      data-pct="0.62"/>
+                            <circle class="d-seg s2" cx="50" cy="50" r="38" stroke-dasharray="238.76" stroke-dashoffset="148.03" data-pct="0.24"/>
+                            <circle class="d-seg s3" cx="50" cy="50" r="38" stroke-dasharray="238.76" stroke-dashoffset="205.32" data-pct="0.09"/>
+                            <circle class="d-seg s4" cx="50" cy="50" r="38" stroke-dasharray="238.76" stroke-dashoffset="226.80" data-pct="0.05"/>
+                        </svg>
+                        <div class="fn-donut-center">
+                            <b>₦14.28M</b>
+                            <span>Gross</span>
+                        </div>
+                    </div>
+
+                    <div class="fn-donut-legend">
+                        <div class="fn-donut-row"><span class="dr-sw s1"></span><span class="dr-label">Teacher / Mentor share</span><span class="dr-val">₦8.85M · 62%</span></div>
+                        <div class="fn-donut-row"><span class="dr-sw s2"></span><span class="dr-label">Knotwork platform</span><span class="dr-val">₦3.43M · 24%</span></div>
+                        <div class="fn-donut-row"><span class="dr-sw s3"></span><span class="dr-label">Payment processor fees</span><span class="dr-val">₦1.29M · 9%</span></div>
+                        <div class="fn-donut-row"><span class="dr-sw s4"></span><span class="dr-label">Tax &amp; compliance</span><span class="dr-val">₦0.71M · 5%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Earners -->
+            <div class="fn-panel-card fn-ov-8 fade-up">
+                <div class="fn-panel-head">
+                    <div>
+                        <h3><i class="bi bi-trophy-fill"></i> Top Earners · This Month</h3>
+                        <span class="pp-sub">TEACHERS &amp; MENTORS · PAID + PENDING</span>
+                    </div>
+                    <a href="#" class="btn-sm line" data-toast="Opening full leaderboard"><i class="bi bi-arrow-right"></i> Full Leaderboard</a>
+                </div>
+
+                <div class="fn-earner-list">
+                    <div class="fn-earner-row">
+                        <span class="fn-earner-rank">01</span>
+                        <span class="fn-earner-av">ZI</span>
+                        <div class="fn-earner-info">
+                            <strong>Zainab Ibrahim <i class="bi bi-patch-check-fill" style="color:var(--fn-emerald);font-size:0.72rem;"></i></strong>
+                            <span>Mentor · KW-MNT-0102 · 248 sessions</span>
+                        </div>
+                        <span class="fn-earner-amt">₦842,000</span>
+                    </div>
+                    <div class="fn-earner-row">
+                        <span class="fn-earner-rank">02</span>
+                        <span class="fn-earner-av">AN</span>
+                        <div class="fn-earner-info">
+                            <strong>Amara Nwosu <i class="bi bi-patch-check-fill" style="color:var(--fn-emerald);font-size:0.72rem;"></i></strong>
+                            <span>Teacher · KW-TCH-0084 · 5 courses</span>
+                        </div>
+                        <span class="fn-earner-amt">₦712,400</span>
+                    </div>
+                    <div class="fn-earner-row">
+                        <span class="fn-earner-rank">03</span>
+                        <span class="fn-earner-av">IA</span>
+                        <div class="fn-earner-info">
+                            <strong>Dr. Ifeoma Adeyemi <i class="bi bi-patch-check-fill" style="color:var(--fn-emerald);font-size:0.72rem;"></i></strong>
+                            <span>Teacher · KW-TCH-0024 · 3 courses</span>
+                        </div>
+                        <span class="fn-earner-amt">₦648,900</span>
+                    </div>
+                    <div class="fn-earner-row">
+                        <span class="fn-earner-rank">04</span>
+                        <span class="fn-earner-av">TB</span>
+                        <div class="fn-earner-info">
+                            <strong>Tunde Bakare</strong>
+                            <span>Mentor · KW-MNT-0118 · 184 sessions</span>
+                        </div>
+                        <span class="fn-earner-amt">₦542,300</span>
+                    </div>
+                    <div class="fn-earner-row">
+                        <span class="fn-earner-rank">05</span>
+                        <span class="fn-earner-av">CO</span>
+                        <div class="fn-earner-info">
+                            <strong>Chinedu Okafor</strong>
+                            <span>Teacher · KW-TCH-0032 · 4 courses</span>
+                        </div>
+                        <span class="fn-earner-amt">₦418,700</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — PAYOUT REQUESTS
+         ================================================= -->
+    <div class="fn-panel" id="panel-payouts" role="tabpanel">
+
+        <div class="fn-stat-strip">
+            <div class="fn-stat gold fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-hourglass-split"></i></span><span class="fs-trend warn"><i class="bi bi-dash"></i> queue</span></div>
+                <span class="fs-label">Pending Requests</span>
+                <div class="fs-value"><span data-count="4">0</span></div>
+            </div>
+            <div class="fn-stat emerald fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-cash-stack"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> total</span></div>
+                <span class="fs-label">Total Value</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="4820000">0</span></div>
+            </div>
+            <div class="fn-stat red fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-alarm-fill"></i></span><span class="fs-trend down"><i class="bi bi-dash"></i> urgent</span></div>
+                <span class="fs-label">Approaching SLA</span>
+                <div class="fs-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="fn-stat blue fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-clock-history"></i></span><span class="fs-trend"><i class="bi bi-dash"></i> fast</span></div>
+                <span class="fs-label">Median Approve Time</span>
+                <div class="fs-value"><span data-count="4">0</span><small>h 42m</small></div>
+            </div>
+        </div>
+
+        <div class="fn-toolbar">
+            <div class="fn-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search by teacher, amount, or KW-ID…" aria-label="Search payout requests">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="fn-select" data-toast="Sort by: Oldest first" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Oldest First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="fn-select" data-toast="Role filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Role</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="fn-toolbar-right">
+                <button class="btn-sm solid" data-toast="Batch payout scheduler opened" data-toast-type="success"><i class="bi bi-lightning-charge-fill"></i> Batch Pay</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="fn-list">
+
+            <!-- Payout #1 — URGENT -->
+            <article class="fn-payout-card urgent fade-up">
+                <div class="fn-payout-grid">
+                    <div class="pc-left">
+                        <div class="pc-head-row">
+                            <span class="pc-status urgent"><span class="dot"></span> Urgent · Near SLA</span>
+                            <span class="pc-method"><i class="bi bi-bank2"></i> Bank Transfer</span>
+                            <span class="pc-id">#PR-4821 · 42h ago</span>
+                        </div>
+
+                        <div class="pc-person">
+                            <span class="pc-av">
+                                ZI
+                                <span class="pc-role">Mentor</span>
+                            </span>
+                            <div class="pc-info">
+                                <h4>Zainab Ibrahim <i class="bi bi-patch-check-fill" style="color:var(--fn-emerald);font-size:0.72rem;"></i></h4>
+                                <div class="pc-meta-line">
+                                    <span>KW-MNT-0102</span>
+                                    <span>·</span>
+                                    <span>Joined <b>Sep 2024</b></span>
+                                    <span>·</span>
+                                    <span>248 sessions delivered</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pc-amount">
+                            <span class="amt-label">Amount</span>
+                            <span class="amt-value"><span class="cur">₦</span>842,000</span>
+                        </div>
+
+                        <div class="pc-bank-info">
+                            <div class="pc-bank-cell"><span>Bank</span><b>Guaranty Trust Bank</b></div>
+                            <div class="pc-bank-cell"><span>Account Number</span><b>••••••4821</b></div>
+                            <div class="pc-bank-cell"><span>Account Name</span><b>Zainab O. Ibrahim</b></div>
+                            <div class="pc-bank-cell"><span>Routing / SWIFT</span><b>GTBINGLA</b></div>
+                        </div>
+                    </div>
+
+                    <div class="pc-breakdown">
+                        <span class="pc-breakdown-head">Revenue Breakdown</span>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-cash-coin"></i> Mentor sessions</span><span class="bd-value">₦1,240,000</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-percent"></i> Knotwork fee (18%)</span><span class="bd-value">-₦223,200</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-credit-card-2-back"></i> Bank transfer fee</span><span class="bd-value">-₦1,500</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-arrow-return-left"></i> Refunds adjusted</span><span class="bd-value">-₦173,300</span></div>
+                        <div class="pc-bd-row total"><span class="bd-label"><i class="bi bi-wallet2"></i> Net Payout</span><span class="bd-value">₦842,000</span></div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <span class="pc-action-label">Approve &amp; Pay</span>
+                        <button class="pc-btn pay" data-toast="₦842,000 payout initiated to Zainab Ibrahim (GTB ••••4821)" data-toast-type="success"><i class="bi bi-send-check-fill"></i> Pay ₦842,000</button>
+                        <button class="pc-btn hold" data-toast="Payout placed on hold · reason requested" data-toast-type="warning"><i class="bi bi-pause-circle-fill"></i> Hold</button>
+                        <button class="pc-btn reject" data-toast="Rejection dialog opened · reason required" data-toast-type="error"><i class="bi bi-x-circle-fill"></i> Reject</button>
+                        <button class="pc-btn ghost" data-toast="Viewing full revenue trace &amp; session history" data-toast-type="info"><i class="bi bi-list-columns-reverse"></i> View Trace</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Payout #2 — READY -->
+            <article class="fn-payout-card ready fade-up">
+                <div class="fn-payout-grid">
+                    <div class="pc-left">
+                        <div class="pc-head-row">
+                            <span class="pc-status ready"><span class="dot"></span> Ready · Verified</span>
+                            <span class="pc-method"><i class="bi bi-bank2"></i> Bank Transfer</span>
+                            <span class="pc-id">#PR-4818 · 18h ago</span>
+                        </div>
+
+                        <div class="pc-person">
+                            <span class="pc-av">
+                                AN
+                                <span class="pc-role">Teacher</span>
+                            </span>
+                            <div class="pc-info">
+                                <h4>Amara Nwosu <i class="bi bi-patch-check-fill" style="color:var(--fn-emerald);font-size:0.72rem;"></i></h4>
+                                <div class="pc-meta-line">
+                                    <span>KW-TCH-0084</span>
+                                    <span>·</span>
+                                    <span>Joined <b>Jul 2024</b></span>
+                                    <span>·</span>
+                                    <span>5 courses published</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pc-amount">
+                            <span class="amt-label">Amount</span>
+                            <span class="amt-value"><span class="cur">₦</span>1,184,000</span>
+                        </div>
+
+                        <div class="pc-bank-info">
+                            <div class="pc-bank-cell"><span>Bank</span><b>Access Bank</b></div>
+                            <div class="pc-bank-cell"><span>Account Number</span><b>••••••8102</b></div>
+                            <div class="pc-bank-cell"><span>Account Name</span><b>Amara C. Nwosu</b></div>
+                            <div class="pc-bank-cell"><span>Routing / SWIFT</span><b>ABNGNGLA</b></div>
+                        </div>
+                    </div>
+
+                    <div class="pc-breakdown">
+                        <span class="pc-breakdown-head">Revenue Breakdown</span>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-book-half"></i> Course sales</span><span class="bd-value">₦1,580,000</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-percent"></i> Knotwork fee (18%)</span><span class="bd-value">-₦284,400</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-credit-card-2-back"></i> Bank transfer fee</span><span class="bd-value">-₦1,500</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-arrow-return-left"></i> Refunds adjusted</span><span class="bd-value">-₦110,100</span></div>
+                        <div class="pc-bd-row total"><span class="bd-label"><i class="bi bi-wallet2"></i> Net Payout</span><span class="bd-value">₦1,184,000</span></div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <span class="pc-action-label">Approve &amp; Pay</span>
+                        <button class="pc-btn pay" data-toast="₦1,184,000 payout initiated to Amara Nwosu (Access ••••8102)" data-toast-type="success"><i class="bi bi-send-check-fill"></i> Pay ₦1,184,000</button>
+                        <button class="pc-btn hold" data-toast="Payout placed on hold" data-toast-type="warning"><i class="bi bi-pause-circle-fill"></i> Hold</button>
+                        <button class="pc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle-fill"></i> Reject</button>
+                        <button class="pc-btn ghost" data-toast="Viewing full revenue trace" data-toast-type="info"><i class="bi bi-list-columns-reverse"></i> View Trace</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Payout #3 — READY -->
+            <article class="fn-payout-card ready fade-up">
+                <div class="fn-payout-grid">
+                    <div class="pc-left">
+                        <div class="pc-head-row">
+                            <span class="pc-status ready"><span class="dot"></span> Ready · Verified</span>
+                            <span class="pc-method"><i class="bi bi-bank2"></i> Bank Transfer</span>
+                            <span class="pc-id">#PR-4812 · 6h ago</span>
+                        </div>
+
+                        <div class="pc-person">
+                            <span class="pc-av">
+                                IA
+                                <span class="pc-role">Teacher</span>
+                            </span>
+                            <div class="pc-info">
+                                <h4>Dr. Ifeoma Adeyemi <i class="bi bi-patch-check-fill" style="color:var(--fn-emerald);font-size:0.72rem;"></i></h4>
+                                <div class="pc-meta-line">
+                                    <span>KW-TCH-0024</span>
+                                    <span>·</span>
+                                    <span>Joined <b>Jan 2024</b></span>
+                                    <span>·</span>
+                                    <span>3 courses published</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pc-amount">
+                            <span class="amt-label">Amount</span>
+                            <span class="amt-value"><span class="cur">₦</span>648,900</span>
+                        </div>
+
+                        <div class="pc-bank-info">
+                            <div class="pc-bank-cell"><span>Bank</span><b>Zenith Bank</b></div>
+                            <div class="pc-bank-cell"><span>Account Number</span><b>••••••2281</b></div>
+                            <div class="pc-bank-cell"><span>Account Name</span><b>Ifeoma O. Adeyemi</b></div>
+                            <div class="pc-bank-cell"><span>Routing / SWIFT</span><b>ZEIBNGLA</b></div>
+                        </div>
+                    </div>
+
+                    <div class="pc-breakdown">
+                        <span class="pc-breakdown-head">Revenue Breakdown</span>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-book-half"></i> Course sales</span><span class="bd-value">₦880,000</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-percent"></i> Knotwork fee (18%)</span><span class="bd-value">-₦158,400</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-credit-card-2-back"></i> Bank transfer fee</span><span class="bd-value">-₦1,500</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-arrow-return-left"></i> Refunds adjusted</span><span class="bd-value">-₦71,200</span></div>
+                        <div class="pc-bd-row total"><span class="bd-label"><i class="bi bi-wallet2"></i> Net Payout</span><span class="bd-value">₦648,900</span></div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <span class="pc-action-label">Approve &amp; Pay</span>
+                        <button class="pc-btn pay" data-toast="₦648,900 payout initiated to Dr. Ifeoma Adeyemi" data-toast-type="success"><i class="bi bi-send-check-fill"></i> Pay ₦648,900</button>
+                        <button class="pc-btn hold" data-toast="Payout placed on hold" data-toast-type="warning"><i class="bi bi-pause-circle-fill"></i> Hold</button>
+                        <button class="pc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle-fill"></i> Reject</button>
+                        <button class="pc-btn ghost" data-toast="Viewing full trace" data-toast-type="info"><i class="bi bi-list-columns-reverse"></i> View Trace</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Payout #4 — PENDING -->
+            <article class="fn-payout-card pending fade-up">
+                <div class="fn-payout-grid">
+                    <div class="pc-left">
+                        <div class="pc-head-row">
+                            <span class="pc-status pending"><span class="dot"></span> Pending KYC Review</span>
+                            <span class="pc-method"><i class="bi bi-bank2"></i> Bank Transfer</span>
+                            <span class="pc-id">#PR-4805 · 4h ago</span>
+                        </div>
+
+                        <div class="pc-person">
+                            <span class="pc-av">
+                                TB
+                                <span class="pc-role">Mentor</span>
+                            </span>
+                            <div class="pc-info">
+                                <h4>Tunde Bakare</h4>
+                                <div class="pc-meta-line">
+                                    <span>KW-MNT-0118</span>
+                                    <span>·</span>
+                                    <span>Joined <b>Oct 2024</b></span>
+                                    <span>·</span>
+                                    <span>184 sessions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pc-amount">
+                            <span class="amt-label">Amount</span>
+                            <span class="amt-value"><span class="cur">₦</span>542,300</span>
+                        </div>
+
+                        <div class="pc-bank-info">
+                            <div class="pc-bank-cell"><span>Bank</span><b>First Bank</b></div>
+                            <div class="pc-bank-cell"><span>Account Number</span><b>••••••3311</b></div>
+                            <div class="pc-bank-cell"><span>Account Name</span><b>Tunde Bakare</b></div>
+                            <div class="pc-bank-cell"><span>KYC Status</span><b style="color:var(--fn-gold-deep);">Pending Review</b></div>
+                        </div>
+                    </div>
+
+                    <div class="pc-breakdown">
+                        <span class="pc-breakdown-head">Revenue Breakdown</span>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-cash-coin"></i> Mentor sessions</span><span class="bd-value">₦780,000</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-percent"></i> Knotwork fee (18%)</span><span class="bd-value">-₦140,400</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-credit-card-2-back"></i> Bank transfer fee</span><span class="bd-value">-₦1,500</span></div>
+                        <div class="pc-bd-row"><span class="bd-label"><i class="bi bi-arrow-return-left"></i> Refunds adjusted</span><span class="bd-value">-₦95,800</span></div>
+                        <div class="pc-bd-row total"><span class="bd-label"><i class="bi bi-wallet2"></i> Net Payout</span><span class="bd-value">₦542,300</span></div>
+                    </div>
+
+                    <div class="pc-actions">
+                        <span class="pc-action-label">Blocked · KYC</span>
+                        <button class="pc-btn pay" disabled style="opacity:.5; cursor:not-allowed; box-shadow:none;" title="Cannot pay — KYC pending"><i class="bi bi-lock-fill"></i> Pay Locked</button>
+                        <button class="pc-btn ghost" data-toast="Opening KYC review for Tunde Bakare" data-toast-type="warning"><i class="bi bi-person-vcard-fill"></i> Review KYC</button>
+                        <button class="pc-btn reject" data-toast="Rejection dialog opened" data-toast-type="error"><i class="bi bi-x-circle-fill"></i> Reject</button>
+                        <button class="pc-btn ghost" data-toast="Viewing full trace" data-toast-type="info"><i class="bi bi-list-columns-reverse"></i> View Trace</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — LEDGER
+         ================================================= -->
+    <div class="fn-panel" id="panel-ledger" role="tabpanel">
+
+        <div class="fn-stat-strip">
+            <div class="fn-stat emerald fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-journal-text"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> 248</span></div>
+                <span class="fs-label">Transactions · MTD</span>
+                <div class="fs-value"><span data-count="248">0</span></div>
+            </div>
+            <div class="fn-stat blue fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-arrow-down-left-circle"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> 42</span></div>
+                <span class="fs-label">Credits · This Week</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="2140000">0</span></div>
+            </div>
+            <div class="fn-stat gold fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-arrow-up-right-circle"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> 38</span></div>
+                <span class="fs-label">Debits · This Week</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="1880000">0</span></div>
+            </div>
+            <div class="fn-stat red fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-exclamation-triangle-fill"></i></span><span class="fs-trend down"><i class="bi bi-dash"></i> 2</span></div>
+                <span class="fs-label">Failed Transfers</span>
+                <div class="fs-value"><span data-count="2">0</span></div>
+            </div>
+        </div>
+
+        <div class="fn-toolbar">
+            <div class="fn-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search ledger by user, amount, or transaction ID…" aria-label="Search ledger">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="fn-select" data-toast="Sort by: Most recent" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Most Recent</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="fn-select" data-toast="Type filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Type</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="fn-select" data-toast="Date range picker opened" data-toast-type="info">
+                <i class="bi bi-calendar3"></i>
+                <span>Last 30d</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="fn-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued · CSV" data-toast-type="info"><i class="bi bi-download"></i> Export CSV</button>
+            </div>
+        </div>
+
+        <div class="fn-ledger-card fade-up">
+            <div class="fn-ledger-head">
+                <div>
+                    <h3><i class="bi bi-journal-text"></i> Ledger</h3>
+                    <span class="ledger-sub">IMMUTABLE · DOUBLE-ENTRY · AUDIT-LOGGED</span>
+                </div>
+                <div class="fn-toolbar-right">
+                    <button class="btn-sm line" data-toast="Reconciliation started" data-toast-type="info"><i class="bi bi-arrow-clockwise"></i> Reconcile</button>
+                </div>
+            </div>
+
+            <div class="fn-ledger-wrap">
+                <table class="fn-ledger-table">
+                    <thead>
+                        <tr>
+                            <th>Counterparty</th>
+                            <th>Type</th>
+                            <th>Reference</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">ZI</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Zainab Ibrahim</strong>
+                                        <span>KW-MNT-0102 · Mentor</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="lg-type.payout" style="background:var(--fn-gold-dim);color:var(--fn-gold-deep);border:1px solid rgba(245,158,11,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-up-right"></i> Payout</span></td>
+                            <td class="lg-date">TX-4821-A<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">batch #PB-2291</span></td>
+                            <td><span class="lg-status pending"><span class="dot"></span> Pending</span></td>
+                            <td class="lg-date">Apr 09, 2025<span>14:42 WAT</span></td>
+                            <td class="amount negative">-₦842,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">SM</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Sarah Mitchell</strong>
+                                        <span>KW-STU-10342 · Student</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-emerald-dim);color:var(--fn-emerald-deep);border:1px solid rgba(16,185,129,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-down-left"></i> Sale</span></td>
+                            <td class="lg-date">TX-4820-S<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">UI/UX Foundations</span></td>
+                            <td><span class="lg-status settled"><span class="dot"></span> Settled</span></td>
+                            <td class="lg-date">Apr 09, 2025<span>14:18 WAT</span></td>
+                            <td class="amount positive">+₦85,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">AN</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Amara Nwosu</strong>
+                                        <span>KW-TCH-0084 · Teacher</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-gold-dim);color:var(--fn-gold-deep);border:1px solid rgba(245,158,11,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-up-right"></i> Payout</span></td>
+                            <td class="lg-date">TX-4818-A<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">batch #PB-2290</span></td>
+                            <td><span class="lg-status pending"><span class="dot"></span> Pending</span></td>
+                            <td class="lg-date">Apr 09, 2025<span>08:12 WAT</span></td>
+                            <td class="amount negative">-₦1,184,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">CO</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Chinedu Okafor</strong>
+                                        <span>KW-STU-08421 · Student</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-emerald-dim);color:var(--fn-emerald-deep);border:1px solid rgba(16,185,129,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-down-left"></i> Sale</span></td>
+                            <td class="lg-date">TX-4815-S<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">Advanced React Patterns</span></td>
+                            <td><span class="lg-status settled"><span class="dot"></span> Settled</span></td>
+                            <td class="lg-date">Apr 08, 2025<span>22:04 WAT</span></td>
+                            <td class="amount positive">+₦125,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">BA</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Blessing Adeyemi</strong>
+                                        <span>KW-STU-11842 · Student</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-red-dim);color:var(--fn-red-deep);border:1px solid rgba(220,38,38,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-return-left"></i> Refund</span></td>
+                            <td class="lg-date">TX-4812-R<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">Python Mastery Track</span></td>
+                            <td><span class="lg-status settled"><span class="dot"></span> Settled</span></td>
+                            <td class="lg-date">Apr 08, 2025<span>18:42 WAT</span></td>
+                            <td class="amount negative">-₦45,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">IA</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Dr. Ifeoma Adeyemi</strong>
+                                        <span>KW-TCH-0024 · Teacher</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-violet-dim);color:var(--fn-violet-deep);border:1px solid rgba(139,92,246,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-cash-stack"></i> Royalty</span></td>
+                            <td class="lg-date">TX-4808-R<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">Data Science · M4</span></td>
+                            <td><span class="lg-status settled"><span class="dot"></span> Settled</span></td>
+                            <td class="lg-date">Apr 08, 2025<span>12:28 WAT</span></td>
+                            <td class="amount positive">+₦48,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">DO</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Daniel Okonkwo</strong>
+                                        <span>KW-STU-11342 · Student</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-emerald-dim);color:var(--fn-emerald-deep);border:1px solid rgba(16,185,129,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-down-left"></i> Sale</span></td>
+                            <td class="lg-date">TX-4802-S<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">Product Management 101</span></td>
+                            <td><span class="lg-status failed"><span class="dot"></span> Failed</span></td>
+                            <td class="lg-date">Apr 07, 2025<span>22:14 WAT</span></td>
+                            <td class="amount">₦65,000</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lg-cell">
+                                    <span class="lg-av">TB</span>
+                                    <div class="lg-cell-info">
+                                        <strong>Tunde Bakare</strong>
+                                        <span>KW-MNT-0118 · Mentor</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:var(--fn-gold-dim);color:var(--fn-gold-deep);border:1px solid rgba(245,158,11,0.30);padding:3px 10px 3px 8px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;"><i class="bi bi-arrow-up-right"></i> Payout</span></td>
+                            <td class="lg-date">TX-4798-A<span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--gray-400);margin-top:2px;">batch #PB-2288</span></td>
+                            <td><span class="lg-status settled"><span class="dot"></span> Settled</span></td>
+                            <td class="lg-date">Apr 07, 2025<span>16:42 WAT</span></td>
+                            <td class="amount negative">-₦428,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 4 — DISPUTES
+         ================================================= -->
+    <div class="fn-panel" id="panel-disputes" role="tabpanel">
+
+        <div class="fn-stat-strip">
+            <div class="fn-stat red fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-exclamation-octagon-fill"></i></span><span class="fs-trend down"><i class="bi bi-dash"></i> open</span></div>
+                <span class="fs-label">Open Disputes</span>
+                <div class="fs-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="fn-stat gold fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-cash-stack"></i></span><span class="fs-trend warn"><i class="bi bi-dash"></i> disputed</span></div>
+                <span class="fs-label">Funds in Question</span>
+                <div class="fs-value"><span class="cur">₦</span><span data-count="180000">0</span></div>
+            </div>
+            <div class="fn-stat emerald fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-check2-circle"></i></span><span class="fs-trend"><i class="bi bi-arrow-up-short"></i> today</span></div>
+                <span class="fs-label">Resolved · 30d</span>
+                <div class="fs-value"><span data-count="14">0</span></div>
+            </div>
+            <div class="fn-stat blue fade-up">
+                <div class="fs-head"><span class="fs-ic"><i class="bi bi-clock-history"></i></span><span class="fs-trend"><i class="bi bi-dash"></i> fast</span></div>
+                <span class="fs-label">Median Resolution</span>
+                <div class="fs-value"><span data-count="18">0</span><small>h 42m</small></div>
+            </div>
+        </div>
+
+        <div class="fn-toolbar">
+            <div class="fn-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search disputes by user, transaction, or case ID…" aria-label="Search disputes">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="fn-select" data-toast="Sort by: Oldest first" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Oldest First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="fn-select" data-toast="Status filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Status</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="fn-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="dispute-list">
+
+            <!-- Dispute #1 — OPEN -->
+            <article class="dispute-card open fade-up">
+                <div class="dispute-grid">
+                    <div class="pc-left">
+                        <div class="dispute-head-row">
+                            <span class="dispute-status open"><span class="dot" style="width:6px;height:6px;background:currentColor;border-radius:50%;"></span> Open · Action Required</span>
+                            <span class="dispute-type"><i class="bi bi-person-badge-fill"></i> Chargeback</span>
+                            <span class="dispute-id">#DP-2291 · 6h ago</span>
+                        </div>
+
+                        <p class="dispute-narrative">
+                            Student <strong>Blessing Adeyemi</strong> initiated a chargeback of <em>₦180,000</em> against the "Python Mastery Track" purchase, claiming the course was "not as described". Transaction already settled to the teacher's balance. Investigating whether to reverse the teacher's payout or absorb the loss.
+                        </p>
+
+                        <div class="dispute-meta-row">
+                            <div class="dispute-meta-cell"><b class="critical">₦180K</b><span>Amount</span></div>
+                            <div class="dispute-meta-cell"><b class="warning">6h</b><span>Open For</span></div>
+                            <div class="dispute-meta-cell"><b>14d</b><span>Bank Deadline</span></div>
+                            <div class="dispute-meta-cell"><b class="ok">96</b><span>Teacher Trust</span></div>
+                        </div>
+
+                        <div class="dispute-timeline">
+                            <div class="dispute-tl-step done"><span class="tl-dot"></span><b>Chargeback received from bank</b><span>6h ago</span></div>
+                            <div class="dispute-tl-step active"><span class="tl-dot"></span><b>Evidence collection</b><span>in progress</span></div>
+                            <div class="dispute-tl-step todo"><span class="tl-dot"></span><b>Submit rebuttal to bank</b><span>due in 8d</span></div>
+                            <div class="dispute-tl-step todo"><span class="tl-dot"></span><b>Final bank decision</b><span>pending</span></div>
+                        </div>
+                    </div>
+
+                    <div class="dispute-actions">
+                        <span class="da-label">Action</span>
+                        <button class="da-btn primary" data-toast="Evidence package compiled · ready for bank submission" data-toast-type="success"><i class="bi bi-file-earmark-check-fill"></i> Compile Evidence</button>
+                        <button class="da-btn ghost" data-toast="Opening full case timeline" data-toast-type="info"><i class="bi bi-clock-history"></i> Full Timeline</button>
+                        <button class="da-btn ghost" data-toast="Opening transaction detail" data-toast-type="info"><i class="bi bi-receipt"></i> View TX</button>
+                        <button class="da-btn danger" data-toast="⚠ Accept dispute · refund student from treasury" data-toast-type="error"><i class="bi bi-check2-circle"></i> Accept Refund</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Dispute #2 — Resolved (won) -->
+            <article class="dispute-card won fade-up">
+                <div class="dispute-grid">
+                    <div class="pc-left">
+                        <div class="dispute-head-row">
+                            <span class="dispute-status won"><span class="dot" style="width:6px;height:6px;background:currentColor;border-radius:50%;"></span> Won · Funds Retained</span>
+                            <span class="dispute-type"><i class="bi bi-shield-check"></i> Chargeback</span>
+                            <span class="dispute-id">#DP-2284 · Resolved 2d ago</span>
+                        </div>
+
+                        <p class="dispute-narrative">
+                            Bank decided in favor of Knotwork after rebuttal submission. Student <strong>Daniel Okonkwo</strong>'s chargeback of <em>₦65,000</em> was denied. Teacher's payout was retained; case closed with no financial impact.
+                        </p>
+
+                        <div class="dispute-meta-row">
+                            <div class="dispute-meta-cell"><b class="ok">₦65K</b><span>Amount</span></div>
+                            <div class="dispute-meta-cell"><b class="ok">3d</b><span>Duration</span></div>
+                            <div class="dispute-meta-cell"><b class="ok">Won</b><span>Outcome</span></div>
+                            <div class="dispute-meta-cell"><b class="ok">₦0</b><span>Loss</span></div>
+                        </div>
+                    </div>
+
+                    <div class="dispute-actions">
+                        <span class="da-label">Closed</span>
+                        <button class="da-btn ghost" data-toast="Viewing case summary" data-toast-type="info"><i class="bi bi-file-text"></i> View Summary</button>
+                        <button class="da-btn ghost" data-toast="Opening appeal window" data-toast-type="info"><i class="bi bi-arrow-counterclockwise"></i> Appeal Window</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — TREASURY CONSOLE
+     ============================================================ -->
+<div class="treasury-console fade-up">
+    <div class="tc-head">
+        <span class="tc-ic"><i class="bi bi-bank2"></i></span>
+        <div>
+            <h2>Treasury <em>Console</em></h2>
+            <p>ROOT-ONLY · FINANCIAL OPS · DUAL-SIGN FOR ≥ ₦5M · AUDIT-LOGGED</p>
+        </div>
+        <span class="tc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="tc-grid">
+        <button class="tc-tool" data-toast="Opening bulk payout scheduler · 4 requests queued" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-lightning-charge-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>Batch Payouts</strong>
+                <p>Process multiple payouts in one batch with unified approval.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Opening revenue share editor" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-percent"></i></span>
+            <div class="tc-t-body">
+                <strong>Revenue Share Rules</strong>
+                <p>Configure teacher/mentor splits per category or per tier.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool gold" data-toast="Opening payout thresholds" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-sliders"></i></span>
+            <div class="tc-t-body">
+                <strong>Payout Thresholds</strong>
+                <p>Min payout, dual-sign cutoff, auto-approve limits per role.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Opening bank integration health" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-bank"></i></span>
+            <div class="tc-t-body">
+                <strong>Bank Integrations</strong>
+                <p>Paystack, Flutterwave, Payoneer health &amp; rate limits.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool" data-toast="Opening FX &amp; currency settings" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-currency-exchange"></i></span>
+            <div class="tc-t-body">
+                <strong>FX &amp; Currency</strong>
+                <p>Multi-currency payouts, FX rates, conversion policies.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool gold" data-toast="Opening tax &amp; compliance" data-toast-type="info">
+            <span class="tc-t-ic"><i class="bi bi-file-earmark-text-fill"></i></span>
+            <div class="tc-t-body">
+                <strong>Tax &amp; Compliance</strong>
+                <p>W-8BEN, VAT/GST, local tax withholding rules per region.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool danger" data-toast="⚠ Freeze all payouts requires MFA + 2 approvals" data-toast-type="error">
+            <span class="tc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="tc-t-body">
+                <strong>Freeze All Payouts</strong>
+                <p>Emergency stop on all outgoing transfers. Incident response.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+
+        <button class="tc-tool danger" data-toast="⚠ Reverse transaction requires MFA + reason" data-toast-type="error">
+            <span class="tc-t-ic"><i class="bi bi-arrow-counterclockwise"></i></span>
+            <div class="tc-t-body">
+                <strong>Reverse Transaction</strong>
+                <p>Force-reverse a settled payout. Only for confirmed fraud.</p>
+            </div>
+            <i class="bi bi-arrow-right tc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.fn-tab');
+    const panels = document.querySelectorAll('.fn-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+            setTimeout(() => paintChart(panel || document), 60);
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       CHART
+       ============================================================ */
+    function paintChart(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.fn-bar-fill[data-h]').forEach((el, i) => {
+            const h = el.dataset.h || '0%';
+            el.style.height = '0';
+            setTimeout(() => { el.style.height = h; }, 120 + i * 55);
+        });
+    }
+    window.addEventListener('load', () => paintChart(document));
+
+    /* ============================================================
+       SEGMENTED CONTROLS
+       ============================================================ */
+    document.querySelectorAll('.fn-seg').forEach(seg => {
+        seg.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const range = this.dataset.range;
+                if (typeof window.showKnotToast === 'function') {
+                    window.showKnotToast(`Revenue range → ${range.toUpperCase()}`, 'info');
+                }
+                paintChart(document);
+            });
+        });
+    });
+
+    /* ============================================================
+       PAY BUTTONS — animate the card
+       ============================================================ */
+    document.querySelectorAll('.pc-btn.pay').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (btn.disabled) return;
+            const card = this.closest('.fn-payout-card');
+            if (!card) return;
+            card.style.transition = 'all .5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(32px) scale(0.98)';
+            setTimeout(() => card.remove(), 520);
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.tc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

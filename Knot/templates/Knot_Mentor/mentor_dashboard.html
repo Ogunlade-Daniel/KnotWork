@@ -1,317 +1,359 @@
 {% extends "Knot_Mentor/mentor_base.html" %}
-
 {% load static %}
 {% load humanize %}
 
-{% block title %}Mentor's Desk{% endblock %}
-{% block page_title %}The Desk{% endblock %}
 {% block breadcrumb %}Desk{% endblock breadcrumb %}
+
 
 {% block extra_css %}
 <style>
     /* ============================================================
-       HERO — TODAY BOARD (right side)
+       MENTOR BADGE — the trust mark
        ============================================================ */
-    .hero-board {
+    .mentor-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 6px 14px 6px 6px;
+        border-radius: 50px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.22), rgba(56, 189, 248, 0.14));
+        border: 1px solid rgba(190, 242, 100, 0.45);
+        position: relative;
+        box-shadow: 0 6px 18px rgba(190, 242, 100, 0.18);
+        transition: var(--transition);
+    }
+    .mentor-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(190, 242, 100, 0.30);
+    }
+    .mentor-badge .mb-icon {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: var(--gold);
+        display: grid; place-items: center;
+        color: var(--primary-dark);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(190, 242, 100, 0.45);
+    }
+    .mentor-badge .mb-text {
+        display: flex; flex-direction: column;
+        line-height: 1.15;
+    }
+    .mentor-badge .mb-text strong {
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: var(--white);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .mentor-badge .mb-text span {
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.6);
+        letter-spacing: 0.03em;
+    }
+
+    /* ============================================================
+       HERO CREDENTIAL CARD
+       ============================================================ */
+    .cred-card {
         position: relative;
         z-index: 2;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        width: 356px;
+        flex-shrink: 0;
+        width: 320px;
+        padding: 22px 20px 18px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 20px 48px rgba(2, 6, 23, 0.35);
+        overflow: hidden;
+    }
+    .cred-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: var(--gold);
+    }
+    .cred-card::after {
+        content: '';
+        position: absolute; top: -50%; right: -30%;
+        width: 80%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 60%);
+        pointer-events: none;
+    }
+    .cred-head {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+    }
+    .cred-shield {
+        width: 54px; height: 54px;
+        border-radius: 16px;
+        background: var(--gold);
+        display: grid; place-items: center;
+        color: var(--primary-dark);
+        font-size: 1.55rem;
+        box-shadow: 0 12px 28px rgba(190, 242, 100, 0.35);
+        position: relative;
+    }
+    .cred-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 13px;
+        border: 1.5px solid rgba(11, 17, 33, 0.18);
+        pointer-events: none;
+    }
+    .cred-tier {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 11px;
+        border-radius: 50px;
+        background: rgba(190, 242, 100, 0.16);
+        border: 1px solid rgba(190, 242, 100, 0.38);
+        color: var(--secondary-light);
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+    .cred-title {
+        position: relative; z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+    .cred-sub {
+        position: relative; z-index: 2;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 16px;
+    }
+    .cred-checks {
+        position: relative; z-index: 2;
+        display: flex; flex-direction: column; gap: 8px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .cred-checks .check {
+        display: flex; align-items: center; gap: 9px;
+        font-size: 0.74rem;
+        color: rgba(255, 255, 255, 0.78);
+    }
+    .cred-checks .check i {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: var(--secondary);
+        display: grid; place-items: center;
+        font-size: 0.62rem;
         flex-shrink: 0;
     }
-    .hb-tile {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        border-radius: 14px;
-        padding: 13px 13px;
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        transition: var(--transition);
-        min-width: 0;
+    .cred-id {
+        position: relative; z-index: 2;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex; align-items: center; justify-content: space-between;
     }
-    .hb-tile:hover {
-        background: rgba(190, 242, 100, 0.08);
-        border-color: rgba(190, 242, 100, 0.30);
+    .cred-id span {
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+    .cred-id strong {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.78rem;
+        color: var(--white);
+        letter-spacing: 0.02em;
+    }
+
+    /* ============================================================
+       TRUST STRIP
+       ============================================================ */
+    .trust-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+    .trust-pill {
+        display: flex; align-items: center; gap: 11px;
+        padding: 13px 16px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.06);
+        border-radius: 14px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    .trust-pill:hover {
+        border-color: rgba(190, 242, 100, 0.4);
+        background: rgba(190, 242, 100, 0.05);
         transform: translateY(-3px);
     }
-    .hb-ic {
+    .trust-pill .tp-ic {
         width: 36px; height: 36px;
         border-radius: 11px;
         display: grid; place-items: center;
-        background: rgba(190, 242, 100, 0.16);
-        color: var(--secondary);
         font-size: 0.95rem;
+        background: rgba(190, 242, 100, 0.16);
+        color: #4D7C0F;
         flex-shrink: 0;
     }
-    .hb-ic.accent { background: rgba(56, 189, 248, 0.16); color: var(--accent); }
-    .hb-ic.violet { background: rgba(139, 92, 246, 0.18); color: #C4B5FD; }
-    .hb-ic.amber  { background: rgba(245, 158, 11, 0.16); color: #FCD34D; }
-    .hb-tile > div { min-width: 0; line-height: 1.2; }
-    .hb-tile strong {
+    .trust-pill .tp-ic.accent { background: rgba(56, 189, 248, 0.14); color: #0284C7; }
+    .trust-pill .tp-ic.violet { background: rgba(139, 92, 246, 0.14); color: #6D28D9; }
+    .trust-pill .tp-ic.amber  { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .trust-pill .tp-body { min-width: 0; line-height: 1.25; }
+    .trust-pill .tp-body strong {
         display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .trust-pill .tp-body span {
+        display: block;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+    }
+
+    /* ============================================================
+       AVATAR STACK
+       ============================================================ */
+    .avatar-stack {
+        display: flex; align-items: center;
+    }
+    .avatar-stack .avatar {
+        width: 30px; height: 30px;
+        font-size: 0.62rem;
+        border: 2px solid var(--white);
+        margin-left: -10px;
+        box-shadow: 0 3px 8px rgba(11, 17, 33, 0.12);
+    }
+    .avatar-stack .avatar:first-child { margin-left: 0; }
+    .avatar-stack .more {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.62rem;
+        font-weight: 800;
+        display: grid; place-items: center;
+        border: 2px solid var(--white);
+        margin-left: -10px;
+    }
+
+    /* ============================================================
+       MENTOR VERIFICATION PANEL
+       ============================================================ */
+    .verify-panel {
+        padding: 22px 22px;
+        border-radius: var(--radius);
+        background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    .verify-panel::before {
+        content: '';
+        position: absolute; top: -50%; right: -20%;
+        width: 70%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.14), transparent 65%);
+        pointer-events: none;
+    }
+    .verify-panel::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    .verify-head {
+        position: relative; z-index: 2;
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 16px;
+    }
+    .verify-head .vh-ic {
+        width: 44px; height: 44px;
+        border-radius: 13px;
+        background: var(--gold);
+        display: grid; place-items: center;
+        color: var(--primary-dark);
+        font-size: 1.2rem;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.35);
+        flex-shrink: 0;
+    }
+    .verify-head h4 {
         font-family: 'Playfair Display', serif;
         font-size: 1rem;
         font-weight: 700;
-        color: var(--white);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        line-height: 1.2;
     }
-    .hb-tile span {
-        display: block;
-        font-size: 0.62rem;
+    .verify-head p {
+        font-size: 0.7rem;
         color: rgba(255, 255, 255, 0.5);
         margin-top: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    }
+    .verify-list {
+        position: relative; z-index: 1000;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .verify-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        justify-content: space-between;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        transition: var(--transition);
+    }
+    .verify-item:hover {
+        background: rgba(190, 242, 100, 0.08);
+        border-color: rgba(190, 242, 100, 0.24);
+    }
+    .verify-item .vi-ic {
+        width: 26px; height: 26px;
+        min-width: 26px;
+        max-width: 26px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        background: rgba(190, 242, 100, 0.18);
+        color: var(--secondary);
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+    .verify-item > span:not(.vi-ic) {
+        flex: 1; min-width: 0;
+        font-size: 0.76rem;
+        color: rgba(255, 255, 255, 0.82);
+        font-weight: 500;
+    }
+    .verify-item em {
+        font-style: normal;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--secondary-light);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1180px) {
+        .cred-card { width: 290px; }
     }
     @media (max-width: 900px) {
-        .hero-board { width: 100%; }
+        .cred-card { width: 100%; }
+        .trust-strip { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 460px) {
-        .hero-board { grid-template-columns: 1fr; }
-    }
-
-    /* ============================================================
-       TODAY — TIMELINE
-       ============================================================ */
-    .day-list {
-        position: relative;
-        padding-left: 26px;
-    }
-    .day-list::before {
-        content: '';
-        position: absolute;
-        left: 7px;
-        top: 18px;
-        bottom: 18px;
-        width: 2px;
-        border-radius: 2px;
-        background: linear-gradient(180deg,
-            var(--secondary) 0%,
-            var(--accent) 55%,
-            var(--gray-200) 100%);
-    }
-    .day-item {
-        position: relative;
-        display: flex;
-        align-items: flex-start;
-        gap: 14px;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-    .day-item:first-child { padding-top: 4px; }
-    .day-item:last-child { border-bottom: none; padding-bottom: 4px; }
-    .day-item::before {
-        content: '';
-        position: absolute;
-        left: -26px;
-        top: 18px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: var(--white);
-        border: 3px solid var(--gray-300);
-        z-index: 1;
-        box-sizing: border-box;
-    }
-    .day-item.done::before {
-        border-color: var(--secondary);
-        background: var(--white);
-    }
-    .day-item.live::before {
-        border-color: var(--secondary);
-        background: var(--secondary);
-        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.22);
-        animation: tlPulse 2s infinite;
-    }
-    @keyframes tlPulse {
-        0%, 100% { box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.22); }
-        50%      { box-shadow: 0 0 0 9px rgba(190, 242, 100, 0.04); }
-    }
-    .day-time {
-        flex-shrink: 0;
-        width: 58px;
-    }
-    .day-time strong {
-        display: block;
-        font-family: 'Playfair Display', serif;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--primary-dark);
-        line-height: 1.1;
-    }
-    .day-time span {
-        display: block;
-        font-size: 0.58rem;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 700;
-        margin-top: 2px;
-    }
-    .day-body { flex: 1; min-width: 0; }
-    .day-body h5 {
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: var(--primary-dark);
-        margin-bottom: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .day-body p {
-        font-size: 0.72rem;
-        color: var(--gray-600);
-    }
-    .day-body p strong { color: var(--gray-800); font-weight: 600; }
-    .day-actions { flex-shrink: 0; }
-
-    /* ============================================================
-       MENTEE SPOTLIGHT
-       ============================================================ */
-    .spotlight { padding: 24px 22px; }
-    .spot-hero {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 20px;
-    }
-    .spot-hero .avatar {
-        width: 54px; height: 54px;
-        font-size: 1.05rem;
-        background: linear-gradient(135deg, var(--accent), #0EA5E9);
-        color: #fff;
-    }
-    .spot-hero h4 {
-        font-family: 'Playfair Display', serif;
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: var(--primary-dark);
-        line-height: 1.2;
-    }
-    .spot-hero p {
-        font-size: 0.72rem;
-        color: var(--gray-600);
-        margin-top: 2px;
-    }
-    .spot-progress { margin-bottom: 18px; }
-    .spot-progress .row {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 8px;
-    }
-    .spot-progress .row span {
-        font-size: 0.74rem;
-        color: var(--gray-600);
-        font-weight: 600;
-    }
-    .spot-progress .row strong {
-        font-size: 0.85rem;
-        color: var(--primary-dark);
-        font-weight: 800;
-    }
-    .spot-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        padding: 14px 0;
-        border-top: 1px solid var(--gray-100);
-        border-bottom: 1px solid var(--gray-100);
-        margin-bottom: 16px;
-    }
-    .spot-stats div { text-align: center; }
-    .spot-stats strong {
-        display: block;
-        font-family: 'Playfair Display', serif;
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: var(--primary-dark);
-        line-height: 1.2;
-    }
-    .spot-stats span {
-        font-size: 0.58rem;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 700;
-    }
-    .spot-quote {
-        font-size: 0.82rem;
-        color: var(--gray-600);
-        line-height: 1.65;
-        padding: 12px 14px;
-        background: var(--cream);
-        border-radius: 12px;
-        border-left: 3px solid var(--secondary);
-        margin-bottom: 16px;
-        font-style: italic;
-    }
-    .spot-actions {
-        display: flex;
-        gap: 8px;
-    }
-    .spot-actions .btn {
-        flex: 1;
-        padding: 10px 16px;
-        font-size: 0.78rem;
-    }
-    .spot-actions .btn-ghost {
-        padding: 10px 16px;
-        font-size: 0.78rem;
-        justify-content: center;
-    }
-
-    /* ============================================================
-       QUICK REVIEW TILE
-       ============================================================ */
-    .qrev {
-        display: flex;
-        gap: 12px;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-    .qrev:first-of-type { padding-top: 4px; }
-    .qrev:last-of-type { border-bottom: none; padding-bottom: 4px; }
-    .qrev .avatar { flex-shrink: 0; }
-    .qrev-body { flex: 1; min-width: 0; }
-    .qrev-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 4px;
-        flex-wrap: wrap;
-    }
-    .qrev-top h5 {
-        font-size: 0.86rem;
-        font-weight: 700;
-        color: var(--primary-dark);
-    }
-    .qrev-top .stars {
-        display: inline-flex;
-        gap: 2px;
-        color: var(--secondary-deep);
-        font-size: 0.72rem;
-    }
-    .qrev-body blockquote {
-        font-size: 0.78rem;
-        color: var(--gray-600);
-        line-height: 1.6;
-        font-style: italic;
-    }
-    .qrev-body blockquote + .qrev-meta {
-        margin-top: 6px;
-    }
-    .qrev-meta {
-        font-size: 0.66rem;
-        color: var(--gray-300);
-        font-weight: 600;
+    @media (max-width: 520px) {
+        .trust-strip { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock extra_css %}
@@ -319,20 +361,25 @@
 
 {% block content %}
 
-<!-- ═══════════════════════════════════════════════════════════
-     HERO
-     ═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO — VERIFIED MENTOR
+     ═══════════════════════════════════════════════════════════════════ -->
 <section class="hero fade-up">
     <div class="hero-text">
         <span class="hero-badge">
-            <i class="bi bi-broadcast"></i> Live desk · Friday
+            <i class="bi bi-patch-check-fill"></i> Verified Mentor · ID &amp; Skills Confirmed
         </span>
+
         <h1 id="greetingText" data-name="Daniel">Good morning, <span>Daniel</span></h1>
+
         <p>
-            You have <strong>3 sessions</strong> today, <strong>5 mentee requests</strong>
-            waiting for review, and <strong>2 unread reviews</strong>. Your cohort is
-            <strong>78% through</strong> the React Patterns plan.
+            You are <strong>Master Mentor · Level XII</strong> running
+            <strong>24 active mentees</strong>. You have
+            <strong>5 requests</strong> awaiting review and
+            <strong>3 sessions</strong> lined up today. Your
+            <strong>96% response rate</strong> keeps you in the top 3% of mentors.
         </p>
+
         <div class="hero-actions">
             <button type="button" class="btn btn-gold"
                     data-toast="Opening pending requests…" data-toast-type="info">
@@ -345,341 +392,564 @@
         </div>
     </div>
 
-    <div class="hero-board">
-        <div class="hb-tile">
-            <span class="hb-ic"><i class="bi bi-clock-fill"></i></span>
-            <div>
-                <strong>2h 14m</strong>
-                <span>Until next session</span>
+    <!-- Mentor Credential Card -->
+    <aside class="cred-card" aria-label="Mentor verification">
+        <div class="cred-head">
+            <div class="cred-shield" aria-hidden="true">
+                <i class="bi bi-patch-check-fill"></i>
             </div>
+            <span class="cred-tier">
+                <i class="bi bi-award-fill"></i> Master
+            </span>
         </div>
-        <div class="hb-tile">
-            <span class="hb-ic accent"><i class="bi bi-inbox-fill"></i></span>
-            <div>
-                <strong>5</strong>
-                <span>Pending requests</span>
-            </div>
+
+        <h3 class="cred-title">Verified Mentor</h3>
+        <p class="cred-sub">Knotwork Faculty · Level XII</p>
+
+        <div class="cred-checks">
+            <div class="check"><i class="bi bi-check-lg"></i> Identity verified</div>
+            <div class="check"><i class="bi bi-check-lg"></i> Background checked</div>
+            <div class="check"><i class="bi bi-check-lg"></i> Skills assessment passed</div>
         </div>
-        <div class="hb-tile">
-            <span class="hb-ic violet"><i class="bi bi-fire"></i></span>
-            <div>
-                <strong>14 days</strong>
-                <span>Active streak</span>
-            </div>
+
+        <div class="cred-id">
+            <span>Mentor ID</span>
+            <strong>KN-2841-XII</strong>
         </div>
-        <div class="hb-tile">
-            <span class="hb-ic amber"><i class="bi bi-star-fill"></i></span>
-            <div>
-                <strong>4.9 / 5</strong>
-                <span>Mentor rating</span>
-            </div>
-        </div>
-    </div>
+    </aside>
 </section>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     STATS
-     ═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-strip fade-up">
+
+    <div class="trust-pill">
+        <span class="tp-ic"><i class="bi bi-patch-check-fill"></i></span>
+        <div class="tp-body">
+            <strong>ID Verified</strong>
+            <span>KYC · 12 Mar 2024</span>
+        </div>
+    </div>
+
+    <div class="trust-pill">
+        <span class="tp-ic accent"><i class="bi bi-shield-check"></i></span>
+        <div class="tp-body">
+            <strong>Background Checked</strong>
+            <span>Cleared · Renew 2026</span>
+        </div>
+    </div>
+
+    <div class="trust-pill">
+        <span class="tp-ic violet"><i class="bi bi-mortarboard-fill"></i></span>
+        <div class="tp-body">
+            <strong>Skills Assessed</strong>
+            <span>React · Node · System Design</span>
+        </div>
+    </div>
+
+    <div class="trust-pill">
+        <span class="tp-ic amber"><i class="bi bi-star-fill"></i></span>
+        <div class="tp-body">
+            <strong>Top 3% Mentor</strong>
+            <span>4.9 average · 86 reviews</span>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     STATS GRID
+     ═══════════════════════════════════════════════════════════════════ -->
 <section class="stats-grid">
+
     <article class="stat-card fade-up">
         <div class="stat-top">
             <span class="stat-icon"><i class="bi bi-people-fill"></i></span>
-            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> +3</span>
+            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> +3 this week</span>
         </div>
         <div class="value" data-count="24">24</div>
         <div class="label">Active mentees</div>
+        <div class="avatar-stack" style="margin-top: 12px;">
+            <span class="avatar sm sky">SK</span>
+            <span class="avatar sm">TK</span>
+            <span class="avatar sm violet">MR</span>
+            <span class="avatar sm amber">AO</span>
+            <span class="more">+20</span>
+        </div>
     </article>
 
     <article class="stat-card fade-up">
         <div class="stat-top">
-            <span class="stat-icon accent"><i class="bi bi-calendar-check"></i></span>
-            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> +2</span>
+            <span class="stat-icon accent"><i class="bi bi-inbox-fill"></i></span>
+            <span class="stat-trend"><i class="bi bi-clock-history"></i> Awaiting</span>
         </div>
-        <div class="value" data-count="12">12</div>
-        <div class="label">Sessions this week</div>
+        <div class="value" data-count="5">5</div>
+        <div class="label">Pending requests</div>
+        <div style="margin-top: 14px;">
+            <div class="bar accent"><span data-value="60"></span></div>
+            <p style="font-size: 0.68rem; color: var(--gray-600); margin-top: 8px;">
+                <strong style="color: var(--primary-dark);">3</strong> awaiting your reply for 2+ days
+            </p>
+        </div>
     </article>
 
     <article class="stat-card fade-up">
         <div class="stat-top">
-            <span class="stat-icon violet"><i class="bi bi-map"></i></span>
-            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> +1</span>
+            <span class="stat-icon violet"><i class="bi bi-lightning-charge-fill"></i></span>
+            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> +2%</span>
         </div>
-        <div class="value" data-count="8">8</div>
-        <div class="label">Active plans</div>
+        <div class="value">96<span>%</span></div>
+        <div class="label">Response rate</div>
+        <div style="margin-top: 14px;">
+            <div class="bar violet"><span data-value="96"></span></div>
+            <p style="font-size: 0.68rem; color: var(--gray-600); margin-top: 8px;">
+                Top <strong style="color: var(--primary-dark);">3%</strong> on Knotwork
+            </p>
+        </div>
     </article>
 
     <article class="stat-card fade-up">
         <div class="stat-top">
             <span class="stat-icon amber"><i class="bi bi-cash-coin"></i></span>
-            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> 12%</span>
+            <span class="stat-trend"><i class="bi bi-arrow-up-short"></i> 12% MoM</span>
         </div>
-        <div class="value">$12,840</div>
+        <div class="value">$1,840</div>
         <div class="label">Earnings this month</div>
+        <div style="margin-top: 14px;">
+            <div class="bar"><span data-value="72"></span></div>
+            <p style="font-size: 0.68rem; color: var(--gray-600); margin-top: 8px;">
+                <strong style="color: var(--primary-dark);">72%</strong> to monthly goal · $2,560
+            </p>
+        </div>
     </article>
+
 </section>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     MAIN GRID
-     ═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     MAIN GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
 <section class="grid-2">
 
-    <!-- ─────────────────────────  LEFT  ───────────────────────── -->
+    <!-- ─────────────────────────── LEFT ─────────────────────────── -->
     <div class="col-stack">
 
-        <!-- TODAY'S SCHEDULE -->
-        <div class="card fade-up">
-            <div class="card-head">
-                <h3><i class="bi bi-calendar2-week-fill"></i> Today · Friday, 12 Sept</h3>
-                <a href="#" class="link">Full calendar <i class="bi bi-arrow-right"></i></a>
+        <!-- TABS CARD: WORKSPACE -->
+        <div class="card tabs-card fade-up">
+            <div class="tabs-head">
+                <h3><i class="bi bi-lightning-charge-fill"></i> Mentoring Workspace</h3>
+                <a href="#" class="link">View all <i class="bi bi-arrow-right"></i></a>
             </div>
 
-            <div class="day-list">
+            <div class="tabs">
+                <button class="tab active" data-tab="requests">
+                    Requests <span class="count">5</span>
+                </button>
+                <button class="tab" data-tab="mentees">
+                    Mentees <span class="count">24</span>
+                </button>
+                <button class="tab" data-tab="sessions">
+                    Sessions <span class="count">8</span>
+                </button>
+                <button class="tab" data-tab="reviews">
+                    Reviews <span class="count">12</span>
+                </button>
+            </div>
 
-                <div class="day-item done">
-                    <div class="day-time">
-                        <strong>09:00</strong>
-                        <span>Done</span>
+            <div class="tab-panels">
+
+                <!-- ── Requests ── -->
+                <div class="tab-panel active" id="tab-requests">
+
+                    <div class="req-row">
+                        <span class="avatar sky">SK</span>
+                        <div class="req-body">
+                            <div class="req-top">
+                                <h4>Sara Kim</h4>
+                                <span class="req-score">94% match</span>
+                            </div>
+                            <p>Frontend developer wanting to master <strong>React patterns</strong> and system design. Available weekday evenings.</p>
+                            <div class="req-tags">
+                                <span class="tag teach">React</span>
+                                <span class="tag learn">System Design</span>
+                                <span class="tag violet">TypeScript</span>
+                            </div>
+                            <div class="req-actions">
+                                <button type="button" class="btn-sm solid"
+                                        data-toast="Sara Kim accepted" data-toast-type="success">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                                <button type="button" class="btn-sm line"
+                                        data-toast="Opening message composer" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="btn-sm mute"
+                                        data-toast="Request declined" data-toast-type="warning">
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="day-body">
-                        <h5>Morning code review · Tunde</h5>
-                        <p>Reviewed <strong>PostgreSQL indexing</strong> PR · 30 min</p>
+
+                    <div class="req-row">
+                        <span class="avatar violet">TK</span>
+                        <div class="req-body">
+                            <div class="req-top">
+                                <h4>Tunde Kayode</h4>
+                                <span class="req-score">88% match</span>
+                            </div>
+                            <p>Backend engineer moving into <strong>full-stack</strong>. Wants a 6-week structured mentorship plan.</p>
+                            <div class="req-tags">
+                                <span class="tag learn">Node.js</span>
+                                <span class="tag teach">PostgreSQL</span>
+                                <span class="tag amber">AWS</span>
+                            </div>
+                            <div class="req-actions">
+                                <button type="button" class="btn-sm solid"
+                                        data-toast="Tunde Kayode accepted" data-toast-type="success">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                                <button type="button" class="btn-sm line"
+                                        data-toast="Opening message composer" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="btn-sm mute"
+                                        data-toast="Request declined" data-toast-type="warning">
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="day-actions">
-                        <button type="button" class="btn-sm mute"
-                                data-toast="Review notes opened" data-toast-type="info">
-                            Notes
-                        </button>
+
+                    <div class="req-row">
+                        <span class="avatar amber">MR</span>
+                        <div class="req-body">
+                            <div class="req-top">
+                                <h4>Maya Rahman</h4>
+                                <span class="req-score">81% match</span>
+                            </div>
+                            <p>Product designer learning to code. Goal: ship a <strong>React portfolio</strong> in 8 weeks.</p>
+                            <div class="req-tags">
+                                <span class="tag teach">React</span>
+                                <span class="tag learn">UI/UX</span>
+                            </div>
+                            <div class="req-actions">
+                                <button type="button" class="btn-sm solid"
+                                        data-toast="Maya Rahman accepted" data-toast-type="success">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                                <button type="button" class="btn-sm line"
+                                        data-toast="Opening message composer" data-toast-type="info">
+                                    <i class="bi bi-chat-left-text"></i> Message
+                                </button>
+                                <button type="button" class="btn-sm mute"
+                                        data-toast="Request declined" data-toast-type="warning">
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
 
-                <div class="day-item live">
-                    <div class="day-time">
-                        <strong>18:30</strong>
-                        <span>In 2h</span>
+                <!-- ── Mentees ── -->
+                <div class="tab-panel" id="tab-mentees">
+
+                    <div class="mentee-row">
+                        <span class="avatar sm sky">SK</span>
+                        <div class="mentee-body">
+                            <div class="mentee-top">
+                                <h4>Sara Kim</h4>
+                                <span class="pct">72%</span>
+                            </div>
+                            <div class="meta">Advanced React Patterns · 8 of 11 modules</div>
+                            <div class="bar"><span data-value="72"></span></div>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Opening Sara's plan" data-toast-type="info">Open</button>
                     </div>
-                    <div class="day-body">
-                        <h5>React Hooks Deep Dive</h5>
-                        <p>with <strong>Sara Kim</strong> · 60 min · Studio Room 02</p>
+
+                    <div class="mentee-row">
+                        <span class="avatar sm">TK</span>
+                        <div class="mentee-body">
+                            <div class="mentee-top">
+                                <h4>Tunde Kayode</h4>
+                                <span class="pct">54%</span>
+                            </div>
+                            <div class="meta">Full-Stack Track · 6 of 11 modules</div>
+                            <div class="bar accent"><span data-value="54"></span></div>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Opening Tunde's plan" data-toast-type="info">Open</button>
                     </div>
-                    <div class="day-actions">
+
+                    <div class="mentee-row">
+                        <span class="avatar sm violet">MR</span>
+                        <div class="mentee-body">
+                            <div class="mentee-top">
+                                <h4>Maya Rahman</h4>
+                                <span class="pct">91%</span>
+                            </div>
+                            <div class="meta">Design → Dev Bridge · 10 of 11 modules</div>
+                            <div class="bar"><span data-value="91"></span></div>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Opening Maya's plan" data-toast-type="info">Open</button>
+                    </div>
+
+                    <div class="mentee-row">
+                        <span class="avatar sm amber">AO</span>
+                        <div class="mentee-body">
+                            <div class="mentee-top">
+                                <h4>Amara Okoye</h4>
+                                <span class="pct">38%</span>
+                            </div>
+                            <div class="meta">Frontend Foundations · 4 of 11 modules</div>
+                            <div class="bar violet"><span data-value="38"></span></div>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Opening Amara's plan" data-toast-type="info">Open</button>
+                    </div>
+
+                </div>
+
+                <!-- ── Sessions ── -->
+                <div class="tab-panel" id="tab-sessions">
+
+                    <div class="sess-row live">
+                        <div class="sess-time">
+                            <strong>18:30</strong>
+                            <span>Today</span>
+                        </div>
+                        <div class="sess-info">
+                            <h5>React Hooks Deep Dive</h5>
+                            <p>with <strong>Sara Kim</strong> · 60 min · Studio Room 02</p>
+                        </div>
                         <button type="button" class="btn-sm solid"
-                                data-toast="Launching studio…" data-toast-type="success">
-                            <i class="bi bi-camera-video-fill"></i> Join
-                        </button>
+                                data-toast="Joining session…" data-toast-type="success">Join</button>
                     </div>
+
+                    <div class="sess-row">
+                        <div class="sess-time">
+                            <strong>10:00</strong>
+                            <span>Tomorrow</span>
+                        </div>
+                        <div class="sess-info">
+                            <h5>System Design Review</h5>
+                            <p>with <strong>Tunde Kayode</strong> · 45 min · Studio Room 01</p>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Reminder set" data-toast-type="info">Remind</button>
+                    </div>
+
+                    <div class="sess-row">
+                        <div class="sess-time">
+                            <strong>14:15</strong>
+                            <span>Thu</span>
+                        </div>
+                        <div class="sess-info">
+                            <h5>Portfolio Feedback · Maya</h5>
+                            <p>with <strong>Maya Rahman</strong> · 30 min · Studio Room 03</p>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Reminder set" data-toast-type="info">Remind</button>
+                    </div>
+
+                    <div class="sess-row">
+                        <div class="sess-time">
+                            <strong>09:00</strong>
+                            <span>Fri</span>
+                        </div>
+                        <div class="sess-info">
+                            <h5>Weekly Cohort Standup</h5>
+                            <p>with <strong>Full cohort</strong> · 45 min · Main Hall</p>
+                        </div>
+                        <button type="button" class="btn-sm line"
+                                data-toast="Reminder set" data-toast-type="info">Remind</button>
+                    </div>
+
                 </div>
 
-                <div class="day-item">
-                    <div class="day-time">
-                        <strong>20:15</strong>
-                        <span>Later</span>
-                    </div>
-                    <div class="day-body">
-                        <h5>Portfolio Feedback · Maya</h5>
-                        <p>with <strong>Maya Rahman</strong> · 30 min · Studio Room 03</p>
-                    </div>
-                    <div class="day-actions">
-                        <button type="button" class="btn-sm line"
-                                data-toast="Reminder set for 20:15" data-toast-type="info">
-                            <i class="bi bi-bell"></i> Remind
-                        </button>
-                    </div>
-                </div>
+                <!-- ── Reviews ── -->
+                <div class="tab-panel" id="tab-reviews">
 
-                <div class="day-item">
-                    <div class="day-time">
-                        <strong>21:00</strong>
-                        <span>Later</span>
+                    <div class="rev-row">
+                        <div class="rev-head">
+                            <span class="avatar sm sky">MR</span>
+                            <div class="who">
+                                <h4>Maya Rahman</h4>
+                                <span>2 days ago · Advanced React Patterns</span>
+                            </div>
+                            <span class="stars">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                        </div>
+                        <blockquote>
+                            “Daniel breaks down complex patterns into tiny, digestible pieces.
+                            I finally understand hooks — genuinely the best mentor I've had.”
+                        </blockquote>
                     </div>
-                    <div class="day-body">
-                        <h5>Weekly plan review · Amara</h5>
-                        <p>with <strong>Amara Okoye</strong> · 25 min · Async notes</p>
+
+                    <div class="rev-row">
+                        <div class="rev-head">
+                            <span class="avatar sm">TK</span>
+                            <div class="who">
+                                <h4>Tunde Kayode</h4>
+                                <span>5 days ago · Full-Stack Track</span>
+                            </div>
+                            <span class="stars">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                        </div>
+                        <blockquote>
+                            “Structured, patient, and incredibly practical. The plan he built
+                            for me is still my roadmap six months later.”
+                        </blockquote>
                     </div>
-                    <div class="day-actions">
-                        <button type="button" class="btn-sm line"
-                                data-toast="Reminder set for 21:00" data-toast-type="info">
-                            <i class="bi bi-bell"></i> Remind
-                        </button>
+
+                    <div class="rev-row">
+                        <div class="rev-head">
+                            <span class="avatar sm violet">AO</span>
+                            <div class="who">
+                                <h4>Amara Okoye</h4>
+                                <span>1 week ago · Frontend Foundations</span>
+                            </div>
+                            <span class="stars">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </span>
+                        </div>
+                        <blockquote>
+                            “Great sessions and clear feedback. Would love even more
+                            hands-on pair-programming time.”
+                        </blockquote>
                     </div>
+
                 </div>
 
             </div>
         </div>
 
-        <!-- MENTEE REQUESTS -->
+        <!-- MENTOR HONOURS -->
         <div class="card fade-up">
             <div class="card-head">
-                <h3><i class="bi bi-inbox-fill"></i> Mentee Requests</h3>
-                <a href="#" class="link">5 waiting <i class="bi bi-arrow-right"></i></a>
+                <h3><i class="bi bi-trophy-fill"></i> Mentor Honours</h3>
+                <a href="#" class="link">All honours <i class="bi bi-arrow-right"></i></a>
             </div>
 
-            <div class="req-row">
-                <span class="avatar sky">SK</span>
-                <div class="req-body">
-                    <div class="req-top">
-                        <h4>Sara Kim</h4>
-                        <span class="req-score">94% match</span>
-                    </div>
-                    <p>Frontend dev wanting to master <strong>React patterns</strong> and system design. Available weekday evenings.</p>
-                    <div class="req-tags">
-                        <span class="tag teach">React</span>
-                        <span class="tag learn">System Design</span>
-                        <span class="tag violet">TypeScript</span>
-                    </div>
-                    <div class="req-actions">
-                        <button type="button" class="btn-sm solid"
-                                data-toast="Sara Kim accepted" data-toast-type="success">
-                            <i class="bi bi-check-lg"></i> Accept
-                        </button>
-                        <button type="button" class="btn-sm line"
-                                data-toast="Opening message composer" data-toast-type="info">
-                            <i class="bi bi-chat-left-text"></i> Message
-                        </button>
-                        <button type="button" class="btn-sm mute"
-                                data-toast="Request declined" data-toast-type="warning">
-                            Decline
-                        </button>
-                    </div>
+            <div class="badges">
+                <div class="badge-item">
+                    <div class="medal"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <h5>Momentum</h5>
+                    <p>10 sessions in a month</p>
                 </div>
-            </div>
-
-            <div class="req-row">
-                <span class="avatar violet">TK</span>
-                <div class="req-body">
-                    <div class="req-top">
-                        <h4>Tunde Kayode</h4>
-                        <span class="req-score">88% match</span>
-                    </div>
-                    <p>Backend engineer moving into <strong>full-stack</strong>. Wants a 6-week structured mentorship plan.</p>
-                    <div class="req-tags">
-                        <span class="tag learn">Node.js</span>
-                        <span class="tag teach">PostgreSQL</span>
-                        <span class="tag amber">AWS</span>
-                    </div>
-                    <div class="req-actions">
-                        <button type="button" class="btn-sm solid"
-                                data-toast="Tunde Kayode accepted" data-toast-type="success">
-                            <i class="bi bi-check-lg"></i> Accept
-                        </button>
-                        <button type="button" class="btn-sm line"
-                                data-toast="Opening message composer" data-toast-type="info">
-                            <i class="bi bi-chat-left-text"></i> Message
-                        </button>
-                        <button type="button" class="btn-sm mute"
-                                data-toast="Request declined" data-toast-type="warning">
-                            Decline
-                        </button>
-                    </div>
+                <div class="badge-item">
+                    <div class="medal"><i class="bi bi-star-fill"></i></div>
+                    <h5>Five Star</h5>
+                    <p>25 perfect reviews</p>
                 </div>
-            </div>
-
-            <div class="req-row">
-                <span class="avatar amber">MR</span>
-                <div class="req-body">
-                    <div class="req-top">
-                        <h4>Maya Rahman</h4>
-                        <span class="req-score">81% match</span>
-                    </div>
-                    <p>Product designer learning to code. Goal: ship a <strong>React portfolio</strong> in 8 weeks.</p>
-                    <div class="req-tags">
-                        <span class="tag teach">React</span>
-                        <span class="tag learn">UI/UX</span>
-                    </div>
-                    <div class="req-actions">
-                        <button type="button" class="btn-sm solid"
-                                data-toast="Maya Rahman accepted" data-toast-type="success">
-                            <i class="bi bi-check-lg"></i> Accept
-                        </button>
-                        <button type="button" class="btn-sm line"
-                                data-toast="Opening message composer" data-toast-type="info">
-                            <i class="bi bi-chat-left-text"></i> Message
-                        </button>
-                        <button type="button" class="btn-sm mute"
-                                data-toast="Request declined" data-toast-type="warning">
-                            Decline
-                        </button>
-                    </div>
+                <div class="badge-item">
+                    <div class="medal"><i class="bi bi-people-fill"></i></div>
+                    <h5>Cohort Builder</h5>
+                    <p>20 active mentees</p>
                 </div>
-            </div>
-
-        </div>
-
-        <!-- RECENT FEEDBACK -->
-        <div class="card fade-up">
-            <div class="card-head">
-                <h3><i class="bi bi-chat-quote-fill"></i> Recent Feedback</h3>
-                <a href="#" class="link">All reviews <i class="bi bi-arrow-right"></i></a>
-            </div>
-
-            <div class="qrev">
-                <span class="avatar sm sky">MR</span>
-                <div class="qrev-body">
-                    <div class="qrev-top">
-                        <h5>Maya Rahman</h5>
-                        <span class="stars">
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </span>
-                    </div>
-                    <blockquote>
-                        “Daniel breaks down complex patterns into tiny, digestible pieces.
-                        I finally understand hooks — genuinely the best mentor I've had.”
-                    </blockquote>
-                    <div class="qrev-meta">2 days ago · Advanced React Patterns</div>
+                <div class="badge-item locked">
+                    <div class="medal"><i class="bi bi-hourglass-split"></i></div>
+                    <h5>Century</h5>
+                    <p>100 sessions logged</p>
                 </div>
-            </div>
-
-            <div class="qrev">
-                <span class="avatar sm">TK</span>
-                <div class="qrev-body">
-                    <div class="qrev-top">
-                        <h5>Tunde Kayode</h5>
-                        <span class="stars">
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </span>
-                    </div>
-                    <blockquote>
-                        “Structured, patient, and incredibly practical. The plan he built
-                        for me is still my roadmap six months later.”
-                    </blockquote>
-                    <div class="qrev-meta">5 days ago · Full-Stack Track</div>
-                </div>
-            </div>
-
-            <div class="qrev">
-                <span class="avatar sm violet">AO</span>
-                <div class="qrev-body">
-                    <div class="qrev-top">
-                        <h5>Amara Okoye</h5>
-                        <span class="stars">
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-half"></i>
-                        </span>
-                    </div>
-                    <blockquote>
-                        “Great sessions and clear feedback. Would love even more
-                        hands-on pair-programming time.”
-                    </blockquote>
-                    <div class="qrev-meta">1 week ago · Frontend Foundations</div>
+                <div class="badge-item locked">
+                    <div class="medal"><i class="bi bi-gem"></i></div>
+                    <h5>Grandmaster</h5>
+                    <p>Reach Level XV</p>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- ─────────────────────────  RIGHT  ───────────────────────── -->
+    <!-- ─────────────────────────── RIGHT ─────────────────────────── -->
     <div class="col-stack">
 
-        <!-- WEEKLY RHYTHM -->
+        <!-- NEXT SESSION -->
+        <div class="next-card fade-up">
+            <span class="nc-label"><i class="bi bi-broadcast"></i> Up next · in 2h 14m</span>
+            <h4>React Hooks Deep Dive</h4>
+            <p>Live 1:1 session with Sara Kim. Focus on custom hooks and render optimisation.</p>
+
+            <div class="nc-when">
+                <div>
+                    <strong>18:30</strong>
+                    <span>Start</span>
+                </div>
+                <div>
+                    <strong>60 min</strong>
+                    <span>Duration</span>
+                </div>
+                <div>
+                    <strong>Room 02</strong>
+                    <span>Studio</span>
+                </div>
+            </div>
+
+            <div class="nc-people">
+                <span class="avatar sm sky">SK</span>
+                <span class="avatar sm">DO</span>
+                <span>+ 2 observers</span>
+            </div>
+
+            <button type="button" class="btn btn-gold"
+                    data-toast="Launching studio room…" data-toast-type="success">
+                <i class="bi bi-camera-video-fill"></i> Launch studio
+            </button>
+        </div>
+
+        <!-- VERIFICATION PANEL -->
+        <div class="verify-panel fade-up">
+            <div class="verify-head">
+                <span class="vh-ic"><i class="bi bi-patch-check-fill"></i></span>
+                <div>
+                    <h4>Verified Mentor</h4>
+                    <p>Your credentials are active</p>
+                </div>
+            </div>
+
+            <div class="verify-list">
+                <div class="verify-item">
+                    <span class="vi-ic"><i class="bi bi-check-lg"></i></span>
+                    <span>Government ID</span>
+                    <em>Verified</em>
+                </div>
+                <div class="verify-item">
+                    <span class="vi-ic"><i class="bi bi-check-lg"></i></span>
+                    <span>Background check</span>
+                    <em>Cleared</em>
+                </div>
+                <div class="verify-item">
+                    <span class="vi-ic"><i class="bi bi-check-lg"></i></span>
+                    <span>Skills assessment</span>
+                    <em>Passed</em>
+                </div>
+                <div class="verify-item">
+                    <span class="vi-ic"><i class="bi bi-check-lg"></i></span>
+                    <span>Mentor agreement</span>
+                    <em>Signed</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- WEEKLY CHART -->
         <div class="card fade-up">
             <div class="card-head">
-                <h3><i class="bi bi-bar-chart-fill"></i> Weekly Rhythm</h3>
+                <h3><i class="bi bi-bar-chart-fill"></i> This Week</h3>
                 <a href="#" class="link">Analytics <i class="bi bi-arrow-right"></i></a>
             </div>
 
@@ -715,88 +985,8 @@
             </div>
 
             <div class="chart-legend">
-                <span class="item"><span class="swatch"></span> Completed hours</span>
+                <span class="item"><span class="swatch"></span> Completed sessions</span>
                 <span class="item"><span class="swatch blue"></span> Today</span>
-            </div>
-        </div>
-
-        <!-- MENTEE SPOTLIGHT -->
-        <div class="card spotlight fade-up">
-            <div class="card-head">
-                <h3><i class="bi bi-person-badge-fill"></i> Mentee Spotlight</h3>
-                <a href="#" class="link">All <i class="bi bi-arrow-right"></i></a>
-            </div>
-
-            <div class="spot-hero">
-                <span class="avatar">MR</span>
-                <div>
-                    <h4>Maya Rahman</h4>
-                    <p>Design → Dev Bridge · Week 10 of 12</p>
-                </div>
-            </div>
-
-            <div class="spot-progress">
-                <div class="row">
-                    <span>Track progress</span>
-                    <strong>91%</strong>
-                </div>
-                <div class="bar"><span data-value="91"></span></div>
-            </div>
-
-            <div class="spot-stats">
-                <div>
-                    <strong>10</strong>
-                    <span>Modules</span>
-                </div>
-                <div>
-                    <strong>28</strong>
-                    <span>Sessions</span>
-                </div>
-                <div>
-                    <strong>5.0</strong>
-                    <span>Rating</span>
-                </div>
-            </div>
-
-            <blockquote class="spot-quote">
-                “Daniel is an incredible guide. I shipped my first React app last week!”
-            </blockquote>
-
-            <div class="spot-actions">
-                <button type="button" class="btn btn-gold"
-                        data-toast="Opening Maya's plan" data-toast-type="info">
-                    <i class="bi bi-map"></i> Open plan
-                </button>
-                <button type="button" class="btn-ghost"
-                        data-toast="Opening composer" data-toast-type="info">
-                    <i class="bi bi-chat-left-text"></i> Message
-                </button>
-            </div>
-        </div>
-
-        <!-- HONOURS -->
-        <div class="card fade-up">
-            <div class="card-head">
-                <h3><i class="bi bi-trophy-fill"></i> Mentor Honours</h3>
-                <a href="#" class="link">All honours <i class="bi bi-arrow-right"></i></a>
-            </div>
-
-            <div class="badges" style="grid-template-columns: repeat(3, 1fr);">
-                <div class="badge-item">
-                    <div class="medal"><i class="bi bi-lightning-charge-fill"></i></div>
-                    <h5>Momentum</h5>
-                    <p>10 sessions / month</p>
-                </div>
-                <div class="badge-item">
-                    <div class="medal"><i class="bi bi-star-fill"></i></div>
-                    <h5>Five Star</h5>
-                    <p>25 perfect reviews</p>
-                </div>
-                <div class="badge-item locked">
-                    <div class="medal"><i class="bi bi-gem"></i></div>
-                    <h5>Grandmaster</h5>
-                    <p>Reach Level XV</p>
-                </div>
             </div>
         </div>
 

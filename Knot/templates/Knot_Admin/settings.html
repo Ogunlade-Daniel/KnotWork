@@ -1,0 +1,3035 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Settings · Command{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block breadcrumb %}System <i class="bi bi-chevron-right"></i> Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   SETTINGS · AURUM CONSOLE
+   Improvised palette — obsidian + aurum gold + violet + mint
+   Scoped under .st-shell so it never leaks into other pages
+   ============================================================ */
+
+.st-shell {
+    --st-obsidian:   #05070F;
+    --st-ink:        #0B1121;
+    --st-slate:      #141C2E;
+    --st-slate-2:    #1E293B;
+    --st-line:       rgba(11, 17, 33, 0.07);
+    --st-line-dark:  rgba(255, 255, 255, 0.07);
+
+    --st-aurum:      #F7C948;
+    --st-aurum-soft: #FFE9A8;
+    --st-aurum-deep: #A16207;
+    --st-violet:     #8B5CF6;
+    --st-violet-soft:#A78BFA;
+    --st-mint:       #34D399;
+    --st-cyan:       #22D3EE;
+    --st-rose:       #FB7185;
+    --st-amber:      #F59E0B;
+    --st-lime:       #BEF264;
+
+    --st-gold: linear-gradient(135deg, #FFE9A8 0%, #F7C948 46%, #A78BFA 100%);
+    --st-gold-soft: linear-gradient(135deg, rgba(247,201,72,.14), rgba(139,92,246,.12));
+    --st-glow-gold: 0 10px 30px rgba(247, 201, 72, 0.28);
+    --st-glow-violet: 0 10px 30px rgba(139, 92, 246, 0.26);
+
+    display: flex; flex-direction: column; gap: 24px;
+    padding-bottom: 110px; /* room for the health dock */
+}
+
+/* ============================================================
+   ROOT / ADMIN-ONLY BADGE
+   ============================================================ */
+.st-root {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 13px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--st-obsidian);
+    background: var(--st-gold);
+    box-shadow: 0 6px 18px rgba(247, 201, 72, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    position: relative; overflow: hidden;
+    white-space: nowrap;
+}
+.st-root::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.75) 50%, transparent 62%);
+    transform: translateX(-130%);
+    animation: stShine 3.6s cubic-bezier(.4,0,.2,1) infinite;
+}
+@keyframes stShine {
+    0%, 55% { transform: translateX(-130%); }
+    85%, 100% { transform: translateX(130%); }
+}
+.st-root i { font-size: 0.72rem; }
+.st-root.violet { background: linear-gradient(135deg, #C4B5FD, #8B5CF6); color: #fff; }
+.st-root.ghost {
+    background: transparent;
+    border: 1px solid rgba(247, 201, 72, 0.5);
+    color: var(--st-aurum-deep);
+    box-shadow: none;
+}
+.st-root.ghost::after { display: none; }
+
+/* Lock chip for admin-only blocks */
+.st-lock {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--st-violet);
+    background: rgba(139, 92, 246, 0.10);
+    border: 1px dashed rgba(139, 92, 246, 0.42);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.st-hero {
+    position: relative;
+    border-radius: 26px;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        radial-gradient(circle at 88% 8%, rgba(139, 92, 246, 0.30), transparent 52%),
+        radial-gradient(circle at 6% 100%, rgba(247, 201, 72, 0.22), transparent 55%),
+        radial-gradient(circle at 55% 0%, rgba(34, 211, 238, 0.12), transparent 42%),
+        linear-gradient(140deg, #020617 0%, #0B1121 46%, #16213A 100%);
+    border: 1px solid rgba(247, 201, 72, 0.18);
+    box-shadow: 0 30px 70px rgba(2, 6, 23, 0.32);
+    padding: 34px 36px 32px;
+}
+.st-hero::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 78%);
+    pointer-events: none;
+}
+.st-hero::after {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px; z-index: 4;
+    background: linear-gradient(90deg, var(--st-aurum), var(--st-lime) 40%, var(--st-violet) 100%);
+    box-shadow: 0 0 26px rgba(247, 201, 72, 0.6);
+}
+.st-hero-body {
+    position: relative; z-index: 2;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 32px; flex-wrap: wrap;
+}
+.st-hero-badges { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 16px; }
+.st-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.62);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.st-chip i { font-size: 0.68rem; color: var(--st-aurum); }
+.st-chip.live { color: #86EFAC; border-color: rgba(52, 211, 153, 0.34); background: rgba(52, 211, 153, 0.09); }
+.st-chip.live .pulse {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--st-mint);
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+    animation: stPulse 2s infinite;
+}
+@keyframes stPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.6); }
+    70%  { box-shadow: 0 0 0 8px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+}
+
+.st-hero h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.1vw, 2.5rem);
+    font-weight: 700; line-height: 1.1;
+    color: #fff; letter-spacing: -0.015em;
+}
+.st-hero h2 em {
+    font-style: italic;
+    background: var(--st-gold);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.st-hero p {
+    margin-top: 12px; max-width: 620px;
+    font-size: 0.9rem; line-height: 1.68;
+    color: rgba(255, 255, 255, 0.56);
+}
+.st-hero-stats {
+    display: flex; gap: 12px; flex-wrap: wrap;
+}
+.st-hero-stats > div {
+    min-width: 128px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(10px);
+    transition: all .35s cubic-bezier(.25,.46,.45,.94);
+}
+.st-hero-stats > div:hover {
+    transform: translateY(-4px);
+    border-color: rgba(247, 201, 72, 0.42);
+    background: rgba(247, 201, 72, 0.07);
+}
+.st-hero-stats strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: #fff; line-height: 1.1;
+}
+.st-hero-stats span {
+    display: block; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+/* ============================================================
+   MARQUEE
+   ============================================================ */
+.st-marquee {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(90deg, #0B1121, #16213A 48%, #0B1121);
+    border: 1px solid rgba(247, 201, 72, 0.20);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.st-marquee::before, .st-marquee::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 90px; z-index: 3;
+    pointer-events: none;
+}
+.st-marquee::before { left: 0;  background: linear-gradient(90deg, #0B1121, transparent); }
+.st-marquee::after  { right: 0; background: linear-gradient(270deg, #0B1121, transparent); }
+
+.st-mq-track {
+    display: flex; align-items: center;
+    width: max-content;
+    animation: stMq 46s linear infinite;
+}
+.st-marquee:hover .st-mq-track { animation-play-state: paused; }
+.st-marquee.reverse .st-mq-track { animation-direction: reverse; animation-duration: 58s; }
+@keyframes stMq { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.st-mq-item {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 26px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; font-weight: 600;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.st-mq-item b { color: #fff; font-weight: 700; }
+.st-mq-item i { font-size: 0.78rem; color: var(--st-aurum); }
+.st-mq-item.ok i    { color: var(--st-mint); }
+.st-mq-item.warn i  { color: var(--st-amber); }
+.st-mq-item.crit i  { color: var(--st-rose); }
+.st-mq-item.viol i  { color: var(--st-violet-soft); }
+.st-mq-item .tag {
+    padding: 2px 8px; border-radius: 50px;
+    font-size: 0.5rem; font-weight: 800; letter-spacing: 0.12em;
+    background: rgba(247, 201, 72, 0.14);
+    border: 1px solid rgba(247, 201, 72, 0.34);
+    color: var(--st-aurum);
+}
+.st-mq-item .tag.mint { background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.34); color: #6EE7B7; }
+.st-mq-item .tag.rose { background: rgba(251,113,133,.12); border-color: rgba(251,113,133,.34); color: #FDA4AF; }
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.st-tabbar {
+    position: sticky; top: 74px; z-index: 120;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 10px 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--st-line);
+    box-shadow: 0 12px 36px rgba(11, 17, 33, 0.07);
+}
+.st-tabs {
+    position: relative;
+    display: flex; align-items: center; gap: 4px;
+    flex: 1; min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.st-tabs::-webkit-scrollbar { display: none; }
+
+.st-tab {
+    position: relative; z-index: 2;
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 11px 20px;
+    border-radius: 13px;
+    border: none; background: transparent;
+    font-family: inherit;
+    font-size: 0.83rem; font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer; white-space: nowrap;
+    transition: color .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.st-tab i { font-size: 0.92rem; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+.st-tab:hover { color: var(--primary-dark); }
+.st-tab:hover i { transform: translateY(-2px) scale(1.1); }
+.st-tab.active { color: var(--primary-deep); font-weight: 700; }
+.st-tab.active i { color: var(--st-aurum-deep); }
+.st-tab .cnt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    padding: 2px 7px; border-radius: 50px;
+    background: var(--gray-100); color: var(--gray-600);
+    transition: all .3s ease;
+}
+.st-tab.active .cnt { background: rgba(247,201,72,.22); color: var(--st-aurum-deep); }
+
+.st-tab-ind {
+    position: absolute; z-index: 1;
+    top: 4px; bottom: 4px; left: 0;
+    width: 0; border-radius: 13px;
+    background: linear-gradient(135deg, rgba(255,233,168,.55) 0%, rgba(247,201,72,.42) 48%, rgba(167,139,250,.34) 100%);
+    border: 1px solid rgba(247, 201, 72, 0.42);
+    box-shadow: 0 6px 20px rgba(247, 201, 72, 0.24), inset 0 1px 0 rgba(255,255,255,.7);
+    transition: transform .45s cubic-bezier(.34,1.56,.64,1), width .45s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none;
+}
+
+.st-tab-actions { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.st-savestate {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gray-400);
+    padding: 7px 13px; border-radius: 50px;
+    background: var(--gray-100);
+    transition: all .35s ease;
+}
+.st-savestate.dirty {
+    color: var(--st-aurum-deep);
+    background: rgba(247, 201, 72, 0.14);
+    border: 1px solid rgba(247, 201, 72, 0.4);
+}
+.st-savestate i { font-size: 0.72rem; }
+
+/* ============================================================
+   PANELS + GRID
+   ============================================================ */
+.st-panel { display: none; animation: stPanelIn .45s cubic-bezier(.2,.9,.3,1); }
+.st-panel.active { display: block; }
+@keyframes stPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.st-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 344px;
+    gap: 22px;
+    align-items: start;
+}
+.st-col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+/* ============================================================
+   SETTINGS CARD
+   ============================================================ */
+.st-card {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--st-line);
+    border-radius: 20px;
+    box-shadow: 0 6px 26px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: box-shadow .35s ease, transform .35s ease, border-color .35s ease;
+}
+.st-card:hover { box-shadow: 0 18px 52px rgba(11, 17, 33, 0.10); }
+.st-card.admin-only { border-color: rgba(139, 92, 246, 0.24); }
+.st-card.admin-only::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--st-violet), var(--st-aurum));
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.5);
+}
+
+.st-card-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--st-line);
+    background: linear-gradient(180deg, rgba(248,250,252,.7), #fff);
+}
+.st-card-head .ttl { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.st-card-head .ic {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 1rem;
+    background: linear-gradient(135deg, var(--st-ink), var(--st-slate-2));
+    color: var(--st-aurum);
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.20), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.st-card-head .ic.violet { color: var(--st-violet-soft); }
+.st-card-head .ic.mint   { color: var(--st-mint); }
+.st-card-head .ic.rose   { color: var(--st-rose); }
+.st-card-head .ic.cyan   { color: var(--st-cyan); }
+.st-card-head h3 {
+    font-size: 0.98rem; font-weight: 700; color: var(--primary-dark);
+    line-height: 1.25; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.st-card-head p {
+    margin-top: 3px;
+    font-size: 0.74rem; color: var(--gray-600); line-height: 1.5;
+}
+.st-card-body { padding: 22px 24px 24px; }
+
+/* ============================================================
+   FORM FIELDS
+   ============================================================ */
+.st-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+.st-field:last-child { margin-bottom: 0; }
+.st-field > label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.7rem; font-weight: 800;
+    letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+}
+.st-field > label .req { color: var(--st-rose); }
+.st-field .hint {
+    font-size: 0.72rem; color: var(--gray-400); line-height: 1.55;
+}
+
+.st-input, .st-select, .st-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    background: #fff;
+    font-family: inherit;
+    font-size: 0.87rem;
+    color: var(--primary-dark);
+    transition: all .28s ease;
+    outline: none;
+}
+.st-input:hover, .st-select:hover, .st-textarea:hover { border-color: var(--gray-300); }
+.st-input:focus, .st-select:focus, .st-textarea:focus {
+    border-color: var(--st-aurum);
+    box-shadow: 0 0 0 4px rgba(247, 201, 72, 0.16);
+    background: #fff;
+}
+.st-input::placeholder, .st-textarea::placeholder { color: var(--gray-400); }
+.st-textarea { resize: vertical; min-height: 130px; line-height: 1.65; }
+.st-textarea.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+.st-select {
+    appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 15px;
+    padding-right: 40px;
+}
+.st-input-group { position: relative; display: flex; align-items: center; }
+.st-input-group .affix {
+    position: absolute; left: 15px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; font-weight: 700;
+    color: var(--gray-400); pointer-events: none;
+}
+.st-input-group .affix + .st-input { padding-left: 38px; }
+.st-input-group .suffix {
+    position: absolute; right: 15px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--gray-400); pointer-events: none;
+}
+
+.st-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.st-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 700px) { .st-row, .st-row.three { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   TOGGLE SWITCH
+   ============================================================ */
+.st-switch-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px dashed var(--gray-200);
+}
+.st-switch-row:last-child { border-bottom: none; padding-bottom: 0; }
+.st-switch-row:first-child { padding-top: 0; }
+.st-switch-row .txt { min-width: 0; flex: 1; }
+.st-switch-row .txt strong {
+    display: block; font-size: 0.85rem; font-weight: 700;
+    color: var(--primary-dark); line-height: 1.3;
+}
+.st-switch-row .txt small {
+    display: block; margin-top: 3px;
+    font-size: 0.73rem; color: var(--gray-600); line-height: 1.5;
+}
+.st-switch { position: relative; flex-shrink: 0; display: inline-flex; }
+.st-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.st-switch .track {
+    width: 46px; height: 26px; border-radius: 50px;
+    background: var(--gray-200);
+    display: block; position: relative; cursor: pointer;
+    transition: background .32s cubic-bezier(.25,.46,.45,.94), box-shadow .32s ease;
+    box-shadow: inset 0 1px 3px rgba(11,17,33,.10);
+}
+.st-switch .thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(11, 17, 33, 0.22);
+    transition: transform .34s cubic-bezier(.34,1.56,.64,1);
+}
+.st-switch input:checked + .track {
+    background: linear-gradient(135deg, #F7C948, #BEF264);
+    box-shadow: 0 6px 18px rgba(247, 201, 72, 0.40), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.st-switch input:checked + .track .thumb { transform: translateX(20px); }
+.st-switch input:focus-visible + .track { outline: 2px solid var(--st-violet); outline-offset: 3px; }
+.st-switch.violet input:checked + .track { background: linear-gradient(135deg, #A78BFA, #7C3AED); box-shadow: 0 6px 18px rgba(139,92,246,.4); }
+.st-switch.rose input:checked + .track { background: linear-gradient(135deg, #FDA4AF, #E11D48); box-shadow: 0 6px 18px rgba(225,29,72,.36); }
+
+/* ============================================================
+   DROPZONE (logo upload)
+   ============================================================ */
+.st-drop {
+    position: relative;
+    border: 1.5px dashed var(--gray-300);
+    border-radius: 16px;
+    padding: 22px;
+    display: flex; align-items: center; gap: 18px;
+    background: linear-gradient(135deg, rgba(248,250,252,.9), #fff);
+    cursor: pointer;
+    transition: all .32s ease;
+}
+.st-drop:hover, .st-drop.drag {
+    border-color: var(--st-aurum);
+    background: linear-gradient(135deg, rgba(247,201,72,.08), rgba(139,92,246,.05));
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(247, 201, 72, 0.14);
+}
+.st-drop input[type="file"] { display: none; }
+.st-drop .preview {
+    width: 68px; height: 68px; flex-shrink: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--st-ink), var(--st-slate-2));
+    display: grid; place-items: center;
+    color: var(--st-aurum); font-size: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(11, 17, 33, 0.22), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.st-drop .preview img { width: 100%; height: 100%; object-fit: cover; }
+.st-drop .d-txt strong {
+    display: block; font-size: 0.86rem; font-weight: 700;
+    color: var(--primary-dark); margin-bottom: 3px;
+}
+.st-drop .d-txt small { font-size: 0.73rem; color: var(--gray-600); line-height: 1.55; display: block; }
+.st-drop .d-txt .formats {
+    display: inline-flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+}
+.st-drop .d-txt .formats span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem; font-weight: 700; letter-spacing: 0.1em;
+    padding: 2px 7px; border-radius: 5px;
+    background: var(--gray-100); color: var(--gray-600);
+}
+
+/* ============================================================
+   COMMISSION / PRICING ENGINE
+   ============================================================ */
+.st-slider-wrap { display: flex; align-items: center; gap: 16px; }
+.st-slider {
+    -webkit-appearance: none; appearance: none;
+    flex: 1; height: 8px; border-radius: 50px;
+    background: linear-gradient(90deg, var(--st-aurum) 0%, var(--st-violet) var(--fill, 20%), var(--gray-200) var(--fill, 20%));
+    outline: none; cursor: pointer;
+}
+.st-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--st-aurum);
+    box-shadow: 0 4px 14px rgba(247, 201, 72, 0.55);
+    cursor: grab;
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.st-slider::-webkit-slider-thumb:hover { transform: scale(1.14); }
+.st-slider::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--st-aurum);
+    box-shadow: 0 4px 14px rgba(247, 201, 72, 0.55);
+    cursor: grab;
+}
+.st-slider-val {
+    min-width: 74px; text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05rem; font-weight: 800;
+    color: var(--st-aurum-deep);
+    padding: 8px 12px; border-radius: 12px;
+    background: rgba(247, 201, 72, 0.13);
+    border: 1px solid rgba(247, 201, 72, 0.34);
+}
+
+.st-split {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    align-items: center; gap: 14px;
+    margin-top: 18px; padding: 18px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(11,17,33,.03), rgba(139,92,246,.05));
+    border: 1px solid var(--st-line);
+}
+.st-split .side { text-align: center; }
+.st-split .side span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.53rem; font-weight: 800;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gray-400); margin-bottom: 6px;
+}
+.st-split .side strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-weight: 700; line-height: 1.1;
+}
+.st-split .side.mentor strong { color: var(--st-aurum-deep); }
+.st-split .side.platform strong { color: var(--st-violet); }
+.st-split .divider {
+    width: 1px; height: 44px;
+    background: linear-gradient(180deg, transparent, var(--gray-300), transparent);
+}
+
+/* ============================================================
+   PROVIDER CARDS (payout methods)
+   ============================================================ */
+.st-providers {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+    gap: 16px;
+}
+.st-provider {
+    position: relative;
+    border-radius: 18px;
+    border: 1px solid var(--st-line);
+    background: #fff;
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: all .35s cubic-bezier(.25,.46,.45,.94);
+    overflow: hidden;
+}
+.st-provider::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--p-accent, var(--st-aurum));
+    opacity: 0; transition: opacity .35s ease;
+}
+.st-provider:hover {
+    transform: translateY(-5px);
+    border-color: rgba(247, 201, 72, 0.36);
+    box-shadow: 0 20px 48px rgba(11, 17, 33, 0.11);
+}
+.st-provider:hover::before { opacity: 1; }
+.st-provider.off { opacity: .58; filter: saturate(.55); }
+
+.st-provider-top { display: flex; align-items: center; gap: 12px; }
+.st-provider-logo {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: 13px;
+    display: grid; place-items: center;
+    font-size: 1.1rem; font-weight: 800;
+    color: #fff;
+    background: var(--p-accent, var(--st-aurum));
+    box-shadow: 0 8px 20px rgba(11, 17, 33, 0.16);
+    font-family: 'Playfair Display', serif;
+}
+.st-provider-top .meta { flex: 1; min-width: 0; }
+.st-provider-top .meta strong {
+    display: block; font-size: 0.88rem; font-weight: 700;
+    color: var(--primary-dark); line-height: 1.25;
+}
+.st-provider-top .meta small {
+    display: block; margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gray-400);
+}
+.st-provider-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px 0;
+    border-top: 1px dashed var(--gray-200);
+    border-bottom: 1px dashed var(--gray-200);
+}
+.st-provider-stats > div { text-align: center; }
+.st-provider-stats strong {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; font-weight: 800;
+    color: var(--primary-dark);
+}
+.st-provider-stats span {
+    display: block; margin-top: 2px;
+    font-size: 0.5rem; font-weight: 800;
+    letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--gray-400);
+}
+.st-provider-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.st-provider-foot .rank {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem; font-weight: 800;
+    color: var(--gray-400); letter-spacing: 0.08em;
+}
+.st-provider-foot .rank b { color: var(--st-aurum-deep); }
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.st-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.st-table th {
+    text-align: left;
+    padding: 11px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--gray-400);
+    border-bottom: 1px solid var(--gray-200);
+    background: rgba(248, 250, 252, 0.7);
+    white-space: nowrap;
+}
+.st-table th:first-child { border-radius: 12px 0 0 0; }
+.st-table th:last-child  { border-radius: 0 12px 0 0; }
+.st-table td {
+    padding: 13px 14px;
+    font-size: 0.82rem;
+    color: var(--gray-600);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+.st-table tbody tr { transition: background .25s ease; }
+.st-table tbody tr:hover { background: rgba(247, 201, 72, 0.05); }
+.st-table tbody tr:last-child td { border-bottom: none; }
+.st-table td strong { color: var(--primary-dark); font-weight: 700; }
+.st-table .tier-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase;
+}
+.st-table .tier-pill.rising { background: rgba(34,211,238,.12); color: #0E7490; border: 1px solid rgba(34,211,238,.3); }
+.st-table .tier-pill.pro    { background: rgba(247,201,72,.16); color: var(--st-aurum-deep); border: 1px solid rgba(247,201,72,.4); }
+.st-table .tier-pill.elite  { background: rgba(139,92,246,.12); color: #6D28D9; border: 1px solid rgba(139,92,246,.32); }
+.st-mini-input {
+    width: 88px; padding: 7px 11px;
+    border-radius: 9px; border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--primary-dark); outline: none;
+    transition: all .25s ease;
+}
+.st-mini-input:focus {
+    border-color: var(--st-aurum);
+    box-shadow: 0 0 0 3px rgba(247, 201, 72, 0.18);
+}
+
+/* ============================================================
+   EMAIL TEMPLATES
+   ============================================================ */
+.st-mail {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--st-line);
+    background: #fff;
+    box-shadow: 0 6px 26px rgba(11, 17, 33, 0.05);
+}
+@media (max-width: 1000px) { .st-mail { grid-template-columns: 1fr; } }
+
+.st-mail-list {
+    border-right: 1px solid var(--st-line);
+    background: linear-gradient(180deg, rgba(248,250,252,.9), #fff);
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 5px;
+    max-height: 720px; overflow-y: auto;
+}
+.st-mail-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 11px 13px;
+    border-radius: 13px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer; text-align: left;
+    font-family: inherit;
+    transition: all .3s cubic-bezier(.25,.46,.45,.94);
+    width: 100%;
+}
+.st-mail-item:hover { background: rgba(247, 201, 72, 0.07); border-color: rgba(247, 201, 72, 0.22); }
+.st-mail-item.active {
+    background: linear-gradient(135deg, rgba(255,233,168,.4), rgba(167,139,250,.22));
+    border-color: rgba(247, 201, 72, 0.45);
+    box-shadow: 0 8px 22px rgba(247, 201, 72, 0.16);
+}
+.st-mail-item .mi-ic {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.85rem;
+    background: var(--gray-100); color: var(--gray-600);
+    transition: all .3s ease;
+}
+.st-mail-item.active .mi-ic {
+    background: linear-gradient(135deg, var(--st-ink), var(--st-slate-2));
+    color: var(--st-aurum);
+    box-shadow: 0 6px 16px rgba(11, 17, 33, 0.22);
+}
+.st-mail-item .mi-meta { min-width: 0; flex: 1; }
+.st-mail-item .mi-meta strong {
+    display: block; font-size: 0.79rem; font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.st-mail-item .mi-meta small {
+    display: block; margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem; font-weight: 700;
+    letter-spacing: 0.07em;
+    color: var(--gray-400);
+}
+.st-mail-item .mi-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: var(--st-mint); box-shadow: 0 0 8px rgba(52,211,153,.7);
+}
+.st-mail-item .mi-dot.off { background: var(--gray-300); box-shadow: none; }
+
+.st-mail-editor { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.st-vars { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-var {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 50px;
+    background: rgba(139, 92, 246, 0.09);
+    border: 1px dashed rgba(139, 92, 246, 0.38);
+    color: #6D28D9;
+    cursor: pointer;
+    transition: all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.st-var:hover {
+    background: rgba(139, 92, 246, 0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(139, 92, 246, 0.22);
+}
+
+.st-mail-preview {
+    border-radius: 14px;
+    border: 1px solid var(--gray-200);
+    background: #fff;
+    padding: 20px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--gray-600);
+    display: none;
+}
+.st-mail-preview.show { display: block; animation: stPanelIn .35s ease; }
+.st-mail-preview .pv-head {
+    padding-bottom: 12px; margin-bottom: 14px;
+    border-bottom: 1px dashed var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; color: var(--gray-400);
+}
+.st-mail-preview .pv-head b { color: var(--primary-dark); }
+
+/* ============================================================
+   IP ALLOWLIST / CHIPS
+   ============================================================ */
+.st-chipbox {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--gray-200);
+    background: rgba(248, 250, 252, 0.7);
+    min-height: 62px;
+}
+.st-ipchip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 8px 6px 12px;
+    border-radius: 50px;
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--primary-dark);
+    box-shadow: 0 3px 10px rgba(11, 17, 33, 0.05);
+    animation: stPanelIn .3s ease;
+}
+.st-ipchip button {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: none; background: var(--gray-100);
+    color: var(--gray-600); cursor: pointer;
+    display: grid; place-items: center;
+    font-size: 0.58rem;
+    transition: all .25s ease;
+}
+.st-ipchip button:hover { background: var(--st-rose); color: #fff; transform: rotate(90deg); }
+
+/* ============================================================
+   API KEY ROWS
+   ============================================================ */
+.st-keyrow {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 15px;
+    border-radius: 13px;
+    border: 1px solid var(--gray-200);
+    background: #fff;
+    margin-bottom: 10px;
+    transition: all .3s ease;
+}
+.st-keyrow:last-child { margin-bottom: 0; }
+.st-keyrow:hover { border-color: rgba(247, 201, 72, 0.4); box-shadow: 0 8px 22px rgba(247, 201, 72, 0.10); }
+.st-keyrow .k-meta { flex: 1; min-width: 0; }
+.st-keyrow .k-meta strong {
+    display: block; font-size: 0.8rem; font-weight: 700;
+    color: var(--primary-dark); margin-bottom: 3px;
+}
+.st-keyrow .k-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--gray-600);
+    background: var(--gray-100);
+    padding: 4px 9px; border-radius: 7px;
+    display: inline-block;
+    letter-spacing: 0.04em;
+}
+.st-icon-btn {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 10px;
+    border: 1px solid var(--gray-200);
+    background: #fff; color: var(--gray-600);
+    display: grid; place-items: center;
+    cursor: pointer; font-size: 0.82rem;
+    transition: all .28s cubic-bezier(.34,1.56,.64,1);
+}
+.st-icon-btn:hover {
+    border-color: var(--st-aurum);
+    color: var(--st-aurum-deep);
+    background: rgba(247, 201, 72, 0.10);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   DANGER ZONE
+   ============================================================ */
+.st-danger {
+    border-color: rgba(225, 29, 72, 0.24);
+    background: linear-gradient(180deg, rgba(255, 241, 242, 0.55), #fff);
+}
+.st-danger .st-card-head { background: linear-gradient(180deg, rgba(255,228,230,.7), transparent); }
+.st-danger .st-card-head .ic {
+    background: linear-gradient(135deg, #9F1239, #E11D48);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.32);
+}
+.st-danger .st-card-head h3 { color: #9F1239; }
+.st-danger-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    padding: 15px 0;
+    border-bottom: 1px dashed rgba(225, 29, 72, 0.18);
+}
+.st-danger-row:last-child { border-bottom: none; padding-bottom: 0; }
+.st-danger-row:first-child { padding-top: 0; }
+.st-danger-row .txt { min-width: 0; flex: 1; }
+.st-danger-row .txt strong {
+    display: block; font-size: 0.85rem; font-weight: 700; color: #9F1239;
+}
+.st-danger-row .txt small {
+    display: block; margin-top: 3px;
+    font-size: 0.73rem; color: var(--gray-600); line-height: 1.5;
+}
+.st-btn-danger {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 50px;
+    border: 1px solid rgba(225, 29, 72, 0.4);
+    background: rgba(225, 29, 72, 0.07);
+    color: #BE123C;
+    font-family: inherit; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+}
+.st-btn-danger:hover {
+    background: #E11D48; color: #fff;
+    border-color: #E11D48;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(225, 29, 72, 0.32);
+}
+
+/* ============================================================
+   SIDE STATS / MINI CARDS
+   ============================================================ */
+.st-mini {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--gray-200);
+}
+.st-mini:last-child { border-bottom: none; padding-bottom: 0; }
+.st-mini:first-child { padding-top: 0; }
+.st-mini .ic {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 0.8rem;
+    background: var(--gray-100); color: var(--gray-600);
+}
+.st-mini .ic.gold   { background: rgba(247,201,72,.15); color: var(--st-aurum-deep); }
+.st-mini .ic.violet { background: rgba(139,92,246,.12); color: #6D28D9; }
+.st-mini .ic.mint   { background: rgba(52,211,153,.13); color: #047857; }
+.st-mini .ic.cyan   { background: rgba(34,211,238,.12); color: #0E7490; }
+.st-mini .txt { flex: 1; min-width: 0; }
+.st-mini .txt strong {
+    display: block; font-size: 0.79rem; font-weight: 700;
+    color: var(--primary-dark); line-height: 1.3;
+}
+.st-mini .txt small { display: block; font-size: 0.68rem; color: var(--gray-400); margin-top: 2px; }
+.st-mini .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--primary-dark);
+}
+
+/* ============================================================
+   HEALTH DOCK  (bottom widget — not a page)
+   ============================================================ */
+.st-dock {
+    position: fixed;
+    left: var(--sidebar-w); right: 0; bottom: 0;
+    z-index: 180;
+    transition: transform .45s cubic-bezier(.25,.46,.45,.94);
+}
+@media (max-width: 900px) { .st-dock { left: 0; } }
+
+.st-dock-bar {
+    width: 100%;
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 26px;
+    height: 52px;
+    border: none;
+    border-top: 1px solid rgba(247, 201, 72, 0.24);
+    background: rgba(5, 7, 15, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    cursor: pointer;
+    font-family: inherit;
+    color: #fff;
+    transition: background .3s ease;
+}
+.st-dock-bar:hover { background: rgba(11, 17, 33, 0.97); }
+.st-dock-bar::before {
+    content: ''; position: absolute; top: -1px; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--st-mint) 0%, var(--st-aurum) 42%, var(--st-violet) 100%);
+    opacity: .75;
+}
+.st-dock-bar .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--st-mint); flex-shrink: 0;
+    box-shadow: 0 0 0 0 rgba(52,211,153,.7);
+    animation: stPulse 2s infinite;
+}
+.st-dock-bar strong {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: #6EE7B7; white-space: nowrap;
+}
+.st-dock-metrics {
+    display: flex; align-items: center; gap: 22px;
+    margin-left: auto; flex-wrap: wrap;
+}
+.st-dock-metrics .m {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+}
+.st-dock-metrics .m i { font-size: 0.76rem; color: var(--st-aurum); }
+.st-dock-metrics .m b { color: #fff; font-weight: 800; }
+.st-dock-metrics .m.warn i { color: var(--st-amber); }
+.st-dock-metrics .m.warn b { color: #FCD34D; }
+.st-dock-bar .chev {
+    margin-left: 18px; font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    transition: transform .45s cubic-bezier(.34,1.56,.64,1);
+    flex-shrink: 0;
+}
+.st-dock.open .st-dock-bar .chev { transform: rotate(180deg); }
+
+.st-dock-panel {
+    max-height: 0; overflow: hidden;
+    background: rgba(5, 7, 15, 0.97);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    transition: max-height .55s cubic-bezier(.25,.46,.45,.94);
+}
+.st-dock.open .st-dock-panel { max-height: 460px; overflow-y: auto; }
+.st-dock-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    padding: 22px 26px 26px;
+}
+.st-health-tile {
+    border-radius: 15px;
+    padding: 15px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    transition: all .32s ease;
+}
+.st-health-tile:hover {
+    background: rgba(247, 201, 72, 0.07);
+    border-color: rgba(247, 201, 72, 0.30);
+    transform: translateY(-3px);
+}
+.st-health-tile .ht-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+}
+.st-health-tile .ht-top span {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+.st-health-tile .ht-top span i { font-size: 0.78rem; color: var(--st-aurum); }
+.st-health-tile .ht-top b {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem; font-weight: 800;
+    color: #6EE7B7;
+}
+.st-health-tile .ht-top b.warn { color: #FCD34D; }
+.st-health-tile .ht-top b.bad  { color: #FDA4AF; }
+.st-health-tile .ht-bar {
+    height: 5px; border-radius: 50px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+.st-health-tile .ht-bar > span {
+    display: block; height: 100%; border-radius: 50px;
+    background: linear-gradient(90deg, var(--st-mint), #10B981);
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.6);
+    transition: width 1.2s cubic-bezier(.34,1.1,.64,1);
+}
+.st-health-tile .ht-bar > span.warn { background: linear-gradient(90deg, #FCD34D, var(--st-amber)); box-shadow: 0 0 10px rgba(245,158,11,.6); }
+.st-health-tile .ht-bar > span.violet { background: linear-gradient(90deg, var(--st-violet-soft), var(--st-violet)); box-shadow: 0 0 10px rgba(139,92,246,.6); }
+.st-health-tile .ht-bar > span.cyan { background: linear-gradient(90deg, #67E8F9, var(--st-cyan)); box-shadow: 0 0 10px rgba(34,211,238,.6); }
+.st-health-tile .ht-foot {
+    margin-top: 9px;
+    display: flex; justify-content: space-between; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 0.07em;
+    color: rgba(255, 255, 255, 0.34);
+}
+
+/* ============================================================
+   STICKY SAVE BAR
+   ============================================================ */
+.st-savebar {
+    position: fixed;
+    left: calc(var(--sidebar-w) + 26px);
+    right: 26px;
+    bottom: 68px;
+    z-index: 175;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 13px 18px;
+    border-radius: 16px;
+    background: rgba(11, 17, 33, 0.96);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(247, 201, 72, 0.30);
+    box-shadow: 0 20px 48px rgba(2, 6, 23, 0.34);
+    transform: translateY(140%);
+    opacity: 0;
+    transition: transform .5s cubic-bezier(.34,1.4,.64,1), opacity .4s ease;
+    pointer-events: none;
+}
+.st-savebar.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+@media (max-width: 900px) { .st-savebar { left: 16px; right: 16px; bottom: 64px; } }
+
+.st-savebar .sb-txt { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px; }
+.st-savebar .sb-txt i {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: rgba(247, 201, 72, 0.15); color: var(--st-aurum);
+    font-size: 0.9rem;
+}
+.st-savebar .sb-txt strong {
+    display: block; color: #fff; font-size: 0.82rem; font-weight: 700;
+}
+.st-savebar .sb-txt small {
+    display: block; margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.45);
+}
+.st-btn-gold {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 50px;
+    border: none; cursor: pointer;
+    background: var(--st-gold);
+    color: var(--st-obsidian);
+    font-family: inherit; font-size: 0.8rem; font-weight: 800;
+    box-shadow: 0 10px 26px rgba(247, 201, 72, 0.36);
+    transition: all .32s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+}
+.st-btn-gold:hover { transform: translateY(-3px); box-shadow: 0 16px 38px rgba(247, 201, 72, 0.5); }
+.st-btn-ghost-dark {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: transparent; color: rgba(255,255,255,0.7);
+    font-family: inherit; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; transition: all .3s ease; white-space: nowrap;
+}
+.st-btn-ghost-dark:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(247,201,72,.5); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1240px) {
+    .st-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+    .st-hero { padding: 26px 22px 24px; border-radius: 20px; }
+    .st-hero-body { gap: 22px; }
+    .st-hero-stats > div { min-width: 104px; padding: 11px 14px; }
+    .st-tabbar { top: 66px; padding: 8px; }
+    .st-card-head, .st-card-body { padding-left: 18px; padding-right: 18px; }
+    .st-mail-editor { padding: 18px; }
+}
+@media (max-width: 640px) {
+    .st-dock-metrics .m:nth-child(n+4) { display: none; }
+    .st-dock-bar { padding: 0 16px; gap: 10px; }
+    .st-dock-bar strong { font-size: 0.55rem; }
+    .st-hero-stats { width: 100%; }
+    .st-hero-stats > div { flex: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .st-mq-track, .st-root::after, .st-chip.live .pulse, .st-dock-bar .dot { animation: none !important; }
+    .st-shell *, .st-shell *::before, .st-shell *::after { transition-duration: .01ms !important; }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="st-shell">
+
+    <!-- ====================================================
+         HERO
+         ==================================================== -->
+    <section class="st-hero fade-up">
+        <div class="st-hero-body">
+            <div>
+                <div class="st-hero-badges">
+                    <span class="st-root"><i class="bi bi-crown-fill"></i> Root Access</span>
+                    <span class="st-chip"><i class="bi bi-hdd-network-fill"></i> PROD · eu-west-1</span>
+                    <span class="st-chip live"><span class="pulse"></span> Config v3.14.2</span>
+                    <span class="st-chip"><i class="bi bi-clock-history"></i> Signed 4m ago</span>
+                </div>
+                <h2>Platform <em>Settings</em></h2>
+                <p>
+                    Govern the identity, economics, and security posture of Knotwork.
+                    Every change is versioned, attributed to your admin ID, and reversible
+                    from the audit ledger.
+                </p>
+            </div>
+
+            <div class="st-hero-stats">
+                <div><strong>248</strong><span>Changes / 30d</span></div>
+                <div><strong>3</strong><span>Pending approvals</span></div>
+                <div><strong>99.98%</strong><span>Uptime</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         MARQUEE — live ops ticker
+         ==================================================== -->
+    <div class="st-marquee fade-up" aria-hidden="true">
+        <div class="st-mq-track">
+            <!-- set A -->
+            <span class="st-mq-item ok"><i class="bi bi-check-circle-fill"></i> Nightly backup completed · <b>03:14 UTC</b> <span class="tag mint">OK</span></span>
+            <span class="st-mq-item"><i class="bi bi-crown-fill"></i> <b>Adaeze Nwosu</b> changed commission to <b>18%</b> <span class="tag">AUDIT</span></span>
+            <span class="st-mq-item warn"><i class="bi bi-exclamation-triangle-fill"></i> Email worker queue depth <b>12</b> — within threshold</span>
+            <span class="st-mq-item viol"><i class="bi bi-shield-lock-fill"></i> MFA enforced for <b>all admin roles</b> <span class="tag">POLICY</span></span>
+            <span class="st-mq-item"><i class="bi bi-credit-card-2-front-fill"></i> Paystack settlement window moved to <b>T+1</b></span>
+            <span class="st-mq-item ok"><i class="bi bi-database-check"></i> Database replication lag <b>12ms</b></span>
+            <span class="st-mq-item crit"><i class="bi bi-flag-fill"></i> <b>3</b> moderation flags awaiting review <span class="tag rose">ACTION</span></span>
+            <span class="st-mq-item"><i class="bi bi-graph-up-arrow"></i> New mentor signups <b>+42</b> this week</span>
+            <!-- set B (duplicate for seamless loop) -->
+            <span class="st-mq-item ok"><i class="bi bi-check-circle-fill"></i> Nightly backup completed · <b>03:14 UTC</b> <span class="tag mint">OK</span></span>
+            <span class="st-mq-item"><i class="bi bi-crown-fill"></i> <b>Adaeze Nwosu</b> changed commission to <b>18%</b> <span class="tag">AUDIT</span></span>
+            <span class="st-mq-item warn"><i class="bi bi-exclamation-triangle-fill"></i> Email worker queue depth <b>12</b> — within threshold</span>
+            <span class="st-mq-item viol"><i class="bi bi-shield-lock-fill"></i> MFA enforced for <b>all admin roles</b> <span class="tag">POLICY</span></span>
+            <span class="st-mq-item"><i class="bi bi-credit-card-2-front-fill"></i> Paystack settlement window moved to <b>T+1</b></span>
+            <span class="st-mq-item ok"><i class="bi bi-database-check"></i> Database replication lag <b>12ms</b></span>
+            <span class="st-mq-item crit"><i class="bi bi-flag-fill"></i> <b>3</b> moderation flags awaiting review <span class="tag rose">ACTION</span></span>
+            <span class="st-mq-item"><i class="bi bi-graph-up-arrow"></i> New mentor signups <b>+42</b> this week</span>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         FORM WRAPPER
+         ==================================================== -->
+    <form method="post" enctype="multipart/form-data" id="settingsForm" novalidate>
+        {% csrf_token %}
+
+        <!-- ====================================================
+             TAB BAR
+             ==================================================== -->
+        <div class="st-tabbar fade-up">
+            <nav class="st-tabs" id="stTabs" role="tablist" aria-label="Settings sections">
+                <span class="st-tab-ind" id="stTabInd" aria-hidden="true"></span>
+
+                <button type="button" class="st-tab active" role="tab" data-tab="general"
+                        aria-selected="true" aria-controls="panel-general">
+                    <i class="bi bi-sliders2"></i> General
+                </button>
+
+                <button type="button" class="st-tab" role="tab" data-tab="payout"
+                        aria-selected="false" aria-controls="panel-payout">
+                    <i class="bi bi-credit-card-2-front-fill"></i> Payout Methods
+                    <span class="cnt">6</span>
+                </button>
+
+                <button type="button" class="st-tab" role="tab" data-tab="email"
+                        aria-selected="false" aria-controls="panel-email">
+                    <i class="bi bi-envelope-paper-fill"></i> Email Templates
+                    <span class="cnt">7</span>
+                </button>
+
+                <button type="button" class="st-tab" role="tab" data-tab="security"
+                        aria-selected="false" aria-controls="panel-security">
+                    <i class="bi bi-shield-lock-fill"></i> Security
+                    <span class="cnt">4</span>
+                </button>
+            </nav>
+
+            <div class="st-tab-actions">
+                <span class="st-savestate" id="saveState">
+                    <i class="bi bi-cloud-check-fill"></i> All changes saved
+                </span>
+                <button type="button" class="btn-sm line" id="snapshotBtn">
+                    <i class="bi bi-download"></i> Snapshot
+                </button>
+            </div>
+        </div>
+
+        <!-- ====================================================
+             PANEL · GENERAL
+             ==================================================== -->
+        <section class="st-panel active" id="panel-general" role="tabpanel" aria-labelledby="tab-general">
+            <div class="st-grid">
+
+                <!-- LEFT COLUMN -->
+                <div class="st-col">
+
+                    <!-- IDENTITY -->
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic"><i class="bi bi-globe2"></i></span>
+                                <div>
+                                    <h3>Site Identity <span class="st-root ghost"><i class="bi bi-crown-fill"></i> Admin only</span></h3>
+                                    <p>Name, branding and the public face of your learning platform.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-row">
+                                <div class="st-field">
+                                    <label for="siteName">Site name <span class="req">*</span></label>
+                                    <input type="text" id="siteName" name="site_name" class="st-input"
+                                           value="Knotwork" data-track>
+                                </div>
+                                <div class="st-field">
+                                    <label for="siteTagline">Tagline</label>
+                                    <input type="text" id="siteTagline" name="site_tagline" class="st-input"
+                                           value="Where craft meets craft." data-track>
+                                </div>
+                            </div>
+
+                            <div class="st-row">
+                                <div class="st-field">
+                                    <label for="supportEmail">Support email</label>
+                                    <div class="st-input-group">
+                                        <i class="bi bi-envelope affix" style="font-size:.85rem;"></i>
+                                        <input type="email" id="supportEmail" name="support_email" class="st-input"
+                                               value="support@knotwork.io" data-track>
+                                    </div>
+                                </div>
+                                <div class="st-field">
+                                    <label for="siteUrl">Canonical URL</label>
+                                    <input type="url" id="siteUrl" name="site_url" class="st-input"
+                                           value="https://knotwork.io" data-track>
+                                </div>
+                            </div>
+
+                            <div class="st-field">
+                                <label>Brand mark</label>
+                                <label class="st-drop" id="logoDrop" for="logoInput">
+                                    <span class="preview" id="logoPreview">
+                                        <i class="bi bi-image"></i>
+                                    </span>
+                                    <span class="d-txt">
+                                        <strong>Drop your logo here, or click to browse</strong>
+                                        <small>Recommended 512×512 · transparent PNG or SVG for crisp rendering on dark surfaces.</small>
+                                        <span class="formats">
+                                            <span>SVG</span><span>PNG</span><span>WEBP</span><span>MAX 2MB</span>
+                                        </span>
+                                    </span>
+                                    <input type="file" id="logoInput" name="logo" accept="image/*">
+                                </label>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <!-- ECONOMICS -->
+                    <article class="st-card admin-only fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic gold" style="color:var(--st-aurum);"><i class="bi bi-percent"></i></span>
+                                <div>
+                                    <h3>Marketplace Economics <span class="st-lock"><i class="bi bi-lock-fill"></i> Admin only</span></h3>
+                                    <p>Commission you take from mentors, and how revenue is split on every sale.</p>
+                                </div>
+                            </div>
+                            <span class="st-root"><i class="bi bi-crown-fill"></i> Root</span>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-field">
+                                <label for="commissionRange">Platform commission</label>
+                                <div class="st-slider-wrap">
+                                    <input type="range" id="commissionRange" name="commission"
+                                           class="st-slider" min="0" max="40" step="1" value="18"
+                                           style="--fill:45%;" data-track>
+                                    <span class="st-slider-val" id="commissionVal">18%</span>
+                                </div>
+                                <span class="hint">
+                                    Applied to every course sale, mentorship session and cohort enrolment.
+                                    Mentors always see the net figure before publishing.
+                                </span>
+                            </div>
+
+                            <div class="st-field">
+                                <label for="calcPrice">Live split preview</label>
+                                <div class="st-input-group">
+                                    <span class="affix">₦</span>
+                                    <input type="number" id="calcPrice" class="st-input" value="50000" min="0" step="500">
+                                </div>
+                                <span class="hint">Sample course price — see exactly who gets what.</span>
+                            </div>
+
+                            <div class="st-split">
+                                <div class="side mentor">
+                                    <span>Mentor receives</span>
+                                    <strong id="splitMentor">₦41,000</strong>
+                                </div>
+                                <div class="divider"></div>
+                                <div class="side platform">
+                                    <span>Knotwork keeps</span>
+                                    <strong id="splitPlatform">₦9,000</strong>
+                                </div>
+                            </div>
+
+                            <div class="st-row" style="margin-top:20px;">
+                                <div class="st-field">
+                                    <label for="minPayout">Minimum course price</label>
+                                    <div class="st-input-group">
+                                        <span class="affix">₦</span>
+                                        <input type="number" id="minPayout" name="min_course_price" class="st-input"
+                                               value="2500" data-track>
+                                    </div>
+                                </div>
+                                <div class="st-field">
+                                    <label for="refundWindow">Refund window</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="refundWindow" name="refund_days" class="st-input"
+                                               value="14" data-track>
+                                        <span class="suffix">days</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="st-row">
+                                <div class="st-field">
+                                    <label for="vatRate">VAT / tax rate</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="vatRate" name="vat_rate" class="st-input"
+                                               value="7.5" step="0.1" data-track>
+                                        <span class="suffix">%</span>
+                                    </div>
+                                </div>
+                                <div class="st-field">
+                                    <label for="currency">Base currency</label>
+                                    <select id="currency" name="currency" class="st-select" data-track>
+                                        <option value="NGN" selected>NGN — Nigerian Naira</option>
+                                        <option value="USD">USD — US Dollar</option>
+                                        <option value="GBP">GBP — Pound Sterling</option>
+                                        <option value="EUR">EUR — Euro</option>
+                                        <option value="KES">KES — Kenyan Shilling</option>
+                                        <option value="ZAR">ZAR — South African Rand</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <!-- LOCALIZATION -->
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic cyan"><i class="bi bi-translate"></i></span>
+                                <div>
+                                    <h3>Localization</h3>
+                                    <p>How dates, times and numbers render across the platform.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+                            <div class="st-row three">
+                                <div class="st-field">
+                                    <label for="timezone">Timezone</label>
+                                    <select id="timezone" name="timezone" class="st-select" data-track>
+                                        <option value="Africa/Lagos" selected>Africa/Lagos (WAT)</option>
+                                        <option value="Africa/Nairobi">Africa/Nairobi (EAT)</option>
+                                        <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
+                                        <option value="Europe/London">Europe/London (GMT)</option>
+                                        <option value="America/New_York">America/New_York (EST)</option>
+                                    </select>
+                                </div>
+                                <div class="st-field">
+                                    <label for="language">Default language</label>
+                                    <select id="language" name="language" class="st-select" data-track>
+                                        <option value="en" selected>English (UK)</option>
+                                        <option value="en-us">English (US)</option>
+                                        <option value="fr">Français</option>
+                                        <option value="pt">Português</option>
+                                        <option value="sw">Kiswahili</option>
+                                    </select>
+                                </div>
+                                <div class="st-field">
+                                    <label for="dateFormat">Date format</label>
+                                    <select id="dateFormat" name="date_format" class="st-select" data-track>
+                                        <option value="d M Y" selected>12 Mar 2026</option>
+                                        <option value="Y-m-d">2026-03-12</option>
+                                        <option value="m/d/Y">03/12/2026</option>
+                                        <option value="d/m/Y">12/03/2026</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="st-col">
+
+                    <!-- ENVIRONMENT -->
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic mint"><i class="bi bi-toggles2"></i></span>
+                                <div>
+                                    <h3>Environment</h3>
+                                    <p>Live switches.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Registrations open</strong>
+                                    <small>Allow new students to create accounts.</small>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" name="registrations_open" checked data-track>
+                                    <span class="track"><span class="thumb"></span></span>
+                                </label>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Mentor applications</strong>
+                                    <small>Accept new mentor onboarding requests.</small>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" name="mentor_apps" checked data-track>
+                                    <span class="track"><span class="thumb"></span></span>
+                                </label>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Waitlist mode</strong>
+                                    <small>Queue signups instead of granting instant access.</small>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" name="waitlist" data-track>
+                                    <span class="track"><span class="thumb"></span></span>
+                                </label>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong style="color:#9F1239;">Maintenance mode</strong>
+                                    <small>Take the platform offline. Admins retain access.</small>
+                                </div>
+                                <label class="st-switch rose">
+                                    <input type="checkbox" name="maintenance" data-track>
+                                    <span class="track"><span class="thumb"></span></span>
+                                </label>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <!-- FEATURE FLAGS -->
+                    <article class="st-card admin-only fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic violet"><i class="bi bi-flag-fill"></i></span>
+                                <div>
+                                    <h3>Feature Flags</h3>
+                                    <p>Roll capabilities out gradually.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Live classes</strong><small>Real-time video cohorts.</small></div>
+                                <label class="st-switch violet"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Certificates</strong><small>Auto-issued on completion.</small></div>
+                                <label class="st-switch violet"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>AI study tutor</strong><small>Beta — 12% of students.</small></div>
+                                <label class="st-switch violet"><input type="checkbox" data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Peer review</strong><small>Student-to-student critique.</small></div>
+                                <label class="st-switch violet"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Referral rewards</strong><small>₦2,000 per verified signup.</small></div>
+                                <label class="st-switch violet"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Public API v2</strong><small>Exposes course catalogue.</small></div>
+                                <label class="st-switch violet"><input type="checkbox" data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <!-- AUDIT SNAPSHOT -->
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic"><i class="bi bi-clock-history"></i></span>
+                                <div>
+                                    <h3>Recent Config Activity</h3>
+                                    <p>Your last admin actions.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+                            <div class="st-mini">
+                                <span class="ic gold"><i class="bi bi-percent"></i></span>
+                                <span class="txt"><strong>Commission 20% → 18%</strong><small>You · 4 minutes ago</small></span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic violet"><i class="bi bi-shield-lock-fill"></i></span>
+                                <span class="txt"><strong>MFA enforced for admins</strong><small>You · yesterday 16:22</small></span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic mint"><i class="bi bi-plug-fill"></i></span>
+                                <span class="txt"><strong>Paystack key rotated</strong><small>You · 3 days ago</small></span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic cyan"><i class="bi bi-envelope-paper-fill"></i></span>
+                                <span class="txt"><strong>Welcome email copy updated</strong><small>You · 6 days ago</small></span>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================
+             PANEL · PAYOUT METHODS
+             ==================================================== -->
+        <section class="st-panel" id="panel-payout" role="tabpanel" aria-labelledby="tab-payout">
+            <div class="st-grid">
+
+                <div class="st-col">
+
+                    <article class="st-card admin-only fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic"><i class="bi bi-credit-card-2-front-fill"></i></span>
+                                <div>
+                                    <h3>Payout Providers <span class="st-lock"><i class="bi bi-lock-fill"></i> Admin only</span></h3>
+                                    <p>Which rails mentors can withdraw through, and what each one costs you.</p>
+                                </div>
+                            </div>
+                            <span class="st-root"><i class="bi bi-crown-fill"></i> Root</span>
+                        </header>
+                        <div class="st-card-body">
+                            <div class="st-providers">
+
+                                <div class="st-provider" style="--p-accent:#0BA4DB;">
+                                    <div class="st-provider-top">
+                                        <span class="st-provider-logo">P</span>
+                                        <span class="meta">
+                                            <strong>Paystack</strong>
+                                            <small>NGN · Local</small>
+                                        </span>
+                                        <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                                    </div>
+                                    <div class="st-provider-stats">
+                                        <div><strong>1.5%</strong><span>Fee</span></div>
+                                        <div><strong>T+1</strong><span>Settle</span></div>
+                                        <div><strong>4.2k</strong><span>Payouts</span></div>
+                                    </div>
+                                    <div class="st-provider-foot">
+                                        <span class="rank"><i class="bi bi-arrow-down-up"></i> Priority <b>#1</b></span>
+                                        <button type="button" class="btn-sm line" data-toast="Paystack configuration opened" data-toast-type="info">
+                                            <i class="bi bi-gear-fill"></i> Configure
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="st-provider" style="--p-accent:#F5A623;">
+                                    <div class="st-provider-top">
+                                        <span class="st-provider-logo">F</span>
+                                        <span class="meta">
+                                            <strong>Flutterwave</strong>
+                                            <small>Multi-currency</small>
+                                        </span>
+                                        <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                                    </div>
+                                    <div class="st-provider-stats">
+                                        <div><strong>1.4%</strong><span>Fee</span></div>
+                                        <div><strong>T+2</strong><span>Settle</span></div>
+                                        <div><strong>2.8k</strong><span>Payouts</span></div>
+                                    </div>
+                                    <div class="st-provider-foot">
+                                        <span class="rank"><i class="bi bi-arrow-down-up"></i> Priority <b>#2</b></span>
+                                        <button type="button" class="btn-sm line" data-toast="Flutterwave configuration opened" data-toast-type="info">
+                                            <i class="bi bi-gear-fill"></i> Configure
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="st-provider" style="--p-accent:#635BFF;">
+                                    <div class="st-provider-top">
+                                        <span class="st-provider-logo">S</span>
+                                        <span class="meta">
+                                            <strong>Stripe Connect</strong>
+                                            <small>USD / EUR · Global</small>
+                                        </span>
+                                        <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                                    </div>
+                                    <div class="st-provider-stats">
+                                        <div><strong>2.9%</strong><span>Fee</span></div>
+                                        <div><strong>T+3</strong><span>Settle</span></div>
+                                        <div><strong>1.1k</strong><span>Payouts</span></div>
+                                    </div>
+                                    <div class="st-provider-foot">
+                                        <span class="rank"><i class="bi bi-arrow-down-up"></i> Priority <b>#3</b></span>
+                                        <button type="button" class="btn-sm line" data-toast="Stripe configuration opened" data-toast-type="info">
+                                            <i class="bi bi-gear-fill"></i> Configure
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="st-provider off" style="--p-accent:#003087;">
+                                    <div class="st-provider-top">
+                                        <span class="st-provider-logo">PP</span>
+                                        <span class="meta">
+                                            <strong>PayPal</strong>
+                                            <small>USD · Global</small>
+                                        </span>
+                                        <label class="st-switch"><input type="checkbox" data-track><span class="track"><span class="thumb"></span></span></label>
+                                    </div>
+                                    <div class="st-provider-stats">
+                                        <div><strong>3.4%</strong><span>Fee</span></div>
+                                        <div><strong>T+5</strong><span>Settle</span></div>
+                                        <div><strong>0</strong><span>Payouts</span></div>
+                                    </div>
+                                    <div class="st-provider-foot">
+                                        <span class="rank"><i class="bi bi-pause-circle"></i> Paused</span>
+                                        <button type="button" class="btn-sm mute" data-toast="Enable PayPal to configure" data-toast-type="warning">
+                                            <i class="bi bi-lock"></i> Disabled
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="st-provider" style="--p-accent:#22C55E;">
+                                    <div class="st-provider-top">
+                                        <span class="st-provider-logo">₦</span>
+                                        <span class="meta">
+                                            <strong>Direct Bank Transfer</strong>
+                                            <small>NGN · Manual</small>
+                                        </span>
+                                        <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                                    </div>
+                                    <div class="st-provider-stats">
+                                        <div><strong>₦50</strong><span>Flat</span></div>
+                                        <div><strong>T+1</strong><span>Settle</span></div>
+                                        <div><strong>612</strong><span>Payouts</span></div>
+                                    </div>
+                                    <div class="st-provider-foot">
+                                        <span class="rank"><i class="bi bi-arrow-down-up"></i> Priority <b>#4</b></span>
+                                        <button type="button" class="btn-sm line" data-toast="Bank transfer settings opened" data-toast-type="info">
+                                            <i class="bi bi-gear-fill"></i> Configure
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="st-provider off" style="--p-accent:#9FE870;">
+                                    <div class="st-provider-top">
+                                        <span class="st-provider-logo">W</span>
+                                        <span class="meta">
+                                            <strong>Wise</strong>
+                                            <small>Multi-currency · Global</small>
+                                        </span>
+                                        <label class="st-switch"><input type="checkbox" data-track><span class="track"><span class="thumb"></span></span></label>
+                                    </div>
+                                    <div class="st-provider-stats">
+                                        <div><strong>0.6%</strong><span>Fee</span></div>
+                                        <div><strong>T+2</strong><span>Settle</span></div>
+                                        <div><strong>0</strong><span>Payouts</span></div>
+                                    </div>
+                                    <div class="st-provider-foot">
+                                        <span class="rank"><i class="bi bi-pause-circle"></i> Paused</span>
+                                        <button type="button" class="btn-sm mute" data-toast="Enable Wise to configure" data-toast-type="warning">
+                                            <i class="bi bi-lock"></i> Disabled
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic mint"><i class="bi bi-calendar-week-fill"></i></span>
+                                <div>
+                                    <h3>Payout Schedule</h3>
+                                    <p>When mentors get paid, and how much friction sits between them and their money.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-field">
+                                <label>Frequency</label>
+                                <div class="st-row three" style="gap:12px;">
+                                    <label class="st-provider" style="cursor:pointer;padding:14px;flex-direction:row;align-items:center;gap:10px;--p-accent:var(--st-aurum);">
+                                        <input type="radio" name="payout_freq" value="daily" style="accent-color:#F7C948;">
+                                        <span style="font-size:.82rem;font-weight:700;color:var(--primary-dark);">Daily</span>
+                                    </label>
+                                    <label class="st-provider" style="cursor:pointer;padding:14px;flex-direction:row;align-items:center;gap:10px;--p-accent:var(--st-aurum);">
+                                        <input type="radio" name="payout_freq" value="weekly" checked style="accent-color:#F7C948;">
+                                        <span style="font-size:.82rem;font-weight:700;color:var(--primary-dark);">Weekly</span>
+                                    </label>
+                                    <label class="st-provider" style="cursor:pointer;padding:14px;flex-direction:row;align-items:center;gap:10px;--p-accent:var(--st-aurum);">
+                                        <input type="radio" name="payout_freq" value="monthly" style="accent-color:#F7C948;">
+                                        <span style="font-size:.82rem;font-weight:700;color:var(--primary-dark);">Monthly</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="st-row" style="margin-top:20px;">
+                                <div class="st-field">
+                                    <label for="payoutDay">Payout day</label>
+                                    <select id="payoutDay" name="payout_day" class="st-select" data-track>
+                                        <option>Monday</option>
+                                        <option selected>Friday</option>
+                                        <option>Saturday</option>
+                                    </select>
+                                </div>
+                                <div class="st-field">
+                                    <label for="minThreshold">Minimum threshold</label>
+                                    <div class="st-input-group">
+                                        <span class="affix">₦</span>
+                                        <input type="number" id="minThreshold" name="min_payout" class="st-input"
+                                               value="10000" step="500" data-track>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="st-row">
+                                <div class="st-field">
+                                    <label for="holdPeriod">Hold period after sale</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="holdPeriod" name="hold_days" class="st-input"
+                                               value="7" data-track>
+                                        <span class="suffix">days</span>
+                                    </div>
+                                    <span class="hint">Protects against chargebacks and refund abuse.</span>
+                                </div>
+                                <div class="st-field">
+                                    <label for="autoApprove">Auto-approve under</label>
+                                    <div class="st-input-group">
+                                        <span class="affix">₦</span>
+                                        <input type="number" id="autoApprove" name="auto_approve" class="st-input"
+                                               value="250000" step="1000" data-track>
+                                    </div>
+                                    <span class="hint">Larger withdrawals require your manual release.</span>
+                                </div>
+                            </div>
+
+                            <div class="st-switch-row" style="margin-top:6px;">
+                                <div class="txt">
+                                    <strong>Require KYC before first payout</strong>
+                                    <small>Government ID + bank verification, verified automatically.</small>
+                                </div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Split payouts across rails</strong>
+                                    <small>Auto-route to the cheapest provider per region.</small>
+                                </div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <article class="st-card admin-only fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic violet"><i class="bi bi-diagram-3-fill"></i></span>
+                                <div>
+                                    <h3>Commission by Mentor Tier <span class="st-lock"><i class="bi bi-lock-fill"></i> Admin only</span></h3>
+                                    <p>Reward your best mentors with a better split.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body" style="padding-top:0;">
+                            <table class="st-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tier</th>
+                                        <th>Eligibility</th>
+                                        <th>Platform %</th>
+                                        <th>Mentor %</th>
+                                        <th>Mentors</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="tier-pill rising">Rising</span></td>
+                                        <td>0 – 10 sales</td>
+                                        <td><input type="number" class="st-mini-input" value="22" data-track> </td>
+                                        <td><strong>78%</strong></td>
+                                        <td>3,412</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="tier-pill pro">Pro</span></td>
+                                        <td>11 – 100 sales</td>
+                                        <td><input type="number" class="st-mini-input" value="18" data-track></td>
+                                        <td><strong>82%</strong></td>
+                                        <td>1,088</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="tier-pill elite">Elite</span></td>
+                                        <td>100+ sales &amp; 4.8★</td>
+                                        <td><input type="number" class="st-mini-input" value="12" data-track></td>
+                                        <td><strong>88%</strong></td>
+                                        <td>214</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="st-col">
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic gold" style="color:var(--st-aurum);"><i class="bi bi-cash-stack"></i></span>
+                                <div>
+                                    <h3>Payout Ledger · 30d</h3>
+                                    <p>Snapshot of money movement.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+                            <div class="st-mini">
+                                <span class="ic gold"><i class="bi bi-arrow-up-right"></i></span>
+                                <span class="txt"><strong>₦48.2M</strong><small>Total paid out</small></span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic violet"><i class="bi bi-hourglass-split"></i></span>
+                                <span class="txt"><strong>₦6.4M</strong><small>Pending release</small></span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic mint"><i class="bi bi-check2-circle"></i></span>
+                                <span class="txt"><strong>8,742</strong><small>Successful transfers</small></span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic" style="background:rgba(225,29,72,.1);color:#BE123C;"><i class="bi bi-x-octagon"></i></span>
+                                <span class="txt"><strong>17</strong><small>Failed · auto-retried</small></span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic cyan"><i class="bi bi-lightning-charge-fill"></i></span>
+                                <div>
+                                    <h3>Instant Payouts</h3>
+                                    <p>Premium mentors only.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Enable instant payout</strong><small>Funds in &lt; 30 minutes.</small></div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-field" style="margin-top:16px;">
+                                <label for="instantFee">Instant fee</label>
+                                <div class="st-input-group">
+                                    <input type="number" id="instantFee" name="instant_fee" class="st-input"
+                                           value="1.5" step="0.1" data-track>
+                                    <span class="suffix">%</span>
+                                </div>
+                                <span class="hint">Deducted from the mentor's balance, not your commission.</span>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================
+             PANEL · EMAIL TEMPLATES
+             ==================================================== -->
+        <section class="st-panel" id="panel-email" role="tabpanel" aria-labelledby="tab-email">
+            <div class="st-mail fade-up">
+
+                <!-- LIST -->
+                <aside class="st-mail-list" id="stMailList">
+                    <button type="button" class="st-mail-item active" data-tpl="welcome">
+                        <span class="mi-ic"><i class="bi bi-person-plus-fill"></i></span>
+                        <span class="mi-meta"><strong>Welcome aboard</strong><small>TRANSACTIONAL</small></span>
+                        <span class="mi-dot"></span>
+                    </button>
+                    <button type="button" class="st-mail-item" data-tpl="mentor">
+                        <span class="mi-ic"><i class="bi bi-patch-check-fill"></i></span>
+                        <span class="mi-meta"><strong>Mentor approved</strong><small>TRANSACTIONAL</small></span>
+                        <span class="mi-dot"></span>
+                    </button>
+                    <button type="button" class="st-mail-item" data-tpl="payout">
+                        <span class="mi-ic"><i class="bi bi-cash-coin"></i></span>
+                        <span class="mi-meta"><strong>Payout sent</strong><small>TRANSACTIONAL</small></span>
+                        <span class="mi-dot"></span>
+                    </button>
+                    <button type="button" class="st-mail-item" data-tpl="reset">
+                        <span class="mi-ic"><i class="bi bi-key-fill"></i></span>
+                        <span class="mi-meta"><strong>Password reset</strong><small>SECURITY</small></span>
+                        <span class="mi-dot"></span>
+                    </button>
+                    <button type="button" class="st-mail-item" data-tpl="publish">
+                        <span class="mi-ic"><i class="bi bi-journal-check"></i></span>
+                        <span class="mi-meta"><strong>Course published</strong><small>TRANSACTIONAL</small></span>
+                        <span class="mi-dot"></span>
+                    </button>
+                    <button type="button" class="st-mail-item" data-tpl="refund">
+                        <span class="mi-ic"><i class="bi bi-arrow-counterclockwise"></i></span>
+                        <span class="mi-meta"><strong>Refund issued</strong><small>TRANSACTIONAL</small></span>
+                        <span class="mi-dot"></span>
+                    </button>
+                    <button type="button" class="st-mail-item" data-tpl="digest">
+                        <span class="mi-ic"><i class="bi bi-newspaper"></i></span>
+                        <span class="mi-meta"><strong>Weekly digest</strong><small>MARKETING</small></span>
+                        <span class="mi-dot off"></span>
+                    </button>
+                </aside>
+
+                <!-- EDITOR -->
+                <div class="st-mail-editor">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                        <div>
+                            <h3 style="font-size:1rem;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:9px;">
+                                <i class="bi bi-envelope-paper-fill" style="color:var(--st-aurum-deep);"></i>
+                                <span id="mailTitle">Welcome aboard</span>
+                            </h3>
+                            <p style="font-size:.73rem;color:var(--gray-600);margin-top:3px;">
+                                Transactional · triggered on student signup
+                            </p>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="btn-sm line" id="mailPreviewBtn">
+                                <i class="bi bi-eye-fill"></i> Preview
+                            </button>
+                            <button type="button" class="btn-sm solid" id="mailTestBtn">
+                                <i class="bi bi-send-fill"></i> Send test
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="st-field">
+                        <label for="mailSubject">Subject line</label>
+                        <input type="text" id="mailSubject" class="st-input"
+                               value="Welcome to Knotwork, {{ first_name }} 🎉" data-track>
+                    </div>
+
+                    <div class="st-field">
+                        <label>Merge variables</label>
+                        <div class="st-vars">
+                            <span class="st-var" data-var="{{ first_name }}">{{ first_name }}</span>
+                            <span class="st-var" data-var="{{ last_name }}">{{ last_name }}</span>
+                            <span class="st-var" data-var="{{ email }}">{{ email }}</span>
+                            <span class="st-var" data-var="{{ course_title }}">{{ course_title }}</span>
+                            <span class="st-var" data-var="{{ payout_amount }}">{{ payout_amount }}</span>
+                            <span class="st-var" data-var="{{ reset_link }}">{{ reset_link }}</span>
+                            <span class="st-var" data-var="{{ dashboard_url }}">{{ dashboard_url }}</span>
+                        </div>
+                        <span class="hint">Click a variable to insert it at the cursor.</span>
+                    </div>
+
+                    <div class="st-field">
+                        <label for="mailBody">Email body</label>
+                        <textarea id="mailBody" class="st-textarea mono" rows="12" data-track>Hi {{ first_name }},
+
+Welcome to Knotwork — the home of practical, mentor-led learning.
+
+Your account is live. Here's how to get moving:
+
+  1. Complete your profile so mentors know who they're teaching.
+  2. Browse the catalogue and save three courses that excite you.
+  3. Join the community thread for your field.
+
+Your dashboard: {{ dashboard_url }}
+
+If anything feels unclear, just reply to this email — a human reads every one.
+
+— The Knotwork Team</textarea>
+                    </div>
+
+                    <div class="st-mail-preview" id="mailPreview">
+                        <div class="pv-head">
+                            <b>From:</b> Knotwork &lt;hello@knotwork.io&gt;<br>
+                            <b>To:</b> student@example.com
+                        </div>
+                        <div id="mailPreviewBody"></div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn-sm line" data-toast="Template duplicated" data-toast-type="success">
+                            <i class="bi bi-files"></i> Duplicate
+                        </button>
+                        <button type="button" class="btn-sm line" data-toast="Test email queued to your inbox" data-toast-type="info">
+                            <i class="bi bi-arrow-repeat"></i> Reset to default
+                        </button>
+                        <button type="button" class="btn-sm mute" data-toast="Delivery stats opened" data-toast-type="info">
+                            <i class="bi bi-bar-chart-fill"></i> Delivery stats
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================
+             PANEL · SECURITY
+             ==================================================== -->
+        <section class="st-panel" id="panel-security" role="tabpanel" aria-labelledby="tab-security">
+            <div class="st-grid">
+
+                <div class="st-col">
+
+                    <article class="st-card admin-only fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic violet"><i class="bi bi-shield-lock-fill"></i></span>
+                                <div>
+                                    <h3>Authentication Policy <span class="st-lock"><i class="bi bi-lock-fill"></i> Admin only</span></h3>
+                                    <p>How people prove they are who they say they are.</p>
+                                </div>
+                            </div>
+                            <span class="st-root"><i class="bi bi-crown-fill"></i> Root</span>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Enforce 2FA for all admins</strong>
+                                    <small>Non-negotiable for root and staff accounts.</small>
+                                </div>
+                                <label class="st-switch violet"><input type="checkbox" checked disabled><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Offer 2FA to students</strong>
+                                    <small>Optional TOTP or SMS for learner accounts.</small>
+                                </div>
+                                <label class="st-switch violet"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                            <div class="st-row" style="margin-top:20px;">
+                                <div class="st-field">
+                                    <label for="pwMin">Minimum password length</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="pwMin" name="pw_min" class="st-input" value="12" data-track>
+                                        <span class="suffix">chars</span>
+                                    </div>
+                                </div>
+                                <div class="st-field">
+                                    <label for="sessionTimeout">Session timeout</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="sessionTimeout" name="session_timeout" class="st-input" value="45" data-track>
+                                        <span class="suffix">mins</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="st-row">
+                                <div class="st-field">
+                                    <label for="maxAttempts">Max login attempts</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="maxAttempts" name="max_attempts" class="st-input" value="5" data-track>
+                                        <span class="suffix">tries</span>
+                                    </div>
+                                </div>
+                                <div class="st-field">
+                                    <label for="lockout">Lockout duration</label>
+                                    <div class="st-input-group">
+                                        <input type="number" id="lockout" name="lockout_mins" class="st-input" value="15" data-track>
+                                        <span class="suffix">mins</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Require password rotation</strong>
+                                    <small>Admins must change password every 90 days.</small>
+                                </div>
+                                <label class="st-switch violet"><input type="checkbox" data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                            <div class="st-switch-row">
+                                <div class="txt">
+                                    <strong>Block breached passwords</strong>
+                                    <small>Checked against HaveIBeenPwned on every change.</small>
+                                </div>
+                                <label class="st-switch violet"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic mint"><i class="bi bi-hdd-network-fill"></i></span>
+                                <div>
+                                    <h3>IP Allowlist</h3>
+                                    <p>Restrict admin console access to trusted networks.</p>
+                                </div>
+                            </div>
+                            <span class="st-lock"><i class="bi bi-lock-fill"></i> Admin only</span>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-switch-row" style="margin-bottom:16px;">
+                                <div class="txt">
+                                    <strong>Enable IP allowlist</strong>
+                                    <small>When on, only listed addresses can reach <code class="mono">/command</code>.</small>
+                                </div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+
+                            <div class="st-field">
+                                <label>Allowed addresses</label>
+                                <div class="st-chipbox" id="ipBox">
+                                    <span class="st-ipchip">102.89.34.0/24 <button type="button" aria-label="Remove"><i class="bi bi-x-lg"></i></button></span>
+                                    <span class="st-ipchip">41.58.112.7 <button type="button" aria-label="Remove"><i class="bi bi-x-lg"></i></button></span>
+                                    <span class="st-ipchip">197.210.55.0/24 <button type="button" aria-label="Remove"><i class="bi bi-x-lg"></i></button></span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;gap:10px;">
+                                <input type="text" class="st-input" id="ipInput" placeholder="e.g. 203.0.113.0/24" style="flex:1;">
+                                <button type="button" class="btn-sm solid" id="ipAddBtn" style="padding:11px 20px;">
+                                    <i class="bi bi-plus-lg"></i> Add
+                                </button>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic"><i class="bi bi-key-fill"></i></span>
+                                <div>
+                                    <h3>API Keys</h3>
+                                    <p>Programmatic access to the Knotwork platform.</p>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-sm line" data-toast="New API key generated — copy it now" data-toast-type="warning">
+                                <i class="bi bi-plus-lg"></i> Generate
+                            </button>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-keyrow">
+                                <div class="k-meta">
+                                    <strong>Production Secret Key</strong>
+                                    <span class="k-val" data-key="sk_live_8f3a91c4e7b2d6051a9f">sk_live_••••••••••••••••••••</span>
+                                </div>
+                                <button type="button" class="st-icon-btn" data-reveal title="Reveal"><i class="bi bi-eye"></i></button>
+                                <button type="button" class="st-icon-btn" data-copy="sk_live_8f3a91c4e7b2d6051a9f" title="Copy"><i class="bi bi-clipboard"></i></button>
+                                <button type="button" class="st-icon-btn" data-toast="Key rotation queued — all services notified" data-toast-type="warning" title="Rotate"><i class="bi bi-arrow-repeat"></i></button>
+                            </div>
+
+                            <div class="st-keyrow">
+                                <div class="k-meta">
+                                    <strong>Webhook Signing Secret</strong>
+                                    <span class="k-val" data-key="whsec_2d91a4f8c0b7e6351904">whsec_••••••••••••••••••••</span>
+                                </div>
+                                <button type="button" class="st-icon-btn" data-reveal title="Reveal"><i class="bi bi-eye"></i></button>
+                                <button type="button" class="st-icon-btn" data-copy="whsec_2d91a4f8c0b7e6351904" title="Copy"><i class="bi bi-clipboard"></i></button>
+                                <button type="button" class="st-icon-btn" data-toast="Webhook secret rotated" data-toast-type="warning" title="Rotate"><i class="bi bi-arrow-repeat"></i></button>
+                            </div>
+
+                            <div class="st-keyrow">
+                                <div class="k-meta">
+                                    <strong>Public Publishable Key</strong>
+                                    <span class="k-val" data-key="pk_live_7c2b4e9f1a8d0356">pk_live_7c2b4e9f1a8d0356</span>
+                                </div>
+                                <button type="button" class="st-icon-btn" data-copy="pk_live_7c2b4e9f1a8d0356" title="Copy"><i class="bi bi-clipboard"></i></button>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <article class="st-card st-danger fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic"><i class="bi bi-exclamation-octagon-fill"></i></span>
+                                <div>
+                                    <h3>Danger Zone</h3>
+                                    <p>Irreversible actions. Each one is logged and requires your re-authentication.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div class="st-danger-row">
+                                <div class="txt">
+                                    <strong>Revoke all active sessions</strong>
+                                    <small>Signs out every user, including admins. You will need to log in again.</small>
+                                </div>
+                                <button type="button" class="st-btn-danger" data-toast="All sessions revoked — 12,481 users signed out" data-toast-type="error">
+                                    <i class="bi bi-box-arrow-right"></i> Revoke all
+                                </button>
+                            </div>
+
+                            <div class="st-danger-row">
+                                <div class="txt">
+                                    <strong>Force password reset</strong>
+                                    <small>Every account must set a new password at next login.</small>
+                                </div>
+                                <button type="button" class="st-btn-danger" data-toast="Password reset enforced for all accounts" data-toast-type="error">
+                                    <i class="bi bi-key"></i> Force reset
+                                </button>
+                            </div>
+
+                            <div class="st-danger-row">
+                                <div class="txt">
+                                    <strong>Disable public API</strong>
+                                    <small>Immediately stops all third-party integrations and webhooks.</small>
+                                </div>
+                                <button type="button" class="st-btn-danger" data-toast="Public API disabled — integrations paused" data-toast-type="error">
+                                    <i class="bi bi-plug"></i> Disable API
+                                </button>
+                            </div>
+
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="st-col">
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic gold" style="color:var(--st-aurum);"><i class="bi bi-graph-up-arrow"></i></span>
+                                <div>
+                                    <h3>Security Posture</h3>
+                                    <p>Live score.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+
+                            <div style="text-align:center;padding:6px 0 18px;">
+                                <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;line-height:1;background:var(--st-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">92</div>
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gray-400);margin-top:6px;">Grade A · Strong</div>
+                            </div>
+
+                            <div class="st-mini">
+                                <span class="ic mint"><i class="bi bi-check-circle-fill"></i></span>
+                                <span class="txt"><strong>2FA coverage</strong><small>100% of admins</small></span>
+                                <span class="num" style="font-size:.85rem;color:#047857;">100%</span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic mint"><i class="bi bi-check-circle-fill"></i></span>
+                                <span class="txt"><strong>Encryption at rest</strong><small>AES-256</small></span>
+                                <span class="num" style="font-size:.85rem;color:#047857;">ON</span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic gold"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                                <span class="txt"><strong>Stale admin accounts</strong><small>No login in 90+ days</small></span>
+                                <span class="num" style="font-size:.85rem;color:var(--st-aurum-deep);">2</span>
+                            </div>
+                            <div class="st-mini">
+                                <span class="ic cyan"><i class="bi bi-clock-history"></i></span>
+                                <span class="txt"><strong>Last penetration test</strong><small>External auditor</small></span>
+                                <span class="num" style="font-size:.85rem;color:#0E7490;">12d</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="st-card fade-up">
+                        <header class="st-card-head">
+                            <div class="ttl">
+                                <span class="ic cyan"><i class="bi bi-journal-text"></i></span>
+                                <div>
+                                    <h3>Audit &amp; Compliance</h3>
+                                    <p>Retention and data governance.</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="st-card-body">
+                            <div class="st-field">
+                                <label for="auditRetention">Audit log retention</label>
+                                <select id="auditRetention" name="audit_retention" class="st-select" data-track>
+                                    <option>30 days</option>
+                                    <option selected>180 days</option>
+                                    <option>1 year</option>
+                                    <option>7 years</option>
+                                </select>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>GDPR data export</strong><small>Self-serve user data download.</small></div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Data residency: EU</strong><small>Store EU user data in Frankfurt.</small></div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                            <div class="st-switch-row">
+                                <div class="txt"><strong>Anomaly alerts</strong><small>Slack ping on suspicious admin activity.</small></div>
+                                <label class="st-switch"><input type="checkbox" checked data-track><span class="track"><span class="thumb"></span></span></label>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+    </form>
+
+    <!-- ====================================================
+         SYSTEM HEALTH · BOTTOM WIDGET (not a page)
+         ==================================================== -->
+    <div class="st-dock" id="stDock">
+        <div class="st-dock-panel">
+            <div class="st-dock-inner" id="healthGrid">
+
+                <div class="st-health-tile">
+                    <div class="ht-top">
+                        <span><i class="bi bi-hdd-network-fill"></i> API Gateway</span>
+                        <b id="hv-api">142ms</b>
+                    </div>
+                    <div class="ht-bar"><span style="width:94%"></span></div>
+                    <div class="ht-foot"><span>p95 latency</span><span>uptime 99.98%</span></div>
+                </div>
+
+                <div class="st-health-tile">
+                    <div class="ht-top">
+                        <span><i class="bi bi-database-fill"></i> Database</span>
+                        <b id="hv-db">12ms</b>
+                    </div>
+                    <div class="ht-bar"><span style="width:97%"></span></div>
+                    <div class="ht-foot"><span>replication lag</span><span>3 nodes</span></div>
+                </div>
+
+                <div class="st-health-tile">
+                    <div class="ht-top">
+                        <span><i class="bi bi-diagram-3-fill"></i> Task Queue</span>
+                        <b class="warn" id="hv-queue">12</b>
+                    </div>
+                    <div class="ht-bar"><span class="warn" style="width:38%"></span></div>
+                    <div class="ht-foot"><span>depth</span><span>4 workers</span></div>
+                </div>
+
+                <div class="st-health-tile">
+                    <div class="ht-top">
+                        <span><i class="bi bi-hdd-stack-fill"></i> Redis Cache</span>
+                        <b>1.8ms</b>
+                    </div>
+                    <div class="ht-bar"><span class="violet" style="width:99%"></span></div>
+                    <div class="ht-foot"><span>hit rate 98.4%</span><span>3.1 GB</span></div>
+                </div>
+
+                <div class="st-health-tile">
+                    <div class="ht-top">
+                        <span><i class="bi bi-cloud-arrow-up-fill"></i> Object Storage</span>
+                        <b>OK</b>
+                    </div>
+                    <div class="ht-bar"><span class="cyan" style="width:88%"></span></div>
+                    <div class="ht-foot"><span>2.4 TB used</span><span>CDN 96%</span></div>
+                </div>
+
+                <div class="st-health-tile">
+                    <div class="ht-top">
+                        <span><i class="bi bi-envelope-paper-fill"></i> Email Worker</span>
+                        <b class="warn">Degraded</b>
+                    </div>
+                    <div class="ht-bar"><span class="warn" style="width:62%"></span></div>
+                    <div class="ht-foot"><span>bounce 0.4%</span><span>retry x2</span></div>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="button" class="st-dock-bar" id="stDockToggle" aria-expanded="false">
+            <span class="dot"></span>
+            <strong>All systems nominal</strong>
+            <span class="st-dock-metrics">
+                <span class="m"><i class="bi bi-hdd-network-fill"></i> API <b id="dock-api">142ms</b></span>
+                <span class="m"><i class="bi bi-database-fill"></i> DB <b>12ms</b></span>
+                <span class="m warn"><i class="bi bi-diagram-3-fill"></i> Queue <b id="dock-queue">12</b></span>
+                <span class="m"><i class="bi bi-shield-check"></i> Uptime <b>99.98%</b></span>
+            </span>
+            <i class="bi bi-chevron-up chev"></i>
+        </button>
+    </div>
+
+    <!-- STICKY SAVE BAR -->
+    <div class="st-savebar" id="saveBar">
+        <div class="sb-txt">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <div>
+                <strong>You have unsaved configuration changes</strong>
+                <small id="dirtyCount">1 field modified</small>
+            </div>
+        </div>
+        <button type="button" class="st-btn-ghost-dark" id="discardBtn">
+            <i class="bi bi-arrow-counterclockwise"></i> Discard
+        </button>
+        <button type="button" class="st-btn-gold" id="saveBtn">
+            <i class="bi bi-shield-check"></i> Commit changes
+        </button>
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    const tabs     = Array.from(document.querySelectorAll('.st-tab'));
+    const panels   = Array.from(document.querySelectorAll('.st-panel'));
+    const indicator = document.getElementById('stTabInd');
+    const tabsNav  = document.getElementById('stTabs');
+
+    function moveIndicator(tab) {
+        if (!tab || !indicator) return;
+        indicator.style.width = tab.offsetWidth + 'px';
+        indicator.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+    }
+
+    function activateTab(name, push) {
+        const tab = tabs.find(t => t.dataset.tab === name);
+        if (!tab) return;
+        tabs.forEach(t => {
+            const on = t === tab;
+            t.classList.toggle('active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+        moveIndicator(tab);
+        if (push !== false && history.replaceState) {
+            history.replaceState(null, '', '#' + name);
+        }
+        /* Re-trigger entrance animation inside newly shown panel */
+        document.querySelectorAll('#panel-' + name + ' .fade-up').forEach((el, i) => {
+            el.classList.remove('visible');
+            setTimeout(() => el.classList.add('visible'), 40 + i * 55);
+        });
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+
+    /* Keyboard arrow navigation */
+    tabsNav && tabsNav.addEventListener('keydown', e => {
+        const i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); tabs[(i + 1) % tabs.length].focus(); tabs[(i + 1) % tabs.length].click(); }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); const p = (i - 1 + tabs.length) % tabs.length; tabs[p].focus(); tabs[p].click(); }
+    });
+
+    /* Initial state from hash */
+    const hash = (location.hash || '').replace('#', '');
+    if (hash && tabs.some(t => t.dataset.tab === hash)) {
+        activateTab(hash, false);
+    } else {
+        requestAnimationFrame(() => moveIndicator(tabs[0]));
+    }
+    window.addEventListener('resize', () => {
+        const active = tabs.find(t => t.classList.contains('active'));
+        moveIndicator(active);
+    });
+
+    /* ============================================================
+       COMMISSION SLIDER + LIVE SPLIT
+       ============================================================ */
+    const range      = document.getElementById('commissionRange');
+    const rangeVal   = document.getElementById('commissionVal');
+    const priceInput = document.getElementById('calcPrice');
+    const outMentor  = document.getElementById('splitMentor');
+    const outPlat    = document.getElementById('splitPlatform');
+
+    const money = n => '₦' + Math.round(n).toLocaleString('en-NG');
+
+    function recalc() {
+        if (!range) return;
+        const pct   = parseInt(range.value, 10) || 0;
+        const price = parseFloat(priceInput ? priceInput.value : 0) || 0;
+
+        /* fill gradient of the track */
+        const fill = (pct / 40) * 100;
+        range.style.setProperty('--fill', fill + '%');
+        rangeVal.textContent = pct + '%';
+
+        const platform = price * (pct / 100);
+        const mentor   = price - platform;
+        if (outMentor) outMentor.textContent = money(mentor);
+        if (outPlat)   outPlat.textContent   = money(platform);
+    }
+    range && range.addEventListener('input', () => { recalc(); markDirty(); });
+    priceInput && priceInput.addEventListener('input', recalc);
+    recalc();
+
+    /* ============================================================
+       DIRTY TRACKING + SAVE BAR
+       ============================================================ */
+    const saveBar   = document.getElementById('saveBar');
+    const saveState = document.getElementById('saveState');
+    const dirtyCnt  = document.getElementById('dirtyCount');
+    const saveBtn   = document.getElementById('saveBtn');
+    const discardBtn= document.getElementById('discardBtn');
+
+    let dirtySet = new Set();
+
+    function markDirty(el) {
+        if (el) {
+            if (!el.dataset.uid) el.dataset.uid = 'f' + Math.random().toString(36).slice(2, 9);
+            dirtySet.add(el.dataset.uid);
+        }
+        updateDirtyUI();
+    }
+
+    function updateDirtyUI() {
+        const n = dirtySet.size;
+        if (n > 0) {
+            saveBar && saveBar.classList.add('show');
+            saveState && saveState.classList.add('dirty');
+            if (saveState) saveState.innerHTML = '<i class="bi bi-pencil-fill"></i> ' + n + ' unsaved';
+            if (dirtyCnt) dirtyCnt.textContent = n + (n === 1 ? ' field modified' : ' fields modified');
+        } else {
+            saveBar && saveBar.classList.remove('show');
+            saveState && saveState.classList.remove('dirty');
+            if (saveState) saveState.innerHTML = '<i class="bi bi-cloud-check-fill"></i> All changes saved';
+        }
+    }
+
+    document.querySelectorAll('[data-track]').forEach(el => {
+        const evt = (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'radio' || el.type === 'range') ? 'change' : 'input';
+        el.addEventListener(evt, () => markDirty(el));
+    });
+
+    saveBtn && saveBtn.addEventListener('click', () => {
+        saveBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Committing…';
+        saveBtn.disabled = true;
+        setTimeout(() => {
+            saveBtn.innerHTML = '<i class="bi bi-shield-check"></i> Commit changes';
+            saveBtn.disabled = false;
+            dirtySet.clear();
+            updateDirtyUI();
+            window.showKnotToast && window.showKnotToast('Configuration committed and versioned · v3.14.3', 'success');
+        }, 900);
+    });
+
+    discardBtn && discardBtn.addEventListener('click', () => {
+        dirtySet.clear();
+        updateDirtyUI();
+        window.showKnotToast && window.showKnotToast('Unsaved changes discarded', 'warning');
+    });
+
+    /* Ctrl/Cmd + S */
+    document.addEventListener('keydown', e => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            if (dirtySet.size > 0) saveBtn && saveBtn.click();
+        }
+    });
+
+    /* ============================================================
+       LOGO DROPZONE
+       ============================================================ */
+    const drop      = document.getElementById('logoDrop');
+    const logoInput = document.getElementById('logoInput');
+    const logoPrev  = document.getElementById('logoPreview');
+
+    if (logoInput) {
+        logoInput.addEventListener('change', function () {
+            const f = this.files && this.files[0];
+            if (!f) return;
+            const url = URL.createObjectURL(f);
+            logoPrev.innerHTML = '<img src="' + url + '" alt="Logo preview">';
+            markDirty(this);
+            window.showKnotToast && window.showKnotToast('Logo staged — commit to publish', 'violet');
+        });
+    }
+    if (drop) {
+        ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+            e.preventDefault(); drop.classList.add('drag');
+        }));
+        ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+            e.preventDefault(); drop.classList.remove('drag');
+        }));
+    }
+
+    /* ============================================================
+       EMAIL TEMPLATES
+       ============================================================ */
+    const MAIL = {
+        welcome: {
+            title: 'Welcome aboard',
+            subject: 'Welcome to Knotwork, {{ first_name }} 🎉',
+            body: "Hi {{ first_name }},\n\nWelcome to Knotwork — the home of practical, mentor-led learning.\n\nYour account is live. Here's how to get moving:\n\n  1. Complete your profile so mentors know who they're teaching.\n  2. Browse the catalogue and save three courses that excite you.\n  3. Join the community thread for your field.\n\nYour dashboard: {{ dashboard_url }}\n\nIf anything feels unclear, just reply to this email — a human reads every one.\n\n— The Knotwork Team"
+        },
+        mentor: {
+            title: 'Mentor approved',
+            subject: 'You are live on Knotwork, {{ first_name }} ✅',
+            body: "Congratulations {{ first_name }},\n\nYour mentor application has been approved. You can now publish courses, host live cohorts, and earn from day one.\n\nYour mentor dashboard: {{ dashboard_url }}\n\nA few things to set up first:\n\n  • Add a payout method so we can send your earnings.\n  • Publish at least one free lesson — it triples enrolment.\n  • Set your availability for 1:1 sessions.\n\nWelcome to the craft.\n\n— The Knotwork Team"
+        },
+        payout: {
+            title: 'Payout sent',
+            subject: 'Your payout of {{ payout_amount }} is on the way 💸',
+            body: "Hi {{ first_name }},\n\nWe've just released your payout.\n\n  Amount: {{ payout_amount }}\n  Status: Sent\n  Reference: KW-PAY-88412\n\nDepending on your provider, funds should land within 1–3 business days.\n\nView the full ledger: {{ dashboard_url }}\n\n— Knotwork Finance"
+        },
+        reset: {
+            title: 'Password reset',
+            subject: 'Reset your Knotwork password',
+            body: "Hi {{ first_name }},\n\nSomeone requested a password reset for your Knotwork account.\n\nReset link (valid for 30 minutes):\n{{ reset_link }}\n\nIf this wasn't you, you can safely ignore this email — your password will not change.\n\n— Knotwork Security"
+        },
+        publish: {
+            title: 'Course published',
+            subject: '{{ course_title }} is live 🚀',
+            body: "Hi {{ first_name }},\n\nYour course \"{{ course_title }}\" is now live and discoverable by students.\n\nView it here: {{ dashboard_url }}\n\nTip: courses that publish a free preview lesson convert 3× better in the first week.\n\n— The Knotwork Team"
+        },
+        refund: {
+            title: 'Refund issued',
+            subject: 'Refund processed for {{ course_title }}',
+            body: "Hi {{ first_name }},\n\nWe've processed your refund for \"{{ course_title }}\".\n\nThe amount will appear on your original payment method within 5–10 business days depending on your bank.\n\nWe'd love to know what went wrong — reply to this email and tell us.\n\n— Knotwork Support"
+        },
+        digest: {
+            title: 'Weekly digest',
+            subject: 'Your week on Knotwork',
+            body: "Hi {{ first_name }},\n\nHere's what happened in your world this week:\n\n  • 3 new lessons added to courses you follow\n  • 1 live cohort starting next Tuesday\n  • Your streak: 12 days 🔥\n\nJump back in: {{ dashboard_url }}\n\n— Knotwork"
+        }
+    };
+
+    const mailItems = Array.from(document.querySelectorAll('.st-mail-item'));
+    const mailTitle = document.getElementById('mailTitle');
+    const mailSubj  = document.getElementById('mailSubject');
+    const mailBody  = document.getElementById('mailBody');
+    const mailPrev  = document.getElementById('mailPreview');
+    const mailPrevBody = document.getElementById('mailPreviewBody');
+
+    mailItems.forEach(item => {
+        item.addEventListener('click', () => {
+            mailItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            const t = MAIL[item.dataset.tpl];
+            if (!t) return;
+            mailTitle.textContent = t.title;
+            mailSubj.value = t.subject;
+            mailBody.value = t.body;
+            mailPrev.classList.remove('show');
+        });
+    });
+
+    /* Variable insertion at cursor */
+    document.querySelectorAll('.st-var').forEach(chip => {
+        chip.addEventListener('click', () => {
+            if (!mailBody) return;
+            const v = chip.dataset.var;
+            const start = mailBody.selectionStart ?? mailBody.value.length;
+            const end   = mailBody.selectionEnd   ?? mailBody.value.length;
+            mailBody.value = mailBody.value.slice(0, start) + v + mailBody.value.slice(end);
+            mailBody.selectionStart = mailBody.selectionEnd = start + v.length;
+            mailBody.focus();
+            markDirty(mailBody);
+            window.showKnotToast && window.showKnotToast('Inserted ' + v, 'info');
+        });
+    });
+
+    /* Preview */
+    const previewBtn = document.getElementById('mailPreviewBtn');
+    previewBtn && previewBtn.addEventListener('click', () => {
+        const showing = mailPrev.classList.toggle('show');
+        if (showing) {
+            const rendered = mailBody.value
+                .replace(/{{ first_name }}/g, 'Amara')
+                .replace(/{{ last_name }}/g, 'Okafor')
+                .replace(/{{ email }}/g, 'amara@example.com')
+                .replace(/{{ course_title }}/g, 'Advanced Product Design')
+                .replace(/{{ payout_amount }}/g, '₦412,500')
+                .replace(/{{ reset_link }}/g, 'https://knotwork.io/reset/8f3a…')
+                .replace(/{{ dashboard_url }}/g, 'https://knotwork.io/dashboard')
+                .replace(/\n/g, '<br>');
+            mailPrevBody.innerHTML = rendered;
+            previewBtn.innerHTML = '<i class="bi bi-eye-slash-fill"></i> Hide preview';
+        } else {
+            previewBtn.innerHTML = '<i class="bi bi-eye-fill"></i> Preview';
+        }
+    });
+
+    /* Test send */
+    const testBtn = document.getElementById('mailTestBtn');
+    testBtn && testBtn.addEventListener('click', () => {
+        testBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sending…';
+        testBtn.disabled = true;
+        setTimeout(() => {
+            testBtn.innerHTML = '<i class="bi bi-send-fill"></i> Send test';
+            testBtn.disabled = false;
+            window.showKnotToast && window.showKnotToast('Test email delivered to adaeze@knotwork.io', 'success');
+        }, 850);
+    });
+
+    /* ============================================================
+       IP ALLOWLIST
+       ============================================================ */
+    const ipBox = document.getElementById('ipBox');
+    const ipInput = document.getElementById('ipInput');
+    const ipAdd = document.getElementById('ipAddBtn');
+
+    function bindIpRemove(chip) {
+        const btn = chip.querySelector('button');
+        btn && btn.addEventListener('click', () => {
+            chip.style.transition = 'all .25s ease';
+            chip.style.opacity = '0';
+            chip.style.transform = 'scale(.85)';
+            setTimeout(() => chip.remove(), 220);
+            window.showKnotToast && window.showKnotToast('Address removed from allowlist', 'warning');
+        });
+    }
+    ipBox && ipBox.querySelectorAll('.st-ipchip').forEach(bindIpRemove);
+
+    function addIp() {
+        const v = (ipInput.value || '').trim();
+        if (!v) return;
+        const chip = document.createElement('span');
+        chip.className = 'st-ipchip';
+        chip.innerHTML = v + ' <button type="button" aria-label="Remove"><i class="bi bi-x-lg"></i></button>';
+        ipBox.appendChild(chip);
+        bindIpRemove(chip);
+        ipInput.value = '';
+        window.showKnotToast && window.showKnotToast(v + ' added to allowlist', 'success');
+    }
+    ipAdd && ipAdd.addEventListener('click', addIp);
+    ipInput && ipInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addIp(); } });
+
+    /* ============================================================
+       API KEY REVEAL / COPY
+       ============================================================ */
+    document.querySelectorAll('[data-reveal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = btn.closest('.st-keyrow').querySelector('[data-key]');
+            const full = val.dataset.key;
+            const masked = full.slice(0, 7) + '••••••••••••••••••••';
+            if (val.dataset.shown === '1') {
+                val.textContent = masked;
+                val.dataset.shown = '0';
+                btn.innerHTML = '<i class="bi bi-eye"></i>';
+            } else {
+                val.textContent = full;
+                val.dataset.shown = '1';
+                btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                window.showKnotToast && window.showKnotToast('Key revealed — this action was logged', 'warning');
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-copy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const txt = btn.dataset.copy;
+            const done = () => window.showKnotToast && window.showKnotToast('Copied to clipboard', 'success');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt).then(done).catch(done);
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = txt; document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(ta);
+                done();
+            }
+        });
+    });
+
+    /* ============================================================
+       SYSTEM HEALTH DOCK
+       ============================================================ */
+    const dock = document.getElementById('stDock');
+    const dockToggle = document.getElementById('stDockToggle');
+
+    dockToggle && dockToggle.addEventListener('click', () => {
+        const open = dock.classList.toggle('open');
+        dockToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    /* Simulated live telemetry */
+    const hvApi = document.getElementById('hv-api');
+    const hvDb  = document.getElementById('hv-db');
+    const hvQ   = document.getElementById('hv-queue');
+    const dockApi = document.getElementById('dock-api');
+    const dockQ   = document.getElementById('dock-queue');
+
+    let queueDepth = 12;
+    setInterval(() => {
+        const api = 118 + Math.floor(Math.random() * 55);
+        const db  = 9 + Math.floor(Math.random() * 8);
+        queueDepth = Math.max(3, Math.min(28, queueDepth + (Math.random() > 0.5 ? 1 : -1)));
+
+        if (hvApi) hvApi.textContent = api + 'ms';
+        if (hvDb)  hvDb.textContent  = db + 'ms';
+        if (hvQ)   hvQ.textContent   = queueDepth;
+        if (dockApi) dockApi.textContent = api + 'ms';
+        if (dockQ)   dockQ.textContent   = queueDepth;
+    }, 4200);
+
+    /* ============================================================
+       SNAPSHOT EXPORT
+       ============================================================ */
+    const snapBtn = document.getElementById('snapshotBtn');
+    snapBtn && snapBtn.addEventListener('click', () => {
+        const payload = {};
+        document.querySelectorAll('#settingsForm [name]').forEach(el => {
+            if (el.type === 'checkbox') payload[el.name] = el.checked;
+            else if (el.type === 'radio') { if (el.checked) payload[el.name] = el.value; }
+            else payload[el.name] = el.value;
+        });
+        const blob = new Blob([JSON.stringify({
+            exported_at: new Date().toISOString(),
+            exported_by: 'KW-ADM-0001',
+            config_version: '3.14.2',
+            settings: payload
+        }, null, 2)], { type: 'application/json' });
+
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'knotwork-config-snapshot.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        window.showKnotToast && window.showKnotToast('Configuration snapshot downloaded', 'success');
+    });
+
+    /* ============================================================
+       ENTRANCE ANIMATION (page-level)
+       ============================================================ */
+    const io = new IntersectionObserver(entries => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 70);
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+})();
+</script>
+{% endblock %}

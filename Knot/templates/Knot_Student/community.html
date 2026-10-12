@@ -166,6 +166,7 @@
         padding: 8px 0;
     }
     .cm-composer-input::placeholder { color: var(--gray-300); }
+    .cm-composer-title { display: none; }
 
     .cm-composer-foot {
         display: flex;
@@ -198,6 +199,39 @@
     }
     .cm-composer-tool i { font-size: 0.85rem; }
     .cm-composer-foot .spacer { flex: 1; }
+
+    .cm-tool-panel {
+        margin-top: 12px;
+        padding: 14px;
+        border: 1px solid var(--gray-100);
+        border-radius: 12px;
+        background: var(--cream);
+        animation: cmToolReveal 220ms ease both;
+    }
+    .cm-tool-panel[hidden] { display: none; }
+    @keyframes cmToolReveal {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .cm-image-preview { display: flex; align-items: center; gap: 12px; }
+    .cm-image-preview img { width: 72px; height: 56px; object-fit: cover; border-radius: 8px; }
+    .cm-image-preview span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.78rem; }
+    .cm-poll-builder legend { margin-bottom: 10px; font-size: 0.8rem; font-weight: 700; color: var(--primary-dark); }
+    .cm-poll-builder input, .cm-tag-builder input {
+        width: 100%;
+        margin-top: 7px;
+        padding: 9px 11px;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        background: var(--white);
+        color: var(--gray-800);
+        font: inherit;
+        font-size: 0.8rem;
+    }
+    .cm-poll-builder input:focus, .cm-tag-builder input:focus { outline: 2px solid rgba(56, 189, 248, 0.3); border-color: var(--accent); }
+    .cm-poll-builder .cm-add-option { margin-top: 9px; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.76rem; font-weight: 700; cursor: pointer; }
+    .cm-tag-builder label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--primary-dark); }
+    .cm-tag-builder small { display: block; margin-top: 5px; color: var(--gray-600); font-size: 0.68rem; }
 
     .cm-post-btn {
         display: inline-flex;
@@ -301,6 +335,22 @@
         border-color: var(--secondary);
         box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.16);
     }
+    .cm-search-field {
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        transition: width 180ms ease, opacity 180ms ease, padding 180ms ease;
+    }
+    .cm-toolbar.search-open .cm-search-field {
+        width: min(220px, 32vw);
+        padding: 8px 12px;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        opacity: 1;
+    }
+    .cm-search-toggle { flex-shrink: 0; }
 
     /* ---------- Post card ---------- */
     .cm-post {
@@ -431,7 +481,32 @@
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        white-space: pre-wrap;
     }
+
+    .cm-post-image { margin: 12px 0 0; }
+    .cm-post-image img { display: block; max-width: 100%; max-height: 420px; border-radius: 11px; object-fit: contain; }
+    .cm-poll { margin: 14px 0; padding: 14px; border: 1px solid var(--gray-100); border-radius: 12px; background: #fbfcf8; }
+    .cm-poll-option {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        overflow: hidden;
+        margin-top: 7px;
+        padding: 10px 12px;
+        border: 1px solid var(--gray-100);
+        border-radius: 8px;
+        background: var(--white);
+        font-size: 0.78rem;
+        cursor: pointer;
+    }
+    .cm-poll-option::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--poll-percent, 0%); background: rgba(190, 242, 100, 0.18); transition: width 350ms ease; }
+    .cm-poll-option > * { position: relative; z-index: 1; }
+    .cm-poll-option .vote-count { font-size: 0.7rem; font-weight: 700; color: var(--gray-600); }
+    .cm-poll-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+    .cm-poll-actions small { color: var(--gray-600); font-size: 0.68rem; }
 
     /* Tag chips */
     .cm-post-tags {
@@ -521,9 +596,27 @@
         gap: 12px;
         padding: 12px 14px;
         margin-top: 12px;
-        background: var(--cream);
-        border-radius: 12px;
-        border-left: 3px solid var(--secondary);
+        background: linear-gradient(110deg, rgba(190, 242, 100, 0.12), var(--cream) 42%, #fff 100%);
+        border: 1px solid rgba(190, 242, 100, 0.26);
+        border-left: 3px solid var(--secondary-deep);
+        border-radius: 4px 14px 14px 14px;
+        box-shadow: 0 5px 16px rgba(11, 17, 33, 0.035);
+        animation: cmReplyIn 420ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+        animation-delay: calc(var(--reply-index, 0) * 65ms);
+        transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    }
+    .cm-reply:hover {
+        transform: translateX(3px);
+        border-color: rgba(190, 242, 100, 0.55);
+        box-shadow: 0 8px 20px rgba(11, 17, 33, 0.07);
+    }
+    @keyframes cmReplyIn {
+        from { opacity: 0; transform: translateY(8px) scale(0.99); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes cmReplyFocus {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        35% { box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.14); }
     }
     .cm-reply .avatar.xs {
         width: 30px;
@@ -565,6 +658,45 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+    }
+    .cm-reply-form {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 10px;
+        border: 1px solid var(--gray-100);
+        border-radius: 14px;
+        background: rgba(245, 247, 240, 0.72);
+        transition: border-color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+    }
+    .cm-reply-form:focus-within {
+        background: #fff;
+        border-color: rgba(56, 189, 248, 0.45);
+        box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.09);
+    }
+    .cm-reply-form:target { animation: cmReplyFocus 800ms ease; }
+    .cm-reply-form textarea {
+        flex: 1;
+        min-width: 0;
+        min-height: 42px;
+        max-height: 140px;
+        resize: vertical;
+        padding: 10px 12px;
+        border: 0;
+        border-radius: 9px;
+        outline: 0;
+        background: transparent;
+        color: var(--gray-800);
+        font: inherit;
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+    .cm-reply-form textarea::placeholder { color: var(--gray-600); }
+    .cm-reply-form .btn { flex-shrink: 0; }
+    @media (prefers-reduced-motion: reduce) {
+        .cm-reply, .cm-reply-form:target { animation: none; }
+        .cm-reply, .cm-reply-form, .cm-reply-form textarea { transition: none; }
     }
 
     /* Load more */
@@ -832,744 +964,236 @@
 </style>
 
 
-<!-- ====================================================
-     PAGE HEAD
-     ==================================================== -->
 <section class="cm-head fade-up">
     <div>
-        <span class="badge-soft pulse"><i class="bi bi-chat-dots-fill"></i> 47 new posts today</span>
+        <span class="badge-soft"><i class="bi bi-chat-dots-fill"></i> {{ post_count }} community discussions</span>
         <h1>Knotwork <span>Community</span></h1>
-        <p>Ask questions, share wins, and learn together. Real members, real answers, moderated by verified mentors.</p>
+        <p>Ask questions, share progress, and learn with the community. Your posts and replies are stored on your account.</p>
     </div>
-
     <div class="cm-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-line" data-toast="Opening your bookmarked posts…">
-            <i class="bi bi-bookmark"></i> Bookmarks
-        </button>
-        <button class="btn btn-secondary" data-toast="Opening the guidelines…">
-            <i class="bi bi-shield-check"></i> Guidelines
-        </button>
+        <a class="btn btn-line" href="?saved=1"><i class="bi bi-bookmark"></i> Bookmarks</a>
+        <a class="btn btn-secondary" href="{% url 'student_help' %}#community-guidelines"><i class="bi bi-shield-check"></i> Guidelines</a>
     </div>
 </section>
 
-
-<!-- ====================================================
-     STATS STRIP
-     ==================================================== -->
 <section class="cm-stats">
-    <div class="cm-stat fade-up">
-        <div class="ic"><i class="bi bi-people-fill"></i></div>
-        <div>
-            <div class="v" data-count="12400">0</div>
-            <div class="l">Active members</div>
-        </div>
-    </div>
-
-    <div class="cm-stat fade-up">
-        <div class="ic accent"><i class="bi bi-chat-square-text-fill"></i></div>
-        <div>
-            <div class="v" data-count="8600">0</div>
-            <div class="l">Discussions started</div>
-        </div>
-    </div>
-
-    <div class="cm-stat fade-up">
-        <div class="ic violet"><i class="bi bi-lightning-charge-fill"></i></div>
-        <div>
-            <div class="v" data-count="94"><em>%</em></div>
-            <div class="l">Questions answered</div>
-        </div>
-    </div>
-
-    <div class="cm-stat fade-up">
-        <div class="ic amber"><i class="bi bi-clock-history"></i></div>
-        <div>
-            <div class="v">~<span data-count="18">0</span><em>m</em></div>
-            <div class="l">Avg. response time</div>
-        </div>
-    </div>
+    <div class="cm-stat"><div class="ic"><i class="bi bi-people-fill"></i></div><div><div class="v">{{ member_count }}</div><div class="l">Registered members</div></div></div>
+    <div class="cm-stat"><div class="ic accent"><i class="bi bi-chat-square-text-fill"></i></div><div><div class="v">{{ post_count }}</div><div class="l">Discussions started</div></div></div>
+    <div class="cm-stat"><div class="ic violet"><i class="bi bi-reply-fill"></i></div><div><div class="v">{{ reply_count }}</div><div class="l">Community replies</div></div></div>
+    <div class="cm-stat"><div class="ic amber"><i class="bi bi-bookmark-heart-fill"></i></div><div><div class="v">{{ page_obj.paginator.count }}</div><div class="l">Matching discussions</div></div></div>
 </section>
 
-
-<!-- ====================================================
-     COMPOSER
-     ==================================================== -->
-<section class="cm-composer fade-up">
-    <span class="avatar lg">AO</span>
-
+<form class="cm-composer fade-up" method="post" enctype="multipart/form-data" action="{% url 'student_community_action' %}">
+    {% csrf_token %}
+    <span class="avatar lg">{{ request.user.first_name|first|upper|default:request.user.username|first|upper }}</span>
     <div class="cm-composer-body">
-        <textarea class="cm-composer-input" id="cmComposerInput" placeholder="Ask the community a question, share a win, or start a discussion…" rows="2"></textarea>
-
+        <input class="cm-composer-title" type="text" name="title" maxlength="180" tabindex="-1" aria-hidden="true">
+        <textarea class="cm-composer-input" id="cmComposerInput" name="body" maxlength="10000" placeholder="Ask the community a question, share a win, or start a discussion…" rows="2" required></textarea>
         <div class="cm-composer-foot">
-            <button class="cm-composer-tool" data-toast="Adding an image…">
-                <i class="bi bi-image"></i> Image
-            </button>
-            <button class="cm-composer-tool" data-toast="Adding code snippet…">
-                <i class="bi bi-code-slash"></i> Code
-            </button>
-            <button class="cm-composer-tool" data-toast="Adding a poll…">
-                <i class="bi bi-bar-chart"></i> Poll
-            </button>
-            <button class="cm-composer-tool" data-toast="Adding a tag…">
-                <i class="bi bi-tag"></i> Tag
-            </button>
-
-            <span class="spacer"></span>
-
-            <button class="cm-post-btn" id="cmPostBtn">
-                <i class="bi bi-send-fill"></i> Post
-            </button>
-        </div>
-    </div>
-</section>
-
-
-<!-- ====================================================
-     MAIN LAYOUT
-     ==================================================== -->
-<section class="cm-layout">
-
-    <!-- ============================================
-         MAIN FEED
-         ============================================ -->
-    <div class="cm-main">
-
-        <!-- Toolbar -->
-        <div class="cm-toolbar fade-up">
-            <div class="cm-cats" role="tablist" aria-label="Community categories">
-                <button class="cm-cat active" data-cat="all"><i class="bi bi-grid-fill"></i> All</button>
-                <button class="cm-cat" data-cat="question"><i class="bi bi-question-circle"></i> Questions</button>
-                <button class="cm-cat" data-cat="showcase"><i class="bi bi-star"></i> Showcase</button>
-                <button class="cm-cat" data-cat="feedback"><i class="bi bi-chat-left-text"></i> Feedback</button>
-                <button class="cm-cat" data-cat="jobs"><i class="bi bi-briefcase"></i> Opportunities</button>
-                <button class="cm-cat" data-cat="announce"><i class="bi bi-megaphone"></i> Announcements</button>
-            </div>
-
-            <div class="cm-sort">
-                <select id="cmSort">
-                    <option>Trending</option>
-                    <option>Newest</option>
-                    <option>Most upvoted</option>
-                    <option>Unanswered</option>
+            <input type="file" id="cmImageInput" name="image" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+            <button class="cm-composer-tool" type="button" id="cmImageTool"><i class="bi bi-image"></i> Image</button>
+            <button class="cm-composer-tool" type="button" id="cmCodeTool" aria-label="Insert code block"><i class="bi bi-code-slash"></i> Code</button>
+            <button class="cm-composer-tool" type="button" id="cmPollTool" aria-expanded="false" aria-controls="cmPollBuilder"><i class="bi bi-bar-chart"></i> Poll</button>
+            <button class="cm-composer-tool" type="button" id="cmTagTool" aria-expanded="false" aria-controls="cmTagBuilder"><i class="bi bi-tag"></i> Tag</button>
+            <label class="cm-composer-tool"><i class="bi bi-grid"></i> Category
+                <select name="category" aria-label="Post category" style="border:0;background:transparent;font:inherit;color:inherit;">
+                    {% for value, label in category_options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
                 </select>
-            </div>
+            </label>
+            <span class="spacer"></span>
+            <button class="cm-post-btn" type="submit"><i class="bi bi-send-fill"></i> Post</button>
         </div>
+        <div class="cm-tool-panel cm-image-preview" id="cmImagePreview" hidden>
+            <img id="cmImageThumb" alt="Selected image preview">
+            <span id="cmImageName"></span>
+            <button class="cm-act" type="button" id="cmRemoveImage" aria-label="Remove image"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <fieldset class="cm-tool-panel cm-poll-builder" id="cmPollBuilder" hidden>
+            <legend>Poll choices</legend>
+            <div id="cmPollChoices">
+                <input type="text" name="poll_option" maxlength="100" placeholder="Choice 1">
+                <input type="text" name="poll_option" maxlength="100" placeholder="Choice 2">
+            </div>
+            <button class="cm-add-option" type="button" id="cmAddPollOption"><i class="bi bi-plus-lg"></i> Add choice</button>
+        </fieldset>
+        <div class="cm-tool-panel cm-tag-builder" id="cmTagBuilder" hidden>
+            <label for="cmTagsInput">Post tags</label>
+            <input type="text" id="cmTagsInput" name="tags" maxlength="300" placeholder="e.g. python, study tips">
+            <small>Separate up to eight tags with commas.</small>
+        </div>
+    </div>
+</form>
 
-        <!-- Feed -->
+<section class="cm-layout">
+    <div class="cm-main">
+        <form class="cm-toolbar fade-up {% if search_query %}search-open{% endif %}" method="get" action="{% url 'student_community' %}" id="cmToolbarSearch">
+            <div class="cm-cats" role="tablist" aria-label="Community categories">
+                <a class="cm-cat {% if category == 'all' %}active{% endif %}" href="?category=all&amp;q={{ search_query|urlencode }}&amp;sort={{ sort }}{% if saved_only %}&amp;saved=1{% endif %}"><i class="bi bi-grid-fill"></i> All</a>
+                {% for value, label in category_options %}<a class="cm-cat {% if category == value %}active{% endif %}" href="?category={{ value }}&amp;q={{ search_query|urlencode }}&amp;sort={{ sort }}{% if saved_only %}&amp;saved=1{% endif %}">{{ label }}</a>{% endfor %}
+            </div>
+            <input class="cm-search-field" type="search" name="q" value="{{ search_query }}" placeholder="Search discussions" aria-label="Search community posts" {% if not search_query %}tabindex="-1"{% endif %}>
+            <input type="hidden" name="category" value="{{ category }}">
+            <div class="cm-sort"><select name="sort" aria-label="Sort posts" onchange="this.form.submit()"><option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option><option value="popular" {% if sort == 'popular' %}selected{% endif %}>Most upvoted</option><option value="unanswered" {% if sort == 'unanswered' %}selected{% endif %}>Unanswered</option></select></div>
+            {% if saved_only %}<input type="hidden" name="saved" value="1">{% endif %}
+            <button class="cm-cat cm-search-toggle" type="submit" aria-label="Open or submit community search" aria-expanded="{% if search_query %}true{% else %}false{% endif %}"><i class="bi bi-search"></i></button>
+        </form>
         <div id="cmFeed">
-
-            <!-- ---- Post 1: Pinned announcement ---- -->
-            <article class="cm-post pinned fade-up" data-cat="announce">
-                <div class="cm-post-head">
-                    <span class="cm-post-avatar v3">TF</span>
-                    <div class="cm-post-meta">
-                        <div class="who">
-                            <strong>Tolu Fashina</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="role mentor">Mentor</span>
-                        </div>
-                        <div class="time"><i class="bi bi-clock"></i> 3 hours ago · Announcement</div>
+            {% for post in posts %}
+                <article class="cm-post fade-up" data-cat="{{ post.category }}" id="post-{{ post.id }}">
+                    <div class="cm-post-head">
+                        <span class="cm-post-avatar">{{ post.author.first_name|first|upper|default:post.author.username|first|upper }}{{ post.author.last_name|first|upper }}</span>
+                        <div class="cm-post-meta"><div class="who"><strong>{{ post.author.get_full_name|default:post.author.username }}</strong><span class="role">{{ post.author.onboarding_profile.get_role_display|default:'Member' }}</span></div><div class="time"><i class="bi bi-clock"></i> {{ post.created_at|timesince }} ago · {{ post.get_category_display }}</div></div>
+                        {% if post.author_id == request.user.id %}<form method="post" action="{% url 'student_community_post_action' post.id %}">{% csrf_token %}<input type="hidden" name="action" value="delete"><button class="cm-act" type="submit" aria-label="Delete your post"><i class="bi bi-trash"></i></button></form>{% endif %}
                     </div>
-                    <div class="cm-post-badges">
-                        <span class="cm-pin"><i class="bi bi-pin-angle-fill"></i> Pinned</span>
+                    <div class="cm-post-body"><a class="cm-post-title" href="#post-{{ post.id }}">{{ post.title }}</a><p class="cm-post-text">{{ post.body|linebreaksbr }}</p>
+                        {% if post.image %}<figure class="cm-post-image"><img src="{{ post.image.url }}" alt="Image shared by {{ post.author.get_full_name|default:post.author.username }}" loading="lazy"></figure>{% endif %}
+                        {% if post.tag_list %}<div class="cm-post-tags">{% for tag in post.tag_list %}<span class="cm-tag">#{{ tag }}</span>{% endfor %}</div>{% endif %}
                     </div>
-                </div>
-
-                <div class="cm-post-body">
-                    <a class="cm-post-title">Welcome to the new Community — here's how to get the most out of it</a>
-                    <p class="cm-post-text">
-                        We've rebuilt Community from the ground up with categories, tags, and a proper answer system.
-                        Ask real questions, share honest wins (and losses), and upvote the answers that actually helped you.
-                        Remember: every post is public and searchable — be kind, be specific, and cite your sources.
-                    </p>
-                </div>
-
-                <div class="cm-post-foot">
-                    <button class="cm-act upvoted" data-toast="You upvoted this post" data-toast-type="success">
-                        <i class="bi bi-arrow-up-circle-fill"></i> <span class="count">428</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening the discussion…">
-                        <i class="bi bi-chat-left-text"></i> <span class="count">86 replies</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening share options…">
-                        <i class="bi bi-share"></i> Share
-                    </button>
-                    <span class="spacer"></span>
-                    <button class="cm-act" data-toast="Saved to your bookmarks">
-                        <i class="bi bi-bookmark"></i> Save
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Post 2: Question with accepted answer ---- -->
-            <article class="cm-post fade-up" data-cat="question">
-                <div class="cm-post-head">
-                    <span class="cm-post-avatar">AO</span>
-                    <div class="cm-post-meta">
-                        <div class="who">
-                            <strong>Amara Okoye</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="role">Student</span>
-                        </div>
-                        <div class="time"><i class="bi bi-clock"></i> 1 hour ago · Question</div>
+                    {% if post.poll_option_rows %}<form class="cm-poll" method="post" action="{% url 'student_community_post_action' post.id %}">
+                        {% csrf_token %}<input type="hidden" name="action" value="poll_vote"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        {% for option in post.poll_option_rows %}<label class="cm-poll-option" style="--poll-percent: {{ option.vote_percent }}%;"><input type="radio" name="option_id" value="{{ option.id }}" {% if post.viewer_poll_option_id == option.id %}checked{% endif %} required><span>{{ option.text }}</span><span class="vote-count">{{ option.vote_count }}</span></label>{% endfor %}
+                        <div class="cm-poll-actions"><button class="btn btn-secondary btn-sm" type="submit">{% if post.viewer_poll_option_id %}Change vote{% else %}Vote{% endif %}</button><small>{{ post.poll_vote_count }} vote{{ post.poll_vote_count|pluralize }}</small></div>
+                    </form>{% endif %}
+                    {% for reply in post.recent_replies %}<div class="cm-reply" style="--reply-index: {{ forloop.counter0 }};"><span class="avatar xs">{{ reply.author.first_name|first|upper|default:reply.author.username|first|upper }}</span><div class="cm-reply-body"><div class="cm-reply-head"><strong>{{ reply.author.get_full_name|default:reply.author.username }}</strong><span class="time">{{ reply.created_at|timesince }} ago</span></div><p class="cm-reply-text">{{ reply.body|linebreaksbr }}</p></div></div>{% endfor %}
+                    <div class="cm-post-foot">
+                        <form method="post" action="{% url 'student_community_post_action' post.id %}">{% csrf_token %}<input type="hidden" name="action" value="upvote"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="cm-act {% if post.viewer_liked %}upvoted{% endif %}" type="submit"><i class="bi {% if post.viewer_liked %}bi-arrow-up-circle-fill{% else %}bi-arrow-up-circle{% endif %}"></i> <span class="count">{{ post.reaction_count }}</span></button></form>
+                        <a class="cm-act" href="#reply-{{ post.id }}"><i class="bi bi-chat-left-text"></i> <span class="count">{{ post.reply_count }} replies</span></a>
+                        <button class="cm-act" type="button" data-copy-url="{{ request.scheme }}://{{ request.get_host }}{% url 'student_community' %}#post-{{ post.id }}"><i class="bi bi-share"></i> Share</button>
+                        <span class="spacer"></span>
+                        <form method="post" action="{% url 'student_community_post_action' post.id %}">{% csrf_token %}<input type="hidden" name="action" value="bookmark"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="cm-act {% if post.viewer_bookmarked %}upvoted{% endif %}" type="submit"><i class="bi {% if post.viewer_bookmarked %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i> {% if post.viewer_bookmarked %}Saved{% else %}Save{% endif %}</button></form>
                     </div>
-                </div>
-
-                <div class="cm-post-body">
-                    <a class="cm-post-title">How do you handle auth state in a large React app without prop drilling?</a>
-                    <p class="cm-post-text">
-                        I'm refactoring a 60-component app and the auth prop is getting passed down through 4-5 layers.
-                        I've looked at Context API and Zustand but I'm not sure which scales better. What are you all using
-                        in production?
-                    </p>
-                    <div class="cm-post-tags">
-                        <span class="cm-tag green">#react</span>
-                        <span class="cm-tag green">#state-management</span>
-                        <span class="cm-tag">#architecture</span>
-                    </div>
-                </div>
-
-                <!-- Accepted answer preview -->
-                <div class="cm-reply">
-                    <span class="avatar xs" style="background: linear-gradient(135deg, var(--accent), var(--secondary));">DO</span>
-                    <div class="cm-reply-body">
-                        <div class="cm-reply-head">
-                            <strong>Daniel Okafor</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="accepted"><i class="bi bi-check-lg"></i> Accepted</span>
-                        </div>
-                        <p class="cm-reply-text">
-                            Context is fine for auth <em>if</em> you memoise it and split read/write contexts. But past
-                            ~50 components, Zustand or Jotai will save you a lot of rerender pain. Here's the pattern I use…
-                        </p>
-                    </div>
-                </div>
-
-                <div class="cm-post-foot">
-                    <button class="cm-act" data-toast="You upvoted this question" data-toast-type="success">
-                        <i class="bi bi-arrow-up-circle"></i> <span class="count">47</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening the discussion…">
-                        <i class="bi bi-chat-left-text"></i> <span class="count">12 replies</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening share options…">
-                        <i class="bi bi-share"></i> Share
-                    </button>
-                    <span class="spacer"></span>
-                    <button class="cm-act" data-toast="Saved to your bookmarks">
-                        <i class="bi bi-bookmark"></i> Save
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Post 3: Showcase ---- -->
-            <article class="cm-post fade-up" data-cat="showcase">
-                <div class="cm-post-head">
-                    <span class="cm-post-avatar v4">TK</span>
-                    <div class="cm-post-meta">
-                        <div class="who">
-                            <strong>Tunde Kalu</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="role">Student</span>
-                        </div>
-                        <div class="time"><i class="bi bi-clock"></i> 5 hours ago · Showcase</div>
-                    </div>
-                </div>
-
-                <div class="cm-post-body">
-                    <a class="cm-post-title">Built my portfolio in React after 6 weeks of swaps 🎉</a>
-                    <p class="cm-post-text">
-                        Six weeks ago I couldn't read JSX. Today I shipped a portfolio with custom animations,
-                        dark mode, and a working contact form. Huge thanks to everyone who reviewed my code —
-                        especially the CSS tips I got here. Link in the comments!
-                    </p>
-                    <div class="cm-post-tags">
-                        <span class="cm-tag green">#showcase</span>
-                        <span class="cm-tag violet">#portfolio</span>
-                        <span class="cm-tag amber">#win</span>
-                    </div>
-                </div>
-
-                <div class="cm-post-foot">
-                    <button class="cm-act" data-toast="You upvoted this post" data-toast-type="success">
-                        <i class="bi bi-arrow-up-circle"></i> <span class="count">312</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening the discussion…">
-                        <i class="bi bi-chat-left-text"></i> <span class="count">64 replies</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening share options…">
-                        <i class="bi bi-share"></i> Share
-                    </button>
-                    <span class="spacer"></span>
-                    <button class="cm-act" data-toast="Saved to your bookmarks">
-                        <i class="bi bi-bookmark"></i> Save
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Post 4: Feedback / Discussion ---- -->
-            <article class="cm-post fade-up" data-cat="feedback">
-                <div class="cm-post-head">
-                    <span class="cm-post-avatar v2">FB</span>
-                    <div class="cm-post-meta">
-                        <div class="who">
-                            <strong>Fatima Bello</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="role teacher">Teacher</span>
-                        </div>
-                        <div class="time"><i class="bi bi-clock"></i> 8 hours ago · Feedback</div>
-                    </div>
-                </div>
-
-                <div class="cm-post-body">
-                    <a class="cm-post-title">Unpopular opinion: design systems are overrated for small teams</a>
-                    <p class="cm-post-text">
-                        I've built systems at four companies. Two of them didn't need one — a solid component library
-                        and consistent Figma styles would've been enough. Curious what others think. When does a
-                        design system actually earn its keep?
-                    </p>
-                    <div class="cm-post-tags">
-                        <span class="cm-tag violet">#design-systems</span>
-                        <span class="cm-tag">#product-design</span>
-                        <span class="cm-tag amber">#hot-take</span>
-                    </div>
-                </div>
-
-                <div class="cm-post-foot">
-                    <button class="cm-act upvoted" data-toast="You upvoted this post" data-toast-type="success">
-                        <i class="bi bi-arrow-up-circle-fill"></i> <span class="count">184</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening the discussion…">
-                        <i class="bi bi-chat-left-text"></i> <span class="count">127 replies</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening share options…">
-                        <i class="bi bi-share"></i> Share
-                    </button>
-                    <span class="spacer"></span>
-                    <button class="cm-act" data-toast="Saved to your bookmarks">
-                        <i class="bi bi-bookmark"></i> Save
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Post 5: Opportunity ---- -->
-            <article class="cm-post fade-up" data-cat="jobs">
-                <div class="cm-post-head">
-                    <span class="cm-post-avatar v6">AN</span>
-                    <div class="cm-post-meta">
-                        <div class="who">
-                            <strong>Amara Nwosu</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="role mentor">Mentor</span>
-                        </div>
-                        <div class="time"><i class="bi bi-clock"></i> 12 hours ago · Opportunity</div>
-                    </div>
-                </div>
-
-                <div class="cm-post-body">
-                    <a class="cm-post-title">Hiring: Junior Frontend Engineer (Remote, Africa-based) — refer a Knotwork member</a>
-                    <p class="cm-post-text">
-                        My team is opening a junior React role in April. No years-of-experience gate — we care about
-                        portfolio quality and how you think. If you've finished the Frontend track here, you're
-                        already in the right direction. DM me for a referral.
-                    </p>
-                    <div class="cm-post-tags">
-                        <span class="cm-tag green">#hiring</span>
-                        <span class="cm-tag">#react</span>
-                        <span class="cm-tag amber">#remote</span>
-                    </div>
-                </div>
-
-                <div class="cm-post-foot">
-                    <button class="cm-act" data-toast="You upvoted this post" data-toast-type="success">
-                        <i class="bi bi-arrow-up-circle"></i> <span class="count">241</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening the discussion…">
-                        <i class="bi bi-chat-left-text"></i> <span class="count">38 replies</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening share options…">
-                        <i class="bi bi-share"></i> Share
-                    </button>
-                    <span class="spacer"></span>
-                    <button class="cm-act" data-toast="Saved to your bookmarks">
-                        <i class="bi bi-bookmark"></i> Save
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Post 6: Question ---- -->
-            <article class="cm-post fade-up" data-cat="question">
-                <div class="cm-post-head">
-                    <span class="cm-post-avatar v5">CN</span>
-                    <div class="cm-post-meta">
-                        <div class="who">
-                            <strong>Chidi Nwosu</strong>
-                            <i class="bi bi-patch-check-fill verified" title="Verified"></i>
-                            <span class="role teacher">Teacher</span>
-                        </div>
-                        <div class="time"><i class="bi bi-clock"></i> 1 day ago · Question</div>
-                    </div>
-                </div>
-
-                <div class="cm-post-body">
-                    <a class="cm-post-title">Best way to teach API design to someone who's only written scripts?</a>
-                    <p class="cm-post-text">
-                        A student asked me to teach them REST APIs but they've only ever written Python scripts.
-                        I want to bridge from "scripts that do things" to "services that talk to each other" without
-                        losing them. Any analogies or exercises that worked for you?
-                    </p>
-                    <div class="cm-post-tags">
-                        <span class="cm-tag green">#teaching</span>
-                        <span class="cm-tag">#api-design</span>
-                        <span class="cm-tag violet">#mentorship</span>
-                    </div>
-                </div>
-
-                <div class="cm-post-foot">
-                    <button class="cm-act" data-toast="You upvoted this question" data-toast-type="success">
-                        <i class="bi bi-arrow-up-circle"></i> <span class="count">96</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening the discussion…">
-                        <i class="bi bi-chat-left-text"></i> <span class="count">29 replies</span>
-                    </button>
-                    <button class="cm-act" data-toast="Opening share options…">
-                        <i class="bi bi-share"></i> Share
-                    </button>
-                    <span class="spacer"></span>
-                    <button class="cm-act" data-toast="Saved to your bookmarks">
-                        <i class="bi bi-bookmark"></i> Save
-                    </button>
-                </div>
-            </article>
-
+                    <form class="cm-reply-form" id="reply-{{ post.id }}" method="post" action="{% url 'student_community_post_action' post.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reply">
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <label class="visually-hidden" for="reply-body-{{ post.id }}">Reply to {{ post.title }}</label>
+                        <textarea id="reply-body-{{ post.id }}" name="body" maxlength="3000" placeholder="Write a helpful reply…" required></textarea>
+                        <button class="btn btn-secondary btn-sm" type="submit"><i class="bi bi-send-fill"></i> Reply</button>
+                    </form>
+                </article>
+            {% empty %}<div class="cm-panel"><h3>No discussions found</h3><p>Start a new post or adjust your search and category.</p></div>{% endfor %}
         </div>
-
-        <!-- Load more -->
-        <button class="cm-load fade-up" id="cmLoadMore" data-toast="Loading more posts…">
-            <i class="bi bi-arrow-down-circle"></i> Load more discussions
-        </button>
-
+        {% if page_obj.has_next %}<a class="cm-load fade-up" href="?category={{ category }}&amp;q={{ search_query|urlencode }}&amp;sort={{ sort }}&amp;page={{ page_obj.next_page_number }}{% if saved_only %}&amp;saved=1{% endif %}"><i class="bi bi-arrow-down-circle"></i> Load more discussions</a>{% endif %}
     </div>
-
-
-    <!-- ============================================
-         SIDEBAR
-         ============================================ -->
-    <div class="cm-side">
-
-        <!-- Trending topics -->
-        <div class="cm-panel fade-up">
-            <div class="cm-panel-head">
-                <h4><i class="bi bi-fire"></i> Trending today</h4>
-                <button class="link" data-toast="Opening all trending topics…">See all</button>
-            </div>
-
-            <button class="cm-trend" data-toast="Opening topic: React state…">
-                <span class="rank">1</span>
-                <div class="cm-trend-body">
-                    <h5>React state management</h5>
-                    <p><strong>184</strong> posts today</p>
-                </div>
-            </button>
-
-            <button class="cm-trend" data-toast="Opening topic: Portfolio review…">
-                <span class="rank">2</span>
-                <div class="cm-trend-body">
-                    <h5>Portfolio review</h5>
-                    <p><strong>127</strong> posts today</p>
-                </div>
-            </button>
-
-            <button class="cm-trend" data-toast="Opening topic: Freelancing…">
-                <span class="rank">3</span>
-                <div class="cm-trend-body">
-                    <h5>Freelancing &amp; clients</h5>
-                    <p><strong>98</strong> posts today</p>
-                </div>
-            </button>
-
-            <button class="cm-trend" data-toast="Opening topic: TypeScript…">
-                <span class="rank">4</span>
-                <div class="cm-trend-body">
-                    <h5>TypeScript patterns</h5>
-                    <p><strong>76</strong> posts today</p>
-                </div>
-            </button>
-
-            <button class="cm-trend" data-toast="Opening topic: Career growth…">
-                <span class="rank">5</span>
-                <div class="cm-trend-body">
-                    <h5>Career growth</h5>
-                    <p><strong>61</strong> posts today</p>
-                </div>
-            </button>
+    <aside class="cm-side">
+        <div class="cm-panel fade-up"><div class="cm-panel-head"><h4><i class="bi bi-fire"></i> Active categories</h4></div>
+            {% for topic in trending_topics %}<a class="cm-trend" href="?category={{ topic.category }}"><span class="rank">{{ forloop.counter }}</span><div class="cm-trend-body"><h5>{{ topic.category|title }}</h5><p><strong>{{ topic.post_count }}</strong> posts</p></div></a>{% empty %}<p>No trending topics yet.</p>{% endfor %}
         </div>
-
-        <!-- Top contributors -->
-        <div class="cm-panel fade-up">
-            <div class="cm-panel-head">
-                <h4><i class="bi bi-trophy-fill"></i> Top contributors</h4>
-                <button class="link" data-toast="Opening the leaderboard…">Leaderboard</button>
-            </div>
-
-            <div class="cm-contrib">
-                <span class="cm-contrib-avatar v3">
-                    TF
-                    <span class="medal">1</span>
-                </span>
-                <div class="cm-contrib-body">
-                    <h5>Tolu Fashina <i class="bi bi-patch-check-fill verified" title="Verified"></i></h5>
-                    <p><strong>428</strong> helpful answers</p>
-                </div>
-            </div>
-
-            <div class="cm-contrib">
-                <span class="cm-contrib-avatar v2">
-                    DO
-                    <span class="medal">2</span>
-                </span>
-                <div class="cm-contrib-body">
-                    <h5>Daniel Okafor <i class="bi bi-patch-check-fill verified" title="Verified"></i></h5>
-                    <p><strong>312</strong> helpful answers</p>
-                </div>
-            </div>
-
-            <div class="cm-contrib">
-                <span class="cm-contrib-avatar">
-                    FB
-                    <span class="medal">3</span>
-                </span>
-                <div class="cm-contrib-body">
-                    <h5>Fatima Bello <i class="bi bi-patch-check-fill verified" title="Verified"></i></h5>
-                    <p><strong>268</strong> helpful answers</p>
-                </div>
-            </div>
-
-            <div class="cm-contrib">
-                <span class="cm-contrib-avatar v4">CN</span>
-                <div class="cm-contrib-body">
-                    <h5>Chidi Nwosu</h5>
-                    <p><strong>194</strong> helpful answers</p>
-                </div>
-            </div>
-
-            <div class="cm-contrib">
-                <span class="cm-contrib-avatar v5">AN</span>
-                <div class="cm-contrib-body">
-                    <h5>Amara Nwosu</h5>
-                    <p><strong>176</strong> helpful answers</p>
-                </div>
-            </div>
+        <div class="cm-panel fade-up"><div class="cm-panel-head"><h4><i class="bi bi-trophy-fill"></i> Top contributors</h4></div>
+            {% for person in contributors %}<div class="cm-contrib"><span class="cm-contrib-avatar">{{ person.first_name|first|upper|default:person.username|first|upper }}</span><div class="cm-contrib-body"><h5>{{ person.get_full_name|default:person.username }}</h5><p><strong>{{ person.activity_count }}</strong> contributions</p></div></div>{% empty %}<p>Contributors will appear as members post and reply.</p>{% endfor %}
         </div>
-
-        <!-- Community guidelines -->
-        <div class="cm-panel fade-up">
-            <div class="cm-panel-head">
-                <h4><i class="bi bi-shield-check"></i> Community guidelines</h4>
-                <button class="link" data-toast="Opening full guidelines…">Full rules</button>
-            </div>
-
-            <div class="cm-guide">
-                <div class="ic"><i class="bi bi-hand-thumbs-up"></i></div>
-                <div class="cm-guide-body">
-                    <h5>Be kind, be specific</h5>
-                    <p>Critique the work, not the person. If you disagree, explain why.</p>
-                </div>
-            </div>
-
-            <div class="cm-guide">
-                <div class="ic sky"><i class="bi bi-search"></i></div>
-                <div class="cm-guide-body">
-                    <h5>Search before posting</h5>
-                    <p>Many questions already have great answers — check first, then add to the thread.</p>
-                </div>
-            </div>
-
-            <div class="cm-guide">
-                <div class="ic violet"><i class="bi bi-code-slash"></i></div>
-                <div class="cm-guide-body">
-                    <h5>Share real code</h5>
-                    <p>Reproducible snippets get faster, better answers than "it doesn't work".</p>
-                </div>
-            </div>
-
-            <div class="cm-guide">
-                <div class="ic amber"><i class="bi bi-flag"></i></div>
-                <div class="cm-guide-body">
-                    <h5>Report, don't retaliate</h5>
-                    <p>Spam, harassment, and self-promo without context are removed by moderators.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trust note -->
-        <div class="cm-trust fade-up">
-            <i class="bi bi-shield-lock-fill"></i>
-            <span>
-                <strong>Your posts are public.</strong> Everything you share here is searchable by members.
-                Never post passwords, API keys, or private client data — even in screenshots.
-            </span>
-        </div>
-
-    </div>
+        <div class="cm-panel fade-up" id="community-guidelines"><div class="cm-panel-head"><h4><i class="bi bi-shield-check"></i> Community guidelines</h4></div><p>Be kind, be specific, share safe examples, and report harmful content to the support team.</p></div>
+    </aside>
 </section>
-
 
 <script>
     (function () {
-        'use strict';
-
-        /* ======================================================
-           CATEGORY FILTERS
-           ====================================================== */
-        var catButtons = Array.prototype.slice.call(document.querySelectorAll('.cm-cat'));
-        var posts = Array.prototype.slice.call(document.querySelectorAll('.cm-post'));
-
-        catButtons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var cat = this.dataset.cat;
-
-                catButtons.forEach(function (c) { c.classList.remove('active'); });
-                this.classList.add('active');
-
-                posts.forEach(function (post) {
-                    var show = cat === 'all' || post.dataset.cat === cat;
-                    post.style.display = show ? '' : 'none';
-                });
-
-                if (window.__toast) {
-                    var label = this.textContent.trim();
-                    window.__toast('Showing: ' + label, '');
-                }
-            });
-        });
-
-        /* ======================================================
-           SORT (visual feedback)
-           ====================================================== */
-        var sortSelect = document.getElementById('cmSort');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', function () {
-                if (window.__toast) {
-                    window.__toast('Sorted by: ' + this.value, '');
+        var searchForm = document.getElementById('cmToolbarSearch');
+        var searchToggle = searchForm && searchForm.querySelector('.cm-search-toggle');
+        var searchField = searchForm && searchForm.querySelector('.cm-search-field');
+        if (searchForm && searchToggle && searchField) {
+            searchToggle.addEventListener('click', function (event) {
+                if (!searchForm.classList.contains('search-open')) {
+                    event.preventDefault();
+                    searchForm.classList.add('search-open');
+                    searchField.removeAttribute('tabindex');
+                    searchToggle.setAttribute('aria-expanded', 'true');
+                    searchField.focus();
                 }
             });
         }
 
-        /* ======================================================
-           UPVOTE TOGGLE
-           ====================================================== */
-        document.querySelectorAll('.cm-act .bi-arrow-up-circle').forEach(function (icon) {
-            var btn = icon.closest('.cm-act');
-            if (!btn) return;
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                this.classList.toggle('upvoted');
-
-                var icon = this.querySelector('i');
-                var countEl = this.querySelector('.count');
-                if (icon) {
-                    icon.className = this.classList.contains('upvoted')
-                        ? 'bi bi-arrow-up-circle-fill'
-                        : 'bi bi-arrow-up-circle';
-                }
-                if (countEl) {
-                    var n = parseInt(countEl.textContent, 10) || 0;
-                    countEl.textContent = this.classList.contains('upvoted') ? n + 1 : Math.max(0, n - 1);
-                }
+        var codeTool = document.getElementById('cmCodeTool');
+        var composer = document.getElementById('cmComposerInput');
+        if (codeTool && composer) {
+            codeTool.addEventListener('click', function () {
+                var start = composer.selectionStart;
+                var end = composer.selectionEnd;
+                var selected = composer.value.slice(start, end) || 'your code here';
+                var insertion = '\n```\n' + selected + '\n```\n';
+                composer.setRangeText(insertion, start, end, 'end');
+                composer.focus();
             });
-        });
-
-        /* ======================================================
-           COMPOSER
-           ====================================================== */
-        var composerInput = document.getElementById('cmComposerInput');
-        var postBtn = document.getElementById('cmPostBtn');
-        var feed = document.getElementById('cmFeed');
-
-        function autoGrow() {
-            if (!composerInput) return;
-            composerInput.style.height = 'auto';
-            composerInput.style.height = Math.min(composerInput.scrollHeight, 180) + 'px';
         }
 
-        if (composerInput) {
-            composerInput.addEventListener('input', autoGrow);
-        }
-
-        function escapeHTML(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        if (postBtn) {
-            postBtn.addEventListener('click', function () {
-                if (!composerInput) return;
-                var text = composerInput.value.trim();
-                if (!text) {
-                    if (window.__toast) window.__toast('Write something before posting', 'error');
+        var imageTool = document.getElementById('cmImageTool');
+        var imageInput = document.getElementById('cmImageInput');
+        var imagePreview = document.getElementById('cmImagePreview');
+        var imageThumb = document.getElementById('cmImageThumb');
+        var imageName = document.getElementById('cmImageName');
+        var imagePreviewUrl = '';
+        if (imageTool && imageInput && imagePreview && imageThumb && imageName) {
+            imageTool.addEventListener('click', function () { imageInput.click(); });
+            imageInput.addEventListener('change', function () {
+                var file = imageInput.files && imageInput.files[0];
+                if (!file) return;
+                var allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+                if (allowedTypes.indexOf(file.type) === -1 || file.size > 5 * 1024 * 1024) {
+                    imageInput.value = '';
+                    if (window.__toast) window.__toast('Choose a PNG, JPEG, GIF or WebP image under 5 MB', 'error');
                     return;
                 }
-
-                var post = document.createElement('article');
-                post.className = 'cm-post fade-up visible';
-                post.dataset.cat = 'question';
-                post.style.marginBottom = '20px';
-                post.innerHTML =
-                    '<div class="cm-post-head">' +
-                        '<span class="cm-post-avatar">AO</span>' +
-                        '<div class="cm-post-meta">' +
-                            '<div class="who">' +
-                                '<strong>Amara Okoye</strong>' +
-                                '<i class="bi bi-patch-check-fill verified" title="Verified"></i>' +
-                                '<span class="role">Student</span>' +
-                            '</div>' +
-                            '<div class="time"><i class="bi bi-clock"></i> Just now</div>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="cm-post-body">' +
-                        '<a class="cm-post-title">Your new post</a>' +
-                        '<p class="cm-post-text">' + escapeHTML(text) + '</p>' +
-                    '</div>' +
-                    '<div class="cm-post-foot">' +
-                        '<button class="cm-act"><i class="bi bi-arrow-up-circle"></i> <span class="count">0</span></button>' +
-                        '<button class="cm-act"><i class="bi bi-chat-left-text"></i> <span class="count">0 replies</span></button>' +
-                        '<button class="cm-act"><i class="bi bi-share"></i> Share</button>' +
-                        '<span class="spacer"></span>' +
-                        '<button class="cm-act"><i class="bi bi-bookmark"></i> Save</button>' +
-                    '</div>';
-
-                if (feed) feed.insertBefore(post, feed.firstChild);
-
-                composerInput.value = '';
-                composerInput.style.height = 'auto';
-
-                if (window.__toast) {
-                    window.__toast('Posted to the community!', 'success');
-                }
+                if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+                imagePreviewUrl = URL.createObjectURL(file);
+                imageThumb.src = imagePreviewUrl;
+                imageName.textContent = file.name;
+                imagePreview.hidden = false;
+            });
+            document.getElementById('cmRemoveImage').addEventListener('click', function () {
+                imageInput.value = '';
+                imagePreview.hidden = true;
+                imageThumb.removeAttribute('src');
+                if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+                imagePreviewUrl = '';
             });
         }
 
-        /* ======================================================
-           LOAD MORE
-           ====================================================== */
-        var loadMore = document.getElementById('cmLoadMore');
-        if (loadMore) {
-            loadMore.addEventListener('click', function () {
-                this.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading…';
-                var btn = this;
-                setTimeout(function () {
-                    btn.innerHTML = '<i class="bi bi-arrow-down-circle"></i> Load more discussions';
-                    if (window.__toast) window.__toast('No more posts to load right now', '');
-                }, 1200);
+        var pollTool = document.getElementById('cmPollTool');
+        var pollBuilder = document.getElementById('cmPollBuilder');
+        var pollChoices = document.getElementById('cmPollChoices');
+        var addPollOption = document.getElementById('cmAddPollOption');
+        if (pollTool && pollBuilder && pollChoices && addPollOption) {
+            pollTool.addEventListener('click', function () {
+                pollBuilder.hidden = !pollBuilder.hidden;
+                pollTool.setAttribute('aria-expanded', String(!pollBuilder.hidden));
+                pollChoices.querySelectorAll('input').forEach(function (field) {
+                    field.required = !pollBuilder.hidden;
+                });
+                if (!pollBuilder.hidden) pollChoices.querySelector('input').focus();
+            });
+            addPollOption.addEventListener('click', function () {
+                var optionFields = pollChoices.querySelectorAll('input');
+                if (optionFields.length >= 5) return;
+                var field = document.createElement('input');
+                field.type = 'text';
+                field.name = 'poll_option';
+                field.maxLength = 100;
+                field.placeholder = 'Choice ' + (optionFields.length + 1);
+                field.required = !pollBuilder.hidden;
+                pollChoices.appendChild(field);
+                if (optionFields.length + 1 >= 5) addPollOption.hidden = true;
+                field.focus();
             });
         }
 
+        var tagTool = document.getElementById('cmTagTool');
+        var tagBuilder = document.getElementById('cmTagBuilder');
+        if (tagTool && tagBuilder) {
+            tagTool.addEventListener('click', function () {
+                tagBuilder.hidden = !tagBuilder.hidden;
+                tagTool.setAttribute('aria-expanded', String(!tagBuilder.hidden));
+                if (!tagBuilder.hidden) document.getElementById('cmTagsInput').focus();
+            });
+        }
     })();
+
+    document.querySelectorAll('[data-copy-url]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            navigator.clipboard.writeText(this.dataset.copyUrl).then(function () {
+                if (window.__toast) window.__toast('Discussion link copied', 'success');
+            });
+        });
+    });
 </script>
 
 {% endblock content %}

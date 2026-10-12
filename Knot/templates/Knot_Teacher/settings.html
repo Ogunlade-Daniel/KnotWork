@@ -1469,15 +1469,15 @@
 
         <div class="identity-info">
             <div class="identity-avatar" data-toast="Opening avatar uploader…">
-                DO
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
                 <span class="cam"><i class="bi bi-camera-fill"></i></span>
             </div>
 
             <div class="identity-text">
                 <span class="identity-eyebrow"><i class="bi bi-patch-check-fill"></i> Verified Faculty</span>
-                <h2>Daniel <em>Okafor</em></h2>
+                <h2>{{ request.user.first_name }} <em>{{ request.user.last_name }}</em></h2>
                 <div class="handle">
-                    daniel.okafor@knotwork.io
+                    {{ request.user.email }}
                     <span class="verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
                 </div>
                 <p class="bio">
@@ -1643,17 +1643,17 @@
                     <div class="field-row">
                         <div class="field">
                             <label>First name <span class="req">Required</span></label>
-                            <input type="text" class="input" value="Daniel" placeholder="First name">
+                            <input type="text" class="input" value="{{ request.user.first_name}}" placeholder="First name">
                         </div>
                         <div class="field">
                             <label>Last name <span class="req">Required</span></label>
-                            <input type="text" class="input" value="Okafor" placeholder="Last name">
+                            <input type="text" class="input" value="{{ request.user.last_name }}" placeholder="Last name">
                         </div>
                     </div>
 
                     <div class="field">
                         <label>Display name</label>
-                        <input type="text" class="input" value="Professor Daniel" placeholder="How students see you">
+                        <input type="text" class="input" value="Professor {{ request.user.first_name}}" placeholder="How students see you">
                         <p class="hint"><i class="bi bi-info-circle"></i> Shown on your faculty profile, courses and reviews.</p>
                     </div>
 
@@ -1705,7 +1705,7 @@
                     <div class="field">
                         <label>Email address <span class="req">Required</span></label>
                         <div class="input-action">
-                            <input type="email" class="input" value="daniel.okafor@knotwork.io" placeholder="you@example.com">
+                            <input type="email" class="input" value="{{ request.user.email }}" placeholder="you@example.com">
                             <button class="btn-inline" data-toast="Verification email sent…">Verify</button>
                         </div>
                         <p class="hint"><i class="bi bi-patch-check-fill"></i> Verified · Used for student enquiries and payouts.</p>
@@ -1715,7 +1715,7 @@
                         <label>Public contact email <span class="opt">Optional</span></label>
                         <div class="input-wrap">
                             <i class="bi bi-envelope"></i>
-                            <input type="email" class="input" value="hello@danielokafor.dev" placeholder="Shown on your profile">
+                            <input type="email" class="input" value="{{ request.user.email }}" placeholder="Shown on your profile">
                         </div>
                         <p class="hint"><i class="bi bi-shield-lock"></i> Leave blank to hide your email from students.</p>
                     </div>
@@ -1806,7 +1806,7 @@
                     <div class="field">
                         <label>Account email <span class="req">Primary</span></label>
                         <div class="input-action">
-                            <input type="email" class="input" value="daniel.okafor@knotwork.io" disabled>
+                            <input type="email" class="input" value="{{ request.user.email }}" disabled>
                             <button class="btn-inline" data-toast="Opening email change flow…">Change</button>
                         </div>
                         <p class="hint"><i class="bi bi-info-circle"></i> Changing your email requires re-verification. Your account stays active throughout.</p>

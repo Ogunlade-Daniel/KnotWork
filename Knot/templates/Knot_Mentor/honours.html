@@ -1,0 +1,1584 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Honours{% endblock %}
+{% block breadcrumb %}Honours{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO — HONOURS
+       ============================================================ */
+    .hon-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 34px 38px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 36px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .hon-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.12) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .hon-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .hh-text { position: relative; z-index: 2; max-width: 640px; }
+    .hh-text .hero-badge { margin-bottom: 14px; }
+    .hh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.9rem, 3.4vw, 2.55rem);
+        font-weight: 700; line-height: 1.15; margin-bottom: 12px;
+    }
+    .hh-text h1 span { color: var(--secondary); font-style: italic; }
+    .hh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.98rem; line-height: 1.75;
+        margin-bottom: 22px; max-width: 520px;
+    }
+    .hh-text p strong { color: var(--white); font-weight: 600; }
+    .hh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    /* Crest — the big mentor badge */
+    .hon-crest {
+        position: relative;
+        z-index: 2;
+        flex-shrink: 0;
+        width: 260px;
+        padding: 26px 22px 22px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(190, 242, 100, 0.32);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.35);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .hon-crest::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: var(--gold);
+    }
+    .hon-crest::after {
+        content: '';
+        position: absolute; top: -50%; right: -30%;
+        width: 80%; height: 200%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.16), transparent 62%);
+        pointer-events: none;
+    }
+    .crest-medal {
+        position: relative;
+        z-index: 2;
+        width: 100px; height: 100px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        background: var(--gold);
+        display: grid; place-items: center;
+        color: var(--primary-dark);
+        font-size: 2.4rem;
+        box-shadow:
+            0 20px 44px rgba(190, 242, 100, 0.40),
+            0 0 0 6px rgba(190, 242, 100, 0.12);
+        position: relative;
+    }
+    .crest-medal::after {
+        content: '';
+        position: absolute;
+        inset: 6px;
+        border-radius: 50%;
+        border: 2px solid rgba(11, 17, 33, 0.20);
+        pointer-events: none;
+    }
+    .crest-level {
+        position: relative;
+        z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--secondary);
+        margin-bottom: 6px;
+    }
+    .crest-title {
+        position: relative;
+        z-index: 2;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.28rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--white);
+        margin-bottom: 6px;
+    }
+    .crest-sub {
+        position: relative;
+        z-index: 2;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 16px;
+    }
+    .crest-stats {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+    }
+    .crest-stats div { text-align: center; }
+    .crest-stats strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.2;
+    }
+    .crest-stats span {
+        display: block;
+        font-size: 0.55rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 4px;
+    }
+
+    /* ============================================================
+       AUTHORITY STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute; top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .hon-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ho-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ho-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ho-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .ho-card:hover::before { opacity: 1; }
+    .ho-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .ho-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .ho-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ho-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ho-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ho-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ho-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .ho-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .ho-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ho-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .ho-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .hon-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 26px;
+        align-items: start;
+    }
+    .col-stack {
+        display: flex; flex-direction: column;
+        gap: 26px; min-width: 0;
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+
+    .tab-panels { padding: 20px 26px 24px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       BADGE GRID
+       ============================================================ */
+    .badge-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    .bdg {
+        position: relative;
+        padding: 24px 18px 20px;
+        border-radius: var(--radius);
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+        transition: var(--transition);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 220px;
+    }
+    .bdg::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: var(--gold);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .bdg:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .bdg:hover::before { opacity: 1; }
+    .bdg.locked { opacity: 0.72; }
+    .bdg.locked:hover { opacity: 0.88; transform: translateY(-3px); }
+
+    /* Badge medal */
+    .bdg-medal {
+        position: relative;
+        width: 68px; height: 68px;
+        margin-bottom: 14px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-size: 1.6rem;
+        color: var(--primary-dark);
+        background: var(--gold);
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.35);
+        flex-shrink: 0;
+    }
+    .bdg-medal::after {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .bdg-medal.accent {
+        background: linear-gradient(135deg, var(--accent), #0EA5E9);
+        color: #fff;
+        box-shadow: 0 12px 26px rgba(56, 189, 248, 0.35);
+    }
+    .bdg-medal.accent::after { border-color: rgba(255,255,255,0.24); }
+    .bdg-medal.violet {
+        background: linear-gradient(135deg, #A78BFA, #7C3AED);
+        color: #fff;
+        box-shadow: 0 12px 26px rgba(139, 92, 246, 0.35);
+    }
+    .bdg-medal.violet::after { border-color: rgba(255,255,255,0.24); }
+    .bdg-medal.amber {
+        background: linear-gradient(135deg, #FCD34D, #F59E0B);
+        color: #451A03;
+        box-shadow: 0 12px 26px rgba(245, 158, 11, 0.35);
+    }
+    .bdg-medal.amber::after { border-color: rgba(69,26,3,0.18); }
+    .bdg-medal.gray {
+        background: var(--gray-200);
+        color: var(--gray-300);
+        box-shadow: none;
+    }
+    .bdg-medal.gray::after { border-color: rgba(11,17,33,0.06); }
+
+    /* Badge progress ring (for in-progress badges) */
+    .bdg-progress-ring {
+        position: absolute;
+        top: -4px; left: -4px;
+        width: 76px; height: 76px;
+        pointer-events: none;
+    }
+
+    /* Badge kind pill */
+    .bdg-kind {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 50px;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        margin-bottom: 10px;
+    }
+    .bdg-kind.earned { background: rgba(190, 242, 100, 0.20); color: #4D7C0F; border: 1px solid rgba(190, 242, 100, 0.42); }
+    .bdg-kind.progress { background: rgba(56, 189, 248, 0.12); color: #0369A1; border: 1px solid rgba(56, 189, 248, 0.32); }
+    .bdg-kind.locked { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+    .bdg-kind.legendary { background: linear-gradient(135deg, rgba(190, 242, 100, 0.24), rgba(139, 92, 246, 0.18)); color: #6D28D9; border: 1px solid rgba(139, 92, 246, 0.34); }
+
+    .bdg h5 {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.25;
+        margin-bottom: 6px;
+    }
+    .bdg p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-bottom: 12px;
+    }
+
+    /* Badge date / progress meta */
+    .bdg-meta {
+        margin-top: auto;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--gray-300);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .bdg-meta.earned { color: #4D7C0F; }
+    .bdg-meta.progress { color: #0369A1; }
+    .bdg-meta i { font-size: 0.78rem; }
+
+    /* Progress bar inside in-progress badge */
+    .bdg-bar {
+        width: 100%;
+        height: 6px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        overflow: hidden;
+        margin: 6px 0 8px;
+    }
+    .bdg-bar > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 50px;
+        background: linear-gradient(90deg, var(--accent), #0EA5E9);
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* ============================================================
+       RIGHT RAIL
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Rank card */
+    .rank-hero {
+        text-align: center;
+        padding: 8px 0 16px;
+        position: relative;
+    }
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px 8px 12px;
+        border-radius: 50px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        box-shadow: 0 12px 28px rgba(190, 242, 100, 0.36);
+        margin-bottom: 12px;
+    }
+    .rank-badge i { font-size: 1rem; }
+    .rank-hero h5 {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+    .rank-hero p {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+    .rank-hero p strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Progress to next level */
+    .next-level {
+        padding: 14px 0 4px;
+    }
+    .next-level .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 8px;
+    }
+    .next-level .row span { font-size: 0.74rem; color: var(--gray-600); font-weight: 600; }
+    .next-level .row strong { font-size: 0.82rem; color: var(--primary-dark); font-weight: 800; }
+    .next-level p {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-top: 10px;
+    }
+    .next-level p strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Tenure track */
+    .tenure-track {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin: 14px 0;
+    }
+    .tenure-track .tn-node {
+        flex: 1;
+        height: 6px;
+        border-radius: 50px;
+        background: var(--gray-200);
+        position: relative;
+    }
+    .tenure-track .tn-node.done {
+        background: linear-gradient(90deg, #A3FF00, #7ED321);
+    }
+    .tenure-track .tn-node.current {
+        background: linear-gradient(90deg, var(--accent), #0284C7);
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+    .tenure-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.6rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    /* Recent awards */
+    .award-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .award-row:first-of-type { padding-top: 0; }
+    .award-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .award-medal {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-size: 0.95rem;
+        color: var(--primary-dark);
+        background: var(--gold);
+        box-shadow: 0 8px 18px rgba(190, 242, 100, 0.30);
+        flex-shrink: 0;
+    }
+    .award-medal.accent { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; box-shadow: 0 8px 18px rgba(56, 189, 248, 0.30); }
+    .award-medal.violet { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; box-shadow: 0 8px 18px rgba(139, 92, 246, 0.30); }
+    .award-medal.amber { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03; box-shadow: 0 8px 18px rgba(245, 158, 11, 0.30); }
+    .award-body { flex: 1; min-width: 0; }
+    .award-body strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .award-body span {
+        display: block;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+    }
+    .award-when {
+        flex-shrink: 0;
+        font-size: 0.62rem;
+        color: var(--gray-300);
+        font-weight: 700;
+    }
+
+    /* Leaderboard */
+    .leader-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .leader-row:first-of-type { padding-top: 0; }
+    .leader-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .leader-row.you {
+        background: linear-gradient(90deg, rgba(190, 242, 100, 0.10), transparent);
+        margin: 0 -8px;
+        padding-left: 8px;
+        padding-right: 8px;
+        border-radius: 10px;
+        border-bottom-color: transparent;
+    }
+    .leader-rank {
+        width: 22px;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-300);
+        flex-shrink: 0;
+    }
+    .leader-row:nth-child(1) .leader-rank { color: #4D7C0F; }
+    .leader-row:nth-child(2) .leader-rank { color: var(--accent); }
+    .leader-row:nth-child(3) .leader-rank { color: var(--violet); }
+    .leader-row.you .leader-rank { color: var(--primary-dark); }
+    .leader-avatar {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+    .leader-avatar.gold { background: var(--gold); color: var(--primary-dark); }
+    .leader-avatar.sky { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; }
+    .leader-avatar.violet { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .leader-avatar.amber { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03; }
+    .leader-body { flex: 1; min-width: 0; }
+    .leader-body strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .leader-body span {
+        display: block;
+        font-size: 0.62rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .leader-score {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .leader-score strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+    }
+    .leader-score span {
+        display: block;
+        font-size: 0.55rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .hon-grid { grid-template-columns: 1fr; }
+        .hon-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .hon-crest { width: 240px; }
+    }
+    @media (max-width: 900px) {
+        .hon-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .hon-crest { width: 100%; }
+    }
+    @media (max-width: 640px) {
+        .hon-overview { grid-template-columns: 1fr; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .badge-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        .bdg { padding: 20px 14px 16px; min-height: 200px; }
+        .bdg-medal { width: 58px; height: 58px; font-size: 1.4rem; }
+        .crest-stats { padding-top: 12px; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 420px) {
+        .badge-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO — MENTOR CREST
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="hon-hero fade-up">
+    <div class="hh-text">
+        <span class="hero-badge">
+            <i class="bi bi-patch-check-fill"></i> 5 new badges earned this month
+        </span>
+        <h1>Your <span>Honours</span></h1>
+        <p>
+            You are a <strong>Level XII Master Mentor</strong> ranked
+            <strong>#3 in the faculty</strong> with <strong>18 months of tenure</strong>.
+            Your crest carries <strong>28 badges</strong> — proof of consistency
+            across teaching, community, and craft.
+        </p>
+        <div class="hh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening crest exporter…" data-toast-type="info">
+                <i class="bi bi-download"></i> Export crest
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening badge catalogue…" data-toast-type="info">
+                <i class="bi bi-grid-3x3-gap"></i> All available badges
+            </button>
+        </div>
+    </div>
+
+    <!-- Mentor crest -->
+    <aside class="hon-crest" aria-label="Mentor crest">
+        <div class="crest-medal">
+            <i class="bi bi-patch-check-fill"></i>
+        </div>
+        <div class="crest-level">Level XII · Master</div>
+        <h3 class="crest-title">Daniel Okafor</h3>
+        <p class="crest-sub">Verified Mentor · ID KN-2841-XII</p>
+
+        <div class="crest-stats">
+            <div>
+                <strong>#3</strong>
+                <span>Rank</span>
+            </div>
+            <div>
+                <strong>18m</strong>
+                <span>Tenure</span>
+            </div>
+            <div>
+                <strong>28</strong>
+                <span>Badges</span>
+            </div>
+        </div>
+    </aside>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-award-fill"></i></span>
+    <div class="as-body">
+        <strong>Every badge on your crest is verified</strong>
+        <p>
+            Badges are issued by Knotwork's faculty board after meeting explicit
+            criteria — <strong>no self-awarded badges, no hidden scoring</strong>.
+            Each badge links to the sessions, reviews, and mentee actions that
+            earned it, so prospective mentees can trust what they see.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening badge charter…" data-toast-type="info">
+            <i class="bi bi-file-earmark-text"></i> Badge charter
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="hon-overview fade-up">
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic"><i class="bi bi-patch-check-fill"></i></span>
+            <span class="ho-trend"><i class="bi bi-arrow-up-short"></i> +5</span>
+        </div>
+        <div class="ho-value" data-count="28">28</div>
+        <div class="ho-label">Badges earned</div>
+    </div>
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic accent"><i class="bi bi-award-fill"></i></span>
+            <span class="ho-trend"><i class="bi bi-shield-check"></i> Master</span>
+        </div>
+        <div class="ho-value">XII</div>
+        <div class="ho-label">Current level</div>
+    </div>
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic violet"><i class="bi bi-trophy-fill"></i></span>
+            <span class="ho-trend"><i class="bi bi-arrow-up-short"></i> Top 3%</span>
+        </div>
+        <div class="ho-value">#3</div>
+        <div class="ho-label">Faculty rank</div>
+    </div>
+
+    <div class="ho-card">
+        <div class="ho-top">
+            <span class="ho-ic amber"><i class="bi bi-hourglass-split"></i></span>
+            <span class="ho-trend warn"><i class="bi bi-clock-history"></i> 6 / 12</span>
+        </div>
+        <div class="ho-value">50<span>%</span></div>
+        <div class="ho-label">Progress to Level XIII</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="badgeSearch" placeholder="Search badges by name or category…" aria-label="Search badges">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All categories
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Recently earned" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Recently earned
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Badges are permanent and public</strong>
+        <p>
+            Every badge you earn appears on your <strong>public dossier</strong> and
+            on your mentee's dashboard. You cannot delete a badge — the criteria
+            are objective, and the evidence is retained for the lifetime of your
+            account.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HONOURS GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="hon-grid">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-trophy-fill"></i> Badge Collection</h3>
+                <a href="#" class="link">Badge catalogue <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="earned">
+                    Earned <span class="count">28</span>
+                </button>
+                <button class="tab" data-tab="progress">
+                    In Progress <span class="count">4</span>
+                </button>
+                <button class="tab" data-tab="locked">
+                    Locked <span class="count">16</span>
+                </button>
+                <button class="tab" data-tab="legendary">
+                    Legendary <span class="count">3</span>
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ─────── EARNED ─────── -->
+                <div class="tab-panel active" id="tab-earned">
+                    <div class="badge-grid">
+
+                        <!-- Badge: Master Mentor -->
+                        <article class="bdg" data-searchable="master mentor level xii milestone">
+                            <div class="bdg-medal"><i class="bi bi-patch-check-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Master Mentor</h5>
+                            <p>Reached Level XII with 200+ sessions and a 4.8+ rating across all mentees.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 4 Aug 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: Top 3 Faculty -->
+                        <article class="bdg" data-searchable="top 3 faculty rank leaderboard">
+                            <div class="bdg-medal accent"><i class="bi bi-trophy-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Top 3 Faculty</h5>
+                            <p>Ranked in the top 3 mentors across the entire platform for 90 consecutive days.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 12 Sep 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: 18-Month Tenure -->
+                        <article class="bdg" data-searchable="18 month tenure loyalty">
+                            <div class="bdg-medal violet"><i class="bi bi-hourglass-split"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>18-Month Tenure</h5>
+                            <p>Continuous mentoring for 18 months without any long-term inactivity.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 3 Sep 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: Five Star Streak -->
+                        <article class="bdg" data-searchable="five star streak reviews">
+                            <div class="bdg-medal"><i class="bi bi-star-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Five Star Streak</h5>
+                            <p>Received 25 consecutive 5-star reviews from verified mentees.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 28 Aug 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: Cohort Builder -->
+                        <article class="bdg" data-searchable="cohort builder mentees">
+                            <div class="bdg-medal amber"><i class="bi bi-people-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Cohort Builder</h5>
+                            <p>Grew your cohort to 20+ active mentees simultaneously.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 14 Jul 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: Mentor of the Month -->
+                        <article class="bdg" data-searchable="mentor of the month">
+                            <div class="bdg-medal accent"><i class="bi bi-award-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Mentor of the Month</h5>
+                            <p>Voted Mentor of the Month by the faculty board for September 2025.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 1 Oct 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: 100 Sessions -->
+                        <article class="bdg" data-searchable="100 sessions milestone">
+                            <div class="bdg-medal"><i class="bi bi-lightning-charge-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Century</h5>
+                            <p>Completed your 100th mentoring session with a mentee still active.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 20 Jun 2025
+                            </span>
+                        </article>
+
+                        <!-- Badge: Fast Responder -->
+                        <article class="bdg" data-searchable="fast responder response time">
+                            <div class="bdg-medal amber"><i class="bi bi-lightning-fill"></i></div>
+                            <span class="bdg-kind earned"><i class="bi bi-check2-circle"></i> Earned</span>
+                            <h5>Fast Responder</h5>
+                            <p>Maintained a response time under 4 hours for 30 consecutive days.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 5 Jul 2025
+                            </span>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── IN PROGRESS ─────── -->
+                <div class="tab-panel" id="tab-progress">
+                    <div class="badge-grid">
+
+                        <article class="bdg" data-searchable="grandmaster level xv progress">
+                            <div class="bdg-medal gray"><i class="bi bi-gem"></i></div>
+                            <span class="bdg-kind progress"><i class="bi bi-hourglass-split"></i> In progress</span>
+                            <h5>Grandmaster</h5>
+                            <p>Reach Level XV — the highest mentoring tier on Knotwork.</p>
+                            <div class="bdg-bar"><span data-w="50"></span></div>
+                            <span class="bdg-meta progress"><i class="bi bi-graph-up-arrow"></i> 50% · 6 of 12 milestones</span>
+                        </article>
+
+                        <article class="bdg" data-searchable="thesaurus 500 answers forum progress">
+                            <div class="bdg-medal gray"><i class="bi bi-chat-square-quote-fill"></i></div>
+                            <span class="bdg-kind progress"><i class="bi bi-hourglass-split"></i> In progress</span>
+                            <h5>Thesaurus</h5>
+                            <p>Publish 500 answers to the community forum with 80%+ acceptance.</p>
+                            <div class="bdg-bar"><span data-w="37"></span></div>
+                            <span class="bdg-meta progress"><i class="bi bi-graph-up-arrow"></i> 37% · 184 of 500 answers</span>
+                        </article>
+
+                        <article class="bdg" data-searchable="marathoner 500 hours progress">
+                            <div class="bdg-medal gray"><i class="bi bi-clock-history"></i></div>
+                            <span class="bdg-kind progress"><i class="bi bi-hourglass-split"></i> In progress</span>
+                            <h5>Marathoner</h5>
+                            <p>Log 500 total session hours across your mentoring career.</p>
+                            <div class="bdg-bar"><span data-w="64"></span></div>
+                            <span class="bdg-meta progress"><i class="bi bi-graph-up-arrow"></i> 64% · 320 of 500 hours</span>
+                        </article>
+
+                        <article class="bdg" data-searchable="mentor of mentors referee progress">
+                            <div class="bdg-medal gray"><i class="bi bi-person-check-fill"></i></div>
+                            <span class="bdg-kind progress"><i class="bi bi-hourglass-split"></i> In progress</span>
+                            <h5>Mentor of Mentors</h5>
+                            <p>Refer 5 mentees who go on to become verified mentors themselves.</p>
+                            <div class="bdg-bar"><span data-w="40"></span></div>
+                            <span class="bdg-meta progress"><i class="bi bi-graph-up-arrow"></i> 40% · 2 of 5 referrals</span>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── LOCKED ─────── -->
+                <div class="tab-panel" id="tab-locked">
+                    <div class="badge-grid">
+
+                        <article class="bdg locked" data-searchable="founder locked level xx">
+                            <div class="bdg-medal gray"><i class="bi bi-buildings-fill"></i></div>
+                            <span class="bdg-kind locked"><i class="bi bi-lock-fill"></i> Locked</span>
+                            <h5>Founder</h5>
+                            <p>Reach Level XX — reserved for the founding faculty cohort.</p>
+                        </article>
+
+                        <article class="bdg locked" data-searchable="polyglot locked 5 languages">
+                            <div class="bdg-medal gray"><i class="bi bi-translate"></i></div>
+                            <span class="bdg-kind locked"><i class="bi bi-lock-fill"></i> Locked</span>
+                            <h5>Polyglot</h5>
+                            <p>Mentor learners across 5 distinct programming ecosystems.</p>
+                        </article>
+
+                        <article class="bdg locked" data-searchable="globe trotter locked timezones">
+                            <div class="bdg-medal gray"><i class="bi bi-globe"></i></div>
+                            <span class="bdg-kind locked"><i class="bi bi-lock-fill"></i> Locked</span>
+                            <h5>Globe Trotter</h5>
+                            <p>Mentor learners across 10 different time zones in one year.</p>
+                        </article>
+
+                        <article class="bdg locked" data-searchable="author locked published book">
+                            <div class="bdg-medal gray"><i class="bi bi-book-fill"></i></div>
+                            <span class="bdg-kind locked"><i class="bi bi-lock-fill"></i> Locked</span>
+                            <h5>Author</h5>
+                            <p>Publish a Knotwork-approved curriculum track used by 50+ mentees.</p>
+                        </article>
+
+                        <article class="bdg locked" data-searchable="panelist locked faculty panel">
+                            <div class="bdg-medal gray"><i class="bi bi-people-fill"></i></div>
+                            <span class="bdg-kind locked"><i class="bi bi-lock-fill"></i> Locked</span>
+                            <h5>Panelist</h5>
+                            <p>Serve on the faculty review panel for a full quarter.</p>
+                        </article>
+
+                        <article class="bdg locked" data-searchable="hall of fame locked top 1">
+                            <div class="bdg-medal gray"><i class="bi bi-star-fill"></i></div>
+                            <span class="bdg-kind locked"><i class="bi bi-lock-fill"></i> Locked</span>
+                            <h5>Hall of Fame</h5>
+                            <p>Reach the #1 faculty rank for 90 consecutive days.</p>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── LEGENDARY ─────── -->
+                <div class="tab-panel" id="tab-legendary">
+                    <div class="badge-grid">
+
+                        <article class="bdg" data-searchable="legend perfect year legendary">
+                            <div class="bdg-medal violet"><i class="bi bi-gem"></i></div>
+                            <span class="bdg-kind legendary"><i class="bi bi-stars"></i> Legendary</span>
+                            <h5>Perfect Year</h5>
+                            <p>Maintain a 5.0 rating for 12 consecutive months with 10+ active mentees. Held by 6 mentors.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 2 Jan 2025
+                            </span>
+                        </article>
+
+                        <article class="bdg" data-searchable="legend thousand sessions legendary">
+                            <div class="bdg-medal violet"><i class="bi bi-infinity"></i></div>
+                            <span class="bdg-kind legendary"><i class="bi bi-stars"></i> Legendary</span>
+                            <h5>Endless</h5>
+                            <p>Complete 1,000 mentoring sessions. Reserved for the top 1% of faculty.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 15 Mar 2025
+                            </span>
+                        </article>
+
+                        <article class="bdg" data-searchable="legend torchbearer legendary">
+                            <div class="bdg-medal violet"><i class="bi bi-fire"></i></div>
+                            <span class="bdg-kind legendary"><i class="bi bi-stars"></i> Legendary</span>
+                            <h5>Torchbearer</h5>
+                            <p>Referred 3 mentees who each reached verified mentor status. Held by 4 faculty.</p>
+                            <span class="bdg-meta earned">
+                                <i class="bi bi-calendar-check"></i> Awarded 8 Jun 2025
+                            </span>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- RANK CARD -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-trophy-fill"></i> Faculty Rank</h4>
+                <a href="#" class="link">Leaderboard <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="rank-hero">
+                <span class="rank-badge">
+                    <i class="bi bi-trophy-fill"></i> Rank #3
+                </span>
+                <h5>Top 3% of all mentors</h5>
+                <p>
+                    You're ranked <strong>#3 of 142 verified mentors</strong> on
+                    Knotwork. Rank is based on rating, response rate, session
+                    hours, and mentee outcomes.
+                </p>
+            </div>
+
+            <div class="next-level">
+                <div class="row">
+                    <span>Progress to Level XIII</span>
+                    <strong>50%</strong>
+                </div>
+                <div class="bar gold"><span data-value="50"></span></div>
+                <p>
+                    <strong>6 of 12 milestones</strong> complete. The next
+                    milestone is <strong>400 total sessions</strong> — you're 80 away.
+                </p>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-list-ol"></i> Top Faculty</h4>
+                <a href="#" class="link">See all <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="leader-row">
+                <span class="leader-rank">01</span>
+                <span class="leader-avatar sky">EV</span>
+                <div class="leader-body">
+                    <strong>Elena Vasquez</strong>
+                    <span>Faculty Director · Level XV</span>
+                </div>
+                <div class="leader-score">
+                    <strong>4,820</strong>
+                    <span>XP</span>
+                </div>
+            </div>
+
+            <div class="leader-row">
+                <span class="leader-rank">02</span>
+                <span class="leader-avatar violet">KT</span>
+                <div class="leader-body">
+                    <strong>Kenji Tanaka</strong>
+                    <span>Faculty Lead · Level XIV</span>
+                </div>
+                <div class="leader-score">
+                    <strong>4,210</strong>
+                    <span>XP</span>
+                </div>
+            </div>
+
+            <div class="leader-row you">
+                <span class="leader-rank">03</span>
+                <span class="leader-avatar gold">DO</span>
+                <div class="leader-body">
+                    <strong>Daniel Okafor · You</strong>
+                    <span>Master Mentor · Level XII</span>
+                </div>
+                <div class="leader-score">
+                    <strong>3,940</strong>
+                    <span>XP</span>
+                </div>
+            </div>
+
+            <div class="leader-row">
+                <span class="leader-rank">04</span>
+                <span class="leader-avatar amber">HR</span>
+                <div class="leader-body">
+                    <strong>Hassan Rahman</strong>
+                    <span>Faculty Lead · Level XIII</span>
+                </div>
+                <div class="leader-score">
+                    <strong>3,720</strong>
+                    <span>XP</span>
+                </div>
+            </div>
+
+            <div class="leader-row">
+                <span class="leader-rank">05</span>
+                <span class="leader-avatar sky">MD</span>
+                <div class="leader-body">
+                    <strong>Marie Dupont</strong>
+                    <span>Teacher · Level XII</span>
+                </div>
+                <div class="leader-score">
+                    <strong>3,480</strong>
+                    <span>XP</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TENURE TRACK -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-hourglass-split"></i> Tenure Track</h4>
+                <a href="#" class="link">History <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="next-level" style="padding-top: 0;">
+                <div class="row">
+                    <span>Current tenure</span>
+                    <strong>18 months</strong>
+                </div>
+                <div class="tenure-track">
+                    <span class="tn-node done"></span>
+                    <span class="tn-node done"></span>
+                    <span class="tn-node done"></span>
+                    <span class="tn-node current"></span>
+                    <span class="tn-node"></span>
+                </div>
+                <div class="tenure-labels">
+                    <span>6m</span>
+                    <span>12m</span>
+                    <span>18m</span>
+                    <span>24m</span>
+                    <span>30m</span>
+                </div>
+                <p style="margin-top: 14px;">
+                    You're <strong>6 months</strong> from the 24-month
+                    <strong>Veteran Mentor</strong> badge. Continue your weekly
+                    cadence to stay on track.
+                </p>
+            </div>
+        </div>
+
+        <!-- RECENT AWARDS -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-stars"></i> Recent Awards</h4>
+                <a href="#" class="link">Full history <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="award-row">
+                <span class="award-medal accent"><i class="bi bi-trophy-fill"></i></span>
+                <div class="award-body">
+                    <strong>Top 3 Faculty</strong>
+                    <span>Ranked #3 across all mentors</span>
+                </div>
+                <span class="award-when">12 Sep</span>
+            </div>
+
+            <div class="award-row">
+                <span class="award-medal"><i class="bi bi-award-fill"></i></span>
+                <div class="award-body">
+                    <strong>Mentor of the Month</strong>
+                    <span>Voted by the faculty board</span>
+                </div>
+                <span class="award-when">1 Oct</span>
+            </div>
+
+            <div class="award-row">
+                <span class="award-medal violet"><i class="bi bi-hourglass-split"></i></span>
+                <div class="award-body">
+                    <strong>18-Month Tenure</strong>
+                    <span>Continuous mentoring milestone</span>
+                </div>
+                <span class="award-when">3 Sep</span>
+            </div>
+
+            <div class="award-row">
+                <span class="award-medal"><i class="bi bi-star-fill"></i></span>
+                <div class="award-body">
+                    <strong>Five Star Streak</strong>
+                    <span>25 consecutive 5-star reviews</span>
+                </div>
+                <span class="award-when">28 Aug</span>
+            </div>
+
+            <div class="award-row">
+                <span class="award-medal amber"><i class="bi bi-people-fill"></i></span>
+                <div class="award-body">
+                    <strong>Cohort Builder</strong>
+                    <span>Grew cohort to 20+ active mentees</span>
+                </div>
+                <span class="award-when">14 Jul</span>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('badgeSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.bdg').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           BADGE PROGRESS BARS
+           ====================================================== */
+        window.addEventListener('load', function () {
+            document.querySelectorAll('.bdg-bar > span[data-w]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.width = el.dataset.w + '%';
+                }, 320);
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

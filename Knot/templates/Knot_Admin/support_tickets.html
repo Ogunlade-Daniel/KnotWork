@@ -1,0 +1,2318 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Support Tickets{% endblock %}
+{% block page_title %}Support Tickets{% endblock %}
+{% block breadcrumb %}Operations · Help Desk{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   SUPPORT — HELP DESK COMMAND CENTER
+   Improvised palette: support-teal + priority-amber + close-emerald
+   ============================================================ */
+
+:root {
+    --sp-teal: #14B8A6;
+    --sp-teal-deep: #0F766E;
+    --sp-teal-dim: rgba(20, 184, 166, 0.12);
+    --sp-teal-glow: rgba(20, 184, 166, 0.42);
+
+    --sp-amber: #F59E0B;
+    --sp-amber-deep: #B45309;
+    --sp-amber-dim: rgba(245, 158, 11, 0.12);
+    --sp-amber-glow: rgba(245, 158, 11, 0.42);
+
+    --sp-red: #DC2626;
+    --sp-red-deep: #991B1B;
+    --sp-red-dim: rgba(220, 38, 38, 0.12);
+    --sp-red-glow: rgba(220, 38, 38, 0.42);
+
+    --sp-blue: #3B82F6;
+    --sp-blue-deep: #1D4ED8;
+    --sp-blue-dim: rgba(59, 130, 246, 0.12);
+    --sp-blue-glow: rgba(59, 130, 246, 0.42);
+
+    --sp-violet: #8B5CF6;
+    --sp-violet-deep: #6D28D9;
+    --sp-violet-dim: rgba(139, 92, 246, 0.12);
+    --sp-violet-glow: rgba(139, 92, 246, 0.42);
+
+    --sp-emerald: #10B981;
+    --sp-emerald-deep: #047857;
+    --sp-emerald-dim: rgba(16, 185, 129, 0.12);
+    --sp-emerald-glow: rgba(16, 185, 129, 0.42);
+
+    --sp-mesh-1: radial-gradient(circle at 12% 20%, rgba(20, 184, 166, 0.14), transparent 42%);
+    --sp-mesh-2: radial-gradient(circle at 88% 78%, rgba(245, 158, 11, 0.12), transparent 44%);
+    --sp-mesh-3: radial-gradient(circle at 62% 12%, rgba(59, 130, 246, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   SUPPORT WIRE — MARQUEE
+   ============================================================ */
+.sp-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(20, 184, 166, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(59, 130, 246, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(20, 184, 166, 0.26);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.sp-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--sp-teal), var(--sp-amber), var(--sp-red), var(--crown-2));
+    box-shadow: 0 0 22px rgba(20, 184, 166, 0.5);
+    z-index: 5;
+}
+.sp-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.sp-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.sp-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.sp-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.sp-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--sp-teal);
+    pointer-events: none;
+}
+.sp-wire-label .sp-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--sp-teal);
+    box-shadow: 0 0 0 0 var(--sp-teal-glow);
+    animation: spPulse 1.6s infinite;
+}
+@keyframes spPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+}
+.sp-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 180px;
+    animation: spWireRoll 54s linear infinite;
+}
+.sp-wire:hover .sp-wire-track { animation-play-state: paused; }
+@keyframes spWireRoll { to { transform: translateX(-50%); } }
+
+.sp-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.sp-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sp-teal);
+    box-shadow: 0 0 8px var(--sp-teal-glow);
+    flex-shrink: 0;
+    animation: spSpark 1.8s ease-in-out infinite;
+}
+.sp-wire-item.teal    .wdot { background: var(--sp-teal);    box-shadow: 0 0 8px var(--sp-teal-glow); }
+.sp-wire-item.amber   .wdot { background: var(--sp-amber);   box-shadow: 0 0 8px var(--sp-amber-glow); }
+.sp-wire-item.red     .wdot { background: var(--sp-red);     box-shadow: 0 0 8px var(--sp-red-glow); }
+.sp-wire-item.blue    .wdot { background: var(--sp-blue);    box-shadow: 0 0 8px var(--sp-blue-glow); }
+.sp-wire-item.violet  .wdot { background: var(--sp-violet);  box-shadow: 0 0 8px var(--sp-violet-glow); }
+.sp-wire-item.emerald .wdot { background: var(--sp-emerald); box-shadow: 0 0 8px var(--sp-emerald-glow); }
+@keyframes spSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.sp-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.sp-wire-item em {
+    font-style: normal;
+    color: var(--sp-teal);
+    font-weight: 700;
+}
+
+/* ============================================================
+   SUPPORT HERO
+   ============================================================ */
+.sp-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--sp-mesh-1), var(--sp-mesh-2), var(--sp-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(20, 184, 166, 0.20);
+}
+.sp-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--sp-teal), var(--sp-blue) 40%, var(--sp-violet) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(20, 184, 166, 0.5);
+    z-index: 5;
+}
+.sp-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.sp-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.sp-hero-left { min-width: 0; flex: 1 1 520px; }
+.sp-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.42);
+    color: var(--sp-teal);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.sp-hero-kicker i { font-size: 0.7rem; }
+.sp-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.sp-hero-title em { color: var(--sp-teal); font-style: italic; }
+.sp-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 640px;
+    line-height: 1.62;
+}
+.sp-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.sp-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.sp-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.sp-hero-meta .hm:hover {
+    background: rgba(20, 184, 166, 0.10);
+    border-color: rgba(20, 184, 166, 0.42);
+    color: var(--sp-teal);
+    transform: translateY(-2px);
+}
+.sp-hero-meta .hm i { color: var(--sp-teal); font-size: 0.78rem; }
+.sp-hero-meta .hm.warn {
+    background: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.42);
+    color: var(--sp-red);
+}
+.sp-hero-meta .hm.warn i { color: var(--sp-red); }
+
+.sp-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(20, 184, 166, 0.16), rgba(59, 130, 246, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(20, 184, 166, 0.42);
+    box-shadow:
+        0 18px 44px rgba(20, 184, 166, 0.18),
+        0 0 0 1px rgba(20, 184, 166, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--sp-teal) 120deg,
+                var(--sp-blue) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(20, 184, 166, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--sp-teal);
+    display: grid;
+    place-items: center;
+    color: var(--sp-teal);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(20, 184, 166, 0.55), 0 0 0 3px rgba(20, 184, 166, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--sp-teal), var(--sp-blue));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(20, 184, 166, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.sp-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.sp-tabs::-webkit-scrollbar { display: none; }
+
+.sp-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.sp-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.sp-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.sp-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.sp-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.sp-tab .tab-badge.glow {
+    background: var(--sp-teal-dim);
+    color: var(--sp-teal-deep);
+    border: 1px solid rgba(20, 184, 166, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(20, 184, 166, 0); }
+}
+.sp-tab .tab-badge.alert {
+    background: var(--sp-red-dim);
+    color: var(--sp-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.32);
+}
+.sp-tab .tab-badge.closed {
+    background: var(--sp-emerald-dim);
+    color: var(--sp-emerald-deep);
+    border: 1px solid rgba(16, 185, 129, 0.32);
+}
+
+.sp-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.sp-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.sp-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.sp-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.sp-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.sp-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.sp-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.sp-panels { position: relative; }
+.sp-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: spPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.sp-panel.active { display: flex; }
+@keyframes spPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.sp-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.sp-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.sp-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--ss-accent, linear-gradient(90deg, var(--sp-teal), var(--sp-teal-deep)));
+}
+.sp-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.sp-stat.teal    { --ss-accent: linear-gradient(90deg, #14B8A6, #0F766E); }
+.sp-stat.amber   { --ss-accent: linear-gradient(90deg, #F59E0B, #B45309); }
+.sp-stat.red     { --ss-accent: linear-gradient(90deg, #DC2626, #991B1B); }
+.sp-stat.blue    { --ss-accent: linear-gradient(90deg, #3B82F6, #1D4ED8); }
+.sp-stat.violet  { --ss-accent: linear-gradient(90deg, #8B5CF6, #6D28D9); }
+.sp-stat.emerald { --ss-accent: linear-gradient(90deg, #10B981, #047857); }
+
+.sp-stat .ss-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.sp-stat .ss-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.sp-stat.teal    .ss-ic { background: var(--sp-teal-dim);    color: var(--sp-teal-deep); }
+.sp-stat.amber   .ss-ic { background: var(--sp-amber-dim);   color: var(--sp-amber-deep); }
+.sp-stat.red     .ss-ic { background: var(--sp-red-dim);     color: var(--sp-red-deep); }
+.sp-stat.blue    .ss-ic { background: var(--sp-blue-dim);    color: var(--sp-blue-deep); }
+.sp-stat.violet  .ss-ic { background: var(--sp-violet-dim);  color: var(--sp-violet-deep); }
+.sp-stat.emerald .ss-ic { background: var(--sp-emerald-dim); color: var(--sp-emerald-deep); }
+
+.sp-stat .ss-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.sp-stat .ss-trend.warn { background: var(--sp-amber-dim); color: var(--sp-amber-deep); }
+.sp-stat .ss-trend.down { background: var(--sp-red-dim); color: var(--sp-red-deep); }
+
+.sp-stat .ss-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.sp-stat .ss-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.sp-stat .ss-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.sp-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.sp-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.sp-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.sp-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.sp-search:focus-within i { color: var(--tab-accent-deep); }
+.sp-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.sp-search input::placeholder { color: var(--gray-400); }
+.sp-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.sp-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.sp-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.sp-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.sp-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+.sp-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   TICKET CARDS
+   ============================================================ */
+.sp-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.sp-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.sp-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--tc-accent, linear-gradient(180deg, var(--sp-teal), var(--sp-teal-deep)));
+    z-index: 2;
+}
+.sp-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.sp-card.urgent  { --tc-accent: linear-gradient(180deg, #DC2626, #991B1B); }
+.sp-card.high    { --tc-accent: linear-gradient(180deg, #F59E0B, #B45309); }
+.sp-card.normal  { --tc-accent: linear-gradient(180deg, #3B82F6, #1D4ED8); }
+.sp-card.low     { --tc-accent: linear-gradient(180deg, #14B8A6, #0F766E); }
+.sp-card.closed  { --tc-accent: linear-gradient(180deg, #10B981, #047857); }
+
+.sp-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* Left: ticket content */
+.tc-content { min-width: 0; flex: 1; }
+
+.tc-head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.tc-priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.tc-priority.urgent { background: var(--sp-red-dim);     color: var(--sp-red-deep);     border: 1px solid rgba(220,38,38,0.32); }
+.tc-priority.high   { background: var(--sp-amber-dim);   color: var(--sp-amber-deep);   border: 1px solid rgba(245,158,11,0.32); }
+.tc-priority.normal { background: var(--sp-blue-dim);    color: var(--sp-blue-deep);    border: 1px solid rgba(59,130,246,0.32); }
+.tc-priority.low    { background: var(--sp-teal-dim);    color: var(--sp-teal-deep);    border: 1px solid rgba(20,184,166,0.32); }
+
+.tc-priority .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+    animation: spSpark 1.8s infinite;
+}
+.tc-priority.closed-dot .dot { animation: none; }
+
+.tc-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.tc-category i { font-size: 0.62rem; }
+.tc-category.login  { background: var(--sp-blue-dim);    color: var(--sp-blue-deep);    border-color: rgba(59,130,246,0.3); }
+.tc-category.billing{ background: var(--sp-amber-dim);   color: var(--sp-amber-deep);   border-color: rgba(245,158,11,0.3); }
+.tc-category.content{ background: var(--sp-violet-dim);  color: var(--sp-violet-deep);  border-color: rgba(139,92,246,0.3); }
+.tc-category.tech   { background: var(--sp-teal-dim);    color: var(--sp-teal-deep);    border-color: rgba(20,184,166,0.3); }
+
+.tc-id {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+
+.tc-subject {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.25;
+    margin-bottom: 8px;
+}
+
+.tc-preview {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    border-left: 3px solid var(--tc-accent);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.tc-preview em {
+    font-style: italic;
+    color: var(--sp-red-deep);
+    font-weight: 700;
+    background: var(--sp-red-dim);
+    padding: 0 4px;
+    border-radius: 3px;
+}
+
+.tc-reporter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.tc-reporter .rp-av {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sp-teal), var(--sp-blue));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.66rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.tc-reporter .rp-av.teacher { background: linear-gradient(135deg, var(--sp-blue), var(--sp-blue-deep)); }
+.tc-reporter .rp-av.mentor  { background: linear-gradient(135deg, var(--sp-violet), var(--sp-violet-deep)); }
+.tc-reporter .rp-info { min-width: 0; line-height: 1.2; }
+.tc-reporter .rp-info strong {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+.tc-reporter .rp-info small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
+.tc-reporter .rp-tags {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+.tc-reporter .rp-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.tc-reporter .rp-tag.vip    { background: var(--crown-gradient); color: var(--primary-deep); border: none; }
+.tc-reporter .rp-tag.pro    { background: var(--sp-violet-dim); color: var(--sp-violet-deep); border-color: rgba(139,92,246,0.3); }
+
+/* Middle: meta */
+.tc-meta {
+    padding: 4px 0 4px 24px;
+    border-left: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tc-meta-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.tc-sla {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    transition: var(--transition);
+}
+.tc-sla-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+.tc-sla-row .sla-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+}
+.tc-sla-row .sla-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    letter-spacing: 0.02em;
+}
+.tc-sla-row .sla-value.urgent { color: var(--sp-red-deep); }
+.tc-sla-row .sla-value.warn   { color: var(--sp-amber-deep); }
+.tc-sla-row .sla-value.ok     { color: var(--sp-emerald-deep); }
+.tc-sla-bar {
+    height: 4px;
+    background: var(--white);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+.tc-sla-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--sp-emerald), var(--sp-emerald-deep));
+    transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.tc-sla-bar.warn > span { background: linear-gradient(90deg, var(--sp-amber), var(--sp-amber-deep)); }
+.tc-sla-bar.urgent > span { background: linear-gradient(90deg, var(--sp-red), var(--sp-red-deep)); }
+
+.tc-agent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--gray-100);
+}
+.tc-agent .agent-av {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    color: var(--primary-deep);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    flex-shrink: 0;
+}
+.tc-agent .agent-info { min-width: 0; line-height: 1.15; }
+.tc-agent .agent-info strong {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tc-agent .agent-info span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
+.tc-agent .agent-status {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.tc-agent .agent-status .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green);
+    animation: spSpark 1.8s infinite;
+}
+.tc-agent .agent-status.away {
+    background: var(--sp-amber-dim);
+    color: var(--sp-amber-deep);
+}
+.tc-agent .agent-status.away .dot { background: var(--sp-amber); }
+
+/* Right: actions */
+.tc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 180px;
+    padding-top: 4px;
+}
+.tc-actions .tc-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.tc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.tc-btn i { font-size: 0.86rem; }
+
+.tc-btn.reply {
+    background: linear-gradient(135deg, var(--sp-teal), var(--sp-teal-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.32);
+}
+.tc-btn.reply:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(20, 184, 166, 0.44);
+}
+.tc-btn.assign {
+    background: var(--white);
+    color: var(--sp-blue-deep);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+.tc-btn.assign:hover {
+    background: var(--sp-blue-dim);
+    border-color: var(--sp-blue);
+    transform: translateY(-2px);
+}
+.tc-btn.resolve {
+    background: var(--white);
+    color: var(--sp-emerald-deep);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.tc-btn.resolve:hover {
+    background: var(--sp-emerald-dim);
+    border-color: var(--sp-emerald);
+    transform: translateY(-2px);
+}
+.tc-btn.close {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.tc-btn.close:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.tc-btn.escalate {
+    background: transparent;
+    color: var(--sp-red-deep);
+    border: 1px dashed rgba(220, 38, 38, 0.4);
+    font-size: 0.72rem;
+    padding: 9px 14px;
+}
+.tc-btn.escalate:hover {
+    background: var(--sp-red-dim);
+    border-style: solid;
+    border-color: var(--sp-red);
+}
+
+/* Closed card specific */
+.tc-closed-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+.tc-closed-info .closed-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--sp-emerald-dim);
+    color: var(--sp-emerald-deep);
+    border: 1px solid rgba(16, 185, 129, 0.34);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.tc-closed-info .closed-tag.warn {
+    background: var(--sp-amber-dim);
+    color: var(--sp-amber-deep);
+    border-color: rgba(245, 158, 11, 0.34);
+}
+.tc-closed-info .closed-by {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.tc-closed-info .closed-by b { color: var(--gray-600); font-weight: 800; }
+
+/* CSAT rating */
+.tc-csat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--sp-amber-deep);
+}
+.tc-csat i { font-size: 0.78rem; }
+
+/* ============================================================
+   ADMIN EXCLUSIVE — SUPPORT CONSOLE
+   ============================================================ */
+.support-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(20, 184, 166, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(59, 130, 246, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(20, 184, 166, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.support-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--sp-teal), var(--sp-blue) 50%, var(--sp-violet) 100%);
+    box-shadow: 0 0 22px rgba(20, 184, 166, 0.5);
+}
+.support-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.sc-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.sc-head .sc-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--sp-teal), var(--sp-blue));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(20, 184, 166, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.sc-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.sc-head h2 em { color: var(--sp-teal); font-style: italic; }
+.sc-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.sc-head .sc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.42);
+    color: var(--sp-teal);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.sc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.sc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.sc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.sc-tool:hover {
+    background: rgba(20, 184, 166, 0.10);
+    border-color: rgba(20, 184, 166, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(20, 184, 166, 0.18);
+}
+.sc-tool:hover::before { transform: translateX(120%); }
+.sc-tool .sc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--sp-teal);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.sc-tool:hover .sc-t-ic {
+    background: linear-gradient(135deg, var(--sp-teal), var(--sp-blue));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.42);
+}
+.sc-tool.danger .sc-t-ic { color: var(--sp-red); }
+.sc-tool.danger:hover {
+    background: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.42);
+}
+.sc-tool.danger:hover .sc-t-ic {
+    background: linear-gradient(135deg, var(--sp-red), var(--sp-red-deep));
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.42);
+}
+.sc-tool.emerald .sc-t-ic { color: var(--sp-emerald); }
+.sc-tool.emerald:hover { background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.42); }
+.sc-tool.emerald:hover .sc-t-ic {
+    background: linear-gradient(135deg, var(--sp-emerald), var(--sp-emerald-deep));
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.42);
+}
+.sc-tool .sc-t-body { flex: 1; min-width: 0; }
+.sc-tool .sc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.sc-tool .sc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.sc-tool .sc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.sc-tool:hover .sc-t-arrow { color: var(--sp-teal); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .sp-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sp-card-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+    .tc-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .tc-actions .tc-action-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .sp-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .tc-meta { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .sp-card-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .tc-actions { grid-column: auto; }
+}
+@media (max-width: 900px) {
+    .sp-hero { padding: 24px 20px; }
+    .sp-hero-title { font-size: 1.55rem; }
+    .sp-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .sp-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .sp-stat-strip { grid-template-columns: 1fr; }
+    .sp-hero { padding: 22px 18px; }
+    .sp-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .sp-toolbar { padding: 12px 14px; }
+    .sp-search { min-width: 100%; }
+    .tc-actions { flex-direction: column; align-items: stretch; }
+    .tc-actions .tc-action-label { display: block; text-align: left; }
+}
+@media (max-width: 560px) {
+    .sp-tabs { padding: 6px; gap: 3px; }
+    .sp-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .sp-tab .tab-badge { display: none; }
+    .sp-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .sp-wire-label { display: none; }
+    .sp-wire-track { padding-left: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sp-wire-track, .acb-avatar::before, .sp-wire-label .sp-dot,
+    .sp-wire-item .wdot, .admin-crown-badge::before, .sp-tab .tab-badge.glow,
+    .tc-priority .dot, .tc-agent .agent-status .dot {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     SUPPORT WIRE — MARQUEE
+     ============================================================ -->
+<div class="sp-wire" aria-label="Support desk pulse">
+    <span class="sp-wire-edge left"></span>
+    <span class="sp-wire-edge right"></span>
+    <div class="sp-wire-label"><span class="sp-dot"></span> Support Wire</div>
+    <div class="sp-wire-track">
+        <!-- Set A -->
+        <span class="sp-wire-item teal"><span class="wdot"></span><strong>7</strong> open tickets · <em>2 urgent, 3 high priority</em></span>
+        <span class="sp-wire-item red"><span class="wdot"></span><strong>1</strong> breached SLA · escalating to on-call</span>
+        <span class="sp-wire-item amber"><span class="wdot"></span><strong>3</strong> approaching SLA breach · under 30m</span>
+        <span class="sp-wire-item blue"><span class="wdot"></span>Avg first reply <strong>8m 42s</strong> · best on record</span>
+        <span class="sp-wire-item violet"><span class="wdot"></span><strong>42</strong> tickets resolved today · 94% CSAT</span>
+        <span class="sp-wire-item emerald"><span class="wdot"></span>Top issue: <strong>Login problems · 24%</strong></span>
+        <span class="sp-wire-item teal"><span class="wdot"></span><strong>142</strong> tickets this week · +12% vs last</span>
+        <span class="sp-wire-item amber"><span class="wdot"></span>Live agents <strong>6 / 8</strong> · 2 on break</span>
+        <span class="sp-wire-item blue"><span class="wdot"></span>Self-serve resolutions <strong>38%</strong> · growing</span>
+        <span class="sp-wire-item violet"><span class="wdot"></span>Highest priority <strong>#TK-4821</strong> · pending 4h</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="sp-wire-item teal"><span class="wdot"></span><strong>7</strong> open tickets · <em>2 urgent, 3 high priority</em></span>
+        <span class="sp-wire-item red"><span class="wdot"></span><strong>1</strong> breached SLA · escalating to on-call</span>
+        <span class="sp-wire-item amber"><span class="wdot"></span><strong>3</strong> approaching SLA breach · under 30m</span>
+        <span class="sp-wire-item blue"><span class="wdot"></span>Avg first reply <strong>8m 42s</strong> · best on record</span>
+        <span class="sp-wire-item violet"><span class="wdot"></span><strong>42</strong> tickets resolved today · 94% CSAT</span>
+        <span class="sp-wire-item emerald"><span class="wdot"></span>Top issue: <strong>Login problems · 24%</strong></span>
+        <span class="sp-wire-item teal"><span class="wdot"></span><strong>142</strong> tickets this week · +12% vs last</span>
+        <span class="sp-wire-item amber"><span class="wdot"></span>Live agents <strong>6 / 8</strong> · 2 on break</span>
+        <span class="sp-wire-item blue"><span class="wdot"></span>Self-serve resolutions <strong>38%</strong> · growing</span>
+        <span class="sp-wire-item violet"><span class="wdot"></span>Highest priority <strong>#TK-4821</strong> · pending 4h</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     SUPPORT HERO
+     ============================================================ -->
+<section class="sp-hero fade-up">
+    <div class="sp-hero-inner">
+        <div class="sp-hero-left">
+            <span class="sp-hero-kicker">
+                <i class="bi bi-life-preserver"></i>
+                Help Desk Command · Root Access
+            </span>
+            <h1 class="sp-hero-title">
+                Every message, <em>answered</em>.
+            </h1>
+            <p class="sp-hero-sub">
+                Support requests from members, Teachers, Mentors, and admins — all in one queue.
+                <strong>7 open tickets</strong>, first reply <strong>8m 42s</strong>, CSAT
+                <strong>94%</strong>. SLA: <strong>1 hour</strong> for urgent, <strong>24 hours</strong> standard.
+            </p>
+            <div class="sp-hero-meta">
+                <span class="hm"><i class="bi bi-inboxes-fill"></i> 7 open</span>
+                <span class="hm warn"><i class="bi bi-exclamation-octagon-fill"></i> 2 urgent</span>
+                <span class="hm"><i class="bi bi-clock-history"></i> 8m first reply</span>
+                <span class="hm"><i class="bi bi-star-fill"></i> 94% CSAT</span>
+            </div>
+        </div>
+
+        <div class="sp-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · HELP DESK</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="sp-tabs" role="tablist" aria-label="Support sections">
+    <button class="sp-tab active" data-tab="open" role="tab" style="--tab-accent: #14B8A6; --tab-accent-deep: #0F766E; --tab-accent-dim: rgba(20,184,166,0.10); --tab-accent-glow: rgba(20,184,166,0.42);">
+        <span class="tab-ic"><i class="bi bi-inboxes-fill"></i></span>
+        <span class="tab-label">
+            Open
+            <small>Needs reply</small>
+        </span>
+        <span class="tab-badge glow">7</span>
+    </button>
+    <button class="sp-tab" data-tab="closed" role="tab" style="--tab-accent: #10B981; --tab-accent-deep: #047857; --tab-accent-dim: rgba(16,185,129,0.10); --tab-accent-glow: rgba(16,185,129,0.42);">
+        <span class="tab-ic"><i class="bi bi-check2-circle"></i></span>
+        <span class="tab-label">
+            Closed
+            <small>Resolved</small>
+        </span>
+        <span class="tab-badge closed">142</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="sp-panels">
+
+    <!-- =================================================
+         PANEL 1 — OPEN
+         ================================================= -->
+    <div class="sp-panel active" id="panel-open" role="tabpanel">
+
+        <div class="sp-stat-strip">
+            <div class="sp-stat teal fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-inboxes-fill"></i></span><span class="ss-trend"><i class="bi bi-arrow-up-short"></i> 2 new</span></div>
+                <span class="ss-label">Open Tickets</span>
+                <div class="ss-value"><span data-count="7">0</span></div>
+            </div>
+            <div class="sp-stat red fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-exclamation-octagon-fill"></i></span><span class="ss-trend down"><i class="bi bi-dash"></i> urgent</span></div>
+                <span class="ss-label">Urgent Priority</span>
+                <div class="ss-value"><span data-count="2">0</span></div>
+            </div>
+            <div class="sp-stat amber fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-alarm-fill"></i></span><span class="ss-trend warn"><i class="bi bi-dash"></i> &lt; 30m</span></div>
+                <span class="ss-label">Near SLA Breach</span>
+                <div class="ss-value"><span data-count="3">0</span></div>
+            </div>
+            <div class="sp-stat blue fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-clock-history"></i></span><span class="ss-trend"><i class="bi bi-arrow-down-short"></i> 12s</span></div>
+                <span class="ss-label">Avg First Reply</span>
+                <div class="ss-value">8<small>m 42s</small></div>
+            </div>
+        </div>
+
+        <div class="sp-toolbar">
+            <div class="sp-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search tickets by subject, member, or ID…" aria-label="Search open tickets">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="sp-select" data-toast="Sort by: SLA urgency" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>SLA First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="sp-select" data-toast="Category filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Category</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="sp-select" data-toast="Assignee filter opened" data-toast-type="info">
+                <i class="bi bi-person-fill"></i>
+                <span>Any Agent</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="sp-toolbar-right">
+                <button class="btn-sm line" data-toast="Bulk assign tool opened" data-toast-type="info"><i class="bi bi-person-plus-fill"></i> Bulk Assign</button>
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="sp-list">
+
+            <!-- Open #1 — URGENT, SLA BREACHED -->
+            <article class="sp-card urgent fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority urgent"><span class="dot"></span> Urgent · SLA Breached</span>
+                            <span class="tc-category login"><i class="bi bi-shield-lock-fill"></i> Login Issue</span>
+                            <span class="tc-id">#TK-4821 · 4h ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Can't log in — "Invalid credentials" every time</h3>
+                        <div class="tc-preview">
+                            I've been trying to log in for the past 4 hours and keep getting "Invalid credentials". I reset my password twice — still nothing. I have a course starting in 2 hours and <em>I can't access it</em>. Please help urgently.
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av teacher">CO</span>
+                            <div class="rp-info">
+                                <strong>Chinedu Okafor</strong>
+                                <small>KW-TCH-0084 · Teacher</small>
+                            </div>
+                            <div class="rp-tags">
+                                <span class="rp-tag"><i class="bi bi-geo-alt-fill"></i> NG</span>
+                                <span class="rp-tag pro"><i class="bi bi-star-fill"></i> Pro</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">SLA &amp; Assignment</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Response SLA</span>
+                                    <span class="sla-value urgent">-3h 42m over</span>
+                                </div>
+                                <div class="tc-sla-bar urgent"><span data-value="100"></span></div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AD</span>
+                            <div class="agent-info">
+                                <strong>You</strong>
+                                <span>Lead agent · on shift</span>
+                            </div>
+                            <span class="agent-status"><span class="dot"></span> Live</span>
+                        </div>
+                    </div>
+
+                    <div class="tc-actions">
+                        <span class="tc-action-label">Respond</span>
+                        <button class="tc-btn reply" data-toast="Reply editor opened for #TK-4821" data-toast-type="success"><i class="bi bi-reply-fill"></i> Reply Now</button>
+                        <button class="tc-btn escalate" data-toast="⚠ Escalated to engineering on-call" data-toast-type="error"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                        <button class="tc-btn close" data-toast="Opening full ticket thread" data-toast-type="info"><i class="bi bi-eye"></i> View Thread</button>
+                        <button class="tc-btn close" data-toast="Opening member profile" data-toast-type="info"><i class="bi bi-person-fill"></i> Member</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open #2 — URGENT -->
+            <article class="sp-card urgent fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority urgent"><span class="dot"></span> Urgent</span>
+                            <span class="tc-category billing"><i class="bi bi-credit-card-2-front-fill"></i> Billing</span>
+                            <span class="tc-id">#TK-4818 · 22m ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Charged twice for the same course</h3>
+                        <div class="tc-preview">
+                            I purchased "Advanced React Patterns" this morning and I see <em>two charges on my card</em> — ₦125,000 each. I only clicked pay once. I need a refund for the duplicate charge please.
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av">BA</span>
+                            <div class="rp-info">
+                                <strong>Blessing Adeyemi</strong>
+                                <small>KW-STU-11842 · Student</small>
+                            </div>
+                            <div class="rp-tags">
+                                <span class="rp-tag"><i class="bi bi-geo-alt-fill"></i> KE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">SLA &amp; Assignment</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Response SLA</span>
+                                    <span class="sla-value warn">14m remaining</span>
+                                </div>
+                                <div class="tc-sla-bar warn"><span data-value="42"></span></div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AD</span>
+                            <div class="agent-info">
+                                <strong>You</strong>
+                                <span>Lead agent · on shift</span>
+                            </div>
+                            <span class="agent-status"><span class="dot"></span> Live</span>
+                        </div>
+                    </div>
+
+                    <div class="tc-actions">
+                        <span class="tc-action-label">Respond</span>
+                        <button class="tc-btn reply" data-toast="Reply editor opened for #TK-4818" data-toast-type="success"><i class="bi bi-reply-fill"></i> Reply Now</button>
+                        <button class="tc-btn resolve" data-toast="Refund flow initiated · ₦125,000 to be reversed" data-toast-type="success"><i class="bi bi-arrow-counterclockwise"></i> Issue Refund</button>
+                        <button class="tc-btn close" data-toast="Opening full thread" data-toast-type="info"><i class="bi bi-eye"></i> View Thread</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open #3 — HIGH -->
+            <article class="sp-card high fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority high"><span class="dot"></span> High Priority</span>
+                            <span class="tc-category content"><i class="bi bi-play-btn-fill"></i> Course Content</span>
+                            <span class="tc-id">#TK-4815 · 2h ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Video lessons won't play on mobile</h3>
+                        <div class="tc-preview">
+                            None of the video lessons in "UI/UX Foundations" play on my iPhone — the player just shows a black screen. I've tried on Wi-Fi and 4G, and it happens on every lesson after the 5th. Audio-only works fine.
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av">SM</span>
+                            <div class="rp-info">
+                                <strong>Sarah Mitchell</strong>
+                                <small>KW-STU-10342 · Student</small>
+                            </div>
+                            <div class="rp-tags">
+                                <span class="rp-tag"><i class="bi bi-geo-alt-fill"></i> US</span>
+                                <span class="rp-tag pro"><i class="bi bi-star-fill"></i> Pro</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">SLA &amp; Assignment</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Response SLA</span>
+                                    <span class="sla-value ok">4h remaining</span>
+                                </div>
+                                <div class="tc-sla-bar"><span data-value="72"></span></div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">TB</span>
+                            <div class="agent-info">
+                                <strong>Tunde Bakare</strong>
+                                <span>Support agent · on shift</span>
+                            </div>
+                            <span class="agent-status"><span class="dot"></span> Live</span>
+                        </div>
+                    </div>
+
+                    <div class="tc-actions">
+                        <span class="tc-action-label">Respond</span>
+                        <button class="tc-btn reply" data-toast="Reply editor opened" data-toast-type="success"><i class="bi bi-reply-fill"></i> Reply Now</button>
+                        <button class="tc-btn assign" data-toast="Reassigned to engineering" data-toast-type="info"><i class="bi bi-arrow-repeat"></i> Reassign</button>
+                        <button class="tc-btn close" data-toast="Opening full thread" data-toast-type="info"><i class="bi bi-eye"></i> View Thread</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open #4 — HIGH -->
+            <article class="sp-card high fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority high"><span class="dot"></span> High Priority</span>
+                            <span class="tc-category billing"><i class="bi bi-cash-coin"></i> Payout</span>
+                            <span class="tc-id">#TK-4812 · 6h ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Payout has been "pending" for 3 days</h3>
+                        <div class="tc-preview">
+                            My last payout of ₦428,000 has been showing as "pending" for 3 days now. My bank shows no incoming transfer. Normally settles within 4 hours. Can you check if there's an issue?
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av mentor">ZI</span>
+                            <div class="rp-info">
+                                <strong>Zainab Ibrahim</strong>
+                                <small>KW-MNT-0102 · Mentor</small>
+                            </div>
+                            <div class="rp-tags">
+                                <span class="rp-tag"><i class="bi bi-geo-alt-fill"></i> GB</span>
+                                <span class="rp-tag vip"><i class="bi bi-crown-fill"></i> VIP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">SLA &amp; Assignment</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Response SLA</span>
+                                    <span class="sla-value warn">18m remaining</span>
+                                </div>
+                                <div class="tc-sla-bar warn"><span data-value="25"></span></div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AD</span>
+                            <div class="agent-info">
+                                <strong>You</strong>
+                                <span>Lead agent · on shift</span>
+                            </div>
+                            <span class="agent-status"><span class="dot"></span> Live</span>
+                        </div>
+                    </div>
+
+                    <div class="tc-actions">
+                        <span class="tc-action-label">Respond</span>
+                        <button class="tc-btn reply" data-toast="Reply editor opened" data-toast-type="success"><i class="bi bi-reply-fill"></i> Reply Now</button>
+                        <button class="tc-btn resolve" data-toast="Payout force-processed · ₦428,000 to Zainab Ibrahim" data-toast-type="success"><i class="bi bi-send-check-fill"></i> Force Payout</button>
+                        <button class="tc-btn close" data-toast="Opening full thread" data-toast-type="info"><i class="bi bi-eye"></i> View Thread</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open #5 — NORMAL -->
+            <article class="sp-card normal fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority normal"><span class="dot"></span> Normal</span>
+                            <span class="tc-category tech"><i class="bi bi-gear-fill"></i> Account</span>
+                            <span class="tc-id">#TK-4808 · 8h ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Update my email address on file</h3>
+                        <div class="tc-preview">
+                            I need to update my account email from daniel.okonkwo@example.com to daniel.okonkwo@gmail.com. I don't see an option in settings. Can you help me do this?
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av">DO</span>
+                            <div class="rp-info">
+                                <strong>Daniel Okonkwo</strong>
+                                <small>KW-STU-11342 · Student</small>
+                            </div>
+                            <div class="rp-tags">
+                                <span class="rp-tag"><i class="bi bi-geo-alt-fill"></i> GH</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">SLA &amp; Assignment</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Response SLA</span>
+                                    <span class="sla-value ok">16h remaining</span>
+                                </div>
+                                <div class="tc-sla-bar"><span data-value="35"></span></div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AN</span>
+                            <div class="agent-info">
+                                <strong>Amara Nwosu</strong>
+                                <span>Support agent · away</span>
+                            </div>
+                            <span class="agent-status away"><span class="dot"></span> Away</span>
+                        </div>
+                    </div>
+
+                    <div class="tc-actions">
+                        <span class="tc-action-label">Respond</span>
+                        <button class="tc-btn reply" data-toast="Reply editor opened" data-toast-type="success"><i class="bi bi-reply-fill"></i> Reply Now</button>
+                        <button class="tc-btn resolve" data-toast="Email update request sent to member" data-toast-type="success"><i class="bi bi-check2-circle"></i> Resolve</button>
+                        <button class="tc-btn close" data-toast="Opening thread" data-toast-type="info"><i class="bi bi-eye"></i> View Thread</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — CLOSED
+         ================================================= -->
+    <div class="sp-panel" id="panel-closed" role="tabpanel">
+
+        <div class="sp-stat-strip">
+            <div class="sp-stat emerald fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-check2-circle"></i></span><span class="ss-trend"><i class="bi bi-arrow-up-short"></i> 42</span></div>
+                <span class="ss-label">Resolved Today</span>
+                <div class="ss-value"><span data-count="42">0</span></div>
+            </div>
+            <div class="sp-stat blue fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-clock-history"></i></span><span class="ss-trend"><i class="bi bi-arrow-down-short"></i> 1h</span></div>
+                <span class="ss-label">Avg Resolution</span>
+                <div class="ss-value">2<small>h 24m</small></div>
+            </div>
+            <div class="sp-stat amber fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-star-fill"></i></span><span class="ss-trend"><i class="bi bi-arrow-up-short"></i> 2pp</span></div>
+                <span class="ss-label">CSAT Score</span>
+                <div class="ss-value"><span data-count="94">0</span><small>%</small></div>
+            </div>
+            <div class="sp-stat violet fade-up">
+                <div class="ss-head"><span class="ss-ic"><i class="bi bi-arrow-counterclockwise"></i></span><span class="ss-trend warn"><i class="bi bi-dash"></i> 3.2%</span></div>
+                <span class="ss-label">Reopened Rate</span>
+                <div class="ss-value">3<small>.2%</small></div>
+            </div>
+        </div>
+
+        <div class="sp-toolbar">
+            <div class="sp-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search closed tickets…" aria-label="Search closed tickets">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="sp-select" data-toast="Sort by: Most recent" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Most Recent</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="sp-select" data-toast="Category filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Category</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="sp-select" data-toast="Agent filter opened" data-toast-type="info">
+                <i class="bi bi-person-fill"></i>
+                <span>Any Agent</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="sp-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="sp-list">
+
+            <!-- Closed #1 — Login issue resolved -->
+            <article class="sp-card closed fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority low closed-dot"><span class="dot"></span> Resolved</span>
+                            <span class="tc-category login"><i class="bi bi-shield-lock-fill"></i> Login Issue</span>
+                            <span class="tc-id">#TK-4798 · Closed 2h ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Can't access my account after password reset</h3>
+                        <div class="tc-preview">
+                            Resolved: issue was a stale browser session. Cleared cache and cookies, then member was able to log in successfully. Password reset flow working as expected.
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av">DO</span>
+                            <div class="rp-info">
+                                <strong>Daniel Okonkwo</strong>
+                                <small>KW-STU-11342 · Student</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">Resolution</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Time to Close</span>
+                                    <span class="sla-value ok">1h 42m</span>
+                                </div>
+                                <div class="tc-sla-row" style="margin-top:6px;">
+                                    <span class="sla-label">CSAT</span>
+                                    <span class="tc-csat"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i> 5.0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AD</span>
+                            <div class="agent-info">
+                                <strong>You</strong>
+                                <span>Resolved · 2h ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-closed-info">
+                        <span class="closed-tag"><i class="bi bi-check2-circle"></i> Closed</span>
+                        <span class="closed-by">by <b>You</b> · 2h ago</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Closed #2 — Billing resolved -->
+            <article class="sp-card closed fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority low closed-dot"><span class="dot"></span> Resolved · Refund Issued</span>
+                            <span class="tc-category billing"><i class="bi bi-credit-card-2-front-fill"></i> Billing</span>
+                            <span class="tc-id">#TK-4785 · Closed 5h ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Request for refund on unused course</h3>
+                        <div class="tc-preview">
+                            Resolved: refund of ₦85,000 processed within policy window (14-day). Transaction reversed to original payment method. Member confirmed receipt.
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av">SM</span>
+                            <div class="rp-info">
+                                <strong>Sarah Mitchell</strong>
+                                <small>KW-STU-10342 · Student</small>
+                            </div>
+                            <div class="rp-tags">
+                                <span class="rp-tag"><i class="bi bi-geo-alt-fill"></i> US</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">Resolution</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Time to Close</span>
+                                    <span class="sla-value ok">3h 18m</span>
+                                </div>
+                                <div class="tc-sla-row" style="margin-top:6px;">
+                                    <span class="sla-label">CSAT</span>
+                                    <span class="tc-csat"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i> 5.0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AD</span>
+                            <div class="agent-info">
+                                <strong>You</strong>
+                                <span>Resolved · 5h ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-closed-info">
+                        <span class="closed-tag"><i class="bi bi-check2-circle"></i> Closed</span>
+                        <span class="closed-by">by <b>You</b> · 5h ago</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Closed #3 — Closed without resolution -->
+            <article class="sp-card closed fade-up">
+                <div class="sp-card-grid">
+                    <div class="tc-content">
+                        <div class="tc-head-row">
+                            <span class="tc-priority low closed-dot"><span class="dot"></span> Closed · No Reply</span>
+                            <span class="tc-category tech"><i class="bi bi-gear-fill"></i> Account</span>
+                            <span class="tc-id">#TK-4772 · Auto-closed 1d ago</span>
+                        </div>
+
+                        <h3 class="tc-subject">Request to change display name</h3>
+                        <div class="tc-preview">
+                            Ticket auto-closed after 48h without member response. Original request: change display name from "DJ_4821" to "Daniel J." — needs verification of identity to process.
+                        </div>
+
+                        <div class="tc-reporter">
+                            <span class="rp-av">DJ</span>
+                            <div class="rp-info">
+                                <strong>D. Johnson</strong>
+                                <small>KW-STU-12984 · Student</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-meta">
+                        <div>
+                            <span class="tc-meta-head">Resolution</span>
+                            <div class="tc-sla">
+                                <div class="tc-sla-row">
+                                    <span class="sla-label">Time to Close</span>
+                                    <span class="sla-value warn">48h (auto)</span>
+                                </div>
+                                <div class="tc-sla-row" style="margin-top:6px;">
+                                    <span class="sla-label">CSAT</span>
+                                    <span class="sla-value">N/A · no response</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tc-agent">
+                            <span class="agent-av">AD</span>
+                            <div class="agent-info">
+                                <strong>You</strong>
+                                <span>Auto-closed · 1d ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tc-closed-info">
+                        <span class="closed-tag warn"><i class="bi bi-clock-history"></i> Auto-closed</span>
+                        <span class="closed-by">no response · <b>1d ago</b></span>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — SUPPORT CONSOLE
+     ============================================================ -->
+<div class="support-console fade-up">
+    <div class="sc-head">
+        <span class="sc-ic"><i class="bi bi-life-preserver"></i></span>
+        <div>
+            <h2>Support <em>Console</em></h2>
+            <p>ROOT-ONLY · MACROS · SLA OVERRIDE · ON-CALL · AUDIT-LOGGED</p>
+        </div>
+        <span class="sc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="sc-grid">
+        <button class="sc-tool" data-toast="Canned responses opened — 24 saved macros" data-toast-type="info">
+            <span class="sc-t-ic"><i class="bi bi-lightning-fill"></i></span>
+            <div class="sc-t-body">
+                <strong>Canned Responses</strong>
+                <p>Reusable replies for common issues — login, refunds, course access.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool" data-toast="Agent workload panel opened — 8 agents live" data-toast-type="info">
+            <span class="sc-t-ic"><i class="bi bi-people-fill"></i></span>
+            <div class="sc-t-body">
+                <strong>Agent Workload</strong>
+                <p>Balance queue across agents · track response time &amp; CSAT per agent.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool emerald" data-toast="Auto-responder rules opened" data-toast-type="info">
+            <span class="sc-t-ic"><i class="bi bi-robot"></i></span>
+            <div class="sc-t-body">
+                <strong>Auto-Responder</strong>
+                <p>Instant replies for after-hours tickets &amp; known issue patterns.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool" data-toast="SLA policy editor opened — per-category SLA" data-toast-type="info">
+            <span class="sc-t-ic"><i class="bi bi-alarm-fill"></i></span>
+            <div class="sc-t-body">
+                <strong>SLA Policies</strong>
+                <p>Configure response &amp; resolution SLAs per category and priority.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool" data-toast="Knowledge base opened — 84 articles" data-toast-type="info">
+            <span class="sc-t-ic"><i class="bi bi-book-fill"></i></span>
+            <div class="sc-t-body">
+                <strong>Knowledge Base</strong>
+                <p>Help articles, FAQs &amp; how-tos. Powers self-serve resolutions.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool" data-toast="Live chat monitor opened" data-toast-type="info">
+            <span class="sc-t-ic"><i class="bi bi-chat-dots-fill"></i></span>
+            <div class="sc-t-body">
+                <strong>Live Chat Monitor</strong>
+                <p>View active chat sessions · jump in as supervisor if needed.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool danger" data-toast="⚠ Escalate to on-call engineering requires MFA" data-toast-type="error">
+            <span class="sc-t-ic"><i class="bi bi-telephone-fill"></i></span>
+            <div class="sc-t-body">
+                <strong>Escalate to On-Call</strong>
+                <p>Page on-call engineering for critical system issues. All-hands alert.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+
+        <button class="sc-tool danger" data-toast="⚠ Freeze incoming tickets — no new support requests accepted" data-toast-type="error">
+            <span class="sc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="sc-t-body">
+                <strong>Freeze Intake</strong>
+                <p>Pause all incoming support during incidents or scheduled outages.</p>
+            </div>
+            <i class="bi bi-arrow-right sc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.sp-tab');
+    const panels = document.querySelectorAll('.sp-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+            setTimeout(() => paintBars(panel || document), 60);
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       ANIMATE SLA BARS
+       ============================================================ */
+    function paintBars(scope) {
+        const root = scope || document;
+        root.querySelectorAll('.tc-sla-bar > span[data-value], .bar > span[data-value]').forEach(el => {
+            el.style.width = '0';
+            requestAnimationFrame(() => setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 80));
+        });
+    }
+    window.addEventListener('load', () => paintBars(document));
+
+    /* ============================================================
+       RESOLVE — animate card out
+       ============================================================ */
+    document.querySelectorAll('.tc-btn.resolve').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.sp-card');
+            if (!card) return;
+            card.style.transition = 'all .45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(32px) scale(0.98)';
+            setTimeout(() => card.remove(), 460);
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.sc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

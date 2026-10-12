@@ -949,7 +949,7 @@
     <div class="ss-stat fade-up">
         <div class="ic accent"><i class="bi bi-calendar-event"></i></div>
         <div>
-            <div class="v" data-count="6">0</div>
+            <div class="v" data-count="{{ upcoming_sessions|length }}">{{ upcoming_sessions|length }}</div>
             <div class="l">Upcoming sessions</div>
         </div>
     </div>
@@ -957,7 +957,7 @@
     <div class="ss-stat fade-up">
         <div class="ic"><i class="bi bi-check2-circle"></i></div>
         <div>
-            <div class="v" data-count="32">0</div>
+            <div class="v" data-count="{{ past_sessions|length }}">{{ past_sessions|length }}</div>
             <div class="l">Completed this term</div>
         </div>
     </div>
@@ -1034,19 +1034,19 @@
             <!-- Tabs -->
             <div class="ss-tabs" role="tablist" aria-label="Session categories">
                 <button class="ss-tab active" data-tab="upcoming" role="tab" aria-selected="true">
-                    <i class="bi bi-calendar-event"></i> Upcoming <span class="count">6</span>
+                    <i class="bi bi-calendar-event"></i> Upcoming <span class="count">{{ upcoming_sessions|length }}</span>
                 </button>
                 <button class="ss-tab" data-tab="past" role="tab" aria-selected="false">
-                    <i class="bi bi-check2-circle"></i> Past <span class="count">32</span>
+                    <i class="bi bi-check2-circle"></i> Past <span class="count">{{ past_sessions|length }}</span>
                 </button>
                 <button class="ss-tab" data-tab="cancelled" role="tab" aria-selected="false">
-                    <i class="bi bi-slash-circle"></i> Cancelled <span class="count">3</span>
+                    <i class="bi bi-slash-circle"></i> Cancelled <span class="count">{{ cancelled_sessions|length }}</span>
                 </button>
             </div>
 
             <!-- Toolbar -->
             <div class="ss-toolbar">
-                <p class="count" id="ssCount"><strong>6</strong> upcoming sessions</p>
+                <p class="count" id="ssCount"><strong>{{ upcoming_sessions|length }}</strong> upcoming sessions</p>
                 <span class="spacer"></span>
                 <div class="ss-sort">
                     <label for="ssSort">Sort</label>
@@ -1067,6 +1067,15 @@
 
                 <div class="ss-list">
 
+                    {% if upcoming_sessions %}
+                        {% for session in upcoming_sessions %}
+                        <article class="ss-row{% if forloop.first %} live{% endif %}">
+                            <div class="ss-date"><div class="dow">{{ session.starts_at|date:"D" }}</div><div class="day">{{ session.starts_at|date:"d" }}</div><div class="mon">{{ session.starts_at|date:"M" }}</div></div>
+                            <div class="ss-body"><div class="top"><h4>{{ session.title }}</h4><span class="ss-flag confirmed">Scheduled</span></div><div class="who"><span class="avatar xs">{{ session.teacher.initials }}</span> with <strong>{{ session.teacher.user.get_full_name|default:session.teacher.user.username }}</strong><i class="bi bi-patch-check-fill verified"></i></div><div class="ss-meta"><span><i class="bi bi-clock"></i> {{ session.starts_at|date:"H:i" }} · {{ session.duration_minutes }} min</span><span><i class="bi bi-camera-video"></i> Video call</span>{% if session.course %}<span><i class="bi bi-journal-text"></i> {{ session.course.title }}</span>{% endif %}</div></div>
+                            <div class="ss-actions"><form method="post" action="{% url 'student_session_action' session.id %}">{% csrf_token %}<button class="ss-act primary" type="submit" name="action" value="join"><i class="bi bi-camera-video-fill"></i> Join</button><button class="ss-act outline" type="submit" name="action" value="raise_hand"><i class="bi bi-hand-index-thumb"></i> Raise hand</button><button class="ss-act danger" type="submit" name="action" value="cancel"><i class="bi bi-x-lg"></i> Cancel</button></form></div>
+                        </article>
+                        {% endfor %}
+                    {% else %}
                     <!-- ---- Session 1 (live) ---- -->
                     <article class="ss-row live">
                         <div class="ss-date">
@@ -1272,7 +1281,7 @@
                             </button>
                         </div>
                     </article>
-
+                    {% endif %}
                 </div>
             </div>
 
@@ -1281,6 +1290,16 @@
                  ============================================================ -->
             <div class="ss-panel" id="ssPanelPast" role="tabpanel">
                 <div class="ss-list">
+
+                    {% if past_sessions %}
+                        {% for session in past_sessions %}
+                        <article class="ss-row">
+                            <div class="ss-date"><div class="dow">{{ session.starts_at|date:"D" }}</div><div class="day">{{ session.starts_at|date:"d" }}</div><div class="mon">{{ session.starts_at|date:"M" }}</div></div>
+                            <div class="ss-body"><div class="top"><h4>{{ session.title }}</h4><span class="ss-flag completed"><i class="bi bi-check2"></i> Completed</span></div><div class="who"><span class="avatar xs">{{ session.teacher.initials }}</span> with <strong>{{ session.teacher.user.get_full_name|default:session.teacher.user.username }}</strong></div><div class="ss-meta"><span><i class="bi bi-clock"></i> {{ session.duration_minutes }} min</span>{% if session.course %}<span><i class="bi bi-journal-text"></i> {{ session.course.title }}</span>{% endif %}</div></div>
+                            <div class="ss-actions"><form method="post" action="{% url 'student_session_action' session.id %}">{% csrf_token %}<button class="ss-act ghost" type="submit" name="action" value="rebook"><i class="bi bi-arrow-repeat"></i> Rebook</button></form></div>
+                        </article>
+                        {% endfor %}
+                    {% else %}
 
                     <!-- ---- Completed 1 ---- -->
                     <article class="ss-row">
@@ -1385,6 +1404,7 @@
                         </div>
                     </article>
 
+                    {% endif %}
                 </div>
             </div>
 
@@ -1393,6 +1413,16 @@
                  ============================================================ -->
             <div class="ss-panel" id="ssPanelCancelled" role="tabpanel">
                 <div class="ss-list">
+
+                    {% if cancelled_sessions %}
+                        {% for session in cancelled_sessions %}
+                        <article class="ss-row cancelled">
+                            <div class="ss-date"><div class="dow">{{ session.starts_at|date:"D" }}</div><div class="day">{{ session.starts_at|date:"d" }}</div><div class="mon">{{ session.starts_at|date:"M" }}</div></div>
+                            <div class="ss-body"><div class="top"><h4>{{ session.title }}</h4><span class="ss-flag cancelled"><i class="bi bi-x-lg"></i> Cancelled</span></div><div class="who"><span class="avatar xs">{{ session.teacher.initials }}</span> with <strong>{{ session.teacher.user.get_full_name|default:session.teacher.user.username }}</strong></div><div class="ss-meta"><span><i class="bi bi-clock"></i> {{ session.duration_minutes }} min</span></div></div>
+                            <div class="ss-actions"><form method="post" action="{% url 'student_session_action' session.id %}">{% csrf_token %}<button class="ss-act outline" type="submit" name="action" value="rebook"><i class="bi bi-arrow-repeat"></i> Rebook</button></form></div>
+                        </article>
+                        {% endfor %}
+                    {% else %}
 
                     <!-- ---- Cancelled 1 ---- -->
                     <article class="ss-row cancelled">
@@ -1493,6 +1523,7 @@
                         </div>
                     </article>
 
+                    {% endif %}
                 </div>
             </div>
 
@@ -1655,9 +1686,9 @@
         var countLabel = document.getElementById('ssCount');
 
         var labelText = {
-            upcoming: '6',
-            past: '32',
-            cancelled: '3'
+            upcoming: '{{ upcoming_sessions|length }}',
+            past: '{{ past_sessions|length }}',
+            cancelled: '{{ cancelled_sessions|length }}'
         };
         var labelWord = {
             upcoming: 'upcoming sessions',

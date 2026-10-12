@@ -1,0 +1,2173 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Reviews{% endblock %}
+{% block breadcrumb %}Reviews{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .rev-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .rev-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .rev-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .rh-text { position: relative; z-index: 2; max-width: 660px; }
+    .rh-text .hero-badge { margin-bottom: 14px; }
+    .rh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .rh-text h1 span { color: var(--secondary); font-style: italic; }
+    .rh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        margin-bottom: 22px;
+        max-width: 540px;
+    }
+    .rh-text p strong { color: var(--white); font-weight: 600; }
+    .rh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    /* Hero rating panel */
+    .hero-rating {
+        position: relative; z-index: 2;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 20px 24px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        box-shadow: 0 20px 48px rgba(2, 6, 23, 0.24);
+    }
+    .hr-number {
+        text-align: center;
+    }
+    .hr-number strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+        letter-spacing: -0.03em;
+    }
+    .hr-number .stars {
+        display: inline-flex;
+        gap: 3px;
+        color: var(--secondary);
+        font-size: 0.9rem;
+        margin-top: 6px;
+    }
+    .hr-number span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .hr-divider {
+        width: 1px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+    }
+    .hr-breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 140px;
+    }
+    .hr-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.66rem;
+        color: rgba(255, 255, 255, 0.72);
+        font-weight: 700;
+    }
+    .hr-bar-row .lbl {
+        width: 12px;
+        flex-shrink: 0;
+    }
+    .hr-bar-row .track {
+        flex: 1;
+        height: 5px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.10);
+        overflow: hidden;
+    }
+    .hr-bar-row .track i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--secondary);
+        border-radius: 50px;
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .hr-bar-row .pct {
+        width: 26px;
+        text-align: right;
+        flex-shrink: 0;
+        color: rgba(255, 255, 255, 0.55);
+        font-weight: 800;
+    }
+
+    /* ============================================================
+       AUTHORITY STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .rev-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ro-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ro-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ro-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .ro-card:hover::before { opacity: 1; }
+    .ro-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .ro-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .ro-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ro-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ro-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ro-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ro-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .ro-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .ro-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ro-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .ro-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+    .tab .count.danger { background: rgba(239, 68, 68, 0.14); color: #DC2626; }
+    .tab.active .count.danger { background: rgba(239, 68, 68, 0.20); color: #DC2626; }
+
+    .tab-panels { padding: 18px 26px 24px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       REVIEW CARD
+       ============================================================ */
+    .rev-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .rev-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 24px 26px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .rev-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 22px; bottom: 22px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--secondary);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .rev-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .rev-card:hover::before { opacity: 1; }
+    .rev-card.five::before { background: var(--secondary); }
+    .rev-card.four::before { background: var(--accent); }
+    .rev-card.low::before { background: var(--amber); }
+    .rev-card.critical::before { background: var(--danger); }
+    .rev-card.needs-reply {
+        border-color: rgba(245, 158, 11, 0.32);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.03), transparent 60%);
+    }
+    .rev-card.needs-reply::before { background: var(--amber); opacity: 1; }
+
+    /* Head row */
+    .rc-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+    .rc-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .rc-avatar-wrap .avatar {
+        width: 52px; height: 52px;
+        font-size: 0.98rem;
+        font-family: 'Playfair Display', serif;
+    }
+    .rc-avatar-wrap .verified-badge {
+        position: absolute;
+        bottom: -2px; right: -2px;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.6rem;
+        border: 2.5px solid var(--white);
+        box-shadow: 0 3px 8px rgba(190, 242, 100, 0.30);
+    }
+
+    .rc-id { flex: 1; min-width: 0; }
+    .rc-name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+    .rc-name-row h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .rc-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(56, 189, 248, 0.14);
+        color: #0369A1;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .rc-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 50px;
+        background: rgba(139, 92, 246, 0.12);
+        color: #6D28D9;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .rc-role.alumni {
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+
+    .rc-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+    }
+    .rc-meta-row span { display: inline-flex; align-items: center; gap: 5px; }
+    .rc-meta-row i { color: var(--gray-300); font-size: 0.75rem; }
+    .rc-meta-row .dot-sep {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--gray-300);
+    }
+
+    /* Right side of head — rating */
+    .rc-rating {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .rc-rating .stars {
+        display: inline-flex;
+        gap: 2px;
+        color: var(--secondary-deep);
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+    .rc-rating .rating-num {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+    .rc-rating .rating-sub {
+        font-size: 0.6rem;
+        color: var(--gray-300);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* Session context strip */
+    .rc-context {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: var(--cream);
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 14px;
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        flex-wrap: wrap;
+    }
+    .rc-context .ctx-ic {
+        width: 28px; height: 28px;
+        border-radius: 9px;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    .rc-context strong { color: var(--primary-dark); font-weight: 700; }
+    .rc-context .ctx-when {
+        margin-left: auto;
+        font-size: 0.68rem;
+        color: var(--gray-300);
+        font-weight: 700;
+    }
+
+    /* Review text — the quote */
+    .rc-quote {
+        position: relative;
+        padding: 16px 20px 16px 24px;
+        background: var(--cream);
+        border-radius: 14px;
+        margin-bottom: 14px;
+        font-size: 0.9rem;
+        color: var(--gray-800);
+        line-height: 1.7;
+    }
+    .rc-quote::before {
+        content: '\201C';
+        position: absolute;
+        top: -4px;
+        left: 10px;
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        line-height: 1;
+        color: rgba(190, 242, 100, 0.55);
+    }
+    .rc-quote strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* Tags — what they praised */
+    .rc-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+        align-items: center;
+    }
+    .rc-tags .label {
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+        margin-right: 6px;
+    }
+
+    /* Mentor reply block */
+    .rc-reply {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.04));
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 14px;
+    }
+    .rc-reply-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    .rc-reply-head .avatar {
+        width: 26px; height: 26px;
+        font-size: 0.6rem;
+        font-family: 'Playfair Display', serif;
+        flex-shrink: 0;
+    }
+    .rc-reply-head div { min-width: 0; line-height: 1.2; }
+    .rc-reply-head strong {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .rc-reply-head span {
+        display: block;
+        font-size: 0.62rem;
+        color: var(--gray-600);
+    }
+    .rc-reply-head .reply-badge {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 50px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .rc-reply-body {
+        font-size: 0.82rem;
+        color: var(--gray-800);
+        line-height: 1.65;
+    }
+    .rc-reply-body strong { color: var(--primary-dark); font-weight: 600; }
+
+    /* Reply composer */
+    .rc-reply-composer {
+        border: 2px dashed var(--gray-200);
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        transition: var(--transition);
+        cursor: pointer;
+        background: var(--white);
+    }
+    .rc-reply-composer:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.04);
+    }
+    .rc-reply-composer-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+    .rc-reply-composer-head i {
+        color: var(--secondary-deep);
+        font-size: 1rem;
+    }
+    .rc-reply-composer-head strong {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .rc-reply-composer p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+    }
+
+    /* Action row */
+    .rc-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding-top: 14px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .rc-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .rc-action-btn i { font-size: 0.8rem; }
+    .rc-action-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .rc-action-btn.primary {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+    .rc-action-btn.primary:hover {
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.45);
+    }
+    .rc-action-btn.danger {
+        color: #DC2626;
+        border-color: rgba(239, 68, 68, 0.20);
+        background: rgba(239, 68, 68, 0.04);
+    }
+    .rc-action-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.10);
+        border-color: rgba(239, 68, 68, 0.36);
+        color: #B91C1C;
+    }
+    .rc-actions .rc-note {
+        margin-left: auto;
+        font-size: 0.68rem;
+        color: var(--gray-300);
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .rc-actions .rc-note.warn { color: var(--amber); }
+
+    /* ============================================================
+       RIGHT RAIL
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Rating breakdown */
+    .rating-breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .rb-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .rb-row .lbl {
+        width: 46px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+    .rb-row .lbl i { color: var(--secondary-deep); font-size: 0.72rem; }
+    .rb-row .track {
+        flex: 1;
+        height: 8px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        overflow: hidden;
+    }
+    .rb-row .track i {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 50px;
+        background: linear-gradient(90deg, #A3FF00, #7ED321);
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .rb-row.four .track i { background: linear-gradient(90deg, var(--accent), #0EA5E9); }
+    .rb-row.three .track i { background: linear-gradient(90deg, #FCD34D, #F59E0B); }
+    .rb-row.two .track i { background: linear-gradient(90deg, #FCA5A5, #EF4444); }
+    .rb-row.one .track i { background: linear-gradient(90deg, #FCA5A5, #DC2626); }
+
+    .rb-row .pct {
+        width: 40px;
+        text-align: right;
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: var(--primary-dark);
+    }
+
+    /* Sentiment pill */
+    .sentiment-summary {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.08), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.24);
+        margin-top: 14px;
+    }
+    .sentiment-summary .ss-head {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 8px;
+    }
+    .sentiment-summary .ss-head i {
+        width: 26px; height: 26px;
+        border-radius: 9px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    .sentiment-summary .ss-head strong {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    .sentiment-summary p {
+        font-size: 0.74rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .sentiment-summary p strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Praise tags ranking */
+    .praise-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .praise-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .praise-row:first-of-type { padding-top: 0; }
+    .praise-rank {
+        width: 24px;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-300);
+        flex-shrink: 0;
+    }
+    .praise-row:nth-child(1) .praise-rank { color: #4D7C0F; }
+    .praise-row:nth-child(2) .praise-rank { color: var(--accent); }
+    .praise-row:nth-child(3) .praise-rank { color: var(--violet); }
+    .praise-body { flex: 1; min-width: 0; }
+    .praise-body strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .praise-body .track {
+        height: 5px;
+        border-radius: 50px;
+        background: var(--gray-100);
+        overflow: hidden;
+    }
+    .praise-body .track i {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 50px;
+        background: linear-gradient(90deg, #A3FF00, #7ED321);
+        transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .praise-score {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .praise-score strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+    }
+    .praise-score span {
+        display: block;
+        font-size: 0.56rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+    }
+
+    /* Reply quota bar */
+    .reply-quota {
+        padding: 14px 0 4px;
+    }
+    .reply-quota .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 8px;
+    }
+    .reply-quota .row span { font-size: 0.74rem; color: var(--gray-600); font-weight: 600; }
+    .reply-quota .row strong { font-size: 0.82rem; color: var(--primary-dark); font-weight: 800; }
+    .reply-quota p {
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin-top: 10px;
+    }
+    .reply-quota p strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* Guidelines */
+    .guide-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .guide-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .guide-item i {
+        flex-shrink: 0;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.6rem;
+        margin-top: 2px;
+    }
+    .guide-item strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls { display: flex; align-items: center; gap: 4px; }
+    .pg-btn {
+        min-width: 38px; height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .rev-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .hero-rating { gap: 18px; padding: 18px 20px; }
+        .hr-number strong { font-size: 2.6rem; }
+        .hr-breakdown { min-width: 120px; }
+    }
+    @media (max-width: 900px) {
+        .rev-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .hero-rating { width: 100%; }
+    }
+    @media (max-width: 640px) {
+        .rev-overview { grid-template-columns: 1fr; }
+        .hero-rating { flex-direction: column; gap: 14px; }
+        .hr-divider { width: 100%; height: 1px; }
+        .hr-breakdown { width: 100%; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .rev-card { padding: 20px 18px; }
+        .rc-head { flex-wrap: wrap; }
+        .rc-rating { text-align: left; }
+        .rc-actions { flex-direction: column; align-items: stretch; }
+        .rc-actions .rc-action-btn { width: 100%; justify-content: center; }
+        .rc-actions .rc-note { margin-left: 0; justify-content: center; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 420px) {
+        .rc-name-row h4 { font-size: 0.94rem; }
+        .rc-rating .rating-num { font-size: 1.3rem; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="rev-hero fade-up">
+    <div class="rh-text">
+        <span class="hero-badge">
+            <i class="bi bi-patch-check-fill"></i> Verified Mentor · 86 reviews
+        </span>
+        <h1>Your <span>Reviews</span></h1>
+        <p>
+            You hold a <strong>4.9 average</strong> across <strong>86 reviews</strong>,
+            with a <strong>94% response rate</strong>. Reviews build your public
+            dossier and are shown to prospective mentees. Two reviews are waiting
+            on your reply.
+        </p>
+        <div class="rh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening reply composer…" data-toast-type="info">
+                <i class="bi bi-chat-left-text-fill"></i> Reply to pending
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening public profile preview…" data-toast-type="info">
+                <i class="bi bi-person-badge"></i> View public dossier
+            </button>
+        </div>
+    </div>
+
+    <aside class="hero-rating" aria-label="Rating summary">
+        <div class="hr-number">
+            <strong>4.9</strong>
+            <span class="stars">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-half"></i>
+            </span>
+            <span>86 reviews</span>
+        </div>
+        <div class="hr-divider"></div>
+        <div class="hr-breakdown">
+            <div class="hr-bar-row">
+                <span class="lbl">5</span>
+                <span class="track"><i data-h="88" style="background: var(--secondary);"></i></span>
+                <span class="pct">88%</span>
+            </div>
+            <div class="hr-bar-row">
+                <span class="lbl">4</span>
+                <span class="track"><i data-h="10" style="background: var(--accent);"></i></span>
+                <span class="pct">10%</span>
+            </div>
+            <div class="hr-bar-row">
+                <span class="lbl">3</span>
+                <span class="track"><i data-h="2" style="background: var(--amber);"></i></span>
+                <span class="pct">2%</span>
+            </div>
+        </div>
+    </aside>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-patch-check-fill"></i></span>
+    <div class="as-body">
+        <strong>Your reviews are public and verified</strong>
+        <p>
+            Only mentees you have actually worked with can leave a review —
+            <strong>every rating is tied to a completed session or plan</strong>.
+            Your replies are also public. This keeps your dossier honest,
+            discoverable, and trustworthy for prospective mentees.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening review policy…" data-toast-type="info">
+            <i class="bi bi-file-earmark-text"></i> Review policy
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="rev-overview fade-up">
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic"><i class="bi bi-star-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> +0.1</span>
+        </div>
+        <div class="ro-value">4.9<span> / 5</span></div>
+        <div class="ro-label">Average rating</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic accent"><i class="bi bi-chat-square-text-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> +12</span>
+        </div>
+        <div class="ro-value" data-count="86">86</div>
+        <div class="ro-label">Total reviews</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic violet"><i class="bi bi-reply-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-shield-check"></i> 94%</span>
+        </div>
+        <div class="ro-value">94<span>%</span></div>
+        <div class="ro-label">Response rate</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic amber"><i class="bi bi-hourglass-split"></i></span>
+            <span class="ro-trend warn"><i class="bi bi-clock-history"></i> Waiting</span>
+        </div>
+        <div class="ro-value" data-count="2">2</div>
+        <div class="ro-label">Reviews needing reply</div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="reviewSearch" placeholder="Search by mentee, plan, or text…" aria-label="Search reviews">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All ratings
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Newest first" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Newest first
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>Verified reviews only</strong>
+        <p>
+            Every review is tied to a completed session or a full plan. No
+            anonymous ratings, no drive-by reviews. <strong>You cannot delete a
+            review</strong> — but you can reply publicly. Replies appear on
+            your dossier alongside the original review.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     REVIEWS GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="grid-2">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-star-fill"></i> All Reviews</h3>
+                <a href="#" class="link">Export reviews <i class="bi bi-download"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="all">
+                    All <span class="count">86</span>
+                </button>
+                <button class="tab" data-tab="needs-reply">
+                    Needs Reply <span class="count danger">2</span>
+                </button>
+                <button class="tab" data-tab="five">
+                    Five Star <span class="count">76</span>
+                </button>
+                <button class="tab" data-tab="detailed">
+                    Detailed <span class="count">42</span>
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ─────── ALL ─────── -->
+                <div class="tab-panel active" id="tab-all">
+                    <div class="rev-list">
+
+                        <!-- Review 1 — 5★, Needs reply -->
+                        <article class="rev-card five needs-reply"
+                                 data-searchable="maya rahman react patterns 5 star needs reply">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar sky">MR</span>
+                                    <span class="verified-badge" title="Verified mentee">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Maya Rahman</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                        <span class="rc-role">Active mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Design → Dev Bridge</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 2 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                    <span class="rating-sub">Excellent</span>
+                                </div>
+                            </div>
+
+                            <div class="rc-context">
+                                <span class="ctx-ic"><i class="bi bi-check2-circle"></i></span>
+                                <span>From <strong>Portfolio review · Week 10</strong> session</span>
+                                <span class="ctx-when">2 days ago</span>
+                            </div>
+
+                            <blockquote class="rc-quote">
+                                Daniel breaks down complex patterns into tiny, digestible pieces.
+                                I finally understand hooks — genuinely the best mentor I've had.
+                                He took the time to review my code line by line and even showed
+                                me <strong>three ways</strong> to solve the same problem.
+                            </blockquote>
+
+                            <div class="rc-tags">
+                                <span class="label">Praised for</span>
+                                <span class="tag teach">Clear explanation</span>
+                                <span class="tag learn">Deep React knowledge</span>
+                                <span class="tag violet">Personalised feedback</span>
+                            </div>
+
+                            <div class="rc-reply-composer"
+                                 data-toast="Opening reply composer…" data-toast-type="info">
+                                <div class="rc-reply-composer-head">
+                                    <i class="bi bi-reply-fill"></i>
+                                    <strong>Reply to Maya's review</strong>
+                                </div>
+                                <p>Replies are public. Keep them warm and professional — 2–4 sentences works best.</p>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening reply composer…" data-toast-type="info">
+                                    <i class="bi bi-reply-fill"></i> Write reply
+                                </button>
+                                <button type="button" class="rc-action-btn"
+                                        data-toast="Opening the session…" data-toast-type="info">
+                                    <i class="bi bi-calendar-check"></i> View session
+                                </button>
+                                <span class="rc-note warn">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Needs your reply
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Review 2 — 5★, has reply -->
+                        <article class="rev-card five"
+                                 data-searchable="tunde kayode postgres 5 star replied">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar">TK</span>
+                                    <span class="verified-badge" title="Verified mentee">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Tunde Kayode</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                        <span class="rc-role">Active mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Full-Stack Track</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 5 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                    <span class="rating-sub">Excellent</span>
+                                </div>
+                            </div>
+
+                            <div class="rc-context">
+                                <span class="ctx-ic"><i class="bi bi-check2-circle"></i></span>
+                                <span>From <strong>System Design Review</strong> session</span>
+                                <span class="ctx-when">5 days ago</span>
+                            </div>
+
+                            <blockquote class="rc-quote">
+                                Structured, patient, and incredibly practical. The plan Daniel built
+                                for me is still my roadmap six months later. He has a rare gift for
+                                turning abstract concepts into concrete, shippable steps.
+                            </blockquote>
+
+                            <div class="rc-tags">
+                                <span class="label">Praised for</span>
+                                <span class="tag teach">Structured plans</span>
+                                <span class="tag learn">Practical approach</span>
+                            </div>
+
+                            <div class="rc-reply">
+                                <div class="rc-reply-head">
+                                    <span class="avatar">DO</span>
+                                    <div>
+                                        <strong>Your reply</strong>
+                                        <span>5 days ago · Public</span>
+                                    </div>
+                                    <span class="reply-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                </div>
+                                <p class="rc-reply-body">
+                                    Thank you, Tunde — it's been a real pleasure watching you grow.
+                                    Excited to see where your full-stack journey leads next.
+                                </p>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn"
+                                        data-toast="Opening reply editor…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Edit reply
+                                </button>
+                                <button type="button" class="rc-action-btn"
+                                        data-toast="Opening the session…" data-toast-type="info">
+                                    <i class="bi bi-calendar-check"></i> View session
+                                </button>
+                                <span class="rc-note">
+                                    <i class="bi bi-check2-all" style="color: var(--secondary-deep);"></i> Replied
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Review 3 — 5★, needs reply -->
+                        <article class="rev-card five needs-reply"
+                                 data-searchable="sara kim react hooks 5 star needs reply">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar sky">SK</span>
+                                    <span class="verified-badge" title="Verified mentee">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Sara Kim</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                        <span class="rc-role">Active mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Advanced React Patterns</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 1 day ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                    <span class="rating-sub">Excellent</span>
+                                </div>
+                            </div>
+
+                            <div class="rc-context">
+                                <span class="ctx-ic"><i class="bi bi-check2-circle"></i></span>
+                                <span>From <strong>React Hooks Deep Dive</strong> session</span>
+                                <span class="ctx-when">1 day ago</span>
+                            </div>
+
+                            <blockquote class="rc-quote">
+                                I've had three mentors in the last year and Daniel is by far the
+                                most meticulous. He answers every question fully, never makes
+                                you feel slow, and I've shipped features I couldn't have imagined
+                                six months ago.
+                            </blockquote>
+
+                            <div class="rc-tags">
+                                <span class="label">Praised for</span>
+                                <span class="tag teach">Patience</span>
+                                <span class="tag learn">Meticulous</span>
+                                <span class="tag amber">Encouraging</span>
+                            </div>
+
+                            <div class="rc-reply-composer"
+                                 data-toast="Opening reply composer…" data-toast-type="info">
+                                <div class="rc-reply-composer-head">
+                                    <i class="bi bi-reply-fill"></i>
+                                    <strong>Reply to Sara's review</strong>
+                                </div>
+                                <p>Replies are public. Keep them warm and professional — 2–4 sentences works best.</p>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening reply composer…" data-toast-type="info">
+                                    <i class="bi bi-reply-fill"></i> Write reply
+                                </button>
+                                <button type="button" class="rc-action-btn"
+                                        data-toast="Opening the session…" data-toast-type="info">
+                                    <i class="bi bi-calendar-check"></i> View session
+                                </button>
+                                <span class="rc-note warn">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Needs your reply
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- Review 4 — 4★, replied -->
+                        <article class="rev-card four"
+                                 data-searchable="amara okoye frontend 4 star replied">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar amber">AO</span>
+                                    <span class="verified-badge" title="Verified mentee">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Amara Okoye</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                        <span class="rc-role">Active mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Frontend Foundations</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 1 week ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star"></i>
+                                    </span>
+                                    <span class="rating-num">4.0</span>
+                                    <span class="rating-sub">Very good</span>
+                                </div>
+                            </div>
+
+                            <div class="rc-context">
+                                <span class="ctx-ic"><i class="bi bi-check2-circle"></i></span>
+                                <span>From <strong>Frontend Foundations · Weekly check-in</strong></span>
+                                <span class="ctx-when">1 week ago</span>
+                            </div>
+
+                            <blockquote class="rc-quote">
+                                Great sessions and clear feedback. Would love even more
+                                hands-on pair-programming time — sometimes I need to see
+                                how you'd do it rather than just hear it explained.
+                            </blockquote>
+
+                            <div class="rc-tags">
+                                <span class="label">Praised for</span>
+                                <span class="tag teach">Clear feedback</span>
+                                <span class="tag learn">Great sessions</span>
+                            </div>
+
+                            <div class="rc-reply">
+                                <div class="rc-reply-head">
+                                    <span class="avatar">DO</span>
+                                    <div>
+                                        <strong>Your reply</strong>
+                                        <span>1 week ago · Public</span>
+                                    </div>
+                                    <span class="reply-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                </div>
+                                <p class="rc-reply-body">
+                                    Thank you Amara — and that's fair feedback. Let's add 15 minutes
+                                    of live pair-programming at the start of every Friday session
+                                    from now on.
+                                </p>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn"
+                                        data-toast="Opening reply editor…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Edit reply
+                                </button>
+                                <button type="button" class="rc-action-btn"
+                                        data-toast="Opening the session…" data-toast-type="info">
+                                    <i class="bi bi-calendar-check"></i> View session
+                                </button>
+                                <span class="rc-note">
+                                    <i class="bi bi-check2-all" style="color: var(--secondary-deep);"></i> Replied
+                                </span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── NEEDS REPLY ─────── -->
+                <div class="tab-panel" id="tab-needs-reply">
+                    <div class="rev-list">
+
+                        <article class="rev-card five needs-reply"
+                                 data-searchable="maya rahman needs reply 5 star">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar sky">MR</span>
+                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i></span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Maya Rahman</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Design → Dev Bridge</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 2 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                    <span class="rating-sub">Excellent</span>
+                                </div>
+                            </div>
+                            <blockquote class="rc-quote">
+                                Daniel breaks down complex patterns into tiny, digestible pieces.
+                                I finally understand hooks — genuinely the best mentor I've had.
+                            </blockquote>
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening reply composer…" data-toast-type="info">
+                                    <i class="bi bi-reply-fill"></i> Write reply
+                                </button>
+                                <span class="rc-note warn">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Needs your reply
+                                </span>
+                            </div>
+                        </article>
+
+                        <article class="rev-card five needs-reply"
+                                 data-searchable="sara kim needs reply 5 star">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar sky">SK</span>
+                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i></span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Sara Kim</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Advanced React Patterns</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 1 day ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                    <span class="rating-sub">Excellent</span>
+                                </div>
+                            </div>
+                            <blockquote class="rc-quote">
+                                I've had three mentors in the last year and Daniel is by far
+                                the most meticulous. He answers every question fully.
+                            </blockquote>
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening reply composer…" data-toast-type="info">
+                                    <i class="bi bi-reply-fill"></i> Write reply
+                                </button>
+                                <span class="rc-note warn">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Needs your reply
+                                </span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── FIVE STAR ─────── -->
+                <div class="tab-panel" id="tab-five">
+                    <div class="rev-list">
+
+                        <article class="rev-card five"
+                                 data-searchable="maya rahman five star 5.0">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar sky">MR</span>
+                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i></span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Maya Rahman</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Design → Dev Bridge</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 2 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                </div>
+                            </div>
+                            <blockquote class="rc-quote">
+                                Best mentor I've had — full stop.
+                            </blockquote>
+                        </article>
+
+                        <article class="rev-card five"
+                                 data-searchable="tunde kayode five star 5.0">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar">TK</span>
+                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i></span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Tunde Kayode</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-map"></i> Full-Stack Track</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 5 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                </div>
+                            </div>
+                            <blockquote class="rc-quote">
+                                The plan Daniel built for me is still my roadmap six months later.
+                            </blockquote>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── DETAILED ─────── -->
+                <div class="tab-panel" id="tab-detailed">
+                    <div class="rev-list">
+
+                        <article class="rev-card five"
+                                 data-searchable="maya rahman detailed long review">
+                            <div class="rc-head">
+                                <div class="rc-avatar-wrap">
+                                    <span class="avatar sky">MR</span>
+                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i></span>
+                                </div>
+                                <div class="rc-id">
+                                    <div class="rc-name-row">
+                                        <h4>Maya Rahman</h4>
+                                        <span class="rc-verified"><i class="bi bi-patch-check-fill"></i> Verified mentee</span>
+                                    </div>
+                                    <div class="rc-meta-row">
+                                        <span><i class="bi bi-pencil-square"></i> Long-form review</span>
+                                        <span class="dot-sep"></span>
+                                        <span><i class="bi bi-clock"></i> 2 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="rc-rating">
+                                    <span class="stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="rating-num">5.0</span>
+                                </div>
+                            </div>
+                            <blockquote class="rc-quote">
+                                Daniel breaks down complex patterns into tiny, digestible pieces.
+                                I finally understand hooks — genuinely the best mentor I've had.
+                                He took the time to review my code line by line and even showed
+                                me three ways to solve the same problem.
+                            </blockquote>
+                            <div class="rc-tags">
+                                <span class="label">Praised for</span>
+                                <span class="tag teach">Clear explanation</span>
+                                <span class="tag learn">Deep React knowledge</span>
+                                <span class="tag violet">Personalised feedback</span>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <section class="pagination fade-up">
+            <div class="pg-info">
+                Showing <strong>1–4</strong> of <strong>86</strong> reviews
+            </div>
+            <div class="pg-controls">
+                <button type="button" class="pg-btn" disabled>
+                    <i class="bi bi-chevron-left"></i> Prev
+                </button>
+                <button type="button" class="pg-btn active">1</button>
+                <button type="button" class="pg-btn">2</button>
+                <button type="button" class="pg-btn">3</button>
+                <button type="button" class="pg-btn">4</button>
+                <button type="button" class="pg-btn">5</button>
+                <button type="button" class="pg-btn">
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- RATING BREAKDOWN -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-bar-chart-fill"></i> Rating Breakdown</h4>
+                <a href="#" class="link">All time <i class="bi bi-chevron-down"></i></a>
+            </div>
+
+            <div class="rating-breakdown">
+                <div class="rb-row">
+                    <span class="lbl">5 <i class="bi bi-star-fill"></i></span>
+                    <span class="track"><i data-h="88"></i></span>
+                    <span class="pct">88%</span>
+                </div>
+                <div class="rb-row four">
+                    <span class="lbl">4 <i class="bi bi-star-fill"></i></span>
+                    <span class="track"><i data-h="10"></i></span>
+                    <span class="pct">10%</span>
+                </div>
+                <div class="rb-row three">
+                    <span class="lbl">3 <i class="bi bi-star-fill"></i></span>
+                    <span class="track"><i data-h="2"></i></span>
+                    <span class="pct">2%</span>
+                </div>
+                <div class="rb-row two">
+                    <span class="lbl">2 <i class="bi bi-star-fill"></i></span>
+                    <span class="track"><i data-h="0"></i></span>
+                    <span class="pct">0%</span>
+                </div>
+                <div class="rb-row one">
+                    <span class="lbl">1 <i class="bi bi-star-fill"></i></span>
+                    <span class="track"><i data-h="0"></i></span>
+                    <span class="pct">0%</span>
+                </div>
+            </div>
+
+            <div class="sentiment-summary">
+                <div class="ss-head">
+                    <i class="bi bi-emoji-smile-fill"></i>
+                    <strong>Sentiment · Overwhelmingly positive</strong>
+                </div>
+                <p>
+                    <strong>88%</strong> of mentees rate you 5 stars. Your
+                    consistency across plans is a strong signal to prospective
+                    mentees browsing your dossier.
+                </p>
+            </div>
+        </div>
+
+        <!-- REPLY QUOTA -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-reply-fill"></i> Reply Rate</h4>
+                <a href="#" class="link">Last 30 days <i class="bi bi-chevron-down"></i></a>
+            </div>
+
+            <div class="reply-quota">
+                <div class="row">
+                    <span>81 of 86 reviews replied</span>
+                    <strong>94%</strong>
+                </div>
+                <div class="bar gold"><span data-value="94"></span></div>
+                <p>
+                    Mentors with a <strong>90%+ reply rate</strong> get
+                    <strong>2.3× more requests</strong> than those who don't reply.
+                    Two reviews are waiting on you now.
+                </p>
+            </div>
+
+            <button type="button" class="btn-gold"
+                    style="width: 100%; margin-top: 14px; padding: 10px 18px; font-size: 0.8rem;  border: none; border-radius: 25px; transition: var(--transition);"
+                    data-toast="Opening reply queue…" data-toast-type="info">
+                <i class="bi bi-reply-fill"></i> Reply to 2 reviews
+            </button>
+        </div>
+
+        <!-- WHAT YOU'RE PRAISED FOR -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-award-fill"></i> What You're Praised For</h4>
+                <a href="#" class="link">All 8 tags <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="praise-row">
+                <span class="praise-rank">01</span>
+                <div class="praise-body">
+                    <strong>Clear explanation</strong>
+                    <div class="track"><i data-h="92"></i></div>
+                </div>
+                <div class="praise-score">
+                    <strong>92%</strong>
+                    <span>of reviews</span>
+                </div>
+            </div>
+
+            <div class="praise-row">
+                <span class="praise-rank">02</span>
+                <div class="praise-body">
+                    <strong>Structured plans</strong>
+                    <div class="track"><i data-h="84"></i></div>
+                </div>
+                <div class="praise-score">
+                    <strong>84%</strong>
+                    <span>of reviews</span>
+                </div>
+            </div>
+
+            <div class="praise-row">
+                <span class="praise-rank">03</span>
+                <div class="praise-body">
+                    <strong>Patience</strong>
+                    <div class="track"><i data-h="78"></i></div>
+                </div>
+                <div class="praise-score">
+                    <strong>78%</strong>
+                    <span>of reviews</span>
+                </div>
+            </div>
+
+            <div class="praise-row">
+                <span class="praise-rank">04</span>
+                <div class="praise-body">
+                    <strong>Personalised feedback</strong>
+                    <div class="track"><i data-h="68"></i></div>
+                </div>
+                <div class="praise-score">
+                    <strong>68%</strong>
+                    <span>of reviews</span>
+                </div>
+            </div>
+
+            <div class="praise-row">
+                <span class="praise-rank">05</span>
+                <div class="praise-body">
+                    <strong>Deep technical knowledge</strong>
+                    <div class="track"><i data-h="62"></i></div>
+                </div>
+                <div class="praise-score">
+                    <strong>62%</strong>
+                    <span>of reviews</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- GUIDELINES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-shield-check"></i> Reply Guidelines</h4>
+            </div>
+
+            <div class="guide-list">
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Reply to every review</strong> — even 4-star ones.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Thank first, address second.</strong> Warm tone beats wins.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Own constructive feedback.</strong> Agree, then name the fix.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Keep it short.</strong> 2–4 sentences is the sweet spot.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('reviewSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.rev-card').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           HERO RATING BARS
+           ====================================================== */
+        window.addEventListener('load', function () {
+            document.querySelectorAll('.hr-bar-row .track i[data-h]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.width = el.dataset.h + '%';
+                }, 240);
+            });
+
+            document.querySelectorAll('.rb-row .track i[data-h]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.width = el.dataset.h + '%';
+                }, 320);
+            });
+
+            document.querySelectorAll('.praise-body .track i[data-h]').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.width = el.dataset.h + '%';
+                }, 360);
+            });
+        });
+
+        /* ======================================================
+           PAGINATION (visual only)
+           ====================================================== */
+        document.querySelectorAll('.pg-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.disabled || this.classList.contains('active')) return;
+                const label = this.textContent.trim().toLowerCase();
+                if (label.startsWith('prev') || label.startsWith('next')) return;
+
+                document.querySelectorAll('.pg-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (window.showKnotToast) {
+                    window.showKnotToast('Loading page ' + this.textContent.trim() + '…', 'info');
+                }
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

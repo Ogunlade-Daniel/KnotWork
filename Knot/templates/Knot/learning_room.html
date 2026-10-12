@@ -1,0 +1,29 @@
+{% extends 'Knot_Student/student_base.html' %}
+{% load static %}
+{% block title %}{{ session.title }}{% endblock %}
+{% block breadcrumb %}Live Classroom{% endblock %}
+{% block content %}
+<style>
+.learning-room{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;min-height:calc(100vh - 120px)}
+.room-stage{display:flex;flex-direction:column;min-height:620px;background:#0e0e10;border-radius:24px;overflow:hidden;color:#fff;box-shadow:0 18px 48px rgba(2,6,23,.16)}
+.room-top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.1)}
+.room-live{display:inline-flex;align-items:center;gap:8px;color:#ff6b6b;font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.room-live i{width:8px;height:8px;border-radius:50%;background:#ff3b30;box-shadow:0 0 0 5px rgba(255,59,48,.14)}
+.room-title{font-size:.9rem;font-weight:700}.room-code{color:rgba(255,255,255,.48);font-size:.7rem}
+.room-video{position:relative;display:grid;place-items:center;flex:1;min-height:440px;background:radial-gradient(circle at 50% 35%,#29313c,#15171b 55%,#0e0e10)}.room-video:after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgba(212,255,50,.09),transparent 42%);pointer-events:none}.room-avatar{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#d4ff32,#8fae20);color:#0e0e10;font:700 2.2rem Georgia,serif;box-shadow:0 18px 46px rgba(212,255,50,.2)}.room-caption{position:absolute;bottom:24px;left:24px;color:rgba(255,255,255,.7);font-size:.78rem}.room-self{position:absolute;right:20px;bottom:20px;width:140px;height:92px;border:1px solid rgba(255,255,255,.22);border-radius:12px;display:grid;place-items:center;background:#252931;color:rgba(255,255,255,.7);font-size:.7rem}
+.room-controls{display:flex;justify-content:center;gap:9px;padding:18px;flex-wrap:wrap}.room-control{width:42px;height:42px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;cursor:pointer}.room-control:hover{background:rgba(212,255,50,.18);border-color:#d4ff32}.room-control.leave{width:auto;padding:0 16px;background:#ff3b30;border-color:#ff3b30}
+.room-panel{display:flex;flex-direction:column;gap:14px}.room-card{background:#fff;border:1px solid #eaeaea;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(11,17,33,.06)}.room-card h3{margin:0 0 12px;font-size:.95rem;color:#0e0e10}.room-card p{margin:0;color:#64748b;font-size:.78rem;line-height:1.6}.room-card ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}.room-card li{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.76rem;color:#334155}.room-pill{padding:4px 8px;border-radius:20px;background:#f1f5f9;color:#64748b;font-size:.6rem;font-weight:800;text-transform:uppercase}.room-pill.hand{background:#fff4bf;color:#8a6500}.room-note{width:100%;min-height:100px;resize:vertical;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font:inherit;font-size:.78rem}.room-save{width:100%;padding:10px;border:0;border-radius:10px;background:#d4ff32;color:#0e0e10;font-weight:800;cursor:pointer}
+@media(max-width:900px){.learning-room{grid-template-columns:1fr}.room-stage{min-height:560px}.room-video{min-height:360px}}
+</style>
+<div class="learning-room">
+  <section class="room-stage">
+    <div class="room-top"><span class="room-live"><i></i>{% if session.status == 'live' %}Live now{% else %}Waiting room{% endif %}</span><span class="room-title">{{ session.title }}</span><span class="room-code">Room {{ session.room_id|slice:":8" }}</span></div>
+    <div class="room-video"><div class="room-avatar">{{ session.teacher.initials }}</div><span class="room-caption">{{ session.teacher.user.get_full_name|default:session.teacher.user.username }} · {{ session.course.title|default:'KnotWork classroom' }}</span><span class="room-self">You · camera preview</span></div>
+    <div class="room-controls"><button class="room-control" title="Mute microphone"><i class="bi bi-mic"></i></button><button class="room-control" title="Toggle camera"><i class="bi bi-camera-video"></i></button><button class="room-control" title="Raise hand"><i class="bi bi-hand-index-thumb"></i></button><button class="room-control" title="Chat"><i class="bi bi-chat-dots"></i></button><button class="room-control" title="Share screen"><i class="bi bi-display"></i></button><a class="room-control leave" href="{% url 'student_sessions' %}">Leave</a></div>
+  </section>
+  <aside class="room-panel">
+    <div class="room-card"><h3>Session details</h3><p>{{ session.description|default:'Stay present, ask questions, and learn together.' }}</p><p style="margin-top:8px"><strong>{{ session.duration_minutes }} minutes</strong> · {{ session.get_session_type_display }}</p></div>
+    <div class="room-card"><h3>Participants</h3><ul>{% for participant in participants %}<li><span>{{ participant.user.get_full_name|default:participant.user.username }}</span><span class="room-pill{% if participant.hand_raised %} hand{% endif %}">{% if participant.hand_raised %}Hand raised{% else %}{{ participant.get_role_display }}{% endif %}</span></li>{% empty %}<li>No participants yet.</li>{% endfor %}</ul></div>
+    <div class="room-card"><h3>My private notes</h3><form method="post" action="{% url 'student_session_action' session.id %}">{% csrf_token %}<input type="hidden" name="action" value="save_note"><textarea class="room-note" name="content">{% if notes %}{{ notes.content }}{% endif %}</textarea><button class="room-save" type="submit">Save notes</button></form></div>
+  </aside>
+</div>
+{% endblock content %}

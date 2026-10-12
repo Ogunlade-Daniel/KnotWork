@@ -1,0 +1,2202 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Live Pulse{% endblock %}
+{% block page_title %}Live Pulse{% endblock %}
+{% block breadcrumb %}Real-time · Stream{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   LIVE PULSE — REAL-TIME COMMAND SURFACE
+   Improvised palette: pulse-coral + electric-cyan on brand
+   ============================================================ */
+
+:root {
+    /* Pulse-specific accents (kept in brand family) */
+    --pulse-hot: #FF3D71;
+    --pulse-hot-dim: rgba(255, 61, 113, 0.12);
+    --pulse-hot-glow: rgba(255, 61, 113, 0.42);
+    --pulse-electric: #00E0FF;
+    --pulse-electric-dim: rgba(0, 224, 255, 0.12);
+    --pulse-electric-glow: rgba(0, 224, 255, 0.40);
+    --pulse-magenta: #E11D8F;
+    --pulse-magenta-dim: rgba(225, 29, 143, 0.12);
+
+    /* Pulse mesh */
+    --pulse-mesh-1: radial-gradient(circle at 12% 18%, rgba(255, 61, 113, 0.16), transparent 42%);
+    --pulse-mesh-2: radial-gradient(circle at 88% 82%, rgba(0, 224, 255, 0.14), transparent 44%);
+    --pulse-mesh-3: radial-gradient(circle at 60% 50%, rgba(190, 242, 100, 0.10), transparent 38%);
+}
+
+/* ============================================================
+   PULSE RIBBON — LIVE MARQUEE
+   ============================================================ */
+.pulse-ribbon {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(255, 61, 113, 0.22), transparent 40%),
+        radial-gradient(circle at 100% 50%, rgba(0, 224, 255, 0.16), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #14203A 100%);
+    border: 1px solid rgba(255, 61, 113, 0.28);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.26), inset 0 1px 0 rgba(255,255,255,0.04);
+    padding: 15px 0;
+    isolation: isolate;
+}
+.pulse-ribbon::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--pulse-hot), var(--pulse-electric), var(--secondary));
+    box-shadow: 0 0 22px rgba(255, 61, 113, 0.55);
+    z-index: 5;
+}
+.pulse-ribbon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.ribbon-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.ribbon-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.ribbon-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.ribbon-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--pulse-hot);
+    pointer-events: none;
+}
+.ribbon-label .ecg-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--pulse-hot);
+    box-shadow: 0 0 0 0 var(--pulse-hot-glow);
+    animation: ecgPulse 1.4s infinite;
+}
+@keyframes ecgPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 61, 113, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(255, 61, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 61, 113, 0); }
+}
+
+.ribbon-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 140px;
+    animation: ribbonRoll 46s linear infinite;
+}
+.pulse-ribbon:hover .ribbon-track { animation-play-state: paused; }
+@keyframes ribbonRoll { to { transform: translateX(-50%); } }
+
+.ribbon-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.ribbon-item .spark {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--pulse-electric);
+    box-shadow: 0 0 8px var(--pulse-electric-glow);
+    flex-shrink: 0;
+    animation: sparkPulse 1.8s ease-in-out infinite;
+}
+.ribbon-item.hot .spark   { background: var(--pulse-hot);      box-shadow: 0 0 8px var(--pulse-hot-glow); }
+.ribbon-item.lime .spark  { background: var(--secondary);      box-shadow: 0 0 8px rgba(190,242,100,0.65); }
+.ribbon-item.violet .spark{ background: var(--admin-violet-light); box-shadow: 0 0 8px var(--admin-violet-glow); }
+.ribbon-item.aurora .spark{ background: var(--pulse-electric);  box-shadow: 0 0 8px var(--pulse-electric-glow); }
+.ribbon-item.amber .spark { background: var(--amber);           box-shadow: 0 0 8px rgba(245,158,11,0.65); }
+@keyframes sparkPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.ribbon-item strong { color: var(--crown-1); font-weight: 700; }
+.ribbon-item em {
+    font-style: normal;
+    color: var(--pulse-electric);
+    font-weight: 700;
+}
+
+/* ============================================================
+   PULSE HERO — HEARTBEAT CORE
+   ============================================================ */
+.pulse-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--pulse-mesh-1), var(--pulse-mesh-2), var(--pulse-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.30);
+    border: 1px solid rgba(255, 61, 113, 0.20);
+}
+.pulse-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--pulse-hot), var(--pulse-electric), var(--secondary), var(--admin-violet));
+    box-shadow: 0 0 26px rgba(255, 61, 113, 0.55);
+    z-index: 5;
+}
+.pulse-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.032) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.pulse-hero-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 30px;
+    align-items: center;
+}
+
+/* ---- Left: live counter stack ---- */
+.ph-left { min-width: 0; }
+.ph-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(255, 61, 113, 0.12);
+    border: 1px solid rgba(255, 61, 113, 0.40);
+    color: var(--pulse-hot);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.ph-kicker .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--pulse-hot);
+    animation: ecgPulse 1.6s infinite;
+}
+
+.ph-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    line-height: 1.12;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.ph-title em { color: var(--pulse-electric); font-style: italic; }
+
+.ph-sub {
+    font-size: 0.86rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 520px;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+.ph-sub strong { color: var(--secondary); font-weight: 700; }
+
+/* Hero live numbers */
+.ph-numbers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+.ph-num {
+    padding: 14px 16px 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+.ph-num:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 61, 113, 0.32);
+    transform: translateY(-3px);
+}
+.ph-num::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: var(--pn-accent, linear-gradient(90deg, var(--pulse-hot), var(--pulse-electric)));
+    opacity: 0.9;
+}
+.ph-num.hot     { --pn-accent: linear-gradient(90deg, #FF3D71, #FF7A9A); }
+.ph-num.elec    { --pn-accent: linear-gradient(90deg, #00E0FF, #38BDF8); }
+.ph-num.lime    { --pn-accent: linear-gradient(90deg, #BEF264, #7ED321); }
+
+.ph-num .pn-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.44);
+    margin-bottom: 6px;
+}
+.ph-num .pn-value {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.ph-num .pn-value .live-tick {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--secondary);
+    margin-left: 6px;
+}
+.ph-num .pn-value .live-tick i {
+    font-size: 0.4rem;
+    animation: sparkPulse 1.5s ease-in-out infinite;
+}
+.ph-num .pn-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.04em;
+}
+.ph-num .pn-sub i { color: var(--pulse-electric); font-size: 0.62rem; }
+
+/* ---- Right: ECG heartbeat ---- */
+.ph-ecg {
+    position: relative;
+    padding: 20px 22px 18px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(255, 61, 113, 0.10), transparent 68%),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(255, 61, 113, 0.28);
+    overflow: hidden;
+}
+.ph-ecg::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pulse-hot), transparent);
+    animation: scanline 3s ease-in-out infinite;
+}
+@keyframes scanline {
+    0%, 100% { transform: translateX(-100%); opacity: 0; }
+    50%      { transform: translateX(100%); opacity: 1; }
+}
+
+.ph-ecg-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.ph-ecg-head h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ph-ecg-head h4 i { color: var(--pulse-hot); font-size: 0.9rem; }
+.ph-ecg-head .bpm {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--secondary);
+    letter-spacing: 0.06em;
+}
+.ph-ecg-head .bpm b {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--pulse-hot);
+    letter-spacing: -0.01em;
+}
+
+.ecg-stage {
+    position: relative;
+    height: 120px;
+    border-radius: 12px;
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+.ecg-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 30px 30px;
+    opacity: 0.6;
+}
+.ecg-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: translateY(-50%);
+}
+.ecg-line path {
+    fill: none;
+    stroke: var(--pulse-hot);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px rgba(255, 61, 113, 0.65));
+    stroke-dasharray: 1200;
+    stroke-dashoffset: 1200;
+    animation: ecgDraw 3.2s linear infinite;
+}
+.ecg-line path.ghost {
+    stroke: rgba(255, 61, 113, 0.28);
+    stroke-width: 6;
+    filter: blur(6px);
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+}
+@keyframes ecgDraw {
+    0%   { stroke-dashoffset: 1200; }
+    100% { stroke-dashoffset: -1200; }
+}
+
+.ecg-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+}
+.ecg-stat {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ecg-stat b {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.1;
+}
+.ecg-stat span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+    margin-top: 4px;
+}
+.ecg-stat.hot  b { color: var(--pulse-hot); }
+.ecg-stat.elec b { color: var(--pulse-electric); }
+.ecg-stat.lime b { color: var(--secondary); }
+
+/* ============================================================
+   PULSE COUNTER STRIP
+   ============================================================ */
+.pulse-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+}
+.strip-cell {
+    position: relative;
+    padding: 15px 14px 13px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.strip-cell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--sc-accent, linear-gradient(90deg, var(--pulse-hot), var(--pulse-electric)));
+}
+.strip-cell:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: rgba(255, 61, 113, 0.35);
+}
+.strip-cell.hot     { --sc-accent: linear-gradient(90deg, #FF3D71, #FF7A9A); }
+.strip-cell.elec    { --sc-accent: linear-gradient(90deg, #00E0FF, #38BDF8); }
+.strip-cell.lime    { --sc-accent: linear-gradient(90deg, #BEF264, #7ED321); }
+.strip-cell.violet  { --sc-accent: linear-gradient(90deg, #A78BFA, #8B5CF6); }
+.strip-cell.amber   { --sc-accent: linear-gradient(90deg, #FBBF24, #F59E0B); }
+.strip-cell.aurora  { --sc-accent: linear-gradient(90deg, #5EEAD4, #14B8A6); }
+
+.strip-cell .sc-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.strip-cell .sc-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.78rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.strip-cell.hot    .sc-ic { background: var(--pulse-hot-dim);      color: var(--pulse-hot); }
+.strip-cell.elec   .sc-ic { background: var(--pulse-electric-dim); color: #0369A1; }
+.strip-cell.lime   .sc-ic { background: rgba(190, 242, 100, 0.14); color: var(--secondary-deep); }
+.strip-cell.violet .sc-ic { background: var(--admin-violet-dim);   color: var(--admin-violet-deep); }
+.strip-cell.amber  .sc-ic { background: rgba(245, 158, 11, 0.14);  color: #B45309; }
+.strip-cell.aurora .sc-ic { background: rgba(94, 234, 212, 0.14);  color: var(--aurora-deep, #14B8A6); }
+
+.strip-cell .sc-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--pulse-hot);
+    box-shadow: 0 0 8px var(--pulse-hot-glow);
+    animation: sparkPulse 1.6s ease-in-out infinite;
+}
+.strip-cell .sc-dot.elec { background: var(--pulse-electric); box-shadow: 0 0 8px var(--pulse-electric-glow); }
+.strip-cell .sc-dot.lime { background: var(--secondary); box-shadow: 0 0 8px rgba(190,242,100,0.65); }
+.strip-cell .sc-dot.violet { background: var(--admin-violet-light); box-shadow: 0 0 8px var(--admin-violet-glow); }
+
+.strip-cell .sc-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 3px;
+}
+.strip-cell .sc-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.32rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+}
+.strip-cell .sc-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   PULSE GRID
+   ============================================================ */
+.pulse-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 20px;
+}
+.pg-3  { grid-column: span 3; }
+.pg-4  { grid-column: span 4; }
+.pg-5  { grid-column: span 5; }
+.pg-6  { grid-column: span 6; }
+.pg-7  { grid-column: span 7; }
+.pg-8  { grid-column: span 8; }
+.pg-12 { grid-column: span 12; }
+
+.ppanel {
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    padding: 22px 24px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.ppanel:hover { box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10); }
+
+.ppanel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+}
+.ppanel-head h3 {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.2;
+}
+.ppanel-head h3 i { color: var(--pulse-hot); font-size: 0.9rem; }
+.ppanel-head .pp-sub {
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 5px;
+    display: block;
+}
+
+.live-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 50px;
+    background: var(--pulse-hot-dim);
+    border: 1px solid rgba(255, 61, 113, 0.38);
+    color: var(--pulse-hot);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.live-tag .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--pulse-hot);
+    animation: ecgPulse 1.4s infinite;
+}
+.live-tag.cool {
+    background: var(--pulse-electric-dim);
+    border-color: rgba(0, 224, 255, 0.38);
+    color: #0369A1;
+}
+.live-tag.cool .dot { background: var(--pulse-electric); }
+
+/* ============================================================
+   ONLINE NOW FEED
+   ============================================================ */
+.online-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    max-height: 460px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.online-list::-webkit-scrollbar { width: 5px; }
+.online-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--pulse-hot), var(--pulse-electric));
+    border-radius: 10px;
+}
+
+.online-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    transition: var(--transition);
+    position: relative;
+}
+.online-row:hover {
+    background: var(--gray-100);
+    transform: translateX(3px);
+}
+.online-row.fresh {
+    animation: rowSlideIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+    background: linear-gradient(90deg, rgba(255, 61, 113, 0.08), transparent 70%);
+}
+@keyframes rowSlideIn {
+    from { opacity: 0; transform: translateY(-10px); background: rgba(255, 61, 113, 0.14); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.online-av {
+    position: relative;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--secondary), var(--pulse-electric));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--primary-deep);
+    flex-shrink: 0;
+}
+.online-av.mentor  { background: linear-gradient(135deg, var(--admin-violet-light), var(--admin-violet-deep)); color: #fff; }
+.online-av.teacher { background: linear-gradient(135deg, var(--pulse-electric), #0369A1); color: #fff; }
+.online-av.admin   { background: var(--crown-gradient); color: var(--primary-deep); }
+.online-av .presence {
+    position: absolute;
+    bottom: -2px; right: -2px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--white);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.85);
+}
+.online-av .presence.idle  { background: var(--amber); box-shadow: 0 0 8px rgba(245,158,11,0.85); }
+.online-av .presence.away  { background: var(--gray-400); box-shadow: none; }
+
+.online-body { flex: 1; min-width: 0; }
+.online-body strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.online-body strong .role-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--pulse-electric);
+    flex-shrink: 0;
+}
+.online-body strong .role-dot.mentor { background: var(--admin-violet); }
+.online-body strong .role-dot.teacher { background: var(--pulse-electric); }
+.online-body strong .role-dot.admin { background: var(--crown-3); }
+
+.online-body p {
+    font-size: 0.68rem;
+    color: var(--gray-600);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.online-body p i { color: var(--pulse-hot); font-size: 0.7rem; }
+
+.online-meta {
+    flex-shrink: 0;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+}
+.online-meta .om-time {
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+    display: block;
+}
+.online-meta .om-country {
+    font-size: 0.54rem;
+    font-weight: 800;
+    color: var(--gray-600);
+    letter-spacing: 0.10em;
+    margin-top: 3px;
+    display: block;
+}
+
+/* ============================================================
+   REGION HEAT
+   ============================================================ */
+.region-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+.region-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    transition: var(--transition);
+}
+.region-row:hover {
+    background: var(--white);
+    box-shadow: 0 6px 16px rgba(11, 17, 33, 0.07);
+    transform: translateX(3px);
+}
+.region-flag {
+    width: 30px; height: 22px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    background: var(--white);
+    box-shadow: 0 2px 5px rgba(11,17,33,0.06);
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: var(--gray-600);
+}
+.region-body { flex: 1; min-width: 0; }
+.region-body strong {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 6px;
+}
+.region-body strong em {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-style: normal;
+    font-weight: 700;
+    color: var(--pulse-hot);
+}
+.region-bar {
+    height: 5px;
+    background: rgba(11, 17, 33, 0.06);
+    border-radius: 50px;
+    overflow: hidden;
+}
+.region-bar > span {
+    display: block;
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--pulse-hot), var(--pulse-electric));
+    box-shadow: 0 0 8px rgba(255, 61, 113, 0.4);
+    width: 0;
+    transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.region-bar.aurora > span { background: linear-gradient(90deg, var(--pulse-electric), var(--aurora)); }
+.region-bar.violet > span { background: linear-gradient(90deg, var(--admin-violet-light), var(--admin-violet-deep)); }
+.region-bar.amber  > span { background: linear-gradient(90deg, var(--amber), #F59E0B); }
+
+/* ============================================================
+   SIGNUP TICKER (vertical auto-scroll)
+   ============================================================ */
+.signup-stage {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.6), rgba(255, 255, 255, 0.9));
+    border: 1px solid var(--gray-100);
+}
+.signup-stage::before, .signup-stage::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 40px;
+    z-index: 3;
+    pointer-events: none;
+}
+.signup-stage::before { top: 0;    background: linear-gradient(180deg, #FFFFFF 5%, transparent); }
+.signup-stage::after  { bottom: 0; background: linear-gradient(-180deg, #FFFFFF 5%, transparent); }
+
+.signup-track {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    animation: signupRoll 26s linear infinite;
+}
+.signup-stage:hover .signup-track { animation-play-state: paused; }
+@keyframes signupRoll { to { transform: translateY(-50%); } }
+
+.signup-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+    border-bottom: 1px dashed var(--gray-100);
+}
+.signup-row:last-child { border-bottom: none; }
+
+.signup-av {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pulse-hot), var(--pulse-magenta));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.signup-av.elec { background: linear-gradient(135deg, var(--pulse-electric), #0369A1); }
+.signup-av.lime { background: linear-gradient(135deg, var(--secondary), var(--secondary-deep)); color: var(--primary-deep); }
+.signup-av.violet { background: linear-gradient(135deg, var(--admin-violet-light), var(--admin-violet-deep)); }
+
+.signup-body { flex: 1; min-width: 0; }
+.signup-body strong {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.signup-body p {
+    font-size: 0.64rem;
+    color: var(--gray-600);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.signup-body p i { color: var(--pulse-hot); font-size: 0.66rem; }
+
+.signup-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   LIVE SESSIONS
+   ============================================================ */
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.session-card {
+    display: flex;
+    gap: 12px;
+    padding: 13px 14px;
+    border-radius: 14px;
+    background: linear-gradient(140deg, #020617, #0B1121);
+    border: 1px solid rgba(255, 61, 113, 0.22);
+    color: var(--white);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+.session-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--pulse-hot), var(--pulse-electric));
+}
+.session-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 61, 113, 0.5);
+    box-shadow: 0 14px 32px rgba(255, 61, 113, 0.16);
+}
+
+.sc-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    background: var(--pulse-hot);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+.sc-live .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #fff;
+    animation: sparkPulse 1.2s infinite;
+}
+
+.session-body { flex: 1; min-width: 0; }
+.session-body h5 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.session-body .sb-host {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 8px;
+}
+.session-body .sb-host i { color: var(--pulse-electric); font-size: 0.68rem; }
+
+.session-stats {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.62);
+    letter-spacing: 0.02em;
+}
+.session-stats span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.session-stats i { color: var(--pulse-hot); font-size: 0.66rem; }
+.session-stats .strong { color: var(--secondary); font-weight: 700; }
+
+/* ============================================================
+   EVENT STREAM
+   ============================================================ */
+.event-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.event-stream::-webkit-scrollbar { width: 5px; }
+.event-stream::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--pulse-hot), var(--pulse-electric));
+    border-radius: 10px;
+}
+
+.event-row {
+    display: grid;
+    grid-template-columns: 30px 100px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    transition: var(--transition);
+    font-size: 0.76rem;
+    position: relative;
+}
+.event-row:hover { background: var(--gray-100); }
+.event-row.fresh {
+    background: linear-gradient(90deg, rgba(0, 224, 255, 0.08), transparent 70%);
+    animation: rowSlideIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.event-ic {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+.event-ic.hot     { background: var(--pulse-hot-dim);      color: var(--pulse-hot); }
+.event-ic.elec    { background: var(--pulse-electric-dim); color: #0369A1; }
+.event-ic.lime    { background: rgba(190, 242, 100, 0.14); color: var(--secondary-deep); }
+.event-ic.violet  { background: var(--admin-violet-dim);   color: var(--admin-violet-deep); }
+.event-ic.amber   { background: rgba(245, 158, 11, 0.14);  color: #B45309; }
+.event-ic.rose    { background: rgba(225, 29, 72, 0.10);   color: var(--admin-crimson); }
+
+.event-who {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--gray-600);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.event-what {
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.event-what strong { color: var(--primary-dark); font-weight: 700; }
+.event-what em {
+    font-style: normal;
+    color: var(--pulse-hot);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+}
+.event-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   ADMIN EMERGENCY CONSOLE
+   ============================================================ */
+.emergency {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 6% 20%, rgba(255, 61, 113, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(225, 29, 72, 0.16), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #2A0E1E 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(255, 61, 113, 0.32);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
+}
+.emergency::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--pulse-hot) 0%, #FF7A9A 50%, var(--pulse-magenta) 100%);
+    box-shadow: 0 0 26px rgba(255, 61, 113, 0.6);
+    animation: alertGlow 2.4s ease-in-out infinite;
+}
+@keyframes alertGlow {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+}
+.emergency::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 61, 113, 0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.em-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.em-head .em-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--pulse-hot), var(--pulse-magenta));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(255, 61, 113, 0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+    animation: alertGlow 2.4s ease-in-out infinite;
+}
+.em-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.em-head h2 em { color: var(--pulse-hot); font-style: italic; }
+.em-head p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.em-head .em-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(255, 61, 113, 0.14);
+    border: 1px solid rgba(255, 61, 113, 0.45);
+    color: var(--pulse-hot);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.em-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.em-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.em-tool:hover {
+    background: rgba(255, 61, 113, 0.10);
+    border-color: rgba(255, 61, 113, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(255, 61, 113, 0.20);
+}
+.em-tool .em-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--pulse-hot);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.em-tool:hover .em-t-ic {
+    background: linear-gradient(135deg, var(--pulse-hot), var(--pulse-magenta));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(255, 61, 113, 0.5);
+}
+.em-tool .em-t-body { flex: 1; min-width: 0; }
+.em-tool .em-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.em-tool .em-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.em-tool .em-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.em-tool:hover .em-t-arrow { color: var(--pulse-hot); transform: translateX(4px); }
+
+/* ============================================================
+   ADMIN CROWN IDENTITY (reused)
+   ============================================================ */
+.admin-id-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px 12px 12px;
+    border-radius: 16px;
+    background:
+        linear-gradient(140deg, rgba(255, 61, 113, 0.14), rgba(139, 92, 246, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(255, 61, 113, 0.42);
+    box-shadow: 0 14px 34px rgba(255, 61, 113, 0.16);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.admin-id-badge .aib-av {
+    position: relative;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--primary-deep);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px #0B1121, 0 6px 14px rgba(255, 61, 113, 0.4);
+}
+.admin-id-badge .aib-av i {
+    position: absolute;
+    top: -6px; left: 50%;
+    transform: translateX(-50%);
+    width: 18px; height: 18px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--pulse-hot);
+    display: grid;
+    place-items: center;
+    color: var(--pulse-hot);
+    font-size: 0.58rem;
+    box-shadow: 0 4px 10px rgba(255, 61, 113, 0.5);
+    animation: crownBounce 3s ease-in-out infinite;
+}
+.admin-id-badge .aib-meta { line-height: 1.25; min-width: 0; }
+.admin-id-badge .aib-meta strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;
+}
+.admin-id-badge .aib-meta .aib-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 2px 8px 2px 6px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--pulse-hot), var(--pulse-magenta));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(255, 61, 113, 0.42);
+}
+.admin-id-badge .aib-meta .aib-role i { font-size: 0.56rem; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .pulse-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1180px) {
+    .pulse-hero-grid { grid-template-columns: 1fr; }
+    .pg-3, .pg-4, .pg-5 { grid-column: span 6; }
+    .pg-7, .pg-8 { grid-column: span 12; }
+}
+@media (max-width: 900px) {
+    .pulse-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pg-3, .pg-4, .pg-5, .pg-6 { grid-column: span 12; }
+    .ph-numbers { grid-template-columns: repeat(3, 1fr); }
+    .pulse-hero { padding: 24px 20px; }
+    .ph-title { font-size: 1.55rem; }
+}
+@media (max-width: 640px) {
+    .pulse-strip { grid-template-columns: 1fr; }
+    .ph-numbers { grid-template-columns: 1fr; }
+    .ecg-stats { grid-template-columns: repeat(3, 1fr); }
+    .event-row { grid-template-columns: 26px 1fr auto; }
+    .event-who { display: none; }
+    .ppanel { padding: 18px; }
+    .emergency { padding: 22px 18px; }
+    .em-head .em-tier { margin-left: 0; width: 100%; justify-content: center; }
+    .ribbon-label { display: none; }
+    .ribbon-track { padding-left: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ribbon-track, .signup-track, .ecg-line path, .ribbon-label .ecg-dot,
+    .ph-kicker .dot, .live-tag .dot, .strip-cell .sc-dot,
+    .ribbon-item .spark, .emergency::before, .em-head .em-ic,
+    .admin-id-badge .aib-av i {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     PULSE RIBBON — LIVE MARQUEE
+     ============================================================ -->
+<div class="pulse-ribbon" aria-label="Live platform pulse">
+    <span class="ribbon-edge left"></span>
+    <span class="ribbon-edge right"></span>
+    <div class="ribbon-label"><span class="ecg-dot"></span> Live Pulse</div>
+    <div class="ribbon-track">
+        <!-- Set A -->
+        <span class="ribbon-item hot"><span class="spark"></span><strong>12,438</strong> users online right now · <em>↑ 312 in last 5 min</em></span>
+        <span class="ribbon-item elec"><span class="spark"></span><strong>847</strong> active live sessions broadcasting</span>
+        <span class="ribbon-item lime"><span class="spark"></span><strong>3,214</strong> lessons completed in the last hour</span>
+        <span class="ribbon-item violet"><span class="spark"></span><strong>24</strong> new signups in the last 60 seconds</span>
+        <span class="ribbon-item amber"><span class="spark"></span>Peak load · <strong>API gateway 142ms</strong> · nominal</span>
+        <span class="ribbon-item hot"><span class="spark"></span><strong>₦2.84M</strong> processed in the last hour</span>
+        <span class="ribbon-item elec"><span class="spark"></span><strong>6</strong> regions · all green</span>
+        <span class="ribbon-item lime"><span class="spark"></span>Top country · <strong>Nigeria · 4,812 online</strong></span>
+        <span class="ribbon-item violet"><span class="spark"></span><strong>18</strong> mentors answering questions live</span>
+        <span class="ribbon-item amber"><span class="spark"></span>Queue depth <strong>12</strong> · under threshold</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="ribbon-item hot"><span class="spark"></span><strong>12,438</strong> users online right now · <em>↑ 312 in last 5 min</em></span>
+        <span class="ribbon-item elec"><span class="spark"></span><strong>847</strong> active live sessions broadcasting</span>
+        <span class="ribbon-item lime"><span class="spark"></span><strong>3,214</strong> lessons completed in the last hour</span>
+        <span class="ribbon-item violet"><span class="spark"></span><strong>24</strong> new signups in the last 60 seconds</span>
+        <span class="ribbon-item amber"><span class="spark"></span>Peak load · <strong>API gateway 142ms</strong> · nominal</span>
+        <span class="ribbon-item hot"><span class="spark"></span><strong>₦2.84M</strong> processed in the last hour</span>
+        <span class="ribbon-item elec"><span class="spark"></span><strong>6</strong> regions · all green</span>
+        <span class="ribbon-item lime"><span class="spark"></span>Top country · <strong>Nigeria · 4,812 online</strong></span>
+        <span class="ribbon-item violet"><span class="spark"></span><strong>18</strong> mentors answering questions live</span>
+        <span class="ribbon-item amber"><span class="spark"></span>Queue depth <strong>12</strong> · under threshold</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     PULSE HERO
+     ============================================================ -->
+<section class="pulse-hero fade-up">
+    <div class="pulse-hero-grid">
+        <div class="ph-left">
+            <span class="ph-kicker">
+                <span class="dot"></span>
+                Real-time · Since {{ request.user.last_login|default:"session start"|naturaltime }}
+            </span>
+            <h1 class="ph-title">
+                The platform is <em>alive</em>.
+            </h1>
+            <p class="ph-sub">
+                Right now, <strong>12,438 learners</strong> are online across <strong>6 regions</strong>,
+                with <strong>847 live sessions</strong> broadcasting. Signups are trending
+                <strong>+18.2%</strong> vs. this time yesterday. All systems nominal.
+            </p>
+
+            <div class="ph-numbers">
+                <div class="ph-num hot">
+                    <span class="pn-label">Online Now</span>
+                    <div class="pn-value">
+                        <span data-count="12438">0</span>
+                        <span class="live-tick"><i class="bi bi-circle-fill"></i> live</span>
+                    </div>
+                    <div class="pn-sub"><i class="bi bi-arrow-up-short"></i> +312 in last 5 min</div>
+                </div>
+                <div class="ph-num elec">
+                    <span class="pn-label">In Session</span>
+                    <div class="pn-value">
+                        <span data-count="847">0</span>
+                        <span class="live-tick"><i class="bi bi-circle-fill"></i> live</span>
+                    </div>
+                    <div class="pn-sub"><i class="bi bi-broadcast"></i> 218 teachers hosting</div>
+                </div>
+                <div class="ph-num lime">
+                    <span class="pn-label">Signups · 60s</span>
+                    <div class="pn-value">
+                        <span data-count="24">0</span>
+                        <span class="live-tick"><i class="bi bi-circle-fill"></i> live</span>
+                    </div>
+                    <div class="pn-sub"><i class="bi bi-arrow-up-short"></i> +18.2% vs. yesterday</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ph-ecg">
+            <div class="ph-ecg-head">
+                <h4><i class="bi bi-heart-pulse-fill"></i> Platform Heartbeat</h4>
+                <span class="bpm"><b>72</b> bpm</span>
+            </div>
+            <div class="ecg-stage">
+                <svg class="ecg-line" viewBox="0 0 600 100" preserveAspectRatio="none">
+                    <path class="ghost" d="M0,50 L60,50 L80,50 L90,20 L100,80 L110,35 L120,65 L130,50 L190,50 L210,50 L220,15 L230,85 L240,30 L250,70 L260,50 L320,50 L340,50 L350,18 L360,82 L370,32 L380,68 L390,50 L450,50 L470,50 L480,15 L490,85 L500,28 L510,72 L520,50 L580,50 L600,50"/>
+                    <path d="M0,50 L60,50 L80,50 L90,20 L100,80 L110,35 L120,65 L130,50 L190,50 L210,50 L220,15 L230,85 L240,30 L250,70 L260,50 L320,50 L340,50 L350,18 L360,82 L370,32 L380,68 L390,50 L450,50 L470,50 L480,15 L490,85 L500,28 L510,72 L520,50 L580,50 L600,50"/>
+                </svg>
+            </div>
+            <div class="ecg-stats">
+                <div class="ecg-stat hot"><b>142ms</b><span>Latency</span></div>
+                <div class="ecg-stat elec"><b>99.98%</b><span>Uptime</span></div>
+                <div class="ecg-stat lime"><b>0</b><span>Incidents</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     PULSE COUNTER STRIP
+     ============================================================ -->
+<section class="pulse-strip">
+    <div class="strip-cell hot fade-up" data-toast="Loading online user directory…" data-toast-type="warning">
+        <div class="sc-top">
+            <span class="sc-ic"><i class="bi bi-people-fill"></i></span>
+            <span class="sc-dot"></span>
+        </div>
+        <span class="sc-label">Online Now</span>
+        <div class="sc-value"><span data-count="12438">0</span><small>live</small></div>
+    </div>
+    <div class="strip-cell elec fade-up" data-toast="Loading live sessions…" data-toast-type="info">
+        <div class="sc-top">
+            <span class="sc-ic"><i class="bi bi-broadcast-pin"></i></span>
+            <span class="sc-dot elec"></span>
+        </div>
+        <span class="sc-label">Live Sessions</span>
+        <div class="sc-value"><span data-count="847">0</span><small>active</small></div>
+    </div>
+    <div class="strip-cell lime fade-up" data-toast="Opening signups stream…" data-toast-type="success">
+        <div class="sc-top">
+            <span class="sc-ic"><i class="bi bi-person-plus-fill"></i></span>
+            <span class="sc-dot lime"></span>
+        </div>
+        <span class="sc-label">Signups · 1h</span>
+        <div class="sc-value"><span data-count="142">0</span><small>new</small></div>
+    </div>
+    <div class="strip-cell violet fade-up" data-toast="Loading mentor activity…" data-toast-type="violet">
+        <div class="sc-top">
+            <span class="sc-ic"><i class="bi bi-mortarboard-fill"></i></span>
+            <span class="sc-dot violet"></span>
+        </div>
+        <span class="sc-label">Mentors Online</span>
+        <div class="sc-value"><span data-count="218">0</span><small>hosting</small></div>
+    </div>
+    <div class="strip-cell amber fade-up" data-toast="Opening revenue pulse…" data-toast-type="warning">
+        <div class="sc-top">
+            <span class="sc-ic"><i class="bi bi-cash-stack"></i></span>
+            <span class="sc-dot"></span>
+        </div>
+        <span class="sc-label">Revenue · 1h</span>
+        <div class="sc-value">₦<span data-count="2840000">0</span></div>
+    </div>
+    <div class="strip-cell aurora fade-up" data-toast="Loading completion stream…" data-toast-type="success">
+        <div class="sc-top">
+            <span class="sc-ic"><i class="bi bi-check2-circle"></i></span>
+            <span class="sc-dot lime"></span>
+        </div>
+        <span class="sc-label">Lessons · 1h</span>
+        <div class="sc-value"><span data-count="3214">0</span><small>done</small></div>
+    </div>
+</section>
+
+<!-- ============================================================
+     PULSE GRID
+     ============================================================ -->
+<section class="pulse-grid">
+
+    <!-- ===== ONLINE NOW ===== -->
+    <div class="pg-8 ppanel fade-up">
+        <div class="ppanel-head">
+            <div>
+                <h3><i class="bi bi-broadcast"></i> Who's Online Right Now</h3>
+                <span class="pp-sub">Live feed · refreshed every 5s</span>
+            </div>
+            <span class="live-tag"><span class="dot"></span> Live</span>
+        </div>
+
+        <div class="online-list" id="onlineList">
+            <div class="online-row">
+                <span class="online-av">CO<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot"></span> Chinedu Okafor</strong>
+                    <p><i class="bi bi-play-circle-fill"></i> Watching <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Advanced React Patterns</em> · Lesson 12</p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">just now</span>
+                    <span class="om-country">🇳🇬 NG</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av mentor">ZI<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot mentor"></span> Zainab Ibrahim</strong>
+                    <p><i class="bi bi-broadcast-pin"></i> Hosting live · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">UI/UX Foundations · Q&amp;A</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">2m ago</span>
+                    <span class="om-country">🇬🇧 UK</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av teacher">IA<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot teacher"></span> Dr. Ifeoma Adeyemi</strong>
+                    <p><i class="bi bi-pencil-square"></i> Grading submissions · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Data Science · Module 4</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">4m ago</span>
+                    <span class="om-country">🇳🇬 NG</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av">SM<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot"></span> Sarah Mitchell</strong>
+                    <p><i class="bi bi-credit-card-fill"></i> Completed checkout · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Python Mastery Track</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">6m ago</span>
+                    <span class="om-country">🇺🇸 US</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av mentor">TB<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot mentor"></span> Tunde Bakare</strong>
+                    <p><i class="bi bi-chat-dots-fill"></i> Answering 3 questions · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Backend Engineering</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">8m ago</span>
+                    <span class="om-country">🇳🇬 NG</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av">DO<span class="presence idle"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot"></span> Daniel Okonkwo</strong>
+                    <p><i class="bi bi-book-half"></i> Reading · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Product Management 101 · Chapter 3</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">11m ago</span>
+                    <span class="om-country">🇬🇭 GH</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av teacher">AN<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot teacher"></span> Amara Nwosu</strong>
+                    <p><i class="bi bi-camera-video-fill"></i> Recording lesson · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Mobile Dev · Ep. 18</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">13m ago</span>
+                    <span class="om-country">🇳🇬 NG</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av">BA<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot"></span> Blessing Adeyemi</strong>
+                    <p><i class="bi bi-trophy-fill"></i> Completed track · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Python Mastery · Certificate</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">15m ago</span>
+                    <span class="om-country">🇰🇪 KE</span>
+                </div>
+            </div>
+            <div class="online-row">
+                <span class="online-av admin">AD<span class="presence"></span></span>
+                <div class="online-body">
+                    <strong><span class="role-dot admin"></span> Admin Session</strong>
+                    <p><i class="bi bi-shield-lock-fill"></i> You are viewing Live Pulse · <em style="font-style:normal;color:var(--crown-3);font-weight:600;">Root Access</em></p>
+                </div>
+                <div class="online-meta">
+                    <span class="om-time">now</span>
+                    <span class="om-country">🔒 ROOT</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-foot" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--gray-100);display:flex;justify-content:center;">
+            <a href="{% url 'admin_members' %}" style="display:inline-flex;align-items:center;gap:7px;font-size:0.72rem;font-weight:700;color:var(--gray-600);padding:8px 16px;border-radius:50px;border:1px solid var(--gray-200);transition:var(--transition);">
+                View all 12,438 online <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== REGION HEAT ===== -->
+    <div class="pg-4 ppanel fade-up">
+        <div class="ppanel-head">
+            <div>
+                <h3><i class="bi bi-globe2"></i> Regional Heat</h3>
+                <span class="pp-sub">Online now · by country</span>
+            </div>
+        </div>
+
+        <div class="region-list">
+            <div class="region-row">
+                <span class="region-flag">NG</span>
+                <div class="region-body">
+                    <strong>Nigeria <em>4,812</em></strong>
+                    <div class="region-bar"><span data-value="100"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">US</span>
+                <div class="region-body">
+                    <strong>United States <em>2,148</em></strong>
+                    <div class="region-bar aurora"><span data-value="45"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">GB</span>
+                <div class="region-body">
+                    <strong>United Kingdom <em>1,486</em></strong>
+                    <div class="region-bar aurora"><span data-value="31"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">KE</span>
+                <div class="region-body">
+                    <strong>Kenya <em>1,102</em></strong>
+                    <div class="region-bar violet"><span data-value="23"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">GH</span>
+                <div class="region-body">
+                    <strong>Ghana <em>948</em></strong>
+                    <div class="region-bar violet"><span data-value="20"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">ZA</span>
+                <div class="region-body">
+                    <strong>South Africa <em>742</em></strong>
+                    <div class="region-bar amber"><span data-value="15"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">IN</span>
+                <div class="region-body">
+                    <strong>India <em>684</em></strong>
+                    <div class="region-bar amber"><span data-value="14"></span></div>
+                </div>
+            </div>
+            <div class="region-row">
+                <span class="region-flag">+62</span>
+                <div class="region-body">
+                    <strong>Other regions <em>516</em></strong>
+                    <div class="region-bar"><span data-value="11"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== JUST SIGNED UP ===== -->
+    <div class="pg-4 ppanel fade-up">
+        <div class="ppanel-head">
+            <div>
+                <h3><i class="bi bi-person-plus-fill"></i> Just Signed Up</h3>
+                <span class="pp-sub">New accounts · rolling</span>
+            </div>
+            <span class="live-tag cool"><span class="dot"></span> Live</span>
+        </div>
+
+        <div class="signup-stage">
+            <div class="signup-track">
+                <!-- Set A -->
+                <div class="signup-row">
+                    <span class="signup-av">FO</span>
+                    <div class="signup-body">
+                        <strong>Fatima Oyelaran</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria · via Instagram</p>
+                    </div>
+                    <span class="signup-time">12s</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av elec">JM</span>
+                    <div class="signup-body">
+                        <strong>James Mensah</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Accra, Ghana · via referral</p>
+                    </div>
+                    <span class="signup-time">34s</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av lime">AK</span>
+                    <div class="signup-body">
+                        <strong>Aisha Kimani</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Nairobi, Kenya · via search</p>
+                    </div>
+                    <span class="signup-time">58s</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av violet">RL</span>
+                    <div class="signup-body">
+                        <strong>Rachel Lawson</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> London, UK · via LinkedIn</p>
+                    </div>
+                    <span class="signup-time">1m</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av elec">DP</span>
+                    <div class="signup-body">
+                        <strong>David Park</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> San Francisco, US · via Twitter</p>
+                    </div>
+                    <span class="signup-time">2m</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av">MN</span>
+                    <div class="signup-body">
+                        <strong>Maya Ndaba</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Cape Town, SA · via YouTube</p>
+                    </div>
+                    <span class="signup-time">2m</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av lime">AK</span>
+                    <div class="signup-body">
+                        <strong>Arjun Kapoor</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Mumbai, India · via referral</p>
+                    </div>
+                    <span class="signup-time">3m</span>
+                </div>
+
+                <!-- Set B (duplicate) -->
+                <div class="signup-row">
+                    <span class="signup-av">FO</span>
+                    <div class="signup-body">
+                        <strong>Fatima Oyelaran</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Lagos, Nigeria · via Instagram</p>
+                    </div>
+                    <span class="signup-time">12s</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av elec">JM</span>
+                    <div class="signup-body">
+                        <strong>James Mensah</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Accra, Ghana · via referral</p>
+                    </div>
+                    <span class="signup-time">34s</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av lime">AK</span>
+                    <div class="signup-body">
+                        <strong>Aisha Kimani</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Nairobi, Kenya · via search</p>
+                    </div>
+                    <span class="signup-time">58s</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av violet">RL</span>
+                    <div class="signup-body">
+                        <strong>Rachel Lawson</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> London, UK · via LinkedIn</p>
+                    </div>
+                    <span class="signup-time">1m</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av elec">DP</span>
+                    <div class="signup-body">
+                        <strong>David Park</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> San Francisco, US · via Twitter</p>
+                    </div>
+                    <span class="signup-time">2m</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av">MN</span>
+                    <div class="signup-body">
+                        <strong>Maya Ndaba</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Cape Town, SA · via YouTube</p>
+                    </div>
+                    <span class="signup-time">2m</span>
+                </div>
+                <div class="signup-row">
+                    <span class="signup-av lime">AK</span>
+                    <div class="signup-body">
+                        <strong>Arjun Kapoor</strong>
+                        <p><i class="bi bi-geo-alt-fill"></i> Mumbai, India · via referral</p>
+                    </div>
+                    <span class="signup-time">3m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LIVE SESSIONS ===== -->
+    <div class="pg-4 ppanel fade-up">
+        <div class="ppanel-head">
+            <div>
+                <h3><i class="bi bi-broadcast-pin"></i> Live Sessions</h3>
+                <span class="pp-sub">Currently broadcasting</span>
+            </div>
+            <span class="live-tag"><span class="dot"></span> 847</span>
+        </div>
+
+        <div class="session-list">
+            <div class="session-card" data-toast="Joining session: UI/UX Foundations Q&A" data-toast-type="violet">
+                <span class="sc-live"><span class="dot"></span> Live</span>
+                <div class="session-body">
+                    <h5>UI/UX Foundations · Q&amp;A</h5>
+                    <div class="sb-host"><i class="bi bi-person-workspace"></i> Hosted by Zainab Ibrahim</div>
+                    <div class="session-stats">
+                        <span><i class="bi bi-people-fill"></i> <b class="strong">248</b> viewers</span>
+                        <span><i class="bi bi-clock"></i> 42m</span>
+                        <span><i class="bi bi-chat-dots"></i> 86</span>
+                    </div>
+                </div>
+            </div>
+            <div class="session-card" data-toast="Joining session: Advanced React Patterns" data-toast-type="violet">
+                <span class="sc-live"><span class="dot"></span> Live</span>
+                <div class="session-body">
+                    <h5>Advanced React Patterns · Ep. 12</h5>
+                    <div class="sb-host"><i class="bi bi-person-workspace"></i> Hosted by Amara Nwosu</div>
+                    <div class="session-stats">
+                        <span><i class="bi bi-people-fill"></i> <b class="strong">186</b> viewers</span>
+                        <span><i class="bi bi-clock"></i> 28m</span>
+                        <span><i class="bi bi-chat-dots"></i> 54</span>
+                    </div>
+                </div>
+            </div>
+            <div class="session-card" data-toast="Joining session: Data Science Office Hours" data-toast-type="violet">
+                <span class="sc-live"><span class="dot"></span> Live</span>
+                <div class="session-body">
+                    <h5>Data Science · Office Hours</h5>
+                    <div class="sb-host"><i class="bi bi-person-workspace"></i> Hosted by Dr. Ifeoma Adeyemi</div>
+                    <div class="session-stats">
+                        <span><i class="bi bi-people-fill"></i> <b class="strong">142</b> viewers</span>
+                        <span><i class="bi bi-clock"></i> 1h 04m</span>
+                        <span><i class="bi bi-chat-dots"></i> 121</span>
+                    </div>
+                </div>
+            </div>
+            <div class="session-card" data-toast="Joining session: Backend Engineering" data-toast-type="violet">
+                <span class="sc-live"><span class="dot"></span> Live</span>
+                <div class="session-body">
+                    <h5>Backend Engineering · Deep Dive</h5>
+                    <div class="sb-host"><i class="bi bi-person-workspace"></i> Hosted by Tunde Bakare</div>
+                    <div class="session-stats">
+                        <span><i class="bi bi-people-fill"></i> <b class="strong">98</b> viewers</span>
+                        <span><i class="bi bi-clock"></i> 17m</span>
+                        <span><i class="bi bi-chat-dots"></i> 42</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== EVENT STREAM ===== -->
+    <div class="pg-12 ppanel fade-up">
+        <div class="ppanel-head">
+            <div>
+                <h3><i class="bi bi-activity"></i> Event Stream</h3>
+                <span class="pp-sub">Every action, every second · last 60s window</span>
+            </div>
+            <span class="live-tag"><span class="dot"></span> Streaming</span>
+        </div>
+
+        <div class="event-stream" id="eventStream">
+            <div class="event-row">
+                <span class="event-ic hot"><i class="bi bi-person-plus-fill"></i></span>
+                <span class="event-who">@fatima_o</span>
+                <span class="event-what">signed up · <em>via Instagram</em></span>
+                <span class="event-time">12s</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic elec"><i class="bi bi-play-circle-fill"></i></span>
+                <span class="event-who">@chinedu</span>
+                <span class="event-what">started lesson <em>#L-4821</em> · Advanced React</span>
+                <span class="event-time">34s</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic lime"><i class="bi bi-check2-circle"></i></span>
+                <span class="event-who">@blessing_a</span>
+                <span class="event-what">completed <em>Python Mastery · Track</em></span>
+                <span class="event-time">58s</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic amber"><i class="bi bi-cash-coin"></i></span>
+                <span class="event-who">@sarah_m</span>
+                <span class="event-what">paid <em>₦85,000</em> · UI/UX Foundations</span>
+                <span class="event-time">1m</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic violet"><i class="bi bi-broadcast-pin"></i></span>
+                <span class="event-who">@zainab_i</span>
+                <span class="event-what">started live session · <em>UI/UX Q&amp;A</em></span>
+                <span class="event-time">1m</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic elec"><i class="bi bi-chat-dots-fill"></i></span>
+                <span class="event-who">@tunde_b</span>
+                <span class="event-what">answered question in <em>Backend Engineering</em></span>
+                <span class="event-time">2m</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic rose"><i class="bi bi-flag-fill"></i></span>
+                <span class="event-who">@user_4821</span>
+                <span class="event-what">reported content · <em>Discussion #D-2291</em></span>
+                <span class="event-time">2m</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic lime"><i class="bi bi-star-fill"></i></span>
+                <span class="event-who">@daniel_o</span>
+                <span class="event-what">left 5★ review · <em>Product Management 101</em></span>
+                <span class="event-time">3m</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic hot"><i class="bi bi-camera-video-fill"></i></span>
+                <span class="event-who">@amara_n</span>
+                <span class="event-what">published lesson · <em>Mobile Dev · Ep. 18</em></span>
+                <span class="event-time">4m</span>
+            </div>
+            <div class="event-row">
+                <span class="event-ic violet"><i class="bi bi-shield-lock-fill"></i></span>
+                <span class="event-who">@admin</span>
+                <span class="event-what">rotated API key · <em>sk_live_***8f2a</em></span>
+                <span class="event-time">5m</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN EMERGENCY CONSOLE ===== -->
+    <div class="pg-12 emergency fade-up">
+        <div class="em-head">
+            <span class="em-ic"><i class="bi bi-exclamation-octagon-fill"></i></span>
+            <div>
+                <h2>Emergency <em>Console</em></h2>
+                <p>ROOT-ONLY · IRREVERSIBLE ACTIONS · MFA + APPROVAL REQUIRED</p>
+            </div>
+            <span class="em-tier"><i class="bi bi-shield-fill-x"></i> Danger Zone</span>
+        </div>
+
+        <div class="em-grid">
+            <button class="em-tool" data-toast="Force-disconnect picker opened — choose a user or session" data-toast-type="warning">
+                <span class="em-t-ic"><i class="bi bi-plug-fill"></i></span>
+                <div class="em-t-body">
+                    <strong>Force Disconnect</strong>
+                    <p>Kick a user or entire session out of the platform immediately.</p>
+                </div>
+                <i class="bi bi-arrow-right em-t-arrow"></i>
+            </button>
+
+            <button class="em-tool" data-toast="Broadcast composer opened — will reach 12,438 live users" data-toast-type="warning">
+                <span class="em-t-ic"><i class="bi bi-megaphone-fill"></i></span>
+                <div class="em-t-body">
+                    <strong>Broadcast to Live</strong>
+                    <p>Push a real-time notification to every online user right now.</p>
+                </div>
+                <i class="bi bi-arrow-right em-t-arrow"></i>
+            </button>
+
+            <button class="em-tool" data-toast="Rate-limit console opened — pick an IP or region" data-toast-type="warning">
+                <span class="em-t-ic"><i class="bi bi-shield-slash-fill"></i></span>
+                <div class="em-t-body">
+                    <strong>Rate Limit IP</strong>
+                    <p>Throttle abusive IPs or entire regions to protect infrastructure.</p>
+                </div>
+                <i class="bi bi-arrow-right em-t-arrow"></i>
+            </button>
+
+            <button class="em-tool" data-toast="Live session takeover — select a broadcast to intercept" data-toast-type="error">
+                <span class="em-t-ic"><i class="bi bi-broadcast-pin"></i></span>
+                <div class="em-t-body">
+                    <strong>Take Over Session</strong>
+                    <p>Intercept a live broadcast for moderation or emergency handoff.</p>
+                </div>
+                <i class="bi bi-arrow-right em-t-arrow"></i>
+            </button>
+
+            <button class="em-tool" data-toast="⚠ Maintenance mode requires 2-admin approval" data-toast-type="error">
+                <span class="em-t-ic"><i class="bi bi-cone-striped"></i></span>
+                <div class="em-t-body">
+                    <strong>Maintenance Mode</strong>
+                    <p>Gracefully drain traffic, block new writes, preserve reads.</p>
+                </div>
+                <i class="bi bi-arrow-right em-t-arrow"></i>
+            </button>
+
+            <button class="em-tool" data-toast="⚠ Global kill switch armed — click again to confirm" data-toast-type="error">
+                <span class="em-t-ic"><i class="bi bi-power"></i></span>
+                <div class="em-t-body">
+                    <strong>Global Kill Switch</strong>
+                    <p>Force sign-out every session across every region. Emergency use.</p>
+                </div>
+                <i class="bi bi-arrow-right em-t-arrow"></i>
+            </button>
+        </div>
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       LIVE COUNTERS — gentle drift for "alive" feel
+       ============================================================ */
+    function driftCounters() {
+        document.querySelectorAll('.ph-num .pn-value [data-count], .strip-cell .sc-value [data-count]').forEach(el => {
+            const base = parseInt(el.dataset.count, 10) || 0;
+            if (!base) return;
+            const drift = Math.round(base * (Math.random() * 0.004 - 0.001));
+            const next = Math.max(1, base + drift);
+            el.textContent = next.toLocaleString();
+        });
+    }
+    setInterval(driftCounters, 4200);
+
+    /* ============================================================
+       ONLINE FEED — periodic new row injection
+       ============================================================ */
+    const onlineList = document.getElementById('onlineList');
+    const sampleUsers = [
+        { ini: 'KA', cls: '', name: 'Kofi Ansah', activity: 'Started <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Data Science with Pandas</em>', time: 'just now', country: '🇬🇭 GH' },
+        { ini: 'LM', cls: 'mentor', name: 'Lindiwe Mokoena', activity: 'Hosting live · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Product Design Clinic</em>', time: 'just now', country: '🇿🇦 ZA' },
+        { ini: 'RJ', cls: '', name: 'Rohan Joshi', activity: 'Enrolled in <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Backend Engineering</em>', time: 'just now', country: '🇮🇳 IN' },
+        { ini: 'EM', cls: 'teacher', name: 'Elena Marchetti', activity: 'Grading submissions · <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">UI/UX Foundations</em>', time: 'just now', country: '🇮🇹 IT' },
+        { ini: 'TB', cls: '', name: 'Thabo Banda', activity: 'Watching <em style="font-style:normal;color:var(--pulse-hot);font-weight:600;">Advanced React Patterns</em>', time: 'just now', country: '🇿🇦 ZA' }
+    ];
+    let userIdx = 0;
+
+    function injectOnlineRow() {
+        if (!onlineList) return;
+        const u = sampleUsers[userIdx % sampleUsers.length];
+        userIdx++;
+        const row = document.createElement('div');
+        row.className = 'online-row fresh';
+        row.innerHTML = `
+            <span class="online-av ${u.cls}">${u.ini}<span class="presence"></span></span>
+            <div class="online-body">
+                <strong><span class="role-dot ${u.cls === 'mentor' ? 'mentor' : u.cls === 'teacher' ? 'teacher' : ''}"></span> ${u.name}</strong>
+                <p><i class="bi bi-lightning-charge-fill"></i> ${u.activity}</p>
+            </div>
+            <div class="online-meta">
+                <span class="om-time">${u.time}</span>
+                <span class="om-country">${u.country}</span>
+            </div>
+        `;
+        onlineList.insertBefore(row, onlineList.firstChild);
+        setTimeout(() => row.classList.remove('fresh'), 1400);
+        // trim to 12 rows
+        while (onlineList.children.length > 12) {
+            onlineList.removeChild(onlineList.lastChild);
+        }
+    }
+    setInterval(injectOnlineRow, 6500);
+
+    /* ============================================================
+       EVENT STREAM — periodic new event injection
+       ============================================================ */
+    const eventStream = document.getElementById('eventStream');
+    const sampleEvents = [
+        { ic: 'hot',    icon: 'bi-person-plus-fill', who: '@kofi_a',   what: 'signed up · <em>via search</em>' },
+        { ic: 'elec',   icon: 'bi-play-circle-fill', who: '@rohan_j',  what: 'started lesson <em>#L-2291</em> · Data Science' },
+        { ic: 'lime',   icon: 'bi-check2-circle',    who: '@lindiwe_m',what: 'completed lesson · <em>Product Design · M3</em>' },
+        { ic: 'amber',  icon: 'bi-cash-coin',        who: '@thabo_b',  what: 'paid <em>₦42,000</em> · Backend Engineering' },
+        { ic: 'violet', icon: 'bi-broadcast-pin',    who: '@elena_m',  what: 'started live · <em>UI/UX Critique</em>' },
+        { ic: 'hot',    icon: 'bi-chat-dots-fill',   who: '@kofi_a',   what: 'sent message in <em>Data Science · Chat</em>' },
+        { ic: 'elec',   icon: 'bi-star-fill',        who: '@rohan_j',  what: 'left 5★ review · <em>Backend Engineering</em>' }
+    ];
+    let evIdx = 0;
+
+    function injectEvent() {
+        if (!eventStream) return;
+        const e = sampleEvents[evIdx % sampleEvents.length];
+        evIdx++;
+        const row = document.createElement('div');
+        row.className = 'event-row fresh';
+        row.innerHTML = `
+            <span class="event-ic ${e.ic}"><i class="bi ${e.icon}"></i></span>
+            <span class="event-who">${e.who}</span>
+            <span class="event-what">${e.what}</span>
+            <span class="event-time">now</span>
+        `;
+        eventStream.insertBefore(row, eventStream.firstChild);
+        setTimeout(() => row.classList.remove('fresh'), 1200);
+        while (eventStream.children.length > 14) {
+            eventStream.removeChild(eventStream.lastChild);
+        }
+    }
+    setInterval(injectEvent, 5200);
+
+    /* ============================================================
+       REGION BARS — animate to value on load
+       ============================================================ */
+    function paintRegionBars() {
+        document.querySelectorAll('.region-bar > span[data-value]').forEach((el, i) => {
+            el.style.width = '0';
+            setTimeout(() => {
+                el.style.width = el.dataset.value + '%';
+            }, 180 + i * 90);
+        });
+    }
+    window.addEventListener('load', paintRegionBars);
+
+    /* ============================================================
+       LIVE SESSION CARDS — click
+       ============================================================ */
+    document.querySelectorAll('.session-card').forEach(card => {
+        card.addEventListener('click', function () {
+            const title = this.querySelector('h5')?.textContent?.trim() || 'live session';
+            if (typeof window.showKnotToast === 'function') {
+                window.showKnotToast(`Joining: ${title}`, 'violet');
+            }
+        });
+    });
+
+    /* ============================================================
+       EMERGENCY TOOLS
+       ============================================================ */
+    document.querySelectorAll('.em-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'error';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER (for dynamically added nodes)
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

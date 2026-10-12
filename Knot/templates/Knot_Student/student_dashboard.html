@@ -14,12 +14,14 @@
         <div class="welcome-text">
             <span class="hero-badge"><i class="bi bi-fire"></i> 12-DAY LEARNING STREAK</span>
             <h1 id="greetingText">Good evening, <span>Amara</span></h1>
-            <p>You're 68% through your Frontend track. Two more sessions this week keeps your streak alive and unlocks the <strong>Momentum</strong> badge.</p>
+            <p>You're 0% through your Frontend track. Two more sessions this week keeps your streak alive and unlocks the <strong>Momentum</strong> badge.</p>
             <div class="welcome-actions">
                 <button class="btn btn-secondary" data-toast="Resuming your last lesson…">
+                    <i class="bi bi-book"></i>
                     Continue learning <i class="bi bi-arrow-right"></i>
                 </button>
                 <button class="btn btn-outline" data-toast="Opening match finder…">
+                    <i class="bi bi-arrow-left-right"></i>
                     Find a match
                 </button>
             </div>
@@ -37,7 +39,7 @@
                 <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"></circle>
             </svg>
             <div class="ring-label">
-                <strong>68%</strong>
+                <strong>0%</strong>
                 <span>Track complete</span>
             </div>
         </div>
@@ -48,37 +50,37 @@
         <div class="stat-card fade-up">
             <div class="stat-top">
                 <div class="stat-icon"><i class="bi bi-mortarboard"></i></div>
-                <span class="stat-trend">+3 this month</span>
+                <span class="stat-trend">+0 this month</span>
             </div>
-            <div class="value" data-count="14">0</div>
+            <div class="value">0</div>
             <div class="label">Skills learned</div>
         </div>
 
         <div class="stat-card fade-up">
             <div class="stat-top">
                 <div class="stat-icon accent"><i class="bi bi-camera-video"></i></div>
-                <span class="stat-trend">+6 this week</span>
+                <span class="stat-trend">+0 this week</span>
             </div>
-            <div class="value" data-count="32">0</div>
+            <div class="value">0</div>
             <div class="label">Exchange sessions</div>
         </div>
 
         <div class="stat-card fade-up">
             <div class="stat-top">
                 <div class="stat-icon violet"><i class="bi bi-clock-history"></i></div>
-                <span class="stat-trend">+8.5h</span>
+                <span class="stat-trend">+0h</span>
             </div>
-            <div class="value"><span data-count="48">0</span><span>h</span></div>
+            <div class="value"><span>0</span><span>h</span></div>
             <div class="label">Learning hours</div>
         </div>
 
         <div class="stat-card fade-up">
             <div class="stat-top">
                 <div class="stat-icon amber"><i class="bi bi-bar-chart-line"></i></div>
-                <span class="stat-trend down">−2</span>
+                <span class="stat-trend down">0</span>
             </div>
-            <div class="value">#12</div>
-            <div class="label">Cohort ranking · Top 5%</div>
+            <div class="value">#0</div>
+            <div class="label">Cohort ranking · Top 0%</div>
         </div>
     </section>
 
@@ -86,20 +88,20 @@
     <section class="card tabs-card fade-up">
         <div class="tabs-head">
             <h3><i class="bi bi-arrow-left-right"></i> Your network</h3>
-            <a href="#" class="link" style="font-size:0.78rem;font-weight:600;color:var(--gray-600);display:inline-flex;align-items:center;gap:6px;">
+            <a href="{% url "student_browse" %}" class="link" style="font-size:0.78rem;font-weight:600;color:var(--gray-600);display:inline-flex;align-items:center;gap:6px;">
                 Explore all <i class="bi bi-arrow-right"></i>
             </a>
         </div>
 
         <div class="tabs" role="tablist">
             <button class="tab active" data-tab="matches" role="tab">
-                Skill Matches <span class="count">3</span>
+                Skill Matches <span class="count">0</span>
             </button>
             <button class="tab" data-tab="requests" role="tab">
-                Requests <span class="count">2</span>
+                Requests <span class="count">0</span>
             </button>
             <button class="tab" data-tab="connections" role="tab">
-                My Connections <span class="count">7</span>
+                My Connections <span class="count">0</span>
             </button>
         </div>
 
@@ -113,7 +115,7 @@
                         <div class="mi-body">
                             <div class="mi-top">
                                 <h4>Sara Kim</h4>
-                                <span class="mi-score">92% match</span>
+                                <span class="mi-score">0% match</span>
                             </div>
                             <div class="mi-tags">
                                 <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Teaches UI Design</span>
@@ -124,11 +126,11 @@
                     </div>
 
                     <div class="match-item">
-                        <div class="mi-avatar alt">DO</div>
+                        <div class="mi-avatar alt"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Daniel Okafor</h4>
-                                <span class="mi-score">87% match</span>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
+                                <span class="mi-score">0% match</span>
                             </div>
                             <div class="mi-tags">
                                 <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Teaches Public Speaking</span>
@@ -139,11 +141,11 @@
                     </div>
 
                     <div class="match-item">
-                        <div class="mi-avatar viol">MR</div>
+                        <div class="mi-avatar viol"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Maya Rahman</h4>
-                                <span class="mi-score">81% match</span>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
+                                <span class="mi-score">0% match</span>
                             </div>
                             <div class="mi-tags">
                                 <span class="tag teach"><i class="bi bi-arrow-up-right"></i> Teaches Data Analysis</span>
@@ -159,10 +161,10 @@
             <div class="tab-panel" id="tab-requests">
                 <div class="match-list">
                     <div class="match-item">
-                        <div class="mi-avatar alt">TK</div>
+                        <div class="mi-avatar alt"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Tunde K.</h4>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
                                 <span class="mi-score">New</span>
                             </div>
                             <div class="mi-tags">
@@ -173,10 +175,10 @@
                     </div>
 
                     <div class="match-item">
-                        <div class="mi-avatar">LB</div>
+                        <div class="mi-avatar"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Lena Brava</h4>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
                                 <span class="mi-score">New</span>
                             </div>
                             <div class="mi-tags">
@@ -192,10 +194,10 @@
             <div class="tab-panel" id="tab-connections">
                 <div class="match-list">
                     <div class="match-item">
-                        <div class="mi-avatar">JT</div>
+                        <div class="mi-avatar"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Jonas Tan</h4>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
                                 <span class="mi-score">Active</span>
                             </div>
                             <div class="mi-tags">
@@ -206,10 +208,10 @@
                     </div>
 
                     <div class="match-item">
-                        <div class="mi-avatar viol">AN</div>
+                        <div class="mi-avatar viol"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Amara Nwosu</h4>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
                                 <span class="mi-score">Active</span>
                             </div>
                             <div class="mi-tags">
@@ -220,10 +222,10 @@
                     </div>
 
                     <div class="match-item">
-                        <div class="mi-avatar alt">CN</div>
+                        <div class="mi-avatar alt"><!-- this should iclude the initials for the other students who wants to connect --></div>
                         <div class="mi-body">
                             <div class="mi-top">
-                                <h4>Chidi N.</h4>
+                                <h4><!-- this should iclude the first name and the last name for the other students who wants to connect --></h4>
                                 <span class="mi-score">Active</span>
                             </div>
                             <div class="mi-tags">
@@ -234,10 +236,6 @@
                     </div>
                 </div>
             </div>
-
-            {% comment %} <div class="mt-5">
-                <p><marquee behaviour="scroll" direction="right">Connect with people for more educational experience.</marquee></p>
-            </div> {% endcomment %}
         </div>
     </section>
 
@@ -251,7 +249,7 @@
             <div class="card fade-up">
                 <div class="card-head">
                     <h3><i class="bi bi-book-open"></i> Continue learning</h3>
-                    <a href="#" class="link">View all <i class="bi bi-arrow-right"></i></a>
+                    <a href="{% url "student_my_learning" %}" class="link">View all <i class="bi bi-arrow-right"></i></a>
                 </div>
 
                 <div class="course">
@@ -259,9 +257,9 @@
                     <div class="course-body">
                         <div class="top">
                             <h4>Advanced React Patterns</h4>
-                            <span class="pct">82%</span>
+                            <span class="pct">0%</span>
                         </div>
-                        <p class="meta">with Daniel O. · 3 modules left</p>
+                        <p class="meta">with Daniel O. · 0 modules left</p>
                         <div class="bar"><span data-value="82"></span></div>
                     </div>
                     <button class="btn-ghost" data-toast="Resuming Advanced React Patterns…">Resume</button>
@@ -272,9 +270,9 @@
                     <div class="course-body">
                         <div class="top">
                             <h4>UI/UX Design Systems</h4>
-                            <span class="pct">54%</span>
+                            <span class="pct">0%</span>
                         </div>
-                        <p class="meta">with Fatima B. · 6 modules left</p>
+                        <p class="meta">with Fatima B. · 0 modules left</p>
                         <div class="bar accent"><span data-value="54"></span></div>
                     </div>
                     <button class="btn-ghost" data-toast="Resuming UI/UX Design Systems…">Resume</button>
@@ -285,7 +283,7 @@
                     <div class="course-body">
                         <div class="top">
                             <h4>Backend Fundamentals</h4>
-                            <span class="pct">27%</span>
+                            <span class="pct">0%</span>
                         </div>
                         <p class="meta">with Chidi N. · just started</p>
                         <div class="bar violet"><span data-value="27"></span></div>
@@ -298,7 +296,7 @@
             <div class="card fade-up">
                 <div class="card-head">
                     <h3><i class="bi bi-bar-chart-line"></i> Weekly activity</h3>
-                    <span class="link" style="cursor:default;">This week · 8h 20m</span>
+                    <span class="link" style="cursor:default;">This week · 0h 0m</span>
                 </div>
 
                 <div class="chart">
@@ -333,7 +331,7 @@
                 </div>
 
                 <div class="chart-legend">
-                    <div class="item"><span class="swatch"></span> Goal met (≥1h)</div>
+                    <div class="item"><span class="swatch"></span> Goal met (≥0h)</div>
                     <div class="item"><span class="swatch blue"></span> Today</div>
                 </div>
             </div>
@@ -365,41 +363,41 @@
             <div class="card fade-up">
                 <div class="card-head">
                     <h3><i class="bi bi-calendar-event"></i> Upcoming sessions</h3>
-                    <a href="#" class="link">Calendar <i class="bi bi-arrow-right"></i></a>
+                    <a href="{% url "student_sessions" %}" class="link">Calendar <i class="bi bi-arrow-right"></i></a>
                 </div>
 
                 <div class="session live">
                     <div class="session-time">
-                        <strong>18:30</strong>
+                        <strong>00:00</strong>
                         <span>Today</span>
                     </div>
                     <div class="session-info">
                         <h5>React Hooks Deep Dive</h5>
-                        <p>with <strong>Daniel O.</strong> · 45 min</p>
+                        <p>with <strong>Daniel O.</strong> · 0 min</p>
                     </div>
                     <button class="btn-join" data-toast="Joining React Hooks Deep Dive…">Join</button>
                 </div>
 
                 <div class="session">
                     <div class="session-time">
-                        <strong>10:00</strong>
+                        <strong>00:00</strong>
                         <span>Tomorrow</span>
                     </div>
                     <div class="session-info">
                         <h5>Design Critique Circle</h5>
-                        <p>with <strong>Fatima B.</strong> · 60 min</p>
+                        <p>with <strong>Fatima B.</strong> · 00 min</p>
                     </div>
                     <button class="btn-join muted" data-session="design-critique">Details</button>
                 </div>
 
                 <div class="session">
                     <div class="session-time">
-                        <strong>15:15</strong>
+                        <strong>00:00</strong>
                         <span>Thu</span>
                     </div>
                     <div class="session-info">
                         <h5>API Design Workshop</h5>
-                        <p>with <strong>Chidi N.</strong> · 90 min</p>
+                        <p>with <strong>Chidi N.</strong> · 00 min</p>
                     </div>
                     <button class="btn-join muted" data-session="api-design">Details</button>
                 </div>
@@ -409,7 +407,7 @@
             <div class="card fade-up">
                 <div class="card-head">
                     <h3><i class="bi bi-arrow-left-right"></i> Your top match</h3>
-                    <a href="#" class="link">See all</a>
+                    <a href="{% url "student_skill_matches" %}" class="link">See all</a>
                 </div>
 
                 <div class="match-box">
@@ -421,7 +419,7 @@
                         </div>
 
                         <div class="match-score">
-                            <span class="num">94%</span>
+                            <span class="num">0%</span>
                             <span class="lbl">Match</span>
                         </div>
 
@@ -445,14 +443,14 @@
     <section class="card fade-up">
         <div class="card-head">
             <h3><i class="bi bi-trophy"></i> Recent achievements</h3>
-            <a href="#" class="link">View all <i class="bi bi-arrow-right"></i></a>
+            <a href="{% url "student_achievements" %}" class="link">View all <i class="bi bi-arrow-right"></i></a>
         </div>
 
         <div class="badges">
             <div class="badge-item">
                 <div class="medal"><i class="bi bi-lightning-charge-fill"></i></div>
                 <h5>Momentum</h5>
-                <p>10-day streak</p>
+                <p>0-day streak</p>
             </div>
             <div class="badge-item">
                 <div class="medal"><i class="bi bi-handshake"></i></div>
@@ -462,17 +460,17 @@
             <div class="badge-item">
                 <div class="medal"><i class="bi bi-star-fill"></i></div>
                 <h5>Top Mentor</h5>
-                <p>5★ rating x3</p>
+                <p>0★ rating x0</p>
             </div>
             <div class="badge-item locked">
                 <div class="medal"><i class="bi bi-lock-fill"></i></div>
                 <h5>Polyglot</h5>
-                <p>Learn 5 skills</p>
+                <p>Learn 0 skills</p>
             </div>
             <div class="badge-item locked">
                 <div class="medal"><i class="bi bi-lock-fill"></i></div>
                 <h5>Night Owl</h5>
-                <p>20 late sessions</p>
+                <p>0 late sessions</p>
             </div>
         </div>
     </section>

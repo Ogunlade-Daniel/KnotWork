@@ -1,0 +1,2703 @@
+{% extends "Knot_Admin/admin_base.html" %}
+{% load static humanize %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block breadcrumb %}Trust &amp; Safety · User Reports{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   REPORTS — USER TRUST & SAFETY COMMAND CENTER
+   Improvised palette: case-blue + alert-amber + serious-red + case-violet
+   ============================================================ */
+
+:root {
+    --rp-blue: #3B82F6;
+    --rp-blue-deep: #1D4ED8;
+    --rp-blue-dim: rgba(59, 130, 246, 0.12);
+    --rp-blue-glow: rgba(59, 130, 246, 0.42);
+
+    --rp-amber: #F59E0B;
+    --rp-amber-deep: #B45309;
+    --rp-amber-dim: rgba(245, 158, 11, 0.12);
+    --rp-amber-glow: rgba(245, 158, 11, 0.42);
+
+    --rp-red: #DC2626;
+    --rp-red-deep: #991B1B;
+    --rp-red-dim: rgba(220, 38, 38, 0.12);
+    --rp-red-glow: rgba(220, 38, 38, 0.42);
+
+    --rp-violet: #8B5CF6;
+    --rp-violet-deep: #6D28D9;
+    --rp-violet-dim: rgba(139, 92, 246, 0.12);
+    --rp-violet-glow: rgba(139, 92, 246, 0.42);
+
+    --rp-emerald: #059669;
+    --rp-emerald-deep: #065F46;
+    --rp-emerald-dim: rgba(5, 150, 105, 0.12);
+    --rp-emerald-glow: rgba(5, 150, 105, 0.42);
+
+    --rp-mesh-1: radial-gradient(circle at 12% 20%, rgba(59, 130, 246, 0.14), transparent 42%);
+    --rp-mesh-2: radial-gradient(circle at 88% 78%, rgba(220, 38, 38, 0.12), transparent 44%);
+    --rp-mesh-3: radial-gradient(circle at 62% 12%, rgba(139, 92, 246, 0.12), transparent 38%);
+
+    --tab-accent: var(--crown-2);
+    --tab-accent-deep: var(--admin-violet-deep);
+    --tab-accent-dim: rgba(190, 242, 100, 0.10);
+    --tab-accent-glow: rgba(190, 242, 100, 0.42);
+}
+
+/* ============================================================
+   REPORTS WIRE — MARQUEE
+   ============================================================ */
+.rp-wire {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 0% 50%, rgba(59, 130, 246, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 50%, rgba(220, 38, 38, 0.18), transparent 42%),
+        linear-gradient(135deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    border: 1px solid rgba(59, 130, 246, 0.26);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+    padding: 14px 0;
+    isolation: isolate;
+}
+.rp-wire::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--rp-blue), var(--rp-amber), var(--rp-red), var(--crown-2));
+    box-shadow: 0 0 22px rgba(59, 130, 246, 0.5);
+    z-index: 5;
+}
+.rp-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+.rp-wire-edge {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 90px;
+    z-index: 4;
+    pointer-events: none;
+}
+.rp-wire-edge.left  { left: 0;  background: linear-gradient(90deg, #020617 10%, transparent); }
+.rp-wire-edge.right { right: 0; background: linear-gradient(-90deg, #0B1121 10%, transparent); }
+
+.rp-wire-label {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 0 16px;
+    background: linear-gradient(90deg, #020617 42%, transparent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--rp-blue);
+    pointer-events: none;
+}
+.rp-wire-label .rp-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--rp-blue);
+    box-shadow: 0 0 0 0 var(--rp-blue-glow);
+    animation: rpPulse 1.6s infinite;
+}
+@keyframes rpPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.70); }
+    70%  { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+.rp-wire-track {
+    display: flex;
+    gap: 48px;
+    width: max-content;
+    padding: 0 24px 0 170px;
+    animation: rpWireRoll 52s linear infinite;
+}
+.rp-wire:hover .rp-wire-track { animation-play-state: paused; }
+@keyframes rpWireRoll { to { transform: translateX(-50%); } }
+
+.rp-wire-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.68);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.01em;
+}
+.rp-wire-item .wdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--rp-blue);
+    box-shadow: 0 0 8px var(--rp-blue-glow);
+    flex-shrink: 0;
+    animation: rpSpark 1.8s ease-in-out infinite;
+}
+.rp-wire-item.blue    .wdot { background: var(--rp-blue);    box-shadow: 0 0 8px var(--rp-blue-glow); }
+.rp-wire-item.amber   .wdot { background: var(--rp-amber);   box-shadow: 0 0 8px var(--rp-amber-glow); }
+.rp-wire-item.red     .wdot { background: var(--rp-red);     box-shadow: 0 0 8px var(--rp-red-glow); }
+.rp-wire-item.violet  .wdot { background: var(--rp-violet);  box-shadow: 0 0 8px var(--rp-violet-glow); }
+.rp-wire-item.emerald .wdot { background: var(--rp-emerald); box-shadow: 0 0 8px var(--rp-emerald-glow); }
+@keyframes rpSpark {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.6; }
+}
+.rp-wire-item strong { color: var(--crown-1); font-weight: 700; }
+.rp-wire-item em {
+    font-style: normal;
+    color: var(--rp-blue);
+    font-weight: 700;
+}
+
+/* ============================================================
+   REPORTS HERO
+   ============================================================ */
+.rp-hero {
+    position: relative;
+    border-radius: 26px;
+    padding: 30px 34px 26px;
+    background:
+        var(--rp-mesh-1), var(--rp-mesh-2), var(--rp-mesh-3),
+        linear-gradient(140deg, #020617 0%, #0B1121 48%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(59, 130, 246, 0.20);
+}
+.rp-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--rp-blue), var(--rp-violet) 40%, var(--rp-red) 70%, var(--crown-2) 100%);
+    box-shadow: 0 0 26px rgba(59, 130, 246, 0.5);
+    z-index: 5;
+}
+.rp-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+.rp-hero-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+.rp-hero-left { min-width: 0; flex: 1 1 520px; }
+.rp-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 50px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.42);
+    color: var(--rp-blue);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.rp-hero-kicker i { font-size: 0.7rem; }
+.rp-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+}
+.rp-hero-title em { color: var(--rp-blue); font-style: italic; }
+.rp-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.60);
+    max-width: 620px;
+    line-height: 1.62;
+}
+.rp-hero-sub strong { color: var(--crown-2); font-weight: 700; }
+
+.rp-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+.rp-hero-meta .hm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+    transition: var(--transition);
+}
+.rp-hero-meta .hm:hover {
+    background: rgba(59, 130, 246, 0.10);
+    border-color: rgba(59, 130, 246, 0.42);
+    color: var(--rp-blue);
+    transform: translateY(-2px);
+}
+.rp-hero-meta .hm i { color: var(--rp-blue); font-size: 0.78rem; }
+.rp-hero-meta .hm.warn {
+    background: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.42);
+    color: var(--rp-red);
+}
+.rp-hero-meta .hm.warn i { color: var(--rp-red); }
+
+.rp-hero-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* Admin crown badge */
+.admin-crown-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(140deg, rgba(59, 130, 246, 0.16), rgba(220, 38, 38, 0.14)),
+        rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(59, 130, 246, 0.42);
+    box-shadow:
+        0 18px 44px rgba(59, 130, 246, 0.18),
+        0 0 0 1px rgba(59, 130, 246, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    isolation: isolate;
+    min-width: 300px;
+}
+.admin-crown-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.14) 50%,
+                transparent 60%);
+    transform: translateX(-120%);
+    animation: badgeShine 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes badgeShine {
+    0%, 70% { transform: translateX(-120%); }
+    85%     { transform: translateX(120%); }
+    100%    { transform: translateX(120%); }
+}
+.acb-avatar {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+}
+.acb-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+                var(--crown-1) 0deg,
+                var(--rp-blue) 120deg,
+                var(--rp-violet) 240deg,
+                var(--crown-1) 360deg);
+    animation: spin 6s linear infinite;
+}
+.acb-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: #0B1121;
+    z-index: -1;
+}
+.acb-face {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crown-gradient);
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-deep);
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 0 0 3px #0B1121, 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+.acb-crown {
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E293B, #020617);
+    border: 1.5px solid var(--rp-blue);
+    display: grid;
+    place-items: center;
+    color: var(--rp-blue);
+    font-size: 0.78rem;
+    box-shadow: 0 6px 14px rgba(59, 130, 246, 0.55), 0 0 0 3px rgba(59, 130, 246, 0.10);
+    animation: crownBounce 3s ease-in-out infinite;
+    z-index: 4;
+}
+.acb-meta { line-height: 1.25; min-width: 0; }
+.acb-meta .acb-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 190px;
+}
+.acb-meta .acb-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--rp-blue), var(--rp-violet));
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 5px 14px rgba(59, 130, 246, 0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.acb-meta .acb-role i { font-size: 0.6rem; }
+.acb-meta .acb-id {
+    display: block;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.rp-tabs {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.rp-tabs::-webkit-scrollbar { display: none; }
+
+.rp-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+    z-index: 2;
+    letter-spacing: 0.005em;
+}
+.rp-tab .tab-ic {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.rp-tab .tab-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.rp-tab .tab-label small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 2px;
+    transition: var(--transition);
+}
+.rp-tab .tab-badge {
+    padding: 2px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+.rp-tab .tab-badge.glow {
+    background: var(--rp-blue-dim);
+    color: var(--rp-blue-deep);
+    border: 1px solid rgba(59, 130, 246, 0.32);
+    animation: badgePulse 2.2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+}
+.rp-tab .tab-badge.alert {
+    background: var(--rp-red-dim);
+    color: var(--rp-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.32);
+}
+
+.rp-tab:hover {
+    color: var(--primary-dark);
+    background: rgba(11, 17, 33, 0.03);
+}
+.rp-tab:hover .tab-ic {
+    background: var(--gray-200);
+    color: var(--primary-dark);
+}
+.rp-tab.active {
+    background: linear-gradient(140deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    box-shadow: 0 12px 28px rgba(11, 17, 33, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.rp-tab.active .tab-ic {
+    background: var(--tab-accent);
+    color: var(--primary-deep);
+    box-shadow: 0 6px 16px var(--tab-accent-glow);
+}
+.rp-tab.active .tab-label small { color: rgba(255, 255, 255, 0.48); }
+.rp-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--tab-accent);
+}
+.rp-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 3px;
+    border-radius: 3px;
+    background: var(--tab-accent);
+    box-shadow: 0 0 14px var(--tab-accent-glow);
+}
+
+/* Panels */
+.rp-panels { position: relative; }
+.rp-panel {
+    display: none;
+    flex-direction: column;
+    gap: 22px;
+    animation: rpPanelIn 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.rp-panel.active { display: flex; }
+@keyframes rpPanelIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   STAT STRIP
+   ============================================================ */
+.rp-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+.rp-stat {
+    position: relative;
+    padding: 16px 18px 14px;
+    border-radius: 16px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    box-shadow: 0 4px 16px rgba(11, 17, 33, 0.05);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.rp-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--rs-accent, linear-gradient(90deg, var(--rp-blue), var(--rp-blue-deep)));
+}
+.rp-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(11, 17, 33, 0.10);
+    border-color: var(--tab-accent);
+}
+.rp-stat.blue    { --rs-accent: linear-gradient(90deg, #3B82F6, #1D4ED8); }
+.rp-stat.amber   { --rs-accent: linear-gradient(90deg, #F59E0B, #B45309); }
+.rp-stat.red     { --rs-accent: linear-gradient(90deg, #DC2626, #991B1B); }
+.rp-stat.violet  { --rs-accent: linear-gradient(90deg, #8B5CF6, #6D28D9); }
+.rp-stat.emerald { --rs-accent: linear-gradient(90deg, #059669, #065F46); }
+
+.rp-stat .rs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.rp-stat .rs-ic {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 0.86rem;
+    background: var(--gray-100);
+    color: var(--primary-dark);
+}
+.rp-stat.blue    .rs-ic { background: var(--rp-blue-dim);    color: var(--rp-blue-deep); }
+.rp-stat.amber   .rs-ic { background: var(--rp-amber-dim);   color: var(--rp-amber-deep); }
+.rp-stat.red     .rs-ic { background: var(--rp-red-dim);     color: var(--rp-red-deep); }
+.rp-stat.violet  .rs-ic { background: var(--rp-violet-dim);  color: var(--rp-violet-deep); }
+.rp-stat.emerald .rs-ic { background: var(--rp-emerald-dim); color: var(--rp-emerald-deep); }
+
+.rp-stat .rs-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803D;
+}
+.rp-stat .rs-trend.warn { background: var(--rp-amber-dim); color: var(--rp-amber-deep); }
+.rp-stat .rs-trend.down { background: var(--rp-red-dim); color: var(--rp-red-deep); }
+
+.rp-stat .rs-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+.rp-stat .rs-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+}
+.rp-stat .rs-value small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.rp-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    flex-wrap: wrap;
+}
+.rp-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    height: 44px;
+    padding: 0 16px;
+    transition: var(--transition);
+}
+.rp-search:focus-within {
+    background: var(--white);
+    border-color: var(--tab-accent);
+    box-shadow: 0 0 0 4px var(--tab-accent-dim);
+}
+.rp-search i { color: var(--gray-400); font-size: 0.9rem; flex-shrink: 0; }
+.rp-search:focus-within i { color: var(--tab-accent-deep); }
+.rp-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: var(--primary-dark);
+    padding: 0 12px;
+    min-width: 0;
+}
+.rp-search input::placeholder { color: var(--gray-400); }
+.rp-search kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 3px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.rp-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+.rp-select:hover {
+    background: var(--white);
+    border-color: var(--gray-200);
+    color: var(--primary-dark);
+}
+.rp-select i:first-child { color: var(--tab-accent-deep); font-size: 0.8rem; }
+.rp-select i:last-child { color: var(--gray-400); font-size: 0.62rem; }
+.rp-toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   REPORT CARDS
+   ============================================================ */
+.rp-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.rp-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid rgba(11, 17, 33, 0.06);
+    border-radius: 22px;
+    box-shadow: 0 6px 22px rgba(11, 17, 33, 0.06);
+    transition: var(--transition);
+    overflow: hidden;
+    isolation: isolate;
+}
+.rp-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: var(--rc-accent, linear-gradient(180deg, var(--rp-blue), var(--rp-blue-deep)));
+    z-index: 2;
+}
+.rp-card:hover {
+    box-shadow: 0 18px 44px rgba(11, 17, 33, 0.10);
+    transform: translateY(-2px);
+}
+.rp-card.critical      { --rc-accent: linear-gradient(180deg, #DC2626, #991B1B); }
+.rp-card.serious       { --rc-accent: linear-gradient(180deg, #F59E0B, #B45309); }
+.rp-card.investigating { --rc-accent: linear-gradient(180deg, #8B5CF6, #6D28D9); }
+.rp-card.resolved      { --rc-accent: linear-gradient(180deg, #059669, #065F46); }
+
+.rp-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 22px 24px 22px 28px;
+    align-items: flex-start;
+}
+
+/* ---- Left: case ---- */
+.rc-case { min-width: 0; flex: 1; }
+
+.rc-head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.rc-severity {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.rc-severity.critical { background: var(--rp-red-dim); color: var(--rp-red-deep); border: 1px solid rgba(220,38,38,0.32); }
+.rc-severity.serious  { background: var(--rp-amber-dim); color: var(--rp-amber-deep); border: 1px solid rgba(245,158,11,0.32); }
+.rc-severity.minor    { background: var(--rp-blue-dim); color: var(--rp-blue-deep); border: 1px solid rgba(59,130,246,0.32); }
+
+.rc-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    border-radius: 50px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+}
+.rc-category i { font-size: 0.62rem; }
+.rc-category.scam        { background: rgba(139, 92, 246, 0.10); color: var(--rp-violet-deep); border-color: rgba(139,92,246,0.30); }
+.rc-category.abuse       { background: var(--rp-amber-dim); color: var(--rp-amber-deep); border-color: rgba(245,158,11,0.30); }
+.rc-category.harassment  { background: var(--rp-red-dim); color: var(--rp-red-deep); border-color: rgba(220,38,38,0.30); }
+
+.rc-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    margin-left: auto;
+    letter-spacing: 0.02em;
+}
+
+/* VS block — complainant vs accused */
+.rc-vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--cream), var(--white));
+    border: 1px solid var(--gray-200);
+    margin-bottom: 14px;
+}
+.rc-party {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.rc-party.accused { flex-direction: row-reverse; text-align: right; }
+.rc-party .rp-av {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rp-blue), var(--rp-blue-deep));
+    display: grid;
+    place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(59,130,246,0.28);
+}
+.rc-party.accused .rp-av {
+    background: linear-gradient(135deg, var(--rp-red), var(--rp-red-deep));
+    box-shadow: 0 4px 10px rgba(220,38,38,0.28);
+}
+.rc-party .rp-av .rp-badge {
+    position: absolute;
+    top: -3px; right: -3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 2px solid var(--white);
+    display: grid;
+    place-items: center;
+    font-size: 0.5rem;
+    color: var(--rp-blue);
+    box-shadow: 0 2px 6px rgba(11,17,33,0.14);
+}
+.rc-party.accused .rp-av .rp-badge { color: var(--rp-red); }
+.rc-party .rp-info { min-width: 0; line-height: 1.2; }
+.rc-party .rp-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    display: block;
+    margin-bottom: 3px;
+}
+.rc-party .rp-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rc-party .rp-sub {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rc-vs-badge {
+    padding: 6px 12px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    color: var(--white);
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 16px rgba(11,17,33,0.18);
+    flex-shrink: 0;
+}
+
+/* Narrative */
+.rc-narrative {
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--gray-100);
+    border-left: 3px solid var(--rc-accent);
+    margin-bottom: 12px;
+}
+.rc-narrative p {
+    font-size: 0.82rem;
+    color: var(--gray-800);
+    line-height: 1.62;
+    margin: 0;
+}
+.rc-narrative p em {
+    font-style: italic;
+    color: var(--rp-red-deep);
+    font-weight: 700;
+    background: var(--rp-red-dim);
+    padding: 0 4px;
+    border-radius: 3px;
+}
+.rc-narrative .rc-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--gray-200);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.04em;
+}
+.rc-narrative .rc-meta-line i { color: var(--rp-blue-deep); font-size: 0.7rem; }
+
+/* Trust snapshot */
+.rc-trust-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px dashed var(--gray-200);
+}
+.rc-trust-cell {
+    line-height: 1.15;
+    text-align: center;
+}
+.rc-trust-cell b {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+.rc-trust-cell b.critical { color: var(--rp-red-deep); }
+.rc-trust-cell b.warning  { color: var(--rp-amber-deep); }
+.rc-trust-cell b.ok       { color: var(--rp-emerald-deep); }
+.rc-trust-cell span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-top: 3px;
+}
+
+/* ---- Right: evidence meta ---- */
+.rc-meta {
+    padding: 4px 0 4px 24px;
+    border-left: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.rc-meta-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+    display: block;
+}
+.rc-evidence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.rc-evidence {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    font-size: 0.72rem;
+    transition: var(--transition);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    border: none;
+    color: inherit;
+    width: 100%;
+}
+.rc-evidence:hover {
+    background: var(--white);
+    box-shadow: 0 4px 12px rgba(11,17,33,0.06);
+    transform: translateX(3px);
+}
+.rc-evidence .ev-ic {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: var(--white);
+    display: grid;
+    place-items: center;
+    color: var(--rp-blue-deep);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(11,17,33,0.06);
+}
+.rc-evidence .ev-info { flex: 1; min-width: 0; }
+.rc-evidence .ev-info strong {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rc-evidence .ev-info span {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.rc-evidence .ev-arrow {
+    color: var(--gray-300);
+    font-size: 0.68rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.rc-evidence:hover .ev-arrow {
+    color: var(--rp-blue-deep);
+    transform: translateX(3px);
+}
+
+/* ---- Actions ---- */
+.rc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 200px;
+    padding-top: 4px;
+}
+.rc-actions .rc-action-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: right;
+    margin-bottom: 2px;
+}
+.rc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.rc-btn i { font-size: 0.86rem; }
+
+.rc-btn.primary {
+    background: linear-gradient(135deg, var(--rp-blue), var(--rp-blue-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.32);
+}
+.rc-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(59, 130, 246, 0.44);
+}
+.rc-btn.investigate {
+    background: linear-gradient(135deg, var(--rp-violet), var(--rp-violet-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.32);
+}
+.rc-btn.investigate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(139, 92, 246, 0.44);
+}
+.rc-btn.escalate {
+    background: var(--white);
+    color: var(--rp-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+}
+.rc-btn.escalate:hover {
+    background: var(--rp-red-dim);
+    border-color: var(--rp-red);
+    transform: translateY(-2px);
+}
+.rc-btn.dismiss {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+.rc-btn.dismiss:hover {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.rc-btn.resolve {
+    background: linear-gradient(135deg, var(--rp-emerald), var(--rp-emerald-deep));
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.32);
+}
+.rc-btn.resolve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(5, 150, 105, 0.44);
+}
+.rc-btn.ghost {
+    background: transparent;
+    color: var(--rp-blue-deep);
+    border: 1px dashed rgba(59, 130, 246, 0.5);
+    font-size: 0.72rem;
+    padding: 9px 14px;
+}
+.rc-btn.ghost:hover {
+    background: var(--rp-blue-dim);
+    border-style: solid;
+    border-color: var(--rp-blue);
+}
+
+/* ============================================================
+   RESOLVED INFO
+   ============================================================ */
+.rc-resolved-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+.rc-resolved-info .verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 9px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.rc-resolved-info .verdict.resolved {
+    background: var(--rp-emerald-dim);
+    color: var(--rp-emerald-deep);
+    border: 1px solid rgba(5, 150, 105, 0.34);
+}
+.rc-resolved-info .verdict.dismissed {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-200);
+}
+.rc-resolved-info .verdict.action {
+    background: var(--rp-red-dim);
+    color: var(--rp-red-deep);
+    border: 1px solid rgba(220, 38, 38, 0.34);
+}
+.rc-resolved-info .by {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray-400);
+    letter-spacing: 0.02em;
+}
+.rc-resolved-info .by b { color: var(--gray-600); font-weight: 800; }
+
+/* ============================================================
+   ADMIN EXCLUSIVE — REPORTS CONSOLE
+   ============================================================ */
+.reports-console {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 28px;
+    background:
+        radial-gradient(circle at 8% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
+        radial-gradient(circle at 92% 80%, rgba(220, 38, 38, 0.14), transparent 46%),
+        linear-gradient(140deg, #020617 0%, #0B1121 52%, #131F38 100%);
+    color: var(--white);
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(59, 130, 246, 0.26);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+}
+.reports-console::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--rp-blue), var(--rp-violet) 50%, var(--rp-red) 100%);
+    box-shadow: 0 0 22px rgba(59, 130, 246, 0.5);
+}
+.reports-console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+.rc-head-panel {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.rc-head-panel .rc-h-ic {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--rp-blue), var(--rp-violet));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.rc-head-panel h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.rc-head-panel h2 em { color: var(--rp-blue); font-style: italic; }
+.rc-head-panel p {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.rc-head-panel .rc-tier {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 50px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.42);
+    color: var(--rp-blue);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.rc-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.rc-tool {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 15px 16px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.rc-tool::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+}
+.rc-tool:hover {
+    background: rgba(59, 130, 246, 0.10);
+    border-color: rgba(59, 130, 246, 0.42);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(59, 130, 246, 0.18);
+}
+.rc-tool:hover::before { transform: translateX(120%); }
+.rc-tool .rc-t-ic {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    display: grid;
+    place-items: center;
+    color: var(--rp-blue);
+    font-size: 0.94rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+.rc-tool:hover .rc-t-ic {
+    background: linear-gradient(135deg, var(--rp-blue), var(--rp-violet));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.42);
+}
+.rc-tool.danger .rc-t-ic { color: var(--rp-red); }
+.rc-tool.danger:hover {
+    background: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.42);
+}
+.rc-tool.danger:hover .rc-t-ic {
+    background: linear-gradient(135deg, var(--rp-red), var(--rp-red-deep));
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.42);
+}
+.rc-tool.emerald .rc-t-ic { color: var(--rp-emerald); }
+.rc-tool.emerald:hover { background: rgba(5, 150, 105, 0.10); border-color: rgba(5, 150, 105, 0.42); }
+.rc-tool.emerald:hover .rc-t-ic {
+    background: linear-gradient(135deg, var(--rp-emerald), var(--rp-emerald-deep));
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.42);
+}
+.rc-tool .rc-t-body { flex: 1; min-width: 0; }
+.rc-tool .rc-t-body strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 3px;
+}
+.rc-tool .rc-t-body p {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+.rc-tool .rc-t-arrow {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.32);
+    font-size: 0.7rem;
+    transition: var(--transition);
+}
+.rc-tool:hover .rc-t-arrow { color: var(--rp-blue); transform: translateX(4px); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1360px) {
+    .rp-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rp-card-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+    .rc-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; min-width: 0; justify-content: flex-end; }
+    .rc-actions .rc-action-label { display: none; }
+}
+@media (max-width: 1180px) {
+    .rp-hero-right { align-items: stretch; width: 100%; }
+    .admin-crown-badge { min-width: 0; width: 100%; }
+    .rc-meta { border-left: none; border-top: 1px dashed var(--gray-200); padding-left: 0; padding-top: 16px; }
+    .rp-card-grid { grid-template-columns: 1fr; gap: 18px; padding: 22px 22px 22px 26px; }
+    .rc-actions { grid-column: auto; }
+    .rc-vs { grid-template-columns: 1fr; }
+    .rc-vs-badge { justify-self: center; }
+    .rc-party.accused { flex-direction: row; text-align: left; }
+}
+@media (max-width: 900px) {
+    .rp-hero { padding: 24px 20px; }
+    .rp-hero-title { font-size: 1.55rem; }
+    .rp-tab { padding: 11px 16px; font-size: 0.8rem; }
+    .rp-tab .tab-label small { display: none; }
+}
+@media (max-width: 720px) {
+    .rp-stat-strip { grid-template-columns: 1fr; }
+    .rp-hero { padding: 22px 18px; }
+    .rp-hero-title { font-size: 1.4rem; }
+    .acb-meta .acb-name { max-width: 150px; }
+    .rp-toolbar { padding: 12px 14px; }
+    .rp-search { min-width: 100%; }
+    .rc-actions { flex-direction: column; align-items: stretch; }
+    .rc-actions .rc-action-label { display: block; text-align: left; }
+    .rc-trust-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .rp-tabs { padding: 6px; gap: 3px; }
+    .rp-tab { padding: 9px 12px; font-size: 0.72rem; gap: 7px; }
+    .rp-tab .tab-badge { display: none; }
+    .rp-tab .tab-ic { width: 26px; height: 26px; font-size: 0.76rem; }
+    .rp-wire-label { display: none; }
+    .rp-wire-track { padding-left: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rp-wire-track, .acb-avatar::before, .rp-wire-label .rp-dot,
+    .rp-wire-item .wdot, .admin-crown-badge::before, .rp-tab .tab-badge.glow {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================
+     REPORTS WIRE — MARQUEE
+     ============================================================ -->
+<div class="rp-wire" aria-label="Reports pulse">
+    <span class="rp-wire-edge left"></span>
+    <span class="rp-wire-edge right"></span>
+    <div class="rp-wire-label"><span class="rp-dot"></span> Reports Wire</div>
+    <div class="rp-wire-track">
+        <!-- Set A -->
+        <span class="rp-wire-item blue"><span class="wdot"></span><strong>4</strong> open cases · <em>2 abuse · 1 scam · 1 harassment</em></span>
+        <span class="rp-wire-item red"><span class="wdot"></span><strong>1</strong> critical severity · escalated within 1h SLA</span>
+        <span class="rp-wire-item violet"><span class="wdot"></span><strong>2</strong> under active investigation</span>
+        <span class="rp-wire-item emerald"><span class="wdot"></span><strong>18</strong> resolved this week · avg 4h 22m</span>
+        <span class="rp-wire-item amber"><span class="wdot"></span><strong>3</strong> repeat offenders in dossier window</span>
+        <span class="rp-wire-item blue"><span class="wdot"></span>Complaint clarity <strong>+18%</strong> vs. last month</span>
+        <span class="rp-wire-item emerald"><span class="wdot"></span>False report rate <strong>4.2%</strong> · best on record</span>
+        <span class="rp-wire-item red"><span class="wdot"></span><strong>1</strong> account suspended pending review</span>
+        <span class="rp-wire-item violet"><span class="wdot"></span>Median case-to-verdict <strong>4h 22m</strong></span>
+        <span class="rp-wire-item amber"><span class="wdot"></span><strong>7</strong> cases cross-linked to dossiers</span>
+
+        <!-- Set B (duplicate for seamless loop) -->
+        <span class="rp-wire-item blue"><span class="wdot"></span><strong>4</strong> open cases · <em>2 abuse · 1 scam · 1 harassment</em></span>
+        <span class="rp-wire-item red"><span class="wdot"></span><strong>1</strong> critical severity · escalated within 1h SLA</span>
+        <span class="rp-wire-item violet"><span class="wdot"></span><strong>2</strong> under active investigation</span>
+        <span class="rp-wire-item emerald"><span class="wdot"></span><strong>18</strong> resolved this week · avg 4h 22m</span>
+        <span class="rp-wire-item amber"><span class="wdot"></span><strong>3</strong> repeat offenders in dossier window</span>
+        <span class="rp-wire-item blue"><span class="wdot"></span>Complaint clarity <strong>+18%</strong> vs. last month</span>
+        <span class="rp-wire-item emerald"><span class="wdot"></span>False report rate <strong>4.2%</strong> · best on record</span>
+        <span class="rp-wire-item red"><span class="wdot"></span><strong>1</strong> account suspended pending review</span>
+        <span class="rp-wire-item violet"><span class="wdot"></span>Median case-to-verdict <strong>4h 22m</strong></span>
+        <span class="rp-wire-item amber"><span class="wdot"></span><strong>7</strong> cases cross-linked to dossiers</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     REPORTS HERO
+     ============================================================ -->
+<section class="rp-hero fade-up">
+    <div class="rp-hero-inner">
+        <div class="rp-hero-left">
+            <span class="rp-hero-kicker">
+                <i class="bi bi-file-earmark-medical-fill"></i>
+                User Reports · Root Access
+            </span>
+            <h1 class="rp-hero-title">
+                Every complaint, <em>fairly heard</em>.
+            </h1>
+            <p class="rp-hero-sub">
+                Member-to-member reports — <strong>abuse</strong>, <strong>scam</strong>,
+                <strong>harassment</strong>, and <strong>impersonation</strong> — triaged and
+                adjudicated with full evidence trails. SLA <strong>1 hour</strong> for critical,
+                <strong>24 hours</strong> for standard. False report rate <strong>4.2%</strong>.
+            </p>
+            <div class="rp-hero-meta">
+                <span class="hm"><i class="bi bi-inboxes-fill"></i> 4 open</span>
+                <span class="hm warn"><i class="bi bi-exclamation-octagon-fill"></i> 1 critical</span>
+                <span class="hm"><i class="bi bi-search"></i> 2 investigating</span>
+                <span class="hm"><i class="bi bi-check2-circle"></i> 18 resolved · 7d</span>
+            </div>
+        </div>
+
+        <div class="rp-hero-right">
+            <!-- ADMIN CROWN BADGE -->
+            <div class="admin-crown-badge" title="Verified Super Admin Identity">
+                <div class="acb-avatar">
+                    <i class="bi bi-crown-fill acb-crown"></i>
+                    <span class="acb-face">{{ request.user.initials|default:"AD" }}</span>
+                </div>
+                <div class="acb-meta">
+                    <span class="acb-name">{{ request.user.get_full_name|default:"Adaeze Nwosu" }}</span>
+                    <span class="acb-role"><i class="bi bi-crown-fill"></i> Super Admin · Root</span>
+                    <span class="acb-id">KW-ADM-0001 · REPORTS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TABS
+     ============================================================ -->
+<nav class="rp-tabs" role="tablist" aria-label="Report sections">
+    <button class="rp-tab active" data-tab="open" role="tab" style="--tab-accent: #3B82F6; --tab-accent-deep: #1D4ED8; --tab-accent-dim: rgba(59,130,246,0.10); --tab-accent-glow: rgba(59,130,246,0.42);">
+        <span class="tab-ic"><i class="bi bi-inboxes-fill"></i></span>
+        <span class="tab-label">
+            Open Cases
+            <small>Fresh reports</small>
+        </span>
+        <span class="tab-badge glow">4</span>
+    </button>
+    <button class="rp-tab" data-tab="investigating" role="tab" style="--tab-accent: #8B5CF6; --tab-accent-deep: #6D28D9; --tab-accent-dim: rgba(139,92,246,0.10); --tab-accent-glow: rgba(139,92,246,0.42);">
+        <span class="tab-ic"><i class="bi bi-search"></i></span>
+        <span class="tab-label">
+            Under Investigation
+            <small>Active review</small>
+        </span>
+        <span class="tab-badge">2</span>
+    </button>
+    <button class="rp-tab" data-tab="resolved" role="tab" style="--tab-accent: #059669; --tab-accent-deep: #065F46; --tab-accent-dim: rgba(5,150,105,0.10); --tab-accent-glow: rgba(5,150,105,0.42);">
+        <span class="tab-ic"><i class="bi bi-check2-circle"></i></span>
+        <span class="tab-label">
+            Resolved
+            <small>Verdicts</small>
+        </span>
+        <span class="tab-badge">18</span>
+    </button>
+</nav>
+
+<!-- ============================================================
+     PANELS
+     ============================================================ -->
+<div class="rp-panels">
+
+    <!-- =================================================
+         PANEL 1 — OPEN CASES
+         ================================================= -->
+    <div class="rp-panel active" id="panel-open" role="tabpanel">
+
+        <div class="rp-stat-strip">
+            <div class="rp-stat blue fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-inboxes-fill"></i></span><span class="rs-trend"><i class="bi bi-arrow-up-short"></i> 2 new</span></div>
+                <span class="rs-label">Open Cases</span>
+                <div class="rs-value"><span data-count="4">0</span></div>
+            </div>
+            <div class="rp-stat red fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-exclamation-octagon-fill"></i></span><span class="rs-trend down"><i class="bi bi-dash"></i> urgent</span></div>
+                <span class="rs-label">Critical Severity</span>
+                <div class="rs-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="rp-stat amber fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-shield-fill-exclamation"></i></span><span class="rs-trend warn"><i class="bi bi-dash"></i> scam</span></div>
+                <span class="rs-label">Scam / Fraud Cases</span>
+                <div class="rs-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="rp-stat violet fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-hourglass-split"></i></span><span class="rs-trend"><i class="bi bi-dash"></i> avg</span></div>
+                <span class="rs-label">Median Triage Time</span>
+                <div class="rs-value"><span data-count="42">0</span><small>m</small></div>
+            </div>
+        </div>
+
+        <div class="rp-toolbar">
+            <div class="rp-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search cases by complainant, accused, or case ID…" aria-label="Search cases">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="rp-select" data-toast="Sort by: Oldest first" data-toast-type="info">
+                <i class="bi bi-sort-down"></i>
+                <span>Oldest First</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <button class="rp-select" data-toast="Category filter opened" data-toast-type="info">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Any Category</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="rp-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="rp-list">
+
+            <!-- Open Case #1 — CRITICAL (scam) -->
+            <article class="rp-card critical fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity critical"><i class="bi bi-exclamation-octagon-fill"></i> Critical</span>
+                            <span class="rc-category scam"><i class="bi bi-shield-fill-exclamation"></i> Scam / Fraud</span>
+                            <span class="rc-id">#RP-4821 · 22 min ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">BA<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Blessing Adeyemi</span>
+                                    <span class="rp-sub">KW-STU-11842 · Verified student</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">M4<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Mentor Account 4821</span>
+                                    <span class="rp-sub">KW-MNT-4821 · Unverified mentor</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complainant states that this mentor collected <em>₦180,000</em> for a paid mentorship package and then blocked her on all platforms without delivering any sessions. She has chat screenshots, a bank transfer receipt, and a WhatsApp voice note. Two other students report similar experiences.
+                            </p>
+                            <div class="rc-meta-line">
+                                <i class="bi bi-clock-history"></i>
+                                Filed 22 min ago · SLA 1h remaining
+                                <span>·</span>
+                                <i class="bi bi-files"></i>
+                                <span>4 evidence attachments</span>
+                            </div>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b>₦180K</b><span>Reported Loss</span></div>
+                            <div class="rc-trust-cell"><b class="critical">3</b><span>Similar Complaints</span></div>
+                            <div class="rc-trust-cell"><b class="critical">12</b><span>Accused Trust Score</span></div>
+                            <div class="rc-trust-cell"><b class="warning">1h</b><span>SLA Remaining</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Evidence &amp; Context</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Opening chat screenshots (6 images)" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-chat-square-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Chat screenshots</strong>
+                                        <span>6 images · WhatsApp &amp; IG</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening payment receipt" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-receipt"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Payment receipt</strong>
+                                        <span>₦180K bank transfer · GTB</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening voice note transcript" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-mic-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Voice note</strong>
+                                        <span>2:14 min · threat language detected</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Viewing 2 related complaints from other students" data-toast-type="error">
+                                    <span class="ev-ic"><i class="bi bi-people-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Similar complaints</strong>
+                                        <span>2 more from other students</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-actions">
+                        <span class="rc-action-label">Review</span>
+                        <button class="rc-btn investigate" data-toast="Case opened for investigation · accused notified" data-toast-type="violet"><i class="bi bi-search"></i> Investigate</button>
+                        <button class="rc-btn escalate" data-toast="⚠ Escalated to Legal · financial fraud" data-toast-type="error"><i class="bi bi-shield-fill-exclamation"></i> Escalate</button>
+                        <button class="rc-btn dismiss" data-toast="Opening evidence detail view" data-toast-type="info"><i class="bi bi-eye"></i> View Full</button>
+                        <button class="rc-btn ghost" data-toast="Opening dossier for KW-MNT-4821" data-toast-type="info"><i class="bi bi-person-vcard-fill"></i> Open Dossier</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open Case #2 — SERIOUS (harassment) -->
+            <article class="rp-card serious fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity serious"><i class="bi bi-exclamation-triangle-fill"></i> Serious</span>
+                            <span class="rc-category harassment"><i class="bi bi-shield-fill-exclamation"></i> Harassment</span>
+                            <span class="rc-id">#RP-4818 · 2h ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">SM<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Sarah Mitchell</span>
+                                    <span class="rp-sub">KW-STU-10342 · Verified student</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">DO<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Daniel Okonkwo</span>
+                                    <span class="rp-sub">KW-STU-11342 · Student</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complainant states that the accused sent her <em>unsolicited and repeated personal messages</em> after she declined to share personal contact details, escalating to hostile comments on her course reviews. She has provided chat exports and timestamps of three separate exchanges.
+                            </p>
+                            <div class="rc-meta-line">
+                                <i class="bi bi-clock-history"></i>
+                                Filed 2h ago · SLA 22h remaining
+                                <span>·</span>
+                                <i class="bi bi-files"></i>
+                                <span>3 evidence attachments</span>
+                            </div>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b>3</b><span>Incidents Cited</span></div>
+                            <div class="rc-trust-cell"><b class="warning">58</b><span>Accused Trust Score</span></div>
+                            <div class="rc-trust-cell"><b>2</b><span>Prior Warnings</span></div>
+                            <div class="rc-trust-cell"><b class="ok">22h</b><span>SLA Remaining</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Evidence &amp; Context</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Opening chat export with timestamps" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-chat-square-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Chat export</strong>
+                                        <span>3 conversations · timestamps</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening 3 hostile reviews" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-star-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Hostile reviews</strong>
+                                        <span>3 reviews on her courses</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Viewing 2 prior warnings to the accused" data-toast-type="error">
+                                    <span class="ev-ic"><i class="bi bi-shield-fill-exclamation"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Prior warnings</strong>
+                                        <span>2 warnings in last 30 days</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-actions">
+                        <span class="rc-action-label">Review</span>
+                        <button class="rc-btn investigate" data-toast="Case opened for investigation" data-toast-type="violet"><i class="bi bi-search"></i> Investigate</button>
+                        <button class="rc-btn escalate" data-toast="⚠ Escalated to senior moderator" data-toast-type="warning"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                        <button class="rc-btn dismiss" data-toast="Opening evidence detail view" data-toast-type="info"><i class="bi bi-eye"></i> View Full</button>
+                        <button class="rc-btn ghost" data-toast="Opening dossier for Daniel Okonkwo" data-toast-type="info"><i class="bi bi-person-vcard-fill"></i> Open Dossier</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open Case #3 — SERIOUS (abuse) -->
+            <article class="rp-card serious fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity serious"><i class="bi bi-exclamation-triangle-fill"></i> Serious</span>
+                            <span class="rc-category abuse"><i class="bi bi-shield-fill-exclamation"></i> Abuse</span>
+                            <span class="rc-id">#RP-4815 · 4h ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">AN<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Amara Nwosu</span>
+                                    <span class="rp-sub">KW-TCH-0084 · Verified teacher</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">??<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Anonymous Reviewer</span>
+                                    <span class="rp-sub">KW-STU-12984 · New account</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complainant states that a new account posted <em>abusive reviews</em> across three of her courses within 6 hours of registration, containing personal insults and false claims about course quality. Account has zero enrollments and was created the same day.
+                            </p>
+                            <div class="rc-meta-line">
+                                <i class="bi bi-clock-history"></i>
+                                Filed 4h ago · SLA 20h remaining
+                                <span>·</span>
+                                <i class="bi bi-files"></i>
+                                <span>3 abusive reviews</span>
+                            </div>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="warning">3</b><span>Abusive Posts</span></div>
+                            <div class="rc-trust-cell"><b class="ok">94</b><span>Complainant Trust</span></div>
+                            <div class="rc-trust-cell"><b class="critical">0</b><span>Accused Enrollments</span></div>
+                            <div class="rc-trust-cell"><b>6h</b><span>Account Age</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Evidence &amp; Context</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Opening 3 abusive reviews" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-star-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>3 abusive reviews</strong>
+                                        <span>Posted within 6 hours</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening account creation timeline" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-clock-history"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Account timeline</strong>
+                                        <span>Created same day · zero activity</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Checking IP & device fingerprint" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-diagram-2-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Linked accounts</strong>
+                                        <span>2 accounts · same device</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-actions">
+                        <span class="rc-action-label">Review</span>
+                        <button class="rc-btn investigate" data-toast="Case opened for investigation" data-toast-type="violet"><i class="bi bi-search"></i> Investigate</button>
+                        <button class="rc-btn escalate" data-toast="⚠ Escalated for coordinated abuse review" data-toast-type="error"><i class="bi bi-shield-fill-exclamation"></i> Escalate</button>
+                        <button class="rc-btn dismiss" data-toast="Opening evidence detail view" data-toast-type="info"><i class="bi bi-eye"></i> View Full</button>
+                        <button class="rc-btn ghost" data-toast="Opening reviews to remove" data-toast-type="info"><i class="bi bi-trash3"></i> Remove Reviews</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Open Case #4 — MINOR (impersonation) -->
+            <article class="rp-card investigating fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity minor"><i class="bi bi-info-circle-fill"></i> Minor</span>
+                            <span class="rc-category"><i class="bi bi-person-badge-fill"></i> Impersonation</span>
+                            <span class="rc-id">#RP-4812 · 8h ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">TB<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Tunde Bakare</span>
+                                    <span class="rp-sub">KW-MNT-0118 · Verified mentor</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">??<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">"Tunde B." (fake)</span>
+                                    <span class="rp-sub">KW-STU-12981 · Unverified</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complainant states that an unverified account is <em>impersonating him</em> in course comments and DMs, offering paid sessions under his name. The account has not yet received payment but is actively contacting his students.
+                            </p>
+                            <div class="rc-meta-line">
+                                <i class="bi bi-clock-history"></i>
+                                Filed 8h ago · SLA 16h remaining
+                                <span>·</span>
+                                <i class="bi bi-files"></i>
+                                <span>2 evidence attachments</span>
+                            </div>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="warning">2</b><span>Impersonation DMs</span></div>
+                            <div class="rc-trust-cell"><b class="ok">96</b><span>Complainant Trust</span></div>
+                            <div class="rc-trust-cell"><b class="critical">22</b><span>Accused Trust Score</span></div>
+                            <div class="rc-trust-cell"><b>1d</b><span>Account Age</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Evidence &amp; Context</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Opening impersonation DMs" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-chat-square-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Impersonation DMs</strong>
+                                        <span>2 conversations</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Comparing profile metadata" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-person-badge-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Profile comparison</strong>
+                                        <span>Bio copied · photo unknown</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-actions">
+                        <span class="rc-action-label">Review</span>
+                        <button class="rc-btn investigate" data-toast="Case opened for investigation" data-toast-type="violet"><i class="bi bi-search"></i> Investigate</button>
+                        <button class="rc-btn dismiss" data-toast="Case marked as low priority · monitoring" data-toast-type="info"><i class="bi bi-flag"></i> Low Priority</button>
+                        <button class="rc-btn escalate" data-toast="⚠ Escalated for impersonation review" data-toast-type="warning"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                        <button class="rc-btn ghost" data-toast="Sending warning to accused account" data-toast-type="warning"><i class="bi bi-envelope-exclamation"></i> Warn User</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 2 — UNDER INVESTIGATION
+         ================================================= -->
+    <div class="rp-panel" id="panel-investigating" role="tabpanel">
+
+        <div class="rp-stat-strip">
+            <div class="rp-stat violet fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-search"></i></span><span class="rs-trend warn"><i class="bi bi-dash"></i> active</span></div>
+                <span class="rs-label">Under Investigation</span>
+                <div class="rs-value"><span data-count="2">0</span></div>
+            </div>
+            <div class="rp-stat blue fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-clock-history"></i></span><span class="rs-trend"><i class="bi bi-dash"></i> avg</span></div>
+                <span class="rs-label">Avg Time in Review</span>
+                <div class="rs-value"><span data-count="4">0</span><small>h 22m</small></div>
+            </div>
+            <div class="rp-stat amber fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-person-lines-fill"></i></span><span class="rs-trend warn"><i class="bi bi-dash"></i> pending</span></div>
+                <span class="rs-label">Awaiting Response</span>
+                <div class="rs-value"><span data-count="1">0</span></div>
+            </div>
+            <div class="rp-stat red fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-exclamation-octagon-fill"></i></span><span class="rs-trend down"><i class="bi bi-dash"></i> escalated</span></div>
+                <span class="rs-label">Escalated to Legal</span>
+                <div class="rs-value"><span data-count="1">0</span></div>
+            </div>
+        </div>
+
+        <div class="rp-toolbar">
+            <div class="rp-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search investigating cases…" aria-label="Search investigating">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="rp-select" data-toast="Sort by: SLA first" data-toast-type="info"><i class="bi bi-sort-down"></i><span>SLA First</span><i class="bi bi-chevron-down"></i></button>
+            <button class="rp-select" data-toast="Assignee filter opened" data-toast-type="info"><i class="bi bi-funnel-fill"></i><span>Any Assignee</span><i class="bi bi-chevron-down"></i></button>
+            <div class="rp-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="rp-list">
+
+            <!-- Investigating #1 -->
+            <article class="rp-card investigating fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity serious"><i class="bi bi-search"></i> Investigating · Day 1</span>
+                            <span class="rc-category scam"><i class="bi bi-shield-fill-exclamation"></i> Scam / Fraud</span>
+                            <span class="rc-id">#RP-4819 · Investigating 4h</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">CO<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Chinedu Okafor</span>
+                                    <span class="rp-sub">KW-MNT-0118 · Verified mentor</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">PG<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Promoter Group</span>
+                                    <span class="rp-sub">3 accounts · coordinated</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complainant reports a coordinated effort by <em>3 linked accounts</em> to post fake promotions for an external "course accelerator" in his comment sections. Investigation confirmed shared device fingerprints and IP across all three accounts.
+                            </p>
+                            <div class="rc-meta-line">
+                                <i class="bi bi-clock-history"></i>
+                                Investigating for 4h · Assigned to <b style="color:var(--gray-600);">You</b>
+                                <span>·</span>
+                                <i class="bi bi-hourglass-split"></i>
+                                <span>SLA 20h remaining</span>
+                            </div>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="critical">3</b><span>Linked Accounts</span></div>
+                            <div class="rc-trust-cell"><b class="critical">2</b><span>IPs Shared</span></div>
+                            <div class="rc-trust-cell"><b class="warning">7</b><span>Posts Flagged</span></div>
+                            <div class="rc-trust-cell"><b>98%</b><span>ML Confidence</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Investigation Notes</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Opening linked-accounts analysis" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-diagram-2-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Linked accounts</strong>
+                                        <span>3 accounts · shared device</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening 7 flagged posts" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-chat-square-quote-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>7 flagged posts</strong>
+                                        <span>All link to same domain</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening account-age timeline" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-calendar3"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Account timeline</strong>
+                                        <span>All created within 48h</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-actions">
+                        <span class="rc-action-label">Decision</span>
+                        <button class="rc-btn resolve" data-toast="Case resolved · 3 accounts suspended · reporter notified" data-toast-type="success"><i class="bi bi-check2-circle"></i> Resolve</button>
+                        <button class="rc-btn dismiss" data-toast="Opening investigation notes editor" data-toast-type="info"><i class="bi bi-pencil"></i> Add Note</button>
+                        <button class="rc-btn escalate" data-toast="⚠ Escalating to legal · spam campaign" data-toast-type="error"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                        <button class="rc-btn ghost" data-toast="Viewing full case timeline" data-toast-type="info"><i class="bi bi-clock-history"></i> Timeline</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Investigating #2 -->
+            <article class="rp-card investigating fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity serious"><i class="bi bi-search"></i> Investigating · Awaiting response</span>
+                            <span class="rc-category abuse"><i class="bi bi-shield-fill-exclamation"></i> Abuse</span>
+                            <span class="rc-id">#RP-4820 · Investigating 2h</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">ZI<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Zainab Ibrahim</span>
+                                    <span class="rp-sub">KW-MNT-0102 · Verified mentor</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">??<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Anonymous Critic</span>
+                                    <span class="rp-sub">KW-STU-12990 · New account</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complainant reports <em>targeted hostile comments</em> in a live Q&A session. Accused has not yet responded to investigator outreach. Chat logs and session recording provided.
+                            </p>
+                            <div class="rc-meta-line">
+                                <i class="bi bi-clock-history"></i>
+                                Investigating for 2h · Waiting on accused reply
+                                <span>·</span>
+                                <i class="bi bi-hourglass-split"></i>
+                                <span>SLA 22h remaining</span>
+                            </div>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="warning">4</b><span>Hostile Messages</span></div>
+                            <div class="rc-trust-cell"><b class="ok">98</b><span>Complainant Trust</span></div>
+                            <div class="rc-trust-cell"><b class="critical">15</b><span>Accused Trust Score</span></div>
+                            <div class="rc-trust-cell"><b class="warning">Pending</b><span>Reply</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Investigation Notes</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Opening Q&A chat logs" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-chat-square-text-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Q&A chat logs</strong>
+                                        <span>4 hostile messages</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Opening session recording" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-camera-video-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Session recording</strong>
+                                        <span>Live Q&A · 42 min</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Viewing outreach to accused" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-envelope-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Outreach sent</strong>
+                                        <span>Awaiting reply · 2h left</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-actions">
+                        <span class="rc-action-label">Decision</span>
+                        <button class="rc-btn resolve" data-toast="Case resolved · no violation found" data-toast-type="success"><i class="bi bi-check2-circle"></i> Resolve</button>
+                        <button class="rc-btn dismiss" data-toast="Opening notes editor" data-toast-type="info"><i class="bi bi-pencil"></i> Add Note</button>
+                        <button class="rc-btn escalate" data-toast="⚠ Escalated for senior review" data-toast-type="warning"><i class="bi bi-arrow-up-circle-fill"></i> Escalate</button>
+                        <button class="rc-btn ghost" data-toast="Sending nudge to accused" data-toast-type="info"><i class="bi bi-bell-fill"></i> Nudge</button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+    <!-- =================================================
+         PANEL 3 — RESOLVED
+         ================================================= -->
+    <div class="rp-panel" id="panel-resolved" role="tabpanel">
+
+        <div class="rp-stat-strip">
+            <div class="rp-stat emerald fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-check2-circle"></i></span><span class="rs-trend"><i class="bi bi-arrow-up-short"></i> 18</span></div>
+                <span class="rs-label">Resolved · 7d</span>
+                <div class="rs-value"><span data-count="18">0</span></div>
+            </div>
+            <div class="rp-stat red fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-shield-fill-x"></i></span><span class="rs-trend down"><i class="bi bi-dash"></i> action</span></div>
+                <span class="rs-label">Actions Taken</span>
+                <div class="rs-value"><span data-count="8">0</span></div>
+            </div>
+            <div class="rp-stat blue fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-x-circle"></i></span><span class="rs-trend"><i class="bi bi-dash"></i> false</span></div>
+                <span class="rs-label">Dismissed (No Violation)</span>
+                <div class="rs-value"><span data-count="10">0</span></div>
+            </div>
+            <div class="rp-stat violet fade-up">
+                <div class="rs-head"><span class="rs-ic"><i class="bi bi-arrow-counterclockwise"></i></span><span class="rs-trend warn"><i class="bi bi-dash"></i> appeal</span></div>
+                <span class="rs-label">Appeals Upheld</span>
+                <div class="rs-value"><span data-count="1">0</span></div>
+            </div>
+        </div>
+
+        <div class="rp-toolbar">
+            <div class="rp-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search resolved cases…" aria-label="Search resolved">
+                <kbd>⌘K</kbd>
+            </div>
+            <button class="rp-select" data-toast="Sort by: Most recent" data-toast-type="info"><i class="bi bi-sort-down"></i><span>Most Recent</span><i class="bi bi-chevron-down"></i></button>
+            <button class="rp-select" data-toast="Verdict filter opened" data-toast-type="info"><i class="bi bi-funnel-fill"></i><span>Any Verdict</span><i class="bi bi-chevron-down"></i></button>
+            <div class="rp-toolbar-right">
+                <button class="btn-sm line" data-toast="Export queued" data-toast-type="info"><i class="bi bi-download"></i> Export</button>
+            </div>
+        </div>
+
+        <div class="rp-list">
+
+            <!-- Resolved #1 — action taken -->
+            <article class="rp-card resolved fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity critical"><i class="bi bi-shield-fill-x"></i> Action Taken</span>
+                            <span class="rc-category scam"><i class="bi bi-shield-fill-exclamation"></i> Scam / Fraud</span>
+                            <span class="rc-id">#RP-4808 · Resolved 2 days ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">FO<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Fatima Oyelaran</span>
+                                    <span class="rp-sub">KW-STU-12984 · Verified</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">SA<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Spam Account 4821</span>
+                                    <span class="rp-sub">KW-STU-08412 · Banned</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Case confirmed. Accused <em>repeatedly solicited external payments</em> from students via DM, with 4 verified complaints. Account permanently banned, evidence packaged for legal, and complainants notified.
+                            </p>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="critical">Permanent Ban</b><span>Verdict</span></div>
+                            <div class="rc-trust-cell"><b>4</b><span>Complaints Merged</span></div>
+                            <div class="rc-trust-cell"><b>₦480K</b><span>Total Reported Loss</span></div>
+                            <div class="rc-trust-cell"><b>42m</b><span>Time to Verdict</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Decision Trail</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Viewing full decision notes" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-journal-text"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Decision notes</strong>
+                                        <span>3 paragraphs · signed</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Viewing 4 merged complaints" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-files"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Merged complaints</strong>
+                                        <span>4 total · same pattern</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Account banned permanently" data-toast-type="error">
+                                    <span class="ev-ic"><i class="bi bi-slash-circle-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Ban issued</strong>
+                                        <span>Permanent · KYC retained</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-resolved-info">
+                        <span class="verdict action"><i class="bi bi-shield-fill-x"></i> Action Taken</span>
+                        <span class="by">by <b>You</b> · Apr 06</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Resolved #2 — dismissed -->
+            <article class="rp-card resolved fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity minor"><i class="bi bi-x-circle"></i> Dismissed</span>
+                            <span class="rc-category"><i class="bi bi-info-circle"></i> Other</span>
+                            <span class="rc-id">#RP-4805 · Resolved 3 days ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">RK<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Ravi Kumar</span>
+                                    <span class="rp-sub">KW-TCH-0218 · Teacher</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">EP<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Emeka Peters</span>
+                                    <span class="rp-sub">KW-TCH-0312 · Teacher</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Complaint reviewed. Accused's actions fell within normal teacher-to-teacher critique. No harassment or abuse present. <em>Dismissed with note</em>, both parties notified.
+                            </p>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="ok">No Violation</b><span>Verdict</span></div>
+                            <div class="rc-trust-cell"><b class="ok">94</b><span>Complainant Trust</span></div>
+                            <div class="rc-trust-cell"><b class="ok">88</b><span>Accused Trust</span></div>
+                            <div class="rc-trust-cell"><b>2h 14m</b><span>Time to Verdict</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Decision Trail</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Viewing full decision notes" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-journal-text"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Decision notes</strong>
+                                        <span>Dismissed with rationale</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Complainant was notified" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-envelope-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Notified</strong>
+                                        <span>Complainant + accused</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-resolved-info">
+                        <span class="verdict dismissed"><i class="bi bi-x-circle"></i> Dismissed</span>
+                        <span class="by">by <b>You</b> · Apr 05</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Resolved #3 — action taken (warning) -->
+            <article class="rp-card resolved fade-up">
+                <div class="rp-card-grid">
+                    <div class="rc-case">
+                        <div class="rc-head-row">
+                            <span class="rc-severity serious"><i class="bi bi-shield-fill-x"></i> Warning Issued</span>
+                            <span class="rc-category harassment"><i class="bi bi-shield-fill-exclamation"></i> Harassment</span>
+                            <span class="rc-id">#RP-4802 · Resolved 4 days ago</span>
+                        </div>
+
+                        <div class="rc-vs">
+                            <div class="rc-party">
+                                <span class="rp-av">AN<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Complainant</span>
+                                    <span class="rp-name">Amara Nwosu</span>
+                                    <span class="rp-sub">KW-TCH-0084 · Verified teacher</span>
+                                </div>
+                            </div>
+                            <span class="rc-vs-badge">vs</span>
+                            <div class="rc-party accused">
+                                <span class="rp-av">DO<span class="rp-badge"><i class="bi bi-person-fill"></i></span></span>
+                                <div class="rp-info">
+                                    <span class="rp-role">Accused</span>
+                                    <span class="rp-name">Daniel Okonkwo</span>
+                                    <span class="rp-sub">KW-STU-11342 · Student</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rc-narrative">
+                            <p>
+                                Case confirmed as <em>first-time harassment</em>. Pattern consistent with lack of platform awareness rather than malicious intent. <b>Final warning issued</b>, tone reminder sent, monitored for 30 days.
+                            </p>
+                        </div>
+
+                        <div class="rc-trust-row">
+                            <div class="rc-trust-cell"><b class="warning">Warning</b><span>Verdict</span></div>
+                            <div class="rc-trust-cell"><b class="ok">94</b><span>Complainant Trust</span></div>
+                            <div class="rc-trust-cell"><b class="warning">58</b><span>Accused Trust</span></div>
+                            <div class="rc-trust-cell"><b>3h 48m</b><span>Time to Verdict</span></div>
+                        </div>
+                    </div>
+
+                    <div class="rc-meta">
+                        <div>
+                            <span class="rc-meta-head">Decision Trail</span>
+                            <div class="rc-evidence-list">
+                                <button class="rc-evidence" data-toast="Viewing decision notes" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-journal-text"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Decision notes</strong>
+                                        <span>Warning with 30d monitor</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="Warning email delivered" data-toast-type="warning">
+                                    <span class="ev-ic"><i class="bi bi-envelope-exclamation-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Warning issued</strong>
+                                        <span>Email + in-app notice</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                                <button class="rc-evidence" data-toast="30-day monitoring enabled" data-toast-type="info">
+                                    <span class="ev-ic"><i class="bi bi-eye-fill"></i></span>
+                                    <div class="ev-info">
+                                        <strong>Monitoring enabled</strong>
+                                        <span>30-day window · dossier updated</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ev-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rc-resolved-info">
+                        <span class="verdict action"><i class="bi bi-shield-fill-x"></i> Warning Issued</span>
+                        <span class="by">by <b>You</b> · Apr 04</span>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     ADMIN EXCLUSIVE — REPORTS CONSOLE
+     ============================================================ -->
+<div class="reports-console fade-up">
+    <div class="rc-head-panel">
+        <span class="rc-h-ic"><i class="bi bi-file-earmark-medical-fill"></i></span>
+        <div>
+            <h2>Reports <em>Console</em></h2>
+            <p>ROOT-ONLY · CASE MANAGEMENT · EVIDENCE HANDLING · AUDIT-LOGGED</p>
+        </div>
+        <span class="rc-tier"><i class="bi bi-shield-lock-fill"></i> Tier · Root</span>
+    </div>
+
+    <div class="rc-grid">
+        <button class="rc-tool" data-toast="Bulk triage tool opened — 4 open cases" data-toast-type="info">
+            <span class="rc-t-ic"><i class="bi bi-list-check"></i></span>
+            <div class="rc-t-body">
+                <strong>Bulk Triage</strong>
+                <p>Triage multiple open cases in one review pass with shared verdicts.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool" data-toast="Complaint categories opened — 8 active" data-toast-type="info">
+            <span class="rc-t-ic"><i class="bi bi-tags-fill"></i></span>
+            <div class="rc-t-body">
+                <strong>Categories &amp; Severity</strong>
+                <p>Define categories, SLAs, and escalation rules for each report type.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool emerald" data-toast="Abuse patterns opened — 3 coordinated clusters" data-toast-type="warning">
+            <span class="rc-t-ic"><i class="bi bi-diagram-2-fill"></i></span>
+            <div class="rc-t-body">
+                <strong>Abuse Clusters</strong>
+                <p>Detect coordinated abuse patterns across multiple reporters and accused.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool" data-toast="Evidence vault opened — encrypted, audit-logged" data-toast-type="info">
+            <span class="rc-t-ic"><i class="bi bi-folder-lock-fill"></i></span>
+            <div class="rc-t-body">
+                <strong>Evidence Vault</strong>
+                <p>Encrypted store for chat exports, screenshots, and recordings.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool" data-toast="Templates editor opened — 6 verdict templates" data-toast-type="info">
+            <span class="rc-t-ic"><i class="bi bi-file-earmark-text-fill"></i></span>
+            <div class="rc-t-body">
+                <strong>Verdict Templates</strong>
+                <p>Reusable verdict copy for common resolutions and dismissal notices.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool emerald" data-toast="Reporter protection rules opened" data-toast-type="info">
+            <span class="rc-t-ic"><i class="bi bi-shield-check"></i></span>
+            <div class="rc-t-body">
+                <strong>Reporter Protection</strong>
+                <p>Anonymity settings, retaliation detection, and safe follow-up rules.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool danger" data-toast="⚠ Emergency ban requires MFA + reason" data-toast-type="error">
+            <span class="rc-t-ic"><i class="bi bi-slash-circle-fill"></i></span>
+            <div class="rc-t-body">
+                <strong>Emergency Ban</strong>
+                <p>Immediate ban for verified fraud or abuse. Evidence packaged for legal.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+
+        <button class="rc-tool danger" data-toast="⚠ Freeze report intake — no new cases accepted" data-toast-type="error">
+            <span class="rc-t-ic"><i class="bi bi-snow"></i></span>
+            <div class="rc-t-body">
+                <strong>Freeze Intake</strong>
+                <p>Pause incoming reports during incidents or during handoff windows.</p>
+            </div>
+            <i class="bi bi-arrow-right rc-t-arrow"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       MAIN TABS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.rp-tab');
+    const panels = document.querySelectorAll('.rp-panel');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const panel = document.getElementById('panel-' + target);
+            if (panel) panel.classList.add('active');
+        });
+    });
+
+    /* ============================================================
+       COUNT-UP
+       ============================================================ */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            if (el.dataset.done === '1') return;
+            el.dataset.done = '1';
+            const target = parseInt(el.dataset.count, 10) || 0;
+            const start = performance.now();
+            const duration = 1300;
+            function step(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased).toLocaleString();
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            countObs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => countObs.observe(c));
+
+    /* ============================================================
+       RESOLVE — animate card out and show verdict
+       ============================================================ */
+    document.querySelectorAll('.rc-btn.resolve').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.rp-card');
+            if (!card) return;
+            card.style.transition = 'all .45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(-32px) scale(0.98)';
+            setTimeout(() => card.remove(), 460);
+        });
+    });
+
+    /* Dismiss — remove visually as resolved with no action */
+    document.querySelectorAll('.rc-btn.dismiss').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (this.dataset.noRemove) return;
+        });
+    });
+
+    /* ============================================================
+       ADMIN EXCLUSIVE TOOLS
+       ============================================================ */
+    document.querySelectorAll('.rc-tool').forEach(tool => {
+        tool.addEventListener('click', function () {
+            const msg = this.dataset.toast;
+            const type = this.dataset.toastType || 'info';
+            if (typeof window.showKnotToast === 'function' && msg) {
+                window.showKnotToast(msg, type);
+            }
+        });
+    });
+
+    /* ============================================================
+       FADE-UP OBSERVER
+       ============================================================ */
+    const fadeObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                fadeObs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.visible)').forEach(el => fadeObs.observe(el));
+
+})();
+</script>
+{% endblock %}

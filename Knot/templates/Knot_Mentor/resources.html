@@ -1,0 +1,1927 @@
+{% extends "Knot_Mentor/mentor_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Resources{% endblock %}
+{% block breadcrumb %}Resources{% endblock breadcrumb %}
+
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .res-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
+        border-radius: var(--radius-xl);
+        padding: 32px 36px;
+        color: var(--white);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 32px;
+        position: relative; overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+    .res-hero::before {
+        content: '';
+        position: absolute; top: -40%; right: -6%;
+        width: 55%; height: 190%;
+        background: radial-gradient(ellipse, rgba(190, 242, 100, 0.10) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .res-hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .rh-text { position: relative; z-index: 2; max-width: 660px; }
+    .rh-text .hero-badge { margin-bottom: 14px; }
+    .rh-text h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+    }
+    .rh-text h1 span { color: var(--secondary); font-style: italic; }
+    .rh-text p {
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        margin-bottom: 22px;
+        max-width: 540px;
+    }
+    .rh-text p strong { color: var(--white); font-weight: 600; }
+    .rh-actions {
+        display: flex; flex-wrap: wrap; gap: 12px;
+        position: relative; z-index: 2;
+    }
+
+    .rh-metrics {
+        position: relative; z-index: 2;
+        display: flex;
+        gap: 26px;
+        flex-shrink: 0;
+    }
+    .rh-metric { text-align: center; }
+    .rh-metric strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+    }
+    .rh-metric strong em { color: var(--secondary); font-style: normal; font-size: 1.15rem; }
+    .rh-metric span {
+        display: block;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 7px;
+    }
+    .rh-sep { width: 1px; background: rgba(255, 255, 255, 0.12); }
+
+    /* ============================================================
+       TRUST STRIP
+       ============================================================ */
+    .authority-strip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.10), rgba(56, 189, 248, 0.06));
+        border: 1px solid rgba(190, 242, 100, 0.28);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+    .authority-strip::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 3px;
+        background: var(--gold);
+    }
+    .as-shield {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.32);
+        position: relative;
+    }
+    .as-shield::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(11, 17, 33, 0.16);
+        pointer-events: none;
+    }
+    .as-body { flex: 1; min-width: 220px; }
+    .as-body strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+    .as-body p {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .as-body p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+    .as-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ============================================================
+       OVERVIEW STRIP
+       ============================================================ */
+    .res-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    .ro-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        padding: 20px 22px 18px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .ro-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .ro-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .ro-card:hover::before { opacity: 1; }
+    .ro-top {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .ro-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: grid; place-items: center;
+        font-size: 1rem;
+        background: rgba(190, 242, 100, 0.16); color: #4D7C0F;
+    }
+    .ro-ic.accent { background: rgba(56, 189, 248, 0.12); color: #0284C7; }
+    .ro-ic.violet { background: rgba(139, 92, 246, 0.12); color: #7C3AED; }
+    .ro-ic.amber  { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    .ro-trend {
+        font-size: 0.66rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 50px;
+        background: rgba(190, 242, 100, 0.2); color: #4D7C0F;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ro-trend.down { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .ro-trend.warn { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+    .ro-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+    .ro-value span { font-size: 0.9rem; color: var(--gray-600); font-weight: 500; }
+    .ro-label {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+    }
+    .ro-storage {
+        margin-top: 10px;
+    }
+    .ro-storage .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .ro-storage .row strong { color: var(--primary-dark); font-weight: 800; }
+
+    /* ============================================================
+       TOOLBAR
+       ============================================================ */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        height: 42px;
+        padding: 0 16px;
+        transition: var(--transition);
+    }
+    .tool-search:focus-within {
+        border-color: var(--secondary);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.14);
+    }
+    .tool-search i {
+        color: var(--gray-300);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tool-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        padding: 0 10px;
+        min-width: 0;
+    }
+    .tool-search input::placeholder { color: var(--gray-300); }
+
+    .tool-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-filter:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+    .tool-filter i:first-child { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tool-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .tool-sort:hover {
+        border-color: var(--secondary);
+        color: var(--primary-dark);
+        background: rgba(190, 242, 100, 0.06);
+    }
+
+    .tool-view {
+        display: inline-flex;
+        border: 1px solid var(--gray-200);
+        border-radius: 50px;
+        overflow: hidden;
+        background: var(--white);
+        height: 42px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .tool-view button {
+        width: 36px;
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: var(--transition);
+        display: grid; place-items: center;
+    }
+    .tool-view button:hover { color: var(--primary-dark); }
+    .tool-view button.active {
+        background: var(--gold);
+        color: var(--primary-dark);
+        box-shadow: 0 6px 14px rgba(190, 242, 100, 0.3);
+    }
+
+    /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs-card { padding: 0; overflow: hidden; }
+    .tabs-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 22px 26px 0; flex-wrap: wrap;
+    }
+    .tabs-head h3 {
+        font-size: 1.02rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .tabs-head h3 i { color: var(--secondary-deep); font-size: 0.9rem; }
+
+    .tabs {
+        display: flex; gap: 4px;
+        padding: 14px 20px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border: none; background: transparent;
+        font-family: inherit; font-size: 0.85rem; font-weight: 600;
+        color: var(--gray-600); cursor: pointer;
+        border-radius: 10px 10px 0 0;
+        position: relative; white-space: nowrap;
+        transition: var(--transition);
+    }
+    .tab::after {
+        content: '';
+        position: absolute;
+        left: 12px; right: 12px; bottom: -1px;
+        height: 2.5px;
+        border-radius: 4px 4px 0 0;
+        background: var(--secondary);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .tab:hover { color: var(--primary-dark); background: var(--gray-100); }
+    .tab.active { color: var(--primary-dark); }
+    .tab.active::after { transform: scaleX(1); }
+    .tab .count {
+        background: var(--gray-100); color: var(--gray-600);
+        font-size: 0.65rem; font-weight: 700;
+        padding: 1px 8px; border-radius: 50px; line-height: 1.6;
+        transition: var(--transition);
+    }
+    .tab.active .count { background: rgba(190, 242, 100, 0.3); color: #4D7C0F; }
+
+    .tab-panels { padding: 18px 26px 24px; }
+    .tab-panel { display: none; animation: fadeSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       RESOURCE GRID
+       ============================================================ */
+    .res-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px;
+    }
+    .res-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 20px 22px 18px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .res-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .res-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(190, 242, 100, 0.28);
+    }
+    .res-card:hover::before { opacity: 1; }
+
+    /* Head: file type icon + meta */
+    .rc-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 12px;
+    }
+    .rc-ic {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        position: relative;
+    }
+    .rc-ic::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 11px;
+        border: 1.5px solid rgba(11, 17, 33, 0.10);
+        pointer-events: none;
+    }
+    .rc-ic.pdf { background: linear-gradient(135deg, #FCA5A5, #EF4444); color: #fff; }
+    .rc-ic.pdf::after { border-color: rgba(255,255,255,0.24); }
+    .rc-ic.video { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .rc-ic.video::after { border-color: rgba(255,255,255,0.24); }
+    .rc-ic.link { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; }
+    .rc-ic.link::after { border-color: rgba(255,255,255,0.24); }
+    .rc-ic.doc { background: var(--gold); color: var(--primary-dark); }
+    .rc-ic.doc::after { border-color: rgba(11,17,33,0.14); }
+    .rc-ic.sheet { background: linear-gradient(135deg, #86EFAC, #22C55E); color: #fff; }
+    .rc-ic.sheet::after { border-color: rgba(255,255,255,0.24); }
+    .rc-ic.code { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03; }
+    .rc-ic.code::after { border-color: rgba(69,26,3,0.18); }
+
+    .rc-title-block { flex: 1; min-width: 0; }
+    .rc-kind {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #4D7C0F;
+        background: rgba(190, 242, 100, 0.20);
+        border: 1px solid rgba(190, 242, 100, 0.36);
+        padding: 2px 8px;
+        border-radius: 50px;
+        margin-bottom: 5px;
+    }
+    .rc-kind.video { color: #6D28D9; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.32); }
+    .rc-kind.link { color: #0369A1; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.32); }
+    .rc-kind.sheet { color: #15803D; background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.34); }
+
+    .rc-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Meta row */
+    .rc-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        margin-bottom: 12px;
+        align-items: center;
+    }
+    .rc-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .rc-meta i { color: var(--gray-300); font-size: 0.72rem; }
+    .rc-meta i.lime { color: var(--secondary-deep); }
+    .rc-meta i.accent { color: var(--accent); }
+    .rc-meta .sep {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--gray-300);
+    }
+
+    /* Description */
+    .rc-desc {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    /* Recipients (avatars) */
+    .rc-shared {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 11px;
+        background: var(--cream);
+        border-left: 3px solid var(--secondary);
+        margin-bottom: 14px;
+        font-size: 0.72rem;
+        color: var(--gray-600);
+    }
+    .rc-shared .avatar-stack {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .rc-shared .avatar {
+        width: 24px; height: 24px;
+        font-size: 0.55rem;
+        border: 2px solid var(--white);
+        margin-left: -8px;
+        font-family: 'Playfair Display', serif;
+    }
+    .rc-shared .avatar:first-child { margin-left: 0; }
+    .rc-shared .more {
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        font-size: 0.55rem;
+        font-weight: 800;
+        display: grid; place-items: center;
+        border: 2px solid var(--white);
+        margin-left: -8px;
+    }
+    .rc-shared strong { color: var(--primary-dark); font-weight: 700; }
+    .rc-shared .when {
+        margin-left: auto;
+        font-size: 0.66rem;
+        color: var(--gray-300);
+        font-weight: 700;
+    }
+
+    /* Stats strip */
+    .rc-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 12px 0;
+        border-top: 1px solid var(--gray-100);
+        border-bottom: 1px solid var(--gray-100);
+        margin-bottom: 14px;
+    }
+    .rc-stats div { text-align: center; }
+    .rc-stats strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1.2;
+    }
+    .rc-stats strong em { color: var(--secondary-deep); font-style: normal; }
+    .rc-stats span {
+        font-size: 0.56rem;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+    }
+
+    /* Actions */
+    .rc-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: auto;
+    }
+    .rc-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+        flex: 1;
+    }
+    .rc-action-btn i { font-size: 0.8rem; }
+    .rc-action-btn:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    .rc-action-btn.primary {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 20px rgba(190, 242, 100, 0.32);
+    }
+    .rc-action-btn.primary:hover {
+        box-shadow: 0 12px 26px rgba(190, 242, 100, 0.45);
+    }
+    .rc-action-btn.icon-only {
+        flex: 0 0 40px;
+        width: 40px;
+        padding: 8px 8px;
+    }
+
+    /* ============================================================
+       LIST VIEW
+       ============================================================ */
+    .res-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .res-list .res-card {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1.4fr) minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+        padding: 16px 22px;
+    }
+    .res-list .rc-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 0;
+    }
+    .res-list .rc-head .rc-ic {
+        width: 44px; height: 44px;
+        font-size: 1.15rem;
+    }
+    .res-list .rc-desc { margin-bottom: 0; }
+    .res-list .rc-shared { margin-bottom: 0; }
+    .res-list .rc-stats {
+        grid-template-columns: repeat(2, 1fr);
+        margin-bottom: 0;
+        border: none;
+        padding: 0;
+    }
+    .res-list .rc-actions {
+        flex-direction: column;
+        min-width: 140px;
+    }
+    .res-list .rc-actions .rc-action-btn { width: 100%; }
+
+    @media (max-width: 1180px) {
+        .res-list .res-card {
+            grid-template-columns: 48px minmax(0, 1.5fr) auto;
+        }
+        .res-list .rc-shared {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+        .res-list .rc-actions {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            padding-top: 12px;
+            border-top: 1px dashed var(--gray-100);
+        }
+    }
+
+    /* ============================================================
+       RIGHT RAIL
+       ============================================================ */
+    .side-card {
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 22px 20px;
+        transition: var(--transition);
+    }
+    .side-card:hover { box-shadow: var(--shadow-md); }
+    .side-card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 16px;
+    }
+    .side-card-head h4 {
+        font-size: 0.96rem; font-weight: 700; color: var(--primary-dark);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .side-card-head h4 i { color: var(--secondary-deep); font-size: 0.9rem; }
+    .side-card-head .link {
+        font-size: 0.72rem; font-weight: 600; color: var(--gray-600);
+        transition: var(--transition);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .side-card-head .link:hover { color: var(--primary-dark); }
+
+    /* Upload area */
+    .upload-area {
+        border: 2px dashed var(--gray-200);
+        border-radius: 14px;
+        padding: 22px 16px;
+        text-align: center;
+        transition: var(--transition);
+        cursor: pointer;
+        margin-bottom: 14px;
+    }
+    .upload-area:hover {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.05);
+    }
+    .upload-area .ua-ic {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: var(--gold);
+        color: var(--primary-dark);
+        display: grid; place-items: center;
+        font-size: 1.3rem;
+        margin: 0 auto 12px;
+        box-shadow: 0 10px 22px rgba(190, 242, 100, 0.30);
+    }
+    .upload-area strong {
+        display: block;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+    .upload-area p {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+    .upload-area .btn-gold {
+        padding: 9px 18px;
+        font-size: 0.76rem;
+        border: none;
+        border-radius: 26px;
+        transition: var(--transition);
+    }
+
+    /* Storage meter */
+    .storage-meter {
+        padding: 14px 0 4px;
+    }
+    .storage-meter .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 8px;
+    }
+    .storage-meter .row span { font-size: 0.74rem; color: var(--gray-600); font-weight: 600; }
+    .storage-meter .row strong { font-size: 0.82rem; color: var(--primary-dark); font-weight: 800; }
+    .storage-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--gray-100);
+    }
+    .storage-legend .item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.68rem;
+        color: var(--gray-600);
+        font-weight: 600;
+    }
+    .storage-legend .swatch {
+        width: 9px; height: 9px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+    .storage-legend .swatch.v { background: linear-gradient(90deg, #A78BFA, #7C3AED); }
+    .storage-legend .swatch.p { background: linear-gradient(90deg, #FCA5A5, #EF4444); }
+    .storage-legend .swatch.d { background: var(--gold); }
+    .storage-legend .swatch.o { background: var(--gray-200); }
+
+    /* Popular resource */
+    .pop-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .pop-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .pop-row:first-of-type { padding-top: 0; }
+    .pop-ic {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .pop-ic.pdf { background: linear-gradient(135deg, #FCA5A5, #EF4444); color: #fff; }
+    .pop-ic.video { background: linear-gradient(135deg, #A78BFA, #7C3AED); color: #fff; }
+    .pop-ic.link { background: linear-gradient(135deg, var(--accent), #0EA5E9); color: #fff; }
+    .pop-ic.doc { background: var(--gold); color: var(--primary-dark); }
+    .pop-ic.code { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #451A03; }
+
+    .pop-info { flex: 1; min-width: 0; }
+    .pop-info strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .pop-info span {
+        display: block;
+        font-size: 0.66rem;
+        color: var(--gray-600);
+    }
+    .pop-downloads {
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .pop-downloads strong {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+    }
+    .pop-downloads span {
+        display: block;
+        font-size: 0.56rem;
+        color: var(--gray-600);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+    }
+
+    /* Guidelines */
+    .guide-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .guide-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .guide-item i {
+        flex-shrink: 0;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: rgba(190, 242, 100, 0.20);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 0.6rem;
+        margin-top: 2px;
+    }
+    .guide-item strong { color: var(--primary-dark); font-weight: 700; }
+
+    /* ============================================================
+       TRUST HINT
+       ============================================================ */
+    .trust-hint {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(190, 242, 100, 0.06), rgba(56, 189, 248, 0.05));
+        border: 1px solid rgba(190, 242, 100, 0.22);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+    .trust-hint .th-ic {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(190, 242, 100, 0.18);
+        color: #4D7C0F;
+        display: grid; place-items: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .trust-hint div { min-width: 0; flex: 1; }
+    .trust-hint strong {
+        display: block;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+    }
+    .trust-hint p {
+        font-size: 0.76rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+    }
+    .trust-hint p strong { color: var(--primary-dark); display: inline; font-weight: 700; }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        background: var(--white);
+        border: 1px solid rgba(11, 17, 33, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .pg-info {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+    }
+    .pg-info strong { color: var(--primary-dark); font-weight: 700; }
+    .pg-controls { display: flex; align-items: center; gap: 4px; }
+    .pg-btn {
+        min-width: 38px; height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-600);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px;
+    }
+    .pg-btn:hover:not(:disabled) {
+        border-color: var(--secondary);
+        background: rgba(190, 242, 100, 0.10);
+        color: var(--primary-dark);
+    }
+    .pg-btn.active {
+        background: var(--gold);
+        border-color: transparent;
+        color: var(--primary-dark);
+        box-shadow: 0 6px 16px rgba(190, 242, 100, 0.32);
+    }
+    .pg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1240px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .res-overview { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1180px) {
+        .rh-metrics { gap: 18px; }
+        .rh-metric strong { font-size: 1.6rem; }
+    }
+    @media (max-width: 900px) {
+        .res-hero { flex-direction: column; align-items: flex-start; padding: 26px 24px; }
+        .rh-metrics { width: 100%; justify-content: space-between; }
+    }
+    @media (max-width: 640px) {
+        .res-overview { grid-template-columns: 1fr; }
+        .rh-metrics { flex-wrap: wrap; gap: 14px; }
+        .rh-sep { display: none; }
+        .rh-metric { flex: 1; min-width: 80px; }
+        .toolbar { padding: 14px 16px; }
+        .tool-sort, .tool-filter { flex: 1; justify-content: center; }
+        .pagination { flex-direction: column; align-items: stretch; text-align: center; }
+        .pg-controls { justify-content: center; flex-wrap: wrap; }
+        .trust-hint { flex-direction: column; align-items: flex-start; }
+        .res-card { padding: 18px 18px 16px; }
+    }
+    @media (max-width: 420px) {
+        .rc-actions { flex-direction: column; }
+        .rc-action-btn { width: 100%; }
+        .rc-action-btn.icon-only { width: 100%; flex: 1; }
+    }
+</style>
+{% endblock extra_css %}
+
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="res-hero fade-up">
+    <div class="rh-text">
+        <span class="hero-badge">
+            <i class="bi bi-patch-check-fill"></i> Verified Mentor · Curated library
+        </span>
+        <h1>Your <span>Resources</span></h1>
+        <p>
+            You have <strong>64 resources</strong> in your library —
+            <strong>48 shared</strong> with mentees, <strong>2.4 GB</strong>
+            of storage used. Every file, link, and video you share is stamped
+            with your verified badge and appears on the mentee's dashboard.
+        </p>
+        <div class="rh-actions">
+            <button type="button" class="btn btn-gold"
+                    data-toast="Opening upload panel…" data-toast-type="info">
+                <i class="bi bi-cloud-arrow-up-fill"></i> Upload new
+            </button>
+            <button type="button" class="btn btn-outline"
+                    data-toast="Opening resource composer…" data-toast-type="info">
+                <i class="bi bi-link-45deg"></i> Share a link
+            </button>
+        </div>
+    </div>
+
+    <div class="rh-metrics">
+        <div class="rh-metric">
+            <strong data-count="64">64</strong>
+            <span>Resources</span>
+        </div>
+        <div class="rh-sep"></div>
+        <div class="rh-metric">
+            <strong data-count="48">48</strong>
+            <span>Shared</span>
+        </div>
+        <div class="rh-sep"></div>
+        <div class="rh-metric">
+            <strong>2.4<em>GB</em></strong>
+            <span>Storage</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTHORITY STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="authority-strip fade-up">
+    <span class="as-shield"><i class="bi bi-shield-check"></i></span>
+    <div class="as-body">
+        <strong>Every resource is attributed to you</strong>
+        <p>
+            Files, links, and videos you share carry your
+            <strong>verified mentor badge</strong> and are logged with timestamps.
+            Mentees can trace each resource to the session where you shared it.
+            You keep full control — revoke access at any time.
+        </p>
+    </div>
+    <div class="as-actions">
+        <button type="button" class="btn-ghost"
+                data-toast="Opening sharing policy…" data-toast-type="info">
+            <i class="bi bi-file-earmark-text"></i> Sharing policy
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     OVERVIEW STRIP
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="res-overview fade-up">
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic"><i class="bi bi-collection-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> +8</span>
+        </div>
+        <div class="ro-value" data-count="64">64</div>
+        <div class="ro-label">Total resources</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic accent"><i class="bi bi-share-fill"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> +12</span>
+        </div>
+        <div class="ro-value" data-count="48">48</div>
+        <div class="ro-label">Shared with mentees</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic violet"><i class="bi bi-download"></i></span>
+            <span class="ro-trend"><i class="bi bi-arrow-up-short"></i> +142</span>
+        </div>
+        <div class="ro-value" data-count="1284">1,284</div>
+        <div class="ro-label">Total downloads</div>
+    </div>
+
+    <div class="ro-card">
+        <div class="ro-top">
+            <span class="ro-ic amber"><i class="bi bi-device-ssd-fill"></i></span>
+            <span class="ro-trend warn"><i class="bi bi-shield-check"></i> 48%</span>
+        </div>
+        <div class="ro-value">2.4<span>GB / 5GB</span></div>
+        <div class="ro-label">Storage used</div>
+        <div class="ro-storage">
+            <div class="row">
+                <span>Used</span>
+                <strong>48%</strong>
+            </div>
+            <div class="bar gold"><span data-value="48"></span></div>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOOLBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="toolbar fade-up">
+    <div class="tool-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="resourceSearch" placeholder="Search by name, mentee, or tag…" aria-label="Search resources">
+    </div>
+
+    <button type="button" class="tool-filter" data-toast="Filter panel opened" data-toast-type="info">
+        <i class="bi bi-funnel-fill"></i> All types
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <button type="button" class="tool-sort" data-toast="Sort by: Recently shared" data-toast-type="info">
+        <i class="bi bi-sort-down"></i> Recently shared
+        <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+    </button>
+
+    <div class="tool-view" role="tablist" aria-label="View mode">
+        <button type="button" id="viewGrid" class="active" aria-label="Grid view" title="Grid view">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </button>
+        <button type="button" id="viewList" aria-label="List view" title="List view">
+            <i class="bi bi-list-ul"></i>
+        </button>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TRUST HINT
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="trust-hint fade-up">
+    <span class="th-ic"><i class="bi bi-shield-check"></i></span>
+    <div>
+        <strong>You control who sees what</strong>
+        <p>
+            Every resource has a per-mentee visibility list. <strong>Revoke access</strong>
+            in one click and it disappears from their dashboard instantly.
+            Deleted resources are retained for 30 days in an archive before permanent removal.
+        </p>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     RESOURCES GRID — 2 COLUMNS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="grid-2">
+
+    <!-- ───────────────────────── LEFT ───────────────────────── -->
+    <div class="col-stack">
+
+        <div class="card tabs-card fade-up" style="padding: 0;">
+            <div class="tabs-head">
+                <h3><i class="bi bi-collection-fill"></i> Resource Library</h3>
+                <a href="#" class="link">Export library <i class="bi bi-download"></i></a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="all">
+                    All <span class="count">64</span>
+                </button>
+                <button class="tab" data-tab="shared">
+                    Shared <span class="count">48</span>
+                </button>
+                <button class="tab" data-tab="uploads">
+                    My Uploads <span class="count">16</span>
+                </button>
+            </div>
+
+            <div class="tab-panels">
+
+                <!-- ─────── ALL ─────── -->
+                <div class="tab-panel active" id="tab-all">
+                    <div class="res-grid" id="gridAll">
+
+                        <!-- Resource 1 — PDF -->
+                        <article class="res-card" data-searchable="react patterns cheatsheet pdf sara kim">
+                            <div class="rc-head">
+                                <span class="rc-ic pdf"><i class="bi bi-filetype-pdf"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind"><i class="bi bi-filetype-pdf"></i> PDF</span>
+                                    <h4 class="rc-title">Advanced React Patterns · Cheatsheet</h4>
+                                </div>
+                            </div>
+
+                            <div class="rc-meta">
+                                <span><i class="bi bi-file-earmark"></i> 2.4 MB</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 42 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 2 days ago</span>
+                            </div>
+
+                            <p class="rc-desc">
+                                Condensed reference covering 12 hooks patterns, context composition,
+                                and render optimisation. Designed for use during live sessions.
+                            </p>
+
+                            <div class="rc-shared">
+                                <div class="avatar-stack">
+                                    <span class="avatar sky">SK</span>
+                                    <span class="avatar">TK</span>
+                                    <span class="avatar violet">MR</span>
+                                    <span class="more">+5</span>
+                                </div>
+                                <span>Shared with <strong>8 mentees</strong></span>
+                                <span class="when">2d</span>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn icon-only" title="Preview"
+                                        data-toast="Opening preview…" data-toast-type="info">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Options"
+                                        data-toast="Options menu opened" data-toast-type="info">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Resource 2 — Video -->
+                        <article class="res-card" data-searchable="postgres indexing walkthrough video tunde kayode">
+                            <div class="rc-head">
+                                <span class="rc-ic video"><i class="bi bi-play-btn-fill"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind video"><i class="bi bi-play-fill"></i> Video</span>
+                                    <h4 class="rc-title">PostgreSQL Indexing · Live Walkthrough</h4>
+                                </div>
+                            </div>
+
+                            <div class="rc-meta">
+                                <span><i class="bi bi-clock-history"></i> 24 min</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 68 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 5 days ago</span>
+                            </div>
+
+                            <p class="rc-desc">
+                                Recorded session walking through composite index decisions on a
+                                real 40M row table. Includes query plan comparisons.
+                            </p>
+
+                            <div class="rc-shared">
+                                <div class="avatar-stack">
+                                    <span class="avatar">TK</span>
+                                    <span class="avatar amber">JO</span>
+                                    <span class="more">+3</span>
+                                </div>
+                                <span>Shared with <strong>5 mentees</strong></span>
+                                <span class="when">5d</span>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn icon-only" title="Play"
+                                        data-toast="Opening video…" data-toast-type="info">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Options"
+                                        data-toast="Options menu opened" data-toast-type="info">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Resource 3 — Link -->
+                        <article class="res-card" data-searchable="react docs hooks reference link">
+                            <div class="rc-head">
+                                <span class="rc-ic link"><i class="bi bi-link-45deg"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind link"><i class="bi bi-globe"></i> Link</span>
+                                    <h4 class="rc-title">React Docs · Hooks Reference</h4>
+                                </div>
+                            </div>
+
+                            <div class="rc-meta">
+                                <span><i class="bi bi-globe"></i> react.dev</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 84 clicks</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 1 week ago</span>
+                            </div>
+
+                            <p class="rc-desc">
+                                Official React documentation. Shared as required reading before
+                                every session on hooks and lifecycle patterns.
+                            </p>
+
+                            <div class="rc-shared">
+                                <div class="avatar-stack">
+                                    <span class="avatar sky">SK</span>
+                                    <span class="avatar">TK</span>
+                                    <span class="avatar violet">MR</span>
+                                    <span class="avatar amber">AO</span>
+                                    <span class="more">+20</span>
+                                </div>
+                                <span>Shared with <strong>24 mentees</strong></span>
+                                <span class="when">1w</span>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn icon-only" title="Open"
+                                        data-toast="Opening link…" data-toast-type="info">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </button>
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Options"
+                                        data-toast="Options menu opened" data-toast-type="info">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Resource 4 — Code -->
+                        <article class="res-card" data-searchable="useDebouncedSearch hook code snippet typescript">
+                            <div class="rc-head">
+                                <span class="rc-ic code"><i class="bi bi-filetype-tsx"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind"><i class="bi bi-code-slash"></i> Code</span>
+                                    <h4 class="rc-title">useDebouncedSearch · Reference Implementation</h4>
+                                </div>
+                            </div>
+
+                            <div class="rc-meta">
+                                <span><i class="bi bi-file-earmark-code"></i> 4.2 KB</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 26 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 3 days ago</span>
+                            </div>
+
+                            <p class="rc-desc">
+                                TypeScript reference for a debounced search hook with
+                                cancellation and loading state. Used in the Advanced
+                                React Patterns plan.
+                            </p>
+
+                            <div class="rc-shared">
+                                <div class="avatar-stack">
+                                    <span class="avatar sky">SK</span>
+                                    <span class="more">+2</span>
+                                </div>
+                                <span>Shared with <strong>3 mentees</strong></span>
+                                <span class="when">3d</span>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn icon-only" title="View code"
+                                        data-toast="Opening code viewer…" data-toast-type="info">
+                                    <i class="bi bi-code-square"></i>
+                                </button>
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Options"
+                                        data-toast="Options menu opened" data-toast-type="info">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Resource 5 — Sheet -->
+                        <article class="res-card" data-searchable="progress tracker spreadsheet mentees">
+                            <div class="rc-head">
+                                <span class="rc-ic sheet"><i class="bi bi-filetype-xlsx"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind sheet"><i class="bi bi-table"></i> Sheet</span>
+                                    <h4 class="rc-title">Cohort Progress Tracker · Q4 2025</h4>
+                                </div>
+                            </div>
+
+                            <div class="rc-meta">
+                                <span><i class="bi bi-file-earmark-spreadsheet"></i> 128 KB</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 12 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 1 week ago</span>
+                            </div>
+
+                            <p class="rc-desc">
+                                Shared tracker where mentees log weekly progress. You can
+                                view it live during check-ins.
+                            </p>
+
+                            <div class="rc-shared">
+                                <div class="avatar-stack">
+                                    <span class="avatar">TK</span>
+                                    <span class="avatar violet">MR</span>
+                                    <span class="avatar amber">JO</span>
+                                    <span class="more">+21</span>
+                                </div>
+                                <span>Shared with <strong>24 mentees</strong></span>
+                                <span class="when">1w</span>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn icon-only" title="Preview"
+                                        data-toast="Opening sheet preview…" data-toast-type="info">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Options"
+                                        data-toast="Options menu opened" data-toast-type="info">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                        <!-- Resource 6 — Doc -->
+                        <article class="res-card" data-searchable="session notes template doc mentee">
+                            <div class="rc-head">
+                                <span class="rc-ic doc"><i class="bi bi-file-earmark-text-fill"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind"><i class="bi bi-file-earmark-text"></i> Doc</span>
+                                    <h4 class="rc-title">Session Notes Template</h4>
+                                </div>
+                            </div>
+
+                            <div class="rc-meta">
+                                <span><i class="bi bi-file-earmark"></i> 42 KB</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 48 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 2 weeks ago</span>
+                            </div>
+
+                            <p class="rc-desc">
+                                The template I use to structure every 1-on-1 session —
+                                goals, actions, follow-ups. Mentees use it to prep.
+                            </p>
+
+                            <div class="rc-shared">
+                                <div class="avatar-stack">
+                                    <span class="avatar sky">SK</span>
+                                    <span class="avatar">TK</span>
+                                    <span class="avatar violet">MR</span>
+                                    <span class="avatar amber">AO</span>
+                                    <span class="more">+20</span>
+                                </div>
+                                <span>Shared with <strong>24 mentees</strong></span>
+                                <span class="when">2w</span>
+                            </div>
+
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn icon-only" title="Preview"
+                                        data-toast="Opening preview…" data-toast-type="info">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="rc-action-btn primary"
+                                        data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Options"
+                                        data-toast="Options menu opened" data-toast-type="info">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── SHARED ─────── -->
+                <div class="tab-panel" id="tab-shared">
+                    <div class="res-grid" id="gridShared">
+
+                        <article class="res-card" data-searchable="react patterns cheatsheet shared pdf sara kim">
+                            <div class="rc-head">
+                                <span class="rc-ic pdf"><i class="bi bi-filetype-pdf"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind"><i class="bi bi-filetype-pdf"></i> PDF · Shared</span>
+                                    <h4 class="rc-title">Advanced React Patterns · Cheatsheet</h4>
+                                </div>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-people-fill lime"></i> 8 mentees</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 42 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 2 days ago</span>
+                            </div>
+                            <p class="rc-desc">
+                                Live sharing across 8 mentees. Revoking will remove it from
+                                all their dashboards immediately.
+                            </p>
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn" data-toast="Opening share list…" data-toast-type="info">
+                                    <i class="bi bi-people"></i> Manage access
+                                </button>
+                                <button type="button" class="rc-action-btn primary" data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="res-card" data-searchable="postgres video shared tunde kayode">
+                            <div class="rc-head">
+                                <span class="rc-ic video"><i class="bi bi-play-btn-fill"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind video"><i class="bi bi-play-fill"></i> Video · Shared</span>
+                                    <h4 class="rc-title">PostgreSQL Indexing · Live Walkthrough</h4>
+                                </div>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-people-fill lime"></i> 5 mentees</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-download lime"></i> 68 downloads</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-clock"></i> 5 days ago</span>
+                            </div>
+                            <p class="rc-desc">
+                                Shared with the backend cohort. Recorded session on composite
+                                index decisions with query plan comparisons.
+                            </p>
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn" data-toast="Opening share list…" data-toast-type="info">
+                                    <i class="bi bi-people"></i> Manage access
+                                </button>
+                                <button type="button" class="rc-action-btn primary" data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+                <!-- ─────── MY UPLOADS ─────── -->
+                <div class="tab-panel" id="tab-uploads">
+                    <div class="res-grid" id="gridUploads">
+
+                        <article class="res-card" data-searchable="react patterns cheatsheet my upload pdf">
+                            <div class="rc-head">
+                                <span class="rc-ic pdf"><i class="bi bi-filetype-pdf"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind"><i class="bi bi-cloud-arrow-up-fill"></i> Your upload</span>
+                                    <h4 class="rc-title">Advanced React Patterns · Cheatsheet</h4>
+                                </div>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-file-earmark"></i> 2.4 MB</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-upload lime"></i> Uploaded 2 days ago</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-people-fill lime"></i> 8 mentees</span>
+                            </div>
+                            <p class="rc-desc">
+                                Uploaded by you. Full edit rights — replace, rename, or
+                                delete at any time.
+                            </p>
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn" data-toast="Opening editor…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </button>
+                                <button type="button" class="rc-action-btn primary" data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Delete"
+                                        style="color:#DC2626; border-color: rgba(239,68,68,0.24);"
+                                        data-toast="Resource moved to archive" data-toast-type="warning">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                        <article class="res-card" data-searchable="useDebouncedSearch my upload code">
+                            <div class="rc-head">
+                                <span class="rc-ic code"><i class="bi bi-filetype-tsx"></i></span>
+                                <div class="rc-title-block">
+                                    <span class="rc-kind"><i class="bi bi-cloud-arrow-up-fill"></i> Your upload</span>
+                                    <h4 class="rc-title">useDebouncedSearch · Reference Implementation</h4>
+                                </div>
+                            </div>
+                            <div class="rc-meta">
+                                <span><i class="bi bi-file-earmark-code"></i> 4.2 KB</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-upload lime"></i> Uploaded 3 days ago</span>
+                                <span class="sep"></span>
+                                <span><i class="bi bi-people-fill lime"></i> 3 mentees</span>
+                            </div>
+                            <p class="rc-desc">
+                                TypeScript reference implementation uploaded by you.
+                                Mentees use it as a starting point for their own hooks.
+                            </p>
+                            <div class="rc-actions">
+                                <button type="button" class="rc-action-btn" data-toast="Opening editor…" data-toast-type="info">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </button>
+                                <button type="button" class="rc-action-btn primary" data-toast="Opening share composer…" data-toast-type="info">
+                                    <i class="bi bi-share-fill"></i> Share
+                                </button>
+                                <button type="button" class="rc-action-btn icon-only" title="Delete"
+                                        style="color:#DC2626; border-color: rgba(239,68,68,0.24);"
+                                        data-toast="Resource moved to archive" data-toast-type="warning">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <section class="pagination fade-up">
+            <div class="pg-info">
+                Showing <strong>1–6</strong> of <strong>64</strong> resources
+            </div>
+            <div class="pg-controls">
+                <button type="button" class="pg-btn" disabled>
+                    <i class="bi bi-chevron-left"></i> Prev
+                </button>
+                <button type="button" class="pg-btn active">1</button>
+                <button type="button" class="pg-btn">2</button>
+                <button type="button" class="pg-btn">3</button>
+                <button type="button" class="pg-btn">4</button>
+                <button type="button" class="pg-btn">
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ───────────────────────── RIGHT ───────────────────────── -->
+    <div class="col-stack">
+
+        <!-- UPLOAD -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-cloud-arrow-up-fill"></i> Quick Upload</h4>
+            </div>
+
+            <div class="upload-area"
+                 data-toast="File picker opened" data-toast-type="info">
+                <span class="ua-ic"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+                <strong>Drop files or click to browse</strong>
+                <p>PDF, video, images, code, sheets — up to 50 MB per file.</p>
+                <button type="button" class="btn-gold"
+                        data-toast="File picker opened" data-toast-type="info">
+                    <i class="bi bi-plus-lg"></i> Choose file
+                </button>
+            </div>
+        </div>
+
+        <!-- STORAGE -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-device-ssd-fill"></i> Storage</h4>
+                <a href="#" class="link">Upgrade <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="storage-meter">
+                <div class="row">
+                    <span>2.4 GB of 5 GB used</span>
+                    <strong>48%</strong>
+                </div>
+                <div class="bar gold"><span data-value="48"></span></div>
+
+                <div class="storage-legend">
+                    <span class="item"><span class="swatch v"></span> Video 1.2 GB</span>
+                    <span class="item"><span class="swatch p"></span> PDF 640 MB</span>
+                    <span class="item"><span class="swatch d"></span> Docs 380 MB</span>
+                    <span class="item"><span class="swatch o"></span> Other 180 MB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPULAR RESOURCES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-fire"></i> Most Downloaded</h4>
+                <a href="#" class="link">This month <i class="bi bi-chevron-down"></i></a>
+            </div>
+
+            <div class="pop-row">
+                <span class="pop-ic link"><i class="bi bi-link-45deg"></i></span>
+                <div class="pop-info">
+                    <strong>React Docs · Hooks Reference</strong>
+                    <span>Link · 24 mentees</span>
+                </div>
+                <div class="pop-downloads">
+                    <strong>84</strong>
+                    <span>Clicks</span>
+                </div>
+            </div>
+
+            <div class="pop-row">
+                <span class="pop-ic video"><i class="bi bi-play-btn-fill"></i></span>
+                <div class="pop-info">
+                    <strong>PostgreSQL Indexing Walkthrough</strong>
+                    <span>Video · 24 min</span>
+                </div>
+                <div class="pop-downloads">
+                    <strong>68</strong>
+                    <span>Downloads</span>
+                </div>
+            </div>
+
+            <div class="pop-row">
+                <span class="pop-ic doc"><i class="bi bi-file-earmark-text-fill"></i></span>
+                <div class="pop-info">
+                    <strong>Session Notes Template</strong>
+                    <span>Doc · 42 KB</span>
+                </div>
+                <div class="pop-downloads">
+                    <strong>48</strong>
+                    <span>Downloads</span>
+                </div>
+            </div>
+
+            <div class="pop-row">
+                <span class="pop-ic pdf"><i class="bi bi-filetype-pdf"></i></span>
+                <div class="pop-info">
+                    <strong>Advanced React Patterns Cheatsheet</strong>
+                    <span>PDF · 2.4 MB</span>
+                </div>
+                <div class="pop-downloads">
+                    <strong>42</strong>
+                    <span>Downloads</span>
+                </div>
+            </div>
+
+            <div class="pop-row">
+                <span class="pop-ic code"><i class="bi bi-filetype-tsx"></i></span>
+                <div class="pop-info">
+                    <strong>useDebouncedSearch · Reference</strong>
+                    <span>Code · 4.2 KB</span>
+                </div>
+                <div class="pop-downloads">
+                    <strong>26</strong>
+                    <span>Downloads</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- GUIDELINES -->
+        <div class="side-card fade-up">
+            <div class="side-card-head">
+                <h4><i class="bi bi-shield-check"></i> Library Guidelines</h4>
+            </div>
+
+            <div class="guide-list">
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Share what you would use</strong> — quality over quantity.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Tag by plan</strong> — mentees find resources faster.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Revoke cleanly</strong> — remove access rather than deleting.</span>
+                </div>
+                <div class="guide-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span><strong>Respect IP</strong> — only share what you have rights to.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+
+        /* ======================================================
+           LIVE SEARCH
+           ====================================================== */
+        const search = document.getElementById('resourceSearch');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                document.querySelectorAll('.res-card').forEach(function (card) {
+                    const haystack = (card.dataset.searchable || card.textContent || '').toLowerCase();
+                    card.style.display = (!q || haystack.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        /* ======================================================
+           VIEW MODE TOGGLE (grid ↔ list)
+           ====================================================== */
+        const viewGrid = document.getElementById('viewGrid');
+        const viewList = document.getElementById('viewList');
+        const gridContainers = document.querySelectorAll('.res-grid');
+
+        function applyView(mode) {
+            if (mode === 'list') {
+                viewList.classList.add('active');
+                viewGrid.classList.remove('active');
+                gridContainers.forEach(function (el) {
+                    el.classList.remove('res-grid');
+                    el.classList.add('res-list');
+                });
+            } else {
+                viewGrid.classList.add('active');
+                viewList.classList.remove('active');
+                gridContainers.forEach(function (el) {
+                    el.classList.remove('res-list');
+                    el.classList.add('res-grid');
+                });
+            }
+        }
+
+        if (viewGrid) viewGrid.addEventListener('click', function () { applyView('grid'); });
+        if (viewList) viewList.addEventListener('click', function () { applyView('list'); });
+
+        /* ======================================================
+           PAGINATION (visual only)
+           ====================================================== */
+        document.querySelectorAll('.pg-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.disabled || this.classList.contains('active')) return;
+                const label = this.textContent.trim().toLowerCase();
+                if (label.startsWith('prev') || label.startsWith('next')) return;
+
+                document.querySelectorAll('.pg-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (window.showKnotToast) {
+                    window.showKnotToast('Loading page ' + this.textContent.trim() + '…', 'info');
+                }
+            });
+        });
+
+    })();
+</script>
+{% endblock extra_js %}

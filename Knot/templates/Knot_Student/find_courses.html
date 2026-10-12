@@ -196,32 +196,102 @@
     /* ---------- Layout ---------- */
     .fc-layout {
         display: grid;
-        grid-template-columns: 264px 1fr;
-        gap: 24px;
+        grid-template-columns: minmax(238px, 0.24fr) minmax(0, 1fr);
+        gap: 28px;
         align-items: start;
     }
+
+    :root { --fc-filter-height: clamp(540px, calc(100vh - var(--topbar-h) - 48px), 760px); }
+
+    .fc-results { min-width: 0; }
 
     /* ---------- Filter rail ---------- */
     .fc-filters {
         position: sticky;
         top: calc(var(--topbar-h) + 18px);
+        height: var(--fc-filter-height);
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 10px;
+        overflow-y: auto;
+        padding: 14px;
+        border: 1px solid rgba(11, 17, 33, 0.08);
+        border-radius: var(--radius-xl);
+        background: linear-gradient(155deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.88));
+        box-shadow: 0 18px 48px rgba(11, 17, 33, 0.10);
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--secondary-deep) rgba(226, 232, 240, 0.55);
+    }
+    .fc-filters::-webkit-scrollbar { width: 7px; }
+    .fc-filters::-webkit-scrollbar-track { background: rgba(226, 232, 240, 0.55); border-radius: 10px; }
+    .fc-filters::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--secondary), var(--secondary-deep));
+        border-radius: 10px;
+    }
+    .fc-filters::-webkit-scrollbar-thumb:hover { background: var(--secondary-deep); }
+    .fc-filter-intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 6px 8px;
+    }
+    .fc-filter-intro .eyebrow {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--secondary-deep);
+        font-size: 0.61rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+    .fc-filter-intro h3 {
+        color: var(--primary-dark);
+        font-size: 1rem;
+        font-weight: 750;
+        line-height: 1.2;
+    }
+    .fc-filter-count {
+        display: grid;
+        place-items: center;
+        min-width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: var(--primary-dark);
+        color: var(--secondary);
+        font-size: 0.72rem;
+        font-weight: 800;
     }
     .fc-panel {
         background: var(--white);
         border: 1px solid rgba(11, 17, 33, 0.05);
         border-radius: var(--radius);
         box-shadow: var(--shadow-sm);
-        padding: 20px 20px 18px;
+        padding: 18px 18px 16px;
     }
+    .fc-category-panel {
+        flex: 0 0 248px;
+        min-height: 180px;
+        max-height: 248px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gray-300) transparent;
+    }
+    .fc-filters > * { flex-shrink: 0; }
+    .fc-category-panel::-webkit-scrollbar { width: 5px; }
+    .fc-category-panel::-webkit-scrollbar-track { background: transparent; }
+    .fc-category-panel::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 8px; }
+    .fc-category-panel::-webkit-scrollbar-thumb:hover { background: var(--secondary-deep); }
     .fc-panel-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        margin-bottom: 16px;
+        margin-bottom: 10px;
     }
     .fc-panel-head h4 {
         font-size: 0.82rem;
@@ -249,7 +319,8 @@
         display: flex;
         align-items: center;
         gap: 11px;
-        padding: 8px 0;
+        min-height: 31px;
+        padding: 5px 4px;
         cursor: pointer;
         font-size: 0.82rem;
         color: var(--gray-600);
@@ -538,31 +609,45 @@
     /* ---------- Course grid ---------- */
     .fc-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+        align-items: stretch;
     }
 
     .fc-card {
         display: flex;
         flex-direction: column;
         background: var(--white);
-        border: 1px solid rgba(11, 17, 33, 0.07);
+        border: 1px solid rgba(11, 17, 33, 0.08);
         border-radius: var(--radius);
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(11, 17, 33, 0.04);
+        box-shadow: 0 8px 24px rgba(11, 17, 33, 0.06);
         transition: var(--transition);
         position: relative;
+        min-width: 0;
+        min-height: 438px;
+    }
+    .fc-card::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto;
+        height: 3px;
+        z-index: 4;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+        opacity: 0;
+        transition: var(--transition);
     }
     .fc-card:hover {
         transform: translateY(-6px);
         box-shadow: var(--shadow-md);
         border-color: rgba(190, 242, 100, 0.42);
     }
+    .fc-card:hover::before { opacity: 1; }
 
     /* Thumb */
     .fc-thumb {
         position: relative;
-        height: 128px;
+        height: 156px;
         display: grid;
         place-items: center;
         font-size: 2rem;
@@ -577,7 +662,18 @@
         background: radial-gradient(ellipse at 78% -10%, rgba(190, 242, 100, 0.30), transparent 62%);
         pointer-events: none;
     }
-    .fc-thumb > i { position: relative; z-index: 2; }
+    .fc-thumb > i {
+        position: relative;
+        z-index: 2;
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+    }
     .fc-thumb.t-sky    { background: linear-gradient(135deg, #0B1121, #075985); }
     .fc-thumb.t-violet { background: linear-gradient(135deg, #0B1121, #4C1D95); }
     .fc-thumb.t-amber  { background: linear-gradient(135deg, #0B1121, #78350F); }
@@ -634,6 +730,7 @@
         border-color: var(--secondary);
         color: var(--primary-dark);
         transform: scale(1.06);
+        box-shadow: 0 8px 18px rgba(190, 242, 100, 0.38);
     }
 
     /* Preview play */
@@ -667,10 +764,12 @@
     /* Body */
     .fc-body {
         flex: 1;
+        min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 9px;
-        padding: 16px 18px 0;
+        gap: 10px;
+        padding: 20px 21px 0;
+        min-height: 220px;
     }
     .fc-cat {
         display: flex;
@@ -680,7 +779,15 @@
         font-weight: 700;
         letter-spacing: 0.13em;
         text-transform: uppercase;
-        color: var(--gray-300);
+        color: var(--gray-600);
+        min-height: 20px;
+    }
+    .fc-cat > i {
+        color: var(--secondary-deep);
+        font-size: 0.78rem;
+    }
+    .fc-cat > i + i {
+        color: var(--accent);
     }
     .fc-cat .dot {
         width: 5px;
@@ -690,7 +797,7 @@
         flex-shrink: 0;
     }
     .fc-title {
-        font-size: 0.98rem;
+        font-size: 1rem;
         font-weight: 700;
         color: var(--primary-dark);
         line-height: 1.35;
@@ -711,6 +818,7 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        min-height: 39px;
     }
 
     .fc-mentor {
@@ -720,7 +828,9 @@
         font-size: 0.75rem;
         color: var(--gray-600);
         font-weight: 500;
-        margin-top: 2px;
+        margin-top: 4px;
+        padding-top: 10px;
+        border-top: 1px solid var(--gray-100);
     }
     .avatar.xs { width: 24px; height: 24px; font-size: 0.58rem; }
     .fc-mentor .verified { color: var(--accent); font-size: 0.72rem; }
@@ -746,6 +856,7 @@
         font-weight: 500;
         color: var(--gray-600);
         padding-top: 2px;
+        min-height: 24px;
     }
     .fc-meta span { display: inline-flex; align-items: center; gap: 6px; }
     .fc-meta i { color: var(--gray-300); font-size: 0.76rem; }
@@ -755,10 +866,17 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 16px 18px 18px;
+        padding: 15px 20px 18px;
         margin-top: auto;
         border-top: 1px solid var(--gray-100);
+        background: rgba(248, 250, 252, 0.72);
     }
+    .fc-foot form {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+    }
+    .fc-foot form .btn { width: 100%; }
     .fc-foot .btn { flex: 1; }
     .fc-price {
         display: flex;
@@ -808,10 +926,15 @@
 
     /* ---------- Empty state ---------- */
     .fc-empty {
-        padding: 70px 24px 76px;
+        grid-column: 1 / -1;
+        padding: 96px 64px 96px;
+        display:block;
+        grid-column:1/-1;
         text-align: center;
         background: var(--white);
-        border: 1px dashed var(--gray-200);
+        border: 1px dashed rgba(126, 211, 33, 0.42);
+        background: linear-gradient(145deg, var(--white), rgba(190, 242, 100, 0.08));
+        box-shadow: var(--shadow-sm);
         border-radius: var(--radius);
     }
     .fc-empty .ic {
@@ -967,6 +1090,7 @@
         .fc-trust { grid-template-columns: repeat(2, 1fr); }
         .fc-collections { grid-template-columns: 1fr 1fr; }
         .fc-layout { grid-template-columns: 236px 1fr; }
+        .fc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 980px) {
@@ -1019,20 +1143,25 @@
         <h1>Find your next <span>skill</span></h1>
         <p>Every course is reviewed by a verified mentor, rated by real learners, and built for skill exchange — not just watching videos.</p>
 
-        <form class="fc-searchbar" onsubmit="return false;">
+        <form class="fc-searchbar" method="get">
             <i class="bi bi-search"></i>
-            <input type="text" id="fcSearch" placeholder="Search courses, skills, or mentors…" aria-label="Search courses">
+            <input type="text" id="fcSearch" name="q" value="{{ search_query }}" placeholder="Search courses, skills, or mentors…" aria-label="Search courses">
             <span class="divider"></span>
-            <select aria-label="Category">
+            <select aria-label="Category" name="category" onchange="this.form.submit()">
                 <option value="">All categories</option>
-                <option value="frontend">Frontend</option>
-                <option value="backend">Backend</option>
-                <option value="design">Design</option>
-                <option value="data">Data</option>
-                <option value="mobile">Mobile</option>
-                <option value="soft">Communication</option>
+                {% for value, label in categories %}                    
+                    <option value="{{ value }}" {% if value in selected_category %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
             </select>
-            <button type="button" class="btn btn-secondary" data-toast="Searching courses…">
+
+            <select aria-label="Level" name="level" onchange="this.form.submit()">
+                <option value="">All levels</option>
+                {% for value, label in levels %}                    
+                    <option value="{{ value }}" {% if value in selected_level %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-secondary">
                 <i class="bi bi-search"></i> Search
             </button>
         </form>
@@ -1094,42 +1223,28 @@
          ============================================ -->
     <aside class="fc-filters" id="fcFilters">
 
+        <div class="fc-filter-intro">
+            <div>
+                <span class="eyebrow">Course library</span>
+                <h3>Refine your search</h3>
+            </div>
+            <span class="fc-filter-count" aria-label="Available courses">{{ course_count }}</span>
+        </div>
+
         <!-- Categories -->
-        <div class="fc-panel">
+        <div class="fc-panel fc-category-panel">
             <div class="fc-panel-head">
                 <h4><i class="bi bi-grid"></i> Category</h4>
-                <button class="reset" data-toast="Category filter reset">Reset</button>
+                <button class="reset" data-toast="Category filter reset" onclick="window.location='{% url "student_find_courses" %}'">Reset</button>
             </div>
-            <label class="fc-check">
-                <input type="checkbox" checked>
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Frontend <span class="n">312</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Backend <span class="n">248</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Design <span class="n">196</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Data &amp; AI <span class="n">174</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Mobile <span class="n">88</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Communication <span class="n">122</span>
-            </label>
+            {% for option in category_options %}
+                <label class="fc-check">
+                    <input type="checkbox" name="category" value="{{ option.value }}" {% if option.value in selected_category %}checked{% endif %}>
+                    <span class="box"><i class="bi bi-check-lg"></i></span>
+                    <i class="bi {{ option.icon }}" aria-hidden="true"></i>
+                    {{ option.label }}
+                </label>
+            {% endfor %}
         </div>
 
         <!-- Level -->
@@ -1137,34 +1252,27 @@
             <div class="fc-panel-head">
                 <h4><i class="bi bi-bar-chart-steps"></i> Level</h4>
             </div>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Beginner <span class="n">420</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox" checked>
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Intermediate <span class="n">536</span>
-            </label>
-            <label class="fc-check">
-                <input type="checkbox">
-                <span class="box"><i class="bi bi-check-lg"></i></span>
-                Advanced <span class="n">284</span>
-            </label>
+            {% for option in level_options %}
+                <label class="fc-check">
+                    <input type="checkbox" name="level" value="{{ option.value }}" {% if option.value in selected_level %}checked{% endif %}>
+                    <span class="box"><i class="bi bi-check-lg"></i></span>
+                    <i class="bi {{ option.icon }}" aria-hidden="true"></i>
+                    {{ option.label }}
+                </label>
+            {% endfor %}
         </div>
 
         <!-- Price -->
         <div class="fc-panel">
             <div class="fc-panel-head">
                 <h4><i class="bi bi-tag"></i> Price</h4>
-                <span class="reset" id="priceOut" style="color:var(--primary-dark);cursor:default;">≤ 240 credits</span>
+                <span class="reset" id="priceOut" style="color:var(--primary-dark);cursor:default;">≤ {{ max_price|default:'240' }} credits</span>
             </div>
             <div class="fc-price-row">
                 <span style="font-size:0.72rem;color:var(--gray-600);font-weight:600;">0</span>
-                <span class="val" id="priceVal">240 credits</span>
+                <span class="val" id="priceVal">{{ max_price|default:'240' }} credits</span>
             </div>
-            <input type="range" class="fc-range" id="priceRange" min="0" max="500" step="10" value="240" aria-label="Maximum price in credits">
+            <input type="range" class="fc-range" id="priceRange" name="max_price" min="0" max="500" step="10" value="{{ max_price|default:'240' }}" aria-label="Maximum price in credits">
             <label class="fc-check" style="margin-top:12px;">
                 <input type="checkbox">
                 <span class="box"><i class="bi bi-check-lg"></i></span>
@@ -1237,7 +1345,7 @@
 
         <!-- Results head -->
         <div class="fc-results-head">
-            <p class="count"><strong>1,240</strong> courses · showing <em>1 – 9</em></p>
+            <p class="count"><strong>{{ course_count }}</strong> courses{% if search_query or selected_category or selected_level %} matching your filters{% endif %}</p>
 
             <button class="btn-ghost" id="fcFilterToggle" style="display:none;">
                 <i class="bi bi-sliders"></i> Filters
@@ -1286,405 +1394,55 @@
              Backend: {% for course in courses %} … {% endfor %}
              ============================================ -->
         <div class="fc-grid" id="fcGrid">
-
-            <!-- ---- Course 1 ---- -->
-            <article class="fc-card" data-cat="frontend" data-title="Advanced React Patterns">
-                <div class="fc-thumb">
-                    <span class="fc-flag top"><i class="bi bi-award-fill"></i> Bestseller</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
+            {% for course in courses %}
+                <article class="fc-card" data-cat="{{ course.category|lower }}" data-title="{{ course.title|lower }}">
+                    <div class="fc-thumb">
+                        <form method="post" action="{% url 'student_toggle_saved_course' course.course_id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button class="fc-book{% if course.course_id in saved_course_ids %} on{% endif %}" type="submit" aria-label="{% if course.course_id in saved_course_ids %}Unsave{% else %}Save{% endif %} course" aria-pressed="{% if course.course_id in saved_course_ids %}true{% else %}false{% endif %}">
+                                <i class="bi bi-bookmark{% if course.course_id in saved_course_ids %}-fill{% endif %}"></i>
+                            </button>
+                        </form>
+                        <i class="{{ course.get_category_icon }}"></i>
                     </div>
-                    <i class="bi bi-filetype-jsx"></i>
+                    <div class="fc-body">
+                        <div class="fc-cat"><span class="dot"></span><i class="bi {{ course.get_category_icon }}" title="{{ course.get_category_display }}"></i> {{ course.get_category_display }} · <i class="bi {{ course.get_level_icon }}" title="{{ course.get_level_display }}"></i> {{ course.get_level_display }}</div>
+                        <span class="fc-title">{{ course.title }}</span>
+                        <p class="fc-desc">{{ course.description|truncatewords:24 }}</p>
+                        <div class="fc-mentor">
+                            <span class="avatar xs">{{ course.teacher.initials }}</span>
+                            <span><strong>{{ course.teacher.user.get_full_name|default:course.teacher.user.username }}</strong></span>
+                            <i class="bi bi-patch-check-fill verified" title="Verified teacher"></i>
+                        </div>
+                        <div class="fc-meta">
+                            <span><i class="bi bi-calendar3"></i> Published {{ course.created_at|date:"M Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="fc-foot">
+                        <div class="fc-price">
+                            {% if course.price == 0 %}<span class="now free">Free</span>{% else %}<span class="now">{{ course.price|floatformat:0|intcomma }} credits</span>{% endif %}
+                        </div>
+                        {% if course.course_id in enrolled_course_ids %}
+                            <a class="btn btn-secondary btn-sm" href="{% url 'student_my_learning' %}">In My Learning</a>
+                        {% else %}
+                            <form method="post" action="{% url 'student_enrol_course' course.course_id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary btn-sm" type="submit">Enrol</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <div class="fc-empty">
+                    <div class="ic"><i class="bi bi-search"></i></div>
+                    <h4>No courses found</h4>
+                    <p>Try a different search or filter, or check back when teachers publish new courses.</p>
+                    <a class="btn btn-secondary" href="{% url 'student_find_courses' %}">Clear filters</a>
                 </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Frontend · Intermediate</div>
-                    <a href="#" class="fc-title">Advanced React Patterns</a>
-                    <p class="fc-desc">Composition, render props, state machines and the performance patterns senior teams actually ship.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">DO</span>
-                        <span><strong>Daniel Okafor</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.9</strong>
-                        <span class="sep">·</span>
-                        <span>1,284 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 12 modules</span>
-                        <span><i class="bi bi-clock"></i> 9h 40m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">180 credits</span>
-                        <span class="was">240 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 2 ---- -->
-            <article class="fc-card" data-cat="design" data-title="UI/UX Design Systems Masterclass">
-                <div class="fc-thumb t-sky">
-                    <span class="fc-flag hot"><i class="bi bi-fire"></i> Hot</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-vector-pen"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Design · Intermediate</div>
-                    <a href="#" class="fc-title">UI/UX Design Systems Masterclass</a>
-                    <p class="fc-desc">Build tokens, component APIs and documentation that scale across an entire product org.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">FB</span>
-                        <span><strong>Fatima Bello</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.8</strong>
-                        <span class="sep">·</span>
-                        <span>942 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 16 modules</span>
-                        <span><i class="bi bi-clock"></i> 14h 20m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">220 credits</span>
-                        <span class="was">300 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 3 ---- -->
-            <article class="fc-card" data-cat="backend" data-title="Backend Engineering with Django">
-                <div class="fc-thumb t-violet">
-                    <span class="fc-flag new"><i class="bi bi-stars"></i> New</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-server"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Backend · Intermediate</div>
-                    <a href="#" class="fc-title">Backend Engineering with Django</a>
-                    <p class="fc-desc">Models, views, auth, APIs and deployment — the full path from first endpoint to production.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">CN</span>
-                        <span><strong>Chidi Nwosu</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.7</strong>
-                        <span class="sep">·</span>
-                        <span>768 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 14 modules</span>
-                        <span><i class="bi bi-clock"></i> 18h 40m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">200 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 4 ---- -->
-            <article class="fc-card" data-cat="data" data-title="Data Storytelling with Python">
-                <div class="fc-thumb t-amber">
-                    <span class="fc-flag top"><i class="bi bi-award-fill"></i> Bestseller</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-bar-chart-line"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Data · Intermediate</div>
-                    <a href="#" class="fc-title">Data Storytelling with Python</a>
-                    <p class="fc-desc">Turn messy datasets into clear, persuasive narratives with pandas, matplotlib and honest charts.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">MR</span>
-                        <span><strong>Maya Rahman</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.9</strong>
-                        <span class="sep">·</span>
-                        <span>1,540 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 10 modules</span>
-                        <span><i class="bi bi-clock"></i> 9h 10m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">160 credits</span>
-                        <span class="was">220 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 5 ---- -->
-            <article class="fc-card" data-cat="frontend" data-title="TypeScript for React Developers">
-                <div class="fc-thumb t-sky">
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-braces"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Frontend · Intermediate</div>
-                    <a href="#" class="fc-title">TypeScript for React Developers</a>
-                    <p class="fc-desc">Generics, discriminated unions and typed component APIs that catch bugs before your users do.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">CN</span>
-                        <span><strong>Chidi Nwosu</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.8</strong>
-                        <span class="sep">·</span>
-                        <span>624 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 11 modules</span>
-                        <span><i class="bi bi-clock"></i> 8h 40m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">150 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 6 ---- -->
-            <article class="fc-card" data-cat="soft" data-title="Public Speaking Lab">
-                <div class="fc-thumb t-rose">
-                    <span class="fc-flag hot"><i class="bi bi-fire"></i> Hot</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-mic"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Communication · All levels</div>
-                    <a href="#" class="fc-title">Public Speaking Lab</a>
-                    <p class="fc-desc">Structure, delivery and nerves — practise weekly with feedback from peers and a coach.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">TK</span>
-                        <span><strong>Tunde Kalu</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.8</strong>
-                        <span class="sep">·</span>
-                        <span>1,102 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 8 modules</span>
-                        <span><i class="bi bi-clock"></i> 6h 15m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now free">Free</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 7 ---- -->
-            <article class="fc-card" data-cat="mobile" data-title="React Native in Practice">
-                <div class="fc-thumb t-green">
-                    <span class="fc-flag new"><i class="bi bi-stars"></i> New</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-phone"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Mobile · Intermediate</div>
-                    <a href="#" class="fc-title">React Native in Practice</a>
-                    <p class="fc-desc">Ship a real cross-platform app: navigation, native modules, offline storage and the app stores.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">JT</span>
-                        <span><strong>Jonas Tan</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★</span>
-                        <strong>4.6</strong>
-                        <span class="sep">·</span>
-                        <span>386 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 13 modules</span>
-                        <span><i class="bi bi-clock"></i> 12h 30m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">210 credits</span>
-                        <span class="was">280 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 8 ---- -->
-            <article class="fc-card" data-cat="data" data-title="Product Analytics Bootcamp">
-                <div class="fc-thumb t-violet">
-                    <span class="fc-flag top"><i class="bi bi-award-fill"></i> Bestseller</span>
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Data · Advanced</div>
-                    <a href="#" class="fc-title">Product Analytics Bootcamp</a>
-                    <p class="fc-desc">Funnels, cohorts, experimentation and the metrics that actually move product decisions.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">AN</span>
-                        <span><strong>Amara Nwosu</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★★</span>
-                        <strong>4.9</strong>
-                        <span class="sep">·</span>
-                        <span>840 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 18 modules</span>
-                        <span><i class="bi bi-clock"></i> 21h 00m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">260 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
-            <!-- ---- Course 9 ---- -->
-            <article class="fc-card" data-cat="design" data-title="Motion Design Basics">
-                <div class="fc-thumb t-amber">
-                    <button class="fc-book" type="button" aria-label="Save course" aria-pressed="false">
-                        <i class="bi bi-bookmark"></i>
-                    </button>
-                    <div class="fc-preview" data-toast="Playing course preview…">
-                        <span><i class="bi bi-play-circle-fill"></i> Preview</span>
-                    </div>
-                    <i class="bi bi-magic"></i>
-                </div>
-                <div class="fc-body">
-                    <div class="fc-cat"><span class="dot"></span> Design · Beginner</div>
-                    <a href="#" class="fc-title">Motion Design Basics</a>
-                    <p class="fc-desc">Easing, timing and micro-interactions — the small details that make interfaces feel alive.</p>
-                    <div class="fc-mentor">
-                        <span class="avatar xs">FB</span>
-                        <span><strong>Fatima Bello</strong></span>
-                        <i class="bi bi-patch-check-fill verified" title="Verified mentor"></i>
-                    </div>
-                    <div class="fc-rating">
-                        <span class="stars">★★★★</span>
-                        <strong>4.7</strong>
-                        <span class="sep">·</span>
-                        <span>512 learners</span>
-                    </div>
-                    <div class="fc-meta">
-                        <span><i class="bi bi-collection"></i> 9 modules</span>
-                        <span><i class="bi bi-clock"></i> 5h 30m</span>
-                        <span><i class="bi bi-arrow-left-right"></i> Exchange-eligible</span>
-                    </div>
-                </div>
-                <div class="fc-foot">
-                    <div class="fc-price">
-                        <span class="now">120 credits</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" data-toast="Course added to your learning!" data-toast-type="success">
-                        Enrol
-                    </button>
-                </div>
-            </article>
-
+            {% endfor %}
         </div>
 
-        <!-- Empty state (shown by JS when filters exclude everything) -->
-        <div class="fc-empty" id="fcEmpty" style="display:none;">
-            <div class="ic"><i class="bi bi-search"></i></div>
-            <h4>No courses match those filters</h4>
-            <p>Try widening your price range or removing a category. New courses are added every week.</p>
-            <button class="btn btn-line btn-sm" data-toast="All filters cleared">Clear all filters</button>
-        </div>
 
         <!-- Pagination -->
         <nav class="fc-pagination" aria-label="Course pagination">
@@ -1823,8 +1581,34 @@
                 rangeTrack();
             });
 
+            priceRange.addEventListener('change', function () {
+                submitRailFilters();
+            });
+
             rangeTrack();
         }
+
+        function submitRailFilters() {
+            var params = new URLSearchParams();
+            if (searchInput && searchInput.value.trim()) params.set('q', searchInput.value.trim());
+            document.querySelectorAll('.fc-filters input[type="checkbox"][name="category"]:checked').forEach(function (input) {
+                params.append('category', input.value);
+            });
+            document.querySelectorAll('.fc-filters input[type="checkbox"][name="level"]:checked').forEach(function (input) {
+                params.append('level', input.value);
+            });
+            if (priceRange && priceRange.value !== '500') params.set('max_price', priceRange.value);
+            window.location.href = '{% url "student_find_courses" %}' + (params.toString() ? '?' + params.toString() : '');
+        }
+
+        document.querySelectorAll('.fc-filters input[type="checkbox"][name="category"], .fc-filters input[type="checkbox"][name="level"]').forEach(function (input) {
+            input.addEventListener('change', submitRailFilters);
+        });
+
+        var clearAll = document.querySelector('.fc-clear-all');
+        if (clearAll) clearAll.addEventListener('click', function () {
+            window.location.href = '{% url "student_find_courses" %}';
+        });
 
         /* ======================================================
            LIVE SEARCH (client-side demo filter)
