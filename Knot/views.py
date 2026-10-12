@@ -1,9 +1,12 @@
+import re
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -1211,8 +1214,93 @@ def student_achievements(request):
 def student_credits_and_billing(request):
     return render(request, 'Knot_Student/credits_and_billing.html')
 
+@login_required(login_url='login')
 def student_settings(request):
-    return render(request, 'Knot_Student/settings.html')
+    student = getattr(request.user, 'student_profile', None)
+    if not student:
+        return redirect('get_started')
+
+    profile = OnboardingProfile.objects.filter(user=request.user).first()
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        timezone_name = request.POST.get('timezone', '').strip()
+
+        if not first_name or len(first_name) > 80:
+            return JsonResponse({'error': 'Enter a first name of 1–80 characters.'}, status=400)
+        if not last_name or len(last_name) > 80:
+            return JsonResponse({'error': 'Enter a last name of 1–80 characters.'}, status=400)
+        if not re.fullmatch(r'[A-Za-z0-9_.-]{3,30}', username):
+            return JsonResponse({'error': 'Use 3–30 letters, numbers, periods, underscores or hyphens for the username.'}, status=400)
+        if User.objects.filter(username__iexact=username).exclude(pk=request.user.pk).exists():
+            return JsonResponse({'error': 'That username is already in use.'}, status=409)
+        try:
+            validate_email(email)
+        except ValidationError:
+            return JsonResponse({'error': 'Enter a valid email address.'}, status=400)
+        if len(email) > 254:
+            return JsonResponse({'error': 'Enter a valid email address.'}, status=400)
+        if len(bio) > 280:
+            return JsonResponse({'error': 'Your short bio must be 280 characters or fewer.'}, status=400)
+        if len(timezone_name) > 100:
+            return JsonResponse({'error': 'Choose a valid time zone.'}, status=400)
+
+        with transaction.atomic():
+            if User.objects.filter(username__iexact=username).exclude(pk=request.user.pk).exists():
+                return JsonResponse({'error': 'That username is already in use.'}, status=409)
+            request.user.first_name = first_name
+            request.user.last_name = last_name
+            request.user.username = username
+            request.user.email = email
+            request.user.save(update_fields=('first_name', 'last_name', 'username', 'email'))
+            if profile:
+                profile.first_name = first_name
+                profile.surname = last_name
+                profile.email = email
+                profile.bio = bio
+                profile.timezone = timezone_name
+                profile.save(update_fields=('first_name', 'surname', 'email', 'bio', 'timezone'))
+            else:
+                OnboardingProfile.objects.create(
+                    user=request.user,
+                    role='student',
+                    first_name=first_name,
+                    surname=last_name,
+                    email=email,
+                    bio=bio,
+                    timezone=timezone_name,
+                )
+
+        return JsonResponse({'ok': True})
+
+    first_name = request.user.first_name
+    last_name = request.user.last_name
+    initials = f'{first_name[:1]}{last_name[:1]}'.upper()
+    if not initials:
+        initials = (request.user.email or request.user.username or 'S')[:2].upper()
+    return render(request, 'Knot_Student/settings.html', {
+        'settings_profile': {
+            'first_name': first_name,
+            'last_name': last_name,
+            'username': request.user.username,
+            'email': request.user.email,
+            'bio': profile.bio if profile and profile.bio else '',
+            'timezone': profile.timezone if profile else '',
+            'initials': initials,
+        },
+    })
+
+@login_required(login_url='login')
+def student_username_available(request):
+    username = request.GET.get('username', '').strip()
+    valid_format = bool(re.fullmatch(r'[A-Za-z0-9_.-]{3,30}', username))
+    available = valid_format and not User.objects.filter(
+        username__iexact=username,
+    ).exclude(pk=request.user.pk).exists()
+    return JsonResponse({'valid': valid_format, 'available': available})
 
 @login_required(login_url='login')
 def student_help(request):
@@ -1789,4 +1877,3 @@ def admin_sign_out(request):
     auth.logout(request)
     messages.success(request, "You have successfully logged out!")
     return redirect('login')
-

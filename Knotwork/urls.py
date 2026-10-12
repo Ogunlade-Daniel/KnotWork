@@ -62,6 +62,7 @@ urlpatterns = [
     path('student/achievements', views.student_achievements, name='student_achievements'),
     path('student/credits-and-status', views.student_credits_and_billing, name='student_credits_and_billing'),
     path('student/settings', views.student_settings, name='student_settings'),
+    path('student/settings/username-availability', views.student_username_available, name='student_username_available'),
     path('student/help', views.student_help, name='student_help'),
     path('student/help/action', views.student_help_action, name='student_help_action'),
     path('student/profile', views.student_profile, name='student_profile'),

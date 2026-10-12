@@ -1395,11 +1395,8 @@
             </div>
             <div class="ac-panel active" role="tabpanel">
                 <div class="ac-grid">
-                    {% for badge in badges %}<article class="ac-card {% if not badge.unlocked %}locked{% endif %}"
-                        data-cat="{{ badge.category }}" data-tier="{{ badge.tier }}"
-                        data-state="{% if badge.unlocked %}unlocked{% else %}locked{% endif %}"
-                        data-progress="{{ badge.progress }}"><span class="ac-ribbon {{ badge.tier }}">{{
-                            badge.tier_label }}</span>
+                    {% for badge in badges %}<article class="ac-card {% if not badge.unlocked %}locked{% endif %}">
+                        <span class="ac-ribbon {{ badge.tier }}">{{ badge.tier_label }}</span>
                         <div class="ac-medal"><i class="bi {{ badge.icon }}"></i></div>
                         <div class="title">{{ badge.title }}</div>
                         <div class="desc">{{ badge.description }}</div>{% if badge.unlocked %}<span

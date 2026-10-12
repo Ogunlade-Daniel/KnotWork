@@ -352,6 +352,10 @@
         outline: none;
     }
     .st-input-wrap input::placeholder { color: var(--gray-300); }
+    .st-input[aria-invalid="true"] {
+        border-color: #DC2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
 
     .st-field-help {
         font-size: 0.72rem;
@@ -386,7 +390,18 @@
         font-size: 1.75rem;
         color: var(--primary-dark);
         box-shadow: 0 10px 26px rgba(190, 242, 100, 0.32);
+        overflow: hidden;
     }
+    .st-avatar-preview .st-avatar-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    .st-avatar-preview .st-avatar-image[hidden] { display: none; }
+    .st-avatar-preview .st-avatar-initials { z-index: 1; }
     .st-avatar-preview .camera {
         position: absolute;
         bottom: -4px;
@@ -1052,15 +1067,16 @@
     </div>
 
     <div class="st-head-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-line" data-toast="Opening your export options…">
+        <button class="btn btn-line" type="button" id="stExportData">
             <i class="bi bi-download"></i> Export data
         </button>
-        <button class="btn btn-secondary" data-toast="Opening help centre…">
+        <a class="btn btn-secondary" href="{% url 'student_help' %}">
             <i class="bi bi-question-circle"></i> Need help?
-        </button>
+        </a>
     </div>
 </section>
 
+<form id="stSettingsCsrf" hidden>{% csrf_token %}</form>
 
 <!-- ====================================================
      MAIN LAYOUT
@@ -1127,25 +1143,27 @@
                 <div class="st-section">
                     <div class="st-section-title">
                         <h3><i class="bi bi-image-fill"></i> Profile photo</h3>
-                        <span class="hint">PNG, JPG · max 2 MB</span>
+                        <span class="hint">PNG, JPG or WebP · max 5 MB</span>
                     </div>
 
                     <div class="st-avatar-row">
-                        <div class="st-avatar-preview">
-                            AO
-                            <span class="camera" data-toast="Opening photo picker…" title="Change photo">
+                        <div class="st-avatar-preview" id="stAvatarPreview">
+                            <span class="st-avatar-initials">{{ settings_profile.initials }}</span>
+                            <img class="st-avatar-image" alt="Profile photo preview" hidden>
+                            <button class="camera" type="button" id="stAvatarCamera" title="Change photo" aria-label="Change profile photo">
                                 <i class="bi bi-camera-fill"></i>
-                            </span>
+                            </button>
                         </div>
 
                         <div class="st-avatar-info">
                             <h4>Your avatar</h4>
                             <p>A clear photo of yourself builds trust far faster than an initial. If you prefer privacy, keep the initials.</p>
                             <div class="st-avatar-actions">
-                                <button class="btn btn-secondary btn-sm" data-toast="Opening photo upload…">
+                                <input type="file" id="stAvatarFile" accept="image/png,image/jpeg,image/webp" hidden>
+                                <button class="btn btn-secondary btn-sm" type="button" id="stAvatarUpload">
                                     <i class="bi bi-upload"></i> Upload photo
                                 </button>
-                                <button class="btn btn-line btn-sm" data-toast="Avatar removed">
+                                <button class="btn btn-line btn-sm" type="button" id="stAvatarRemove">
                                     <i class="bi bi-trash"></i> Remove
                                 </button>
                             </div>
@@ -1162,32 +1180,31 @@
                     <div class="st-grid">
                         <div class="st-field">
                             <label for="stFirst">First name <span class="req">*</span></label>
-                            <input type="text" id="stFirst" class="st-input" value="Amara" placeholder="Your first name">
+                            <input type="text" id="stFirst" class="st-input" value="{{ settings_profile.first_name }}" placeholder="Your first name" maxlength="80" required>
                         </div>
                         <div class="st-field">
                             <label for="stLast">Last name <span class="req">*</span></label>
-                            <input type="text" id="stLast" class="st-input" value="Okoye" placeholder="Your last name">
+                            <input type="text" id="stLast" class="st-input" value="{{ settings_profile.last_name }}" placeholder="Your last name" maxlength="80" required>
                         </div>
                         <div class="st-field">
                             <label for="stUsername">Username <span class="req">*</span></label>
                             <div class="st-input-wrap">
                                 <span class="prefix">@</span>
-                                <input type="text" id="stUsername" value="amara.okoye" placeholder="username">
+                                <input type="text" id="stUsername" class="st-input" value="{{ settings_profile.username }}" placeholder="username" autocomplete="username" maxlength="30" aria-describedby="stUsernameHelp" data-username-check-url="{% url 'student_username_available' %}">
                             </div>
-                            <div class="st-field-help">knotwork.io/@amara.okoye · Must be unique</div>
+                            <div class="st-field-help" id="stUsernameHelp" aria-live="polite">Checking username availability…</div>
                         </div>
                         <div class="st-field">
                             <label for="stEmail">Email address <span class="req">*</span></label>
-                            <input type="email" id="stEmail" class="st-input" value="amara.okoye@knotwork.io" placeholder="you@example.com">
+                            <input type="email" id="stEmail" class="st-input" value="{{ settings_profile.email }}" placeholder="you@example.com" maxlength="254" required>
                             <div class="st-field-help">
-                                <i class="bi bi-patch-check-fill" style="color:var(--secondary-deep);font-size:0.72rem;"></i>
-                                Verified · Used for sign-in and notifications
+                                Used for sign-in and notifications
                             </div>
                         </div>
                         <div class="st-field full">
                             <label for="stBio">Short bio <span class="opt">Optional</span></label>
-                            <textarea id="stBio" class="st-textarea" placeholder="Tell the community what you're working on…">Frontend learner building a React portfolio. Learning three tracks in parallel — always up for a design swap.</textarea>
-                            <div class="st-field-help">Up to 280 characters · <strong style="color:var(--primary-dark);">138</strong> used</div>
+                            <textarea id="stBio" class="st-textarea" placeholder="Tell the community what you're working on…" maxlength="280">{{ settings_profile.bio }}</textarea>
+                            <div class="st-field-help">Up to 280 characters · <strong id="stBioCount" style="color:var(--primary-dark);">0</strong> used</div>
                         </div>
                     </div>
                 </div>
@@ -1202,6 +1219,7 @@
                         <div class="st-field">
                             <label for="stCountry">Country</label>
                             <select id="stCountry" class="st-select">
+                                <option value="">Select a country</option>
                                 <option>Nigeria</option>
                                 <option>Ghana</option>
                                 <option>Kenya</option>
@@ -1212,15 +1230,16 @@
                         </div>
                         <div class="st-field">
                             <label for="stCity">City</label>
-                            <input type="text" id="stCity" class="st-input" value="Lagos" placeholder="Your city">
+                            <input type="text" id="stCity" class="st-input" placeholder="Your city">
                         </div>
                         <div class="st-field">
                             <label for="stTimezone">Time zone</label>
                             <select id="stTimezone" class="st-select">
-                                <option>GMT +01:00 · Lagos</option>
-                                <option>GMT +00:00 · London</option>
-                                <option>GMT −05:00 · New York</option>
-                                <option>GMT +05:30 · Mumbai</option>
+                                <option value="" {% if not settings_profile.timezone %}selected{% endif %}>Select a time zone</option>
+                                <option {% if settings_profile.timezone == 'GMT +01:00 · Lagos' %}selected{% endif %}>GMT +01:00 · Lagos</option>
+                                <option {% if settings_profile.timezone == 'GMT +00:00 · London' %}selected{% endif %}>GMT +00:00 · London</option>
+                                <option {% if settings_profile.timezone == 'GMT −05:00 · New York' %}selected{% endif %}>GMT −05:00 · New York</option>
+                                <option {% if settings_profile.timezone == 'GMT +05:30 · Mumbai' %}selected{% endif %}>GMT +05:30 · Mumbai</option>
                             </select>
                         </div>
                     </div>
@@ -1238,28 +1257,28 @@
                             <label for="stWebsite">Website</label>
                             <div class="st-input-wrap">
                                 <span class="prefix">https://</span>
-                                <input type="text" id="stWebsite" value="amara.design" placeholder="yourwebsite.com">
+                                <input type="text" id="stWebsite" class="st-input" placeholder="yourwebsite.com">
                             </div>
                         </div>
                         <div class="st-field">
                             <label for="stTwitter">X / Twitter</label>
                             <div class="st-input-wrap">
                                 <span class="prefix">@</span>
-                                <input type="text" id="stTwitter" value="amaraokoye" placeholder="handle">
+                                <input type="text" id="stTwitter" class="st-input" placeholder="handle">
                             </div>
                         </div>
                         <div class="st-field">
                             <label for="stGithub">GitHub</label>
                             <div class="st-input-wrap">
                                 <span class="prefix">github.com/</span>
-                                <input type="text" id="stGithub" value="amaraokoye" placeholder="username">
+                                <input type="text" id="stGithub" class="st-input" placeholder="username">
                             </div>
                         </div>
                         <div class="st-field">
                             <label for="stLinkedin">LinkedIn</label>
                             <div class="st-input-wrap">
                                 <span class="prefix">linkedin.com/in/</span>
-                                <input type="text" id="stLinkedin" value="amaraokoye" placeholder="username">
+                                <input type="text" id="stLinkedin" class="st-input" placeholder="username">
                             </div>
                         </div>
                     </div>
@@ -1268,9 +1287,9 @@
             </div>
 
             <div class="st-panel-foot">
-                <div class="left"><i class="bi bi-info-circle"></i> Last saved 3 days ago</div>
-                <button class="btn btn-line btn-sm" data-toast="Changes discarded">Discard</button>
-                <button class="btn btn-secondary btn-sm" data-toast="Profile updated!" data-toast-type="success">
+                <div class="left" id="stProfileStatus" aria-live="polite"><i class="bi bi-info-circle"></i> All changes saved</div>
+                <button class="btn btn-line btn-sm" type="button" data-settings-discard="profile">Discard</button>
+                <button class="btn btn-secondary btn-sm" type="button" data-settings-save="profile">
                     <i class="bi bi-check-lg"></i> Save changes
                 </button>
             </div>
@@ -1311,7 +1330,7 @@
 
                     <div class="st-add-row">
                         <input type="text" placeholder="Add another teach skill…">
-                        <button data-toast="Skill added">Add</button>
+                        <button type="button">Add</button>
                     </div>
                 </div>
 
@@ -1336,7 +1355,7 @@
 
                     <div class="st-add-row">
                         <input type="text" placeholder="Add another skill you want to learn…">
-                        <button data-toast="Skill added">Add</button>
+                        <button type="button">Add</button>
                     </div>
                 </div>
 
@@ -1402,9 +1421,9 @@
             </div>
 
             <div class="st-panel-foot">
-                <div class="left"><i class="bi bi-lightning-charge-fill"></i> Changes take effect immediately</div>
-                <button class="btn btn-line btn-sm" data-toast="Changes discarded">Discard</button>
-                <button class="btn btn-secondary btn-sm" data-toast="Skills updated!" data-toast-type="success">
+                <div class="left" aria-live="polite"><i class="bi bi-lightning-charge-fill"></i> Skills and learning preferences update as you edit</div>
+                <button class="btn btn-line btn-sm" type="button" data-settings-discard="skills">Discard</button>
+                <button class="btn btn-secondary btn-sm" type="button" data-settings-save="skills">
                     <i class="bi bi-check-lg"></i> Save changes
                 </button>
             </div>
@@ -1443,7 +1462,7 @@
                         <span class="st-toggle"></span>
                         <span class="st-toggle-label">
                             <h5><i class="bi bi-envelope-fill"></i> Email notifications</h5>
-                            <p>Send important updates to amara.okoye@knotwork.io.</p>
+                            <p>Send important updates to {{ settings_profile.email }}.</p>
                         </span>
                     </label>
 
@@ -1580,11 +1599,11 @@
             </div>
 
             <div class="st-panel-foot">
-                <div class="left"><i class="bi bi-envelope-check"></i> Preference centre synced</div>
-                <button class="btn btn-line btn-sm" data-toast="Notifications paused for 24 hours">
+                <div class="left" aria-live="polite"><i class="bi bi-envelope-check"></i> Notification preferences saved</div>
+                <button class="btn btn-line btn-sm" type="button" id="stPauseNotifications">
                     <i class="bi bi-pause-circle"></i> Pause 24h
                 </button>
-                <button class="btn btn-secondary btn-sm" data-toast="Notification preferences saved!" data-toast-type="success">
+                <button class="btn btn-secondary btn-sm" type="button" data-settings-save="notifications">
                     <i class="bi bi-check-lg"></i> Save
                 </button>
             </div>
@@ -2280,6 +2299,617 @@
             if (el.tagName === 'BUTTON' || el.classList.contains('camera')) return;
         });
 
+    })();
+</script>
+
+<script>
+    (function () {
+        'use strict';
+
+        var storageKey = 'knot.student.settings.v1.{{ request.user.id|default:"guest" }}';
+        var avatarKey = 'profile-{{ request.user.id|default:"guest" }}';
+        var maxPhotoBytes = 5 * 1024 * 1024;
+        var allowedPhotoTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        var profileStatus = document.getElementById('stProfileStatus');
+        var bioInput = document.getElementById('stBio');
+        var bioCount = document.getElementById('stBioCount');
+        var usernameInput = document.getElementById('stUsername');
+        var usernameHelp = document.getElementById('stUsernameHelp');
+        var firstNameInput = document.getElementById('stFirst');
+        var lastNameInput = document.getElementById('stLast');
+        var avatarFile = document.getElementById('stAvatarFile');
+        var avatarImage = document.querySelector('.st-avatar-image');
+        var avatarInitials = document.querySelector('.st-avatar-initials');
+        var avatarUrl = null;
+        var saveTimer = null;
+        var saveCountdown = null;
+        var profileSaveController = null;
+        var usernameCheckTimer = null;
+        var usernameCheckRequest = 0;
+        var usernameState = 'pending';
+        var savedState = {};
+        var initialSkills = [];
+
+        function toast(message, type) {
+            if (window.__toast) window.__toast(message, type || 'success');
+        }
+
+        function readStoredState() {
+            try {
+                var state = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                if (!state || typeof state !== 'object' || Array.isArray(state)) {
+                    throw new Error('Saved settings have an invalid format.');
+                }
+                return state;
+            } catch (error) {
+                toast('Saved settings could not be read. Defaults are shown.', 'error');
+                return {};
+            }
+        }
+
+        function writeStoredState() {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(savedState));
+                return true;
+            } catch (error) {
+                toast('Settings could not be saved in this browser. Check available storage space.', 'error');
+                return false;
+            }
+        }
+
+        function getFields() {
+            var fields = {};
+            document.querySelectorAll('#stPanelProfile .st-input, #stPanelProfile .st-textarea, #stPanelProfile .st-select, #stPanelAppearance .st-select').forEach(function (field) {
+                if (field.id && !field.hasAttribute('readonly')) fields[field.id] = field.value;
+            });
+            return fields;
+        }
+
+        function getToggles() {
+            return Array.prototype.map.call(document.querySelectorAll('.st-toggle-row input[type="checkbox"]'), function (input) {
+                return input.checked;
+            });
+        }
+
+        function getSkills() {
+            return Array.prototype.map.call(document.querySelectorAll('.st-chips'), function (group) {
+                return Array.prototype.map.call(group.querySelectorAll('.st-chip'), function (chip) {
+                    return { name: chip.dataset.skill, selected: chip.classList.contains('on') };
+                });
+            });
+        }
+
+        function getAvailability() {
+            return Array.prototype.map.call(document.querySelectorAll('.st-pills'), function (group) {
+                return Array.prototype.map.call(group.querySelectorAll('.st-pill'), function (pill) {
+                    return pill.classList.contains('on');
+                });
+            });
+        }
+
+        function getTheme() {
+            var selected = document.querySelector('.st-theme.on');
+            return selected ? selected.dataset.theme : 'system';
+        }
+
+        function saveFields() {
+            savedState.fields = getFields();
+            return writeStoredState();
+        }
+
+        function saveLearningPreferences() {
+            savedState.skills = getSkills();
+            savedState.availability = getAvailability();
+            return writeStoredState();
+        }
+
+        function saveToggles() {
+            savedState.toggles = getToggles();
+            return writeStoredState();
+        }
+
+        function resumeNotifications() {
+            if (!savedState.pauseOriginalToggles) return;
+            var toggles = document.querySelectorAll('.st-toggle-row input[type="checkbox"]');
+            savedState.pauseOriginalToggles.forEach(function (checked, index) {
+                if (toggles[index]) toggles[index].checked = checked;
+            });
+            savedState.toggles = savedState.pauseOriginalToggles.slice();
+            delete savedState.pauseOriginalToggles;
+            delete savedState.pauseUntil;
+            writeStoredState();
+        }
+
+        function applyNotificationPause() {
+            if (!savedState.pauseUntil || !savedState.pauseOriginalToggles) return;
+            var remaining = savedState.pauseUntil - Date.now();
+            if (remaining <= 0) {
+                resumeNotifications();
+                return;
+            }
+            document.querySelectorAll('#stPanelNotifications .st-toggle-row input[type="checkbox"]').forEach(function (toggle) {
+                toggle.checked = false;
+            });
+            window.setTimeout(resumeNotifications, remaining);
+        }
+
+        function updateBioCount() {
+            if (!bioInput || !bioCount) return;
+            bioInput.maxLength = 280;
+            bioCount.textContent = String(bioInput.value.length);
+        }
+
+        function updateInitials() {
+            var first = firstNameInput.value.trim().charAt(0);
+            var last = lastNameInput.value.trim().charAt(0);
+            avatarInitials.textContent = (first + last).toUpperCase() || 'S';
+        }
+
+        function updateUsernameValidity() {
+            var username = usernameInput.value.trim();
+            var valid = /^[a-zA-Z0-9_.-]{3,30}$/.test(username);
+            usernameInput.setAttribute('aria-invalid', valid ? 'false' : 'true');
+            if (!valid) {
+                usernameHelp.textContent = 'Use 3–30 letters, numbers, periods, underscores or hyphens.';
+                usernameState = 'invalid';
+            }
+            return valid;
+        }
+
+        function checkUsernameAvailability() {
+            if (!updateUsernameValidity()) return;
+            var username = usernameInput.value.trim();
+            var requestNumber = ++usernameCheckRequest;
+            usernameState = 'pending';
+            usernameHelp.textContent = 'Checking username availability…';
+            if (usernameCheckTimer) window.clearTimeout(usernameCheckTimer);
+            usernameCheckTimer = window.setTimeout(function () {
+                var endpoint = usernameInput.dataset.usernameCheckUrl;
+                fetch(endpoint + '?username=' + encodeURIComponent(username), {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function (response) {
+                    if (!response.ok) throw new Error('Username availability could not be checked.');
+                    return response.json();
+                }).then(function (result) {
+                    if (requestNumber !== usernameCheckRequest) return;
+                    usernameState = result.available ? 'available' : 'unavailable';
+                    usernameInput.setAttribute('aria-invalid', result.available ? 'false' : 'true');
+                    usernameHelp.textContent = result.available
+                        ? 'knotwork.io/@' + username + ' · Username is available'
+                        : 'That username is already in use. Try another.';
+                }).catch(function (error) {
+                    if (requestNumber !== usernameCheckRequest) return;
+                    usernameState = 'unverified';
+                    usernameInput.setAttribute('aria-invalid', 'true');
+                    usernameHelp.textContent = 'Could not check username availability. Try again.';
+                    toast(error.message, 'error');
+                });
+            }, 250);
+        }
+
+        function updateSkillCount(group) {
+            var section = group.closest('.st-section');
+            var hint = section ? section.querySelector('.st-section-title .hint') : null;
+            if (!hint) return;
+            var selected = group.querySelectorAll('.st-chip.on').length;
+            hint.textContent = selected + ' selected · up to 10';
+        }
+
+        function createSkillChip(skill) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'st-chip' + (skill.selected ? ' on' : '');
+            chip.dataset.skill = skill.name;
+            chip.appendChild(document.createTextNode(skill.name));
+            if (skill.selected) {
+                var removeIcon = document.createElement('i');
+                removeIcon.className = 'bi bi-x-lg x';
+                removeIcon.setAttribute('aria-hidden', 'true');
+                chip.appendChild(document.createTextNode(' '));
+                chip.appendChild(removeIcon);
+            }
+            return chip;
+        }
+
+        function renderSkillGroups(groups) {
+            document.querySelectorAll('.st-chips').forEach(function (group, index) {
+                var skills = groups && groups[index] ? groups[index] : initialSkills[index];
+                group.replaceChildren();
+                skills.forEach(function (skill) {
+                    group.appendChild(createSkillChip(skill));
+                });
+                updateSkillCount(group);
+            });
+        }
+
+        function applyStoredState(state) {
+            Object.keys(state.fields || {}).forEach(function (id) {
+                var field = document.getElementById(id);
+                if (field && !field.hasAttribute('readonly')) field.value = state.fields[id];
+            });
+            var toggles = document.querySelectorAll('.st-toggle-row input[type="checkbox"]');
+            (state.toggles || []).forEach(function (checked, index) {
+                if (toggles[index]) toggles[index].checked = checked;
+            });
+            renderSkillGroups(state.skills || initialSkills);
+            document.querySelectorAll('.st-pills').forEach(function (group, groupIndex) {
+                var selections = state.availability && state.availability[groupIndex];
+                if (!selections) return;
+                group.querySelectorAll('.st-pill').forEach(function (pill, index) {
+                    pill.classList.toggle('on', Boolean(selections[index]));
+                });
+            });
+            if (state.theme) {
+                document.querySelectorAll('.st-theme').forEach(function (theme) {
+                    theme.classList.toggle('on', theme.dataset.theme === state.theme);
+                });
+            }
+            updateBioCount();
+            updateInitials();
+            updateUsernameValidity();
+        }
+
+        function showProfileSaved(message) {
+            if (saveTimer) window.clearTimeout(saveTimer);
+            if (saveCountdown) window.clearInterval(saveCountdown);
+            saveTimer = null;
+            saveCountdown = null;
+            profileStatus.innerHTML = '<i class="bi bi-check-circle"></i> ' + message;
+        }
+
+        function saveProfile(showMessage) {
+            if (!updateUsernameValidity()) {
+                showProfileSaved('Fix the username format before saving');
+                usernameInput.focus();
+                return false;
+            }
+            if (usernameState !== 'available') {
+                showProfileSaved(usernameState === 'unavailable'
+                    ? 'Choose an available username before saving'
+                    : usernameState === 'pending'
+                        ? 'Wait for the username check to finish'
+                        : 'Username availability could not be verified');
+                usernameInput.focus();
+                return false;
+            }
+            if (saveTimer) window.clearTimeout(saveTimer);
+            if (saveCountdown) window.clearInterval(saveCountdown);
+            var csrfInput = document.querySelector('#stSettingsCsrf [name="csrfmiddlewaretoken"]');
+            var fields = getFields();
+            var body = new URLSearchParams({
+                first_name: fields.stFirst || '',
+                last_name: fields.stLast || '',
+                username: fields.stUsername || '',
+                email: fields.stEmail || '',
+                bio: fields.stBio || '',
+                timezone: fields.stTimezone || ''
+            });
+            if (profileSaveController) profileSaveController.abort();
+            profileSaveController = new AbortController();
+            return fetch(window.location.pathname, {
+                method: 'POST',
+                credentials: 'same-origin',
+                signal: profileSaveController.signal,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'X-CSRFToken': csrfInput ? csrfInput.value : ''
+                },
+                body: body.toString()
+            }).then(function (response) {
+                return response.json().then(function (result) {
+                    if (!response.ok) throw new Error(result.error || 'Profile settings could not be saved.');
+                    return result;
+                });
+            }).then(function () {
+                var browserStateSaved = saveFields();
+                showProfileSaved(browserStateSaved ? 'All changes saved' : 'Account changes saved');
+                if (showMessage) toast('Profile settings saved.', 'success');
+                return true;
+            }).catch(function (error) {
+                if (error.name === 'AbortError') return false;
+                showProfileSaved('Profile could not be saved');
+                toast(error.message, 'error');
+                return false;
+            });
+        }
+
+        function scheduleProfileSave() {
+            if (!updateUsernameValidity()) {
+                showProfileSaved('Fix the username format before saving');
+                return;
+            }
+            if (saveTimer) window.clearTimeout(saveTimer);
+            if (saveCountdown) window.clearInterval(saveCountdown);
+            var secondsRemaining = 5;
+            profileStatus.innerHTML = '<span class="st-unsaved"><i class="bi bi-circle-fill"></i> Auto-saving in <span id="stSaveCountdown">5</span>s</span>';
+            saveCountdown = window.setInterval(function () {
+                secondsRemaining -= 1;
+                var countdown = document.getElementById('stSaveCountdown');
+                if (countdown) countdown.textContent = String(Math.max(secondsRemaining, 0));
+            }, 1000);
+            saveTimer = window.setTimeout(function () { saveProfile(false); }, 5000);
+        }
+
+        document.querySelectorAll('.st-chips').forEach(function (group, groupIndex) {
+            var defaultSkills = Array.prototype.map.call(group.querySelectorAll('.st-chip'), function (chip) {
+                var name = chip.textContent.trim();
+                return { name: name, selected: chip.classList.contains('on') };
+            });
+            initialSkills[groupIndex] = defaultSkills;
+        });
+        savedState = readStoredState();
+        applyStoredState(savedState);
+
+        document.querySelectorAll('#stPanelProfile .st-input, #stPanelProfile .st-textarea, #stPanelProfile .st-select, #stPanelAppearance .st-select').forEach(function (field) {
+            field.addEventListener('input', function () {
+                updateBioCount();
+                updateInitials();
+                if (field === usernameInput) checkUsernameAvailability();
+                scheduleProfileSave();
+            });
+            field.addEventListener('change', function () {
+                if (field === usernameInput) checkUsernameAvailability();
+                scheduleProfileSave();
+            });
+        });
+
+        document.querySelectorAll('.st-chips').forEach(function (group) {
+            group.addEventListener('click', function (event) {
+                var chip = event.target.closest('.st-chip');
+                if (!chip) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (event.target.closest('.x')) {
+                    chip.remove();
+                } else {
+                    var selectedCount = group.querySelectorAll('.st-chip.on').length;
+                    if (!chip.classList.contains('on') && selectedCount >= 10) {
+                        toast('You can select up to 10 skills in each list.', 'error');
+                        return;
+                    }
+                    var name = chip.dataset.skill || chip.textContent.trim();
+                    chip.replaceWith(createSkillChip({ name: name, selected: !chip.classList.contains('on') }));
+                }
+                updateSkillCount(group);
+            }, true);
+        });
+
+        document.querySelectorAll('.st-add-row').forEach(function (row) {
+            var input = row.querySelector('input');
+            var button = row.querySelector('button');
+            var group = row.previousElementSibling;
+            function addSkill(event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+                var name = input.value.trim();
+                if (!name) {
+                    toast('Type a skill first.', 'error');
+                    return;
+                }
+                var alreadyExists = Array.prototype.some.call(group.querySelectorAll('.st-chip'), function (chip) {
+                    return chip.dataset.skill.toLowerCase() === name.toLowerCase();
+                });
+                if (alreadyExists) {
+                    toast('That skill is already in the list.', 'error');
+                    return;
+                }
+                if (group.querySelectorAll('.st-chip.on').length >= 10) {
+                    toast('You can select up to 10 skills in each list.', 'error');
+                    return;
+                }
+                group.appendChild(createSkillChip({ name: name, selected: true }));
+                input.value = '';
+                updateSkillCount(group);
+            }
+            button.addEventListener('click', addSkill, true);
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') addSkill(event);
+            }, true);
+        });
+
+        document.querySelectorAll('.st-pills').forEach(function (group) {
+            group.addEventListener('click', function (event) {
+                var pill = event.target.closest('.st-pill');
+                if (!pill) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (group.dataset.multi === 'true') {
+                    pill.classList.toggle('on');
+                } else {
+                    group.querySelectorAll('.st-pill').forEach(function (item) { item.classList.remove('on'); });
+                    pill.classList.add('on');
+                }
+            }, true);
+        });
+
+        document.querySelectorAll('.st-toggle-row input[type="checkbox"]').forEach(function (toggle) {
+            toggle.addEventListener('change', function () {
+                if (saveToggles()) {
+                    var panel = toggle.closest('.st-panel');
+                    var status = panel && panel.querySelector('.st-panel-foot .left');
+                    if (status) status.textContent = 'Preferences updated and saved';
+                }
+            });
+        });
+
+        document.querySelectorAll('.st-theme').forEach(function (theme) {
+            theme.addEventListener('click', function () {
+                savedState.theme = getTheme();
+                writeStoredState();
+            });
+        });
+
+        document.querySelectorAll('[data-settings-save]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (this.dataset.settingsSave === 'profile') {
+                    saveProfile(true);
+                } else if (this.dataset.settingsSave === 'skills') {
+                    if (saveLearningPreferences()) toast('Skills and learning preferences saved.', 'success');
+                } else if (this.dataset.settingsSave === 'notifications') {
+                    if (saveToggles()) toast('Notification preferences saved.', 'success');
+                }
+            });
+        });
+
+        document.querySelectorAll('[data-settings-discard]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (this.dataset.settingsDiscard === 'profile') {
+                    if (saveTimer) window.clearTimeout(saveTimer);
+                    if (saveCountdown) window.clearInterval(saveCountdown);
+                    if (profileSaveController) profileSaveController.abort();
+                    applyStoredState(savedState);
+                    showProfileSaved('Changes discarded');
+                } else if (this.dataset.settingsDiscard === 'skills') {
+                    renderSkillGroups(savedState.skills || initialSkills);
+                    document.querySelectorAll('.st-pills').forEach(function (group, groupIndex) {
+                        var selections = savedState.availability && savedState.availability[groupIndex];
+                        if (selections) group.querySelectorAll('.st-pill').forEach(function (pill, index) {
+                            pill.classList.toggle('on', Boolean(selections[index]));
+                        });
+                    });
+                    toast('Unsaved skill changes discarded.', 'success');
+                }
+            });
+        });
+
+        var exportButton = document.getElementById('stExportData');
+        exportButton.addEventListener('click', function () {
+            var exportData = {
+                exportedAt: new Date().toISOString(),
+                profile: getFields(),
+                skills: getSkills(),
+                availability: getAvailability(),
+                notificationPreferences: getToggles()
+            };
+            var file = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(file);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'knotwork-settings.json';
+            link.click();
+            window.setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+            toast('Your settings export has been downloaded.', 'success');
+        });
+
+        var avatarPicker = document.getElementById('stAvatarCamera');
+        document.getElementById('stAvatarUpload').addEventListener('click', function () { avatarFile.click(); });
+        avatarPicker.addEventListener('click', function () { avatarFile.click(); });
+
+        function openAvatarDatabase() {
+            return new Promise(function (resolve, reject) {
+                if (!window.indexedDB) {
+                    reject(new Error('Profile photo storage is unavailable in this browser.'));
+                    return;
+                }
+                var request = indexedDB.open('knotwork-student-settings', 1);
+                request.onupgradeneeded = function () {
+                    request.result.createObjectStore('avatars');
+                };
+                request.onsuccess = function () { resolve(request.result); };
+                request.onerror = function () { reject(request.error); };
+            });
+        }
+
+        function storeAvatar(blob) {
+            return openAvatarDatabase().then(function (database) {
+                return new Promise(function (resolve, reject) {
+                    var transaction = database.transaction('avatars', 'readwrite');
+                    transaction.objectStore('avatars').put(blob, avatarKey);
+                    transaction.oncomplete = function () { database.close(); resolve(); };
+                    transaction.onerror = function () { database.close(); reject(transaction.error); };
+                });
+            });
+        }
+
+        function loadAvatar() {
+            openAvatarDatabase().then(function (database) {
+                var request = database.transaction('avatars', 'readonly').objectStore('avatars').get(avatarKey);
+                request.onsuccess = function () {
+                    if (request.result) showAvatar(request.result);
+                    database.close();
+                };
+                request.onerror = function () {
+                    database.close();
+                    toast('The saved profile photo could not be loaded.', 'error');
+                };
+            }).catch(function () {
+                toast('Profile photo storage is unavailable in this browser.', 'error');
+            });
+        }
+
+        function showAvatar(blob) {
+            if (avatarUrl) URL.revokeObjectURL(avatarUrl);
+            avatarUrl = URL.createObjectURL(blob);
+            avatarImage.src = avatarUrl;
+            avatarImage.hidden = false;
+            avatarInitials.hidden = true;
+        }
+
+        avatarFile.addEventListener('change', function () {
+            var file = avatarFile.files[0];
+            if (!file) return;
+            if (allowedPhotoTypes.indexOf(file.type) === -1 || file.size > maxPhotoBytes) {
+                toast('Choose a PNG, JPG or WebP image no larger than 5 MB.', 'error');
+                avatarFile.value = '';
+                return;
+            }
+            var imageCheck = window.createImageBitmap
+                ? window.createImageBitmap(file)
+                : Promise.reject(new Error('This browser cannot validate image uploads.'));
+            imageCheck.then(function (bitmap) {
+                var validImage = bitmap.width > 0 && bitmap.height > 0;
+                bitmap.close();
+                if (!validImage) throw new Error('The selected file is not a valid image.');
+                return storeAvatar(file);
+            }).then(function () {
+                showAvatar(file);
+                avatarFile.value = '';
+                toast('Profile photo updated.', 'success');
+            }).catch(function () {
+                toast('Choose a valid PNG, JPG or WebP image no larger than 5 MB.', 'error');
+            });
+        });
+
+        document.getElementById('stAvatarRemove').addEventListener('click', function () {
+            openAvatarDatabase().then(function (database) {
+                var transaction = database.transaction('avatars', 'readwrite');
+                transaction.objectStore('avatars').delete(avatarKey);
+                transaction.oncomplete = function () {
+                    database.close();
+                    if (avatarUrl) URL.revokeObjectURL(avatarUrl);
+                    avatarUrl = null;
+                    avatarImage.removeAttribute('src');
+                    avatarImage.hidden = true;
+                    avatarInitials.hidden = false;
+                    avatarFile.value = '';
+                    toast('Profile photo removed.', 'success');
+                };
+                transaction.onerror = function () {
+                    database.close();
+                    toast('The profile photo could not be removed.', 'error');
+                };
+            }).catch(function () {
+                toast('The profile photo could not be removed.', 'error');
+            });
+        });
+
+        document.getElementById('stPauseNotifications').addEventListener('click', function () {
+            if (!savedState.pauseOriginalToggles) savedState.pauseOriginalToggles = getToggles();
+            savedState.pauseUntil = Date.now() + 24 * 60 * 60 * 1000;
+            document.querySelectorAll('#stPanelNotifications .st-toggle-row input[type="checkbox"]').forEach(function (toggle) {
+                toggle.checked = false;
+            });
+            if (saveToggles()) toast('Notifications paused for 24 hours.', 'success');
+        });
+
+        updateBioCount();
+        updateInitials();
+        checkUsernameAvailability();
+        applyNotificationPause();
+        loadAvatar();
     })();
 </script>
 

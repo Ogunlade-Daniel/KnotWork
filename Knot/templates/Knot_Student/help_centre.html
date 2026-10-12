@@ -833,6 +833,61 @@
     }
     .hc-article .body p strong { color: var(--secondary-deep); font-weight: 700; }
 
+    .hc-search-status {
+        margin: 14px 0 0;
+        padding: 11px 14px;
+        border-radius: 10px;
+        color: var(--gray-700);
+        background: var(--gray-100);
+        font-size: 0.82rem;
+    }
+    .hc-article-modal[hidden] { display: none; }
+    .hc-article-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1080;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+    }
+    .hc-article-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.64);
+    }
+    .hc-article-dialog {
+        position: relative;
+        z-index: 1;
+        width: min(100%, 680px);
+        max-height: min(82vh, 760px);
+        overflow-y: auto;
+        padding: 30px;
+        border-radius: 20px;
+        background: var(--white);
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.3);
+    }
+    .hc-article-dialog h2 {
+        margin: 18px 44px 18px 0;
+        color: var(--primary-dark);
+        font-size: clamp(1.3rem, 3vw, 1.8rem);
+    }
+    .hc-article-modal-content { color: var(--gray-700); line-height: 1.7; }
+    .hc-article-modal-content .hc-a-inner { padding: 0; }
+    .hc-article-modal-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 38px;
+        height: 38px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+    @media (max-width: 640px) {
+        .hc-article-dialog { padding: 24px 20px; }
+    }
+
     /* System status */
     .hc-status {
         display: flex;
@@ -1122,30 +1177,31 @@
             </div>
 
             <!-- Tabs -->
-            <div class="hc-faq-tabs" role="tablist" aria-label="FAQ categories">
-                <button class="hc-faq-tab active" data-tab="general" role="tab" aria-selected="true">
+            <div class="hc-faq-tabs nav nav-tabs" role="tablist" aria-label="FAQ categories">
+                <button class="hc-faq-tab nav-link active" id="hcTabGeneral" data-tab="general" data-bs-toggle="tab" data-bs-target="#hcPanelGeneral" role="tab" aria-controls="hcPanelGeneral" aria-selected="true">
                     <i class="bi bi-grid-fill"></i> General <span class="count">6</span>
                 </button>
-                <button class="hc-faq-tab" data-tab="sessions" role="tab" aria-selected="false">
+                <button class="hc-faq-tab nav-link" id="hcTabSessions" data-tab="sessions" data-bs-toggle="tab" data-bs-target="#hcPanelSessions" role="tab" aria-controls="hcPanelSessions" aria-selected="false">
                     <i class="bi bi-camera-video-fill"></i> Sessions <span class="count">5</span>
                 </button>
-                <button class="hc-faq-tab" data-tab="credits" role="tab" aria-selected="false">
+                <button class="hc-faq-tab nav-link" id="hcTabCredits" data-tab="credits" data-bs-toggle="tab" data-bs-target="#hcPanelCredits" role="tab" aria-controls="hcPanelCredits" aria-selected="false">
                     <i class="bi bi-wallet2"></i> Credits <span class="count">4</span>
                 </button>
-                <button class="hc-faq-tab" data-tab="account" role="tab" aria-selected="false">
+                <button class="hc-faq-tab nav-link" id="hcTabAccount" data-tab="account" data-bs-toggle="tab" data-bs-target="#hcPanelAccount" role="tab" aria-controls="hcPanelAccount" aria-selected="false">
                     <i class="bi bi-shield-lock-fill"></i> Account <span class="count">4</span>
                 </button>
-                <button class="hc-faq-tab" data-tab="safety" role="tab" aria-selected="false">
+                <button class="hc-faq-tab nav-link" id="hcTabSafety" data-tab="safety" data-bs-toggle="tab" data-bs-target="#hcPanelSafety" role="tab" aria-controls="hcPanelSafety" aria-selected="false">
                     <i class="bi bi-shield-check"></i> Safety <span class="count">4</span>
                 </button>
             </div>
+            <p class="hc-search-status" id="hcSearchStatus" role="status" aria-live="polite" hidden></p>
 
             <div class="hc-faq-body">
 
                 <!-- ============================================================
                      PANEL: GENERAL
                      ============================================================ -->
-                <div class="hc-faq-panel active" id="hcPanelGeneral" role="tabpanel">
+                <div class="hc-faq-panel tab-pane active show" id="hcPanelGeneral" role="tabpanel" aria-labelledby="hcTabGeneral">
 
                     <div class="hc-item open">
                         <button class="hc-q" aria-expanded="true">
@@ -1205,7 +1261,7 @@
                         </div>
                     </div>
 
-                    <div class="hc-item">
+                    <div class="hc-item" id="hcArticleMatching">
                         <button class="hc-q" aria-expanded="false">
                             <span class="num">04</span>
                             How does the matching algorithm work?
@@ -1281,9 +1337,9 @@
                 <!-- ============================================================
                      PANEL: SESSIONS
                      ============================================================ -->
-                <div class="hc-faq-panel" id="hcPanelSessions" role="tabpanel">
+                <div class="hc-faq-panel tab-pane" id="hcPanelSessions" role="tabpanel" aria-labelledby="hcTabSessions">
 
-                    <div class="hc-item">
+                    <div class="hc-item" id="hcArticleSession">
                         <button class="hc-q" aria-expanded="false">
                             <span class="num">01</span>
                             How do I book a session with someone?
@@ -1386,7 +1442,7 @@
                 <!-- ============================================================
                      PANEL: CREDITS
                      ============================================================ -->
-                <div class="hc-faq-panel" id="hcPanelCredits" role="tabpanel">
+                <div class="hc-faq-panel tab-pane" id="hcPanelCredits" role="tabpanel" aria-labelledby="hcTabCredits">
 
                     <div class="hc-item">
                         <button class="hc-q" aria-expanded="false">
@@ -1408,7 +1464,7 @@
                         </div>
                     </div>
 
-                    <div class="hc-item">
+                    <div class="hc-item" id="hcArticleRefunds">
                         <button class="hc-q" aria-expanded="false">
                             <span class="num">02</span>
                             How do refunds work?
@@ -1470,7 +1526,7 @@
                 <!-- ============================================================
                      PANEL: ACCOUNT
                      ============================================================ -->
-                <div class="hc-faq-panel" id="hcPanelAccount" role="tabpanel">
+                <div class="hc-faq-panel tab-pane" id="hcPanelAccount" role="tabpanel" aria-labelledby="hcTabAccount">
 
                     <div class="hc-item">
                         <button class="hc-q" aria-expanded="false">
@@ -1491,7 +1547,7 @@
                         </div>
                     </div>
 
-                    <div class="hc-item">
+                    <div class="hc-item" id="hcArticleTwoFactor">
                         <button class="hc-q" aria-expanded="false">
                             <span class="num">02</span>
                             How do I enable two-factor authentication (2FA)?
@@ -1559,7 +1615,7 @@
                 <!-- ============================================================
                      PANEL: SAFETY
                      ============================================================ -->
-                <div class="hc-faq-panel" id="hcPanelSafety" role="tabpanel">
+                <div class="hc-faq-panel tab-pane" id="hcPanelSafety" role="tabpanel" aria-labelledby="hcTabSafety">
 
                     <div class="hc-item">
                         <button class="hc-q" aria-expanded="false">
@@ -1734,7 +1790,7 @@
                 <a class="link" href="#hcPanelGeneral">View all</a>
             </div>
 
-            <a class="hc-article" href="#hcPanelGeneral" data-faq-tab="general">
+            <a class="hc-article" href="#hcPanelGeneral" data-article-target="hcArticleMatching">
                 <span class="rank">1</span>
                 <div class="body">
                     <h5>How Knotwork's skill matching actually works</h5>
@@ -1742,7 +1798,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" href="#hcPanelSessions" data-faq-tab="sessions">
+            <a class="hc-article" href="#hcPanelSessions" data-article-target="hcArticleSession">
                 <span class="rank">2</span>
                 <div class="body">
                     <h5>Getting your first session booked</h5>
@@ -1750,7 +1806,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" href="#hcPanelCredits" data-faq-tab="credits">
+            <a class="hc-article" href="#hcPanelCredits" data-article-target="hcArticleRefunds">
                 <span class="rank">3</span>
                 <div class="body">
                     <h5>Credits, refunds and payouts explained</h5>
@@ -1758,7 +1814,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" href="#hcPanelAccount" data-faq-tab="account">
+            <a class="hc-article" href="#hcPanelAccount" data-article-target="hcArticleTwoFactor">
                 <span class="rank">4</span>
                 <div class="body">
                     <h5>Setting up two-factor authentication in 2 minutes</h5>
@@ -1766,7 +1822,7 @@
                 </div>
             </a>
 
-            <a class="hc-article" href="#hcPanelGeneral" data-faq-tab="general">
+            <a class="hc-article" href="#hcPanelGeneral" data-article-target="hcArticleMentor">
                 <span class="rank">5</span>
                 <div class="body">
                     <h5>Becoming a mentor: what we look for</h5>
@@ -1809,6 +1865,31 @@
     </div>
 </section>
 
+<template id="hcArticleMentor">
+    <div class="hc-a-inner">
+        <p>Mentors share practical knowledge, set clear expectations, and help learners make measurable progress. To get started:</p>
+        <ol>
+            <li>Complete your profile and list the skills and experience you can teach.</li>
+            <li>Choose an availability schedule you can reliably maintain.</li>
+            <li>Respond to learner requests with a short plan for the first session.</li>
+            <li>Use session feedback to improve your teaching approach and profile.</li>
+        </ol>
+        <p>Keep your profile accurate and your commitments consistent. Learners can review your public experience and feedback before they request a session.</p>
+    </div>
+</template>
+
+<div class="hc-article-modal" id="hcArticleModal" hidden>
+    <div class="hc-article-modal-backdrop" data-modal-close></div>
+    <section class="hc-article-dialog" role="dialog" aria-modal="true" aria-labelledby="hcArticleModalTitle">
+        <button class="hc-article-modal-close" type="button" data-modal-close aria-label="Close article">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <span class="badge-soft"><i class="bi bi-file-earmark-text-fill"></i> Knowledge base article</span>
+        <h2 id="hcArticleModalTitle"></h2>
+        <div class="hc-article-modal-content" id="hcArticleModalContent"></div>
+    </section>
+</div>
+
 
 <script>
     (function () {
@@ -1819,22 +1900,49 @@
            ====================================================== */
         var tabs = Array.prototype.slice.call(document.querySelectorAll('.hc-faq-tab'));
         var panels = Array.prototype.slice.call(document.querySelectorAll('.hc-faq-panel'));
+        var searchInput = document.getElementById('hcSearch');
+        var searchStatus = document.getElementById('hcSearchStatus');
+        var searchForm = searchInput ? searchInput.form : null;
+        var activeTabName = 'general';
 
         function activate(name) {
+            if (!tabs.some(function (tab) { return tab.dataset.tab === name; })) return;
+            activeTabName = name;
             tabs.forEach(function (t) {
                 var on = t.dataset.tab === name;
                 t.classList.toggle('active', on);
                 t.setAttribute('aria-selected', on ? 'true' : 'false');
+                t.tabIndex = on ? 0 : -1;
             });
             panels.forEach(function (p) {
-                var key = 'hcPanel' + name.charAt(0).toUpperCase() + name.slice(1);
-                p.classList.toggle('active', p.id === key);
+                var on = p.id === 'hcPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+                p.classList.toggle('active', on);
+                p.classList.toggle('show', on);
+                p.setAttribute('aria-hidden', on ? 'false' : 'true');
             });
         }
 
         tabs.forEach(function (t) {
-            t.addEventListener('click', function () { activate(this.dataset.tab); });
+            t.addEventListener('click', function (event) {
+                event.preventDefault();
+                activate(this.dataset.tab);
+            });
+            t.addEventListener('keydown', function (event) {
+                var index = tabs.indexOf(this);
+                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    index = (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+                    tabs[index].focus();
+                    activate(tabs[index].dataset.tab);
+                } else if (event.key === 'Home' || event.key === 'End') {
+                    event.preventDefault();
+                    index = event.key === 'Home' ? 0 : tabs.length - 1;
+                    tabs[index].focus();
+                    activate(tabs[index].dataset.tab);
+                }
+            });
         });
+        activate(activeTabName);
 
         /* ======================================================
            FAQ ACCORDION
@@ -1857,41 +1965,122 @@
             });
         });
 
-        /* ======================================================
-           TRENDING SEARCH → fill search box
-           ====================================================== */
-        var searchInput = document.getElementById('hcSearch');
+        function filterFaq() {
+            if (!searchInput) return;
+            var query = searchInput.value.trim().toLowerCase();
+            var matchingPanels = [];
+            var matchingCount = 0;
+            var otherMatches = 0;
+            panels.forEach(function (panel) {
+                var panelMatches = 0;
+                panel.querySelectorAll('.hc-item').forEach(function (item) {
+                    var matches = !query || item.textContent.toLowerCase().indexOf(query) !== -1;
+                    item.style.display = matches ? '' : 'none';
+                    if (!matches) {
+                        item.classList.remove('open');
+                        var question = item.querySelector('.hc-q');
+                        if (question) question.setAttribute('aria-expanded', 'false');
+                    } else {
+                        panelMatches += 1;
+                    }
+                });
+                if (panelMatches) matchingPanels.push(panel);
+                matchingCount += panelMatches;
+            });
+            document.querySelectorAll('.hc-article, .hc-cat').forEach(function (item) {
+                var matches = !query || item.textContent.toLowerCase().indexOf(query) !== -1;
+                item.style.display = matches ? '' : 'none';
+                if (query && matches) otherMatches += 1;
+            });
+
+            if (query) {
+                if (matchingPanels.length) {
+                    var firstTab = matchingPanels[0].id.replace('hcPanel', '');
+                    activate(firstTab.charAt(0).toLowerCase() + firstTab.slice(1));
+                }
+                var totalMatches = matchingCount + otherMatches;
+                searchStatus.textContent = totalMatches
+                    ? totalMatches + ' matching result' + (totalMatches === 1 ? '' : 's')
+                    : 'No articles match "' + searchInput.value.trim() + '". Try another search.';
+                searchStatus.hidden = false;
+            } else {
+                activate(activeTabName);
+                searchStatus.hidden = true;
+                searchStatus.textContent = '';
+            }
+        }
+
         document.querySelectorAll('.hc-trend').forEach(function (tag) {
             tag.addEventListener('click', function () {
                 var text = this.dataset.search || this.textContent.trim();
                 if (searchInput) {
                     searchInput.value = text;
                     searchInput.focus();
-                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    filterFaq();
                 }
             });
         });
 
         document.querySelectorAll('[data-faq-tab]').forEach(function (link) {
-            link.addEventListener('click', function () {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
                 var tab = document.querySelector('.hc-faq-tab[data-tab="' + this.dataset.faqTab + '"]');
                 if (tab) tab.click();
             });
         });
 
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                var query = this.value.trim().toLowerCase();
-                document.querySelectorAll('.hc-item').forEach(function (item) {
-                    item.style.display = !query || item.textContent.toLowerCase().includes(query) ? '' : 'none';
-                });
-                document.querySelectorAll('.hc-faq-panel').forEach(function (panel) {
-                    if (query && panel.querySelector('.hc-item:not([style*="display: none"])')) {
-                        activate(panel.id.replace('hcPanel', '').toLowerCase());
-                    }
-                });
+            searchInput.addEventListener('input', filterFaq);
+            if (searchForm) searchForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                filterFaq();
+            });
+        }
+
+        var articleModal = document.getElementById('hcArticleModal');
+        var modalTitle = document.getElementById('hcArticleModalTitle');
+        var modalContent = document.getElementById('hcArticleModalContent');
+        var lastFocusedElement = null;
+
+        function closeArticle() {
+            if (articleModal.hidden) return;
+            articleModal.hidden = true;
+            document.body.style.overflow = '';
+            if (lastFocusedElement) lastFocusedElement.focus();
+        }
+
+        document.querySelectorAll('.hc-article[data-article-target]').forEach(function (card) {
+            card.addEventListener('click', function (event) {
+                event.preventDefault();
+                var title = card.querySelector('h5');
+                var target = document.getElementById(card.dataset.articleTarget);
+                if (!title || !target) {
+                    if (window.__toast) window.__toast('This article is not available right now.', 'error');
+                    return;
+                }
+                modalTitle.textContent = title.textContent.trim();
+                modalContent.replaceChildren();
+                if (target.tagName === 'TEMPLATE') {
+                    modalContent.appendChild(target.content.cloneNode(true));
+                } else {
+                    var answer = target.querySelector('.hc-a-inner');
+                    if (answer) modalContent.appendChild(answer.cloneNode(true));
+                }
+                lastFocusedElement = card;
+                articleModal.hidden = false;
+                document.body.style.overflow = 'hidden';
+                articleModal.querySelector('.hc-article-modal-close').focus();
             });
         });
+
+        articleModal.querySelectorAll('[data-modal-close]').forEach(function (control) {
+            control.addEventListener('click', closeArticle);
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeArticle();
+        });
+
+        if (searchInput && searchInput.value.trim()) filterFaq();
 
     })();
 </script>

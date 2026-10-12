@@ -960,6 +960,7 @@
         cursor: pointer;
         transition: var(--transition);
     }
+    .cb-card-method[hidden] { display: none; }
     .cb-card-method .actions button:hover {
         background: rgba(190, 242, 100, 0.18);
         border-color: rgba(190, 242, 100, 0.4);
@@ -1285,7 +1286,7 @@
      ==================================================== -->
 <section class="cb-head fade-up">
     <div>
-        <span class="badge-soft"><i class="bi bi-wallet2"></i> 640 credits available</span>
+        <span class="badge-soft"><i class="bi bi-wallet2"></i> 0 credits available</span>
         <h1>Credits &amp; <span>Billing</span></h1>
         <p>Manage your credits wallet, review every transaction, and control your payment methods — all in one secure place.</p>
     </div>
@@ -1308,12 +1309,11 @@
     <div class="cb-hero-text">
         <span class="label"><i class="bi bi-wallet2"></i> Available balance</span>
         <div class="balance">
-            <strong>640</strong>
+            <strong>0</strong>
             <span>credits</span>
         </div>
         <p>
-            You've earned <strong>320 credits</strong> by teaching this term and spent <strong>460</strong> on sessions.
-            Your balance covers roughly <strong>8 more sessions</strong> at your average rate.
+            Your wallet is ready to use. No credits have been earned or spent yet.
         </p>
         <div class="cb-hero-actions">
             <button class="btn btn-secondary" data-toast="Opening credit packages…">
@@ -1328,22 +1328,22 @@
     <div class="cb-hero-stats">
         <div class="cb-hstat">
             <div class="ic"><i class="bi bi-graph-up-arrow"></i></div>
-            <div class="v">+320<em>cr</em></div>
+            <div class="v">+0<em>cr</em></div>
             <div class="l">Earned this month</div>
         </div>
         <div class="cb-hstat">
             <div class="ic sky"><i class="bi bi-cart-dash"></i></div>
-            <div class="v">−460<em>cr</em></div>
+            <div class="v">−0<em>cr</em></div>
             <div class="l">Spent this month</div>
         </div>
         <div class="cb-hstat">
             <div class="ic amber"><i class="bi bi-hourglass-split"></i></div>
-            <div class="v">80<em>cr</em></div>
+            <div class="v">0<em>cr</em></div>
             <div class="l">Pending release</div>
         </div>
         <div class="cb-hstat">
             <div class="ic violet"><i class="bi bi-calendar-check"></i></div>
-            <div class="v">+120<em>cr</em></div>
+            <div class="v">+0<em>cr</em></div>
             <div class="l">Next payout · 1 Apr</div>
         </div>
     </div>
@@ -1357,27 +1357,27 @@
     <div class="cb-kpi fade-up">
         <div class="cb-kpi-top">
             <div class="ic"><i class="bi bi-wallet2"></i></div>
-            <span class="cb-kpi-trend"><i class="bi bi-arrow-up"></i> +12%</span>
+            <span class="cb-kpi-trend neutral">0%</span>
         </div>
-        <div class="v">640<em>cr</em></div>
+        <div class="v">0<em>cr</em></div>
         <div class="l">Wallet balance</div>
     </div>
 
     <div class="cb-kpi fade-up">
         <div class="cb-kpi-top">
             <div class="ic accent"><i class="bi bi-arrow-down-circle"></i></div>
-            <span class="cb-kpi-trend"><i class="bi bi-arrow-up"></i> +85</span>
+            <span class="cb-kpi-trend neutral">0</span>
         </div>
-        <div class="v">1,860<em>cr</em></div>
+        <div class="v">0<em>cr</em></div>
         <div class="l">Total earned (all time)</div>
     </div>
 
     <div class="cb-kpi fade-up">
         <div class="cb-kpi-top">
             <div class="ic violet"><i class="bi bi-arrow-up-circle"></i></div>
-            <span class="cb-kpi-trend neutral">−8%</span>
+            <span class="cb-kpi-trend neutral">0%</span>
         </div>
-        <div class="v">1,220<em>cr</em></div>
+        <div class="v">0<em>cr</em></div>
         <div class="l">Total spent (all time)</div>
     </div>
 
@@ -1406,13 +1406,13 @@
             <!-- Tabs -->
             <div class="cb-tabs" role="tablist" aria-label="Billing sections">
                 <button class="cb-tab active" data-tab="wallet" role="tab" aria-selected="true">
-                    <i class="bi bi-wallet2"></i> Wallet <span class="count">640</span>
+                    <i class="bi bi-wallet2"></i> Wallet <span class="count">0</span>
                 </button>
                 <button class="cb-tab" data-tab="transactions" role="tab" aria-selected="false">
-                    <i class="bi bi-arrow-left-right"></i> Transactions <span class="count">6</span>
+                    <i class="bi bi-arrow-left-right"></i> Transactions <span class="count">0</span>
                 </button>
                 <button class="cb-tab" data-tab="methods" role="tab" aria-selected="false">
-                    <i class="bi bi-credit-card-2-front"></i> Payment methods <span class="count">3</span>
+                    <i class="bi bi-credit-card-2-front"></i> Payment methods <span class="count">0</span>
                 </button>
             </div>
 
@@ -1425,15 +1425,15 @@
                 <div class="cb-wallet-row">
                     <div class="cb-wallet-cell">
                         <div class="l">Available</div>
-                        <div class="v">640<em>cr</em></div>
+                        <div class="v">0<em>cr</em></div>
                     </div>
                     <div class="cb-wallet-cell">
                         <div class="l">Pending release</div>
-                        <div class="v">80<em>cr</em></div>
+                        <div class="v">0<em>cr</em></div>
                     </div>
                     <div class="cb-wallet-cell">
                         <div class="l">Total balance</div>
-                        <div class="v">720<em>cr</em></div>
+                        <div class="v">0<em>cr</em></div>
                     </div>
                 </div>
 
@@ -1442,7 +1442,7 @@
                     <div class="ic"><i class="bi bi-lightning-charge-fill"></i></div>
                     <div class="body">
                         <h5>Earn credits for every session you teach</h5>
-                        <p>You earn <strong>40 credits</strong> per completed exchange session as a mentor — that's <strong>3 more sessions</strong> until your next free one.</p>
+                        <p>You earn <strong>40 credits</strong> per completed exchange session as a mentor. Your current earned balance is <strong>0 credits</strong>.</p>
                     </div>
                     <button class="btn btn-secondary btn-sm" data-toast="Opening the mentor dashboard…">
                         <i class="bi bi-person-badge"></i> Teach now
@@ -1502,25 +1502,25 @@
                 <div class="cb-usage-item">
                     <div class="row">
                         <span class="lbl"><i class="bi bi-camera-video"></i> Sessions booked</span>
-                        <strong>720 cr · 60%</strong>
+                        <strong>0 cr · 0%</strong>
                     </div>
-                    <div class="bar"><span data-value="60"></span></div>
+                    <div class="bar"><span data-value="0"></span></div>
                 </div>
 
                 <div class="cb-usage-item">
                     <div class="row">
                         <span class="lbl"><i class="bi bi-book-open"></i> Courses &amp; materials</span>
-                        <strong>360 cr · 30%</strong>
+                        <strong>0 cr · 0%</strong>
                     </div>
-                    <div class="bar accent"><span data-value="30"></span></div>
+                    <div class="bar accent"><span data-value="0"></span></div>
                 </div>
 
                 <div class="cb-usage-item">
                     <div class="row">
                         <span class="lbl"><i class="bi bi-person-badge"></i> Mentorship</span>
-                        <strong>120 cr · 10%</strong>
+                        <strong>0 cr · 0%</strong>
                     </div>
-                    <div class="bar violet"><span data-value="10"></span></div>
+                    <div class="bar violet"><span data-value="0"></span></div>
                 </div>
 
             </div>
@@ -1553,92 +1553,12 @@
                     </div>
                 </div>
 
-                <div class="cb-tx-list" id="cbTxList">
+                <div class="cb-tx-list" id="cbTxList"></div>
 
-                    <!-- ---- Tx 1: Top-up ---- -->
-                    <div class="cb-tx" data-type="topup" data-title="Credit top-up · 600 credits">
-                        <div class="ic topup"><i class="bi bi-plus-circle-fill"></i></div>
-                        <div class="cb-tx-body">
-                            <h5>Credit top-up · 600 credits <span class="chip done">Completed</span></h5>
-                            <p>Via <strong>Visa •••• 4242</strong> · Order #KW-80241</p>
-                        </div>
-                        <div class="cb-tx-amount">
-                            <div class="cr plus">+600 cr</div>
-                            <div class="time">$48.00 · Today, 14:32</div>
-                        </div>
-                    </div>
-
-                    <!-- ---- Tx 2: Earned ---- -->
-                    <div class="cb-tx" data-type="earn" data-title="React Hooks session with Sara Kim">
-                        <div class="ic earn"><i class="bi bi-arrow-down-circle-fill"></i></div>
-                        <div class="cb-tx-body">
-                            <h5>Taught · React Hooks session <span class="chip done">Released</span></h5>
-                            <p>Session with <strong>Sara Kim</strong> · 45 min exchange</p>
-                        </div>
-                        <div class="cb-tx-amount">
-                            <div class="cr plus">+40 cr</div>
-                            <div class="time">2 hours ago</div>
-                        </div>
-                    </div>
-
-                    <!-- ---- Tx 3: Spent ---- -->
-                    <div class="cb-tx" data-type="spend" data-title="Design critique with Fatima Bello">
-                        <div class="ic spend"><i class="bi bi-arrow-up-circle-fill"></i></div>
-                        <div class="cb-tx-body">
-                            <h5>Session booked · Design critique <span class="chip done">Completed</span></h5>
-                            <p>With <strong>Fatima Bello</strong> · 60 min group session</p>
-                        </div>
-                        <div class="cb-tx-amount">
-                            <div class="cr minus">−80 cr</div>
-                            <div class="time">Yesterday, 10:00</div>
-                        </div>
-                    </div>
-
-                    <!-- ---- Tx 4: Pending ---- -->
-                    <div class="cb-tx" data-type="earn" data-title="API Design Workshop">
-                        <div class="ic pending"><i class="bi bi-hourglass-split"></i></div>
-                        <div class="cb-tx-body">
-                            <h5>Taught · API Design Workshop <span class="chip pending">Pending</span></h5>
-                            <p>With <strong>Chidi Nwosu</strong> · releases in 5 days</p>
-                        </div>
-                        <div class="cb-tx-amount">
-                            <div class="cr plus" style="color:#B45309;">+80 cr</div>
-                            <div class="time">2 days ago</div>
-                        </div>
-                    </div>
-
-                    <!-- ---- Tx 5: Refund ---- -->
-                    <div class="cb-tx" data-type="topup" data-title="Refund · cancelled session">
-                        <div class="ic refund"><i class="bi bi-arrow-counterclockwise"></i></div>
-                        <div class="cb-tx-body">
-                            <h5>Refund · cancelled session <span class="chip done">Refunded</span></h5>
-                            <p>TypeScript Fundamentals with <strong>Chidi Nwosu</strong></p>
-                        </div>
-                        <div class="cb-tx-amount">
-                            <div class="cr plus">+90 cr</div>
-                            <div class="time">3 days ago</div>
-                        </div>
-                    </div>
-
-                    <!-- ---- Tx 6: Spent ---- -->
-                    <div class="cb-tx" data-type="spend" data-title="UI/UX Design Systems course">
-                        <div class="ic spend"><i class="bi bi-arrow-up-circle-fill"></i></div>
-                        <div class="cb-tx-body">
-                            <h5>Course purchase · UI/UX Design Systems <span class="chip done">Completed</span></h5>
-                            <p>Full 16-module course · lifetime access</p>
-                        </div>
-                        <div class="cb-tx-amount">
-                            <div class="cr minus">−220 cr</div>
-                            <div class="time">5 days ago</div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="cb-empty" id="cbTxEmpty" style="display:none;">
-                    <div class="ic"><i class="bi bi-search"></i></div>
-                    <h4>No transactions match</h4>
-                    <p>Try a different search term or clear the filter to see all your credit movements.</p>
+                <div class="cb-empty" id="cbTxEmpty">
+                    <div class="ic"><i class="bi bi-wallet2"></i></div>
+                    <h4>No transactions yet</h4>
+                    <p>Your credit activity will appear here when you earn or use credits.</p>
                 </div>
 
             </div>
@@ -1650,13 +1570,13 @@
 
                 <div class="cb-pm-head">
                     <h3><i class="bi bi-credit-card-2-front-fill"></i> Your payment methods</h3>
-                    <p>3 saved · 1 default · All secured by Stripe</p>
+                    <p>0 saved · 0 default · All secured by Stripe</p>
                 </div>
 
                 <div class="cb-pm-grid">
 
                     <!-- Card 1 — default -->
-                    <div class="cb-card-method">
+                    <div class="cb-card-method" hidden>
                         <div class="head">
                             <span class="brand">
                                 <i class="bi bi-credit-card-2-front-fill"></i> Visa
@@ -1685,7 +1605,7 @@
                     </div>
 
                     <!-- Card 2 -->
-                    <div class="cb-card-method accent">
+                    <div class="cb-card-method accent" hidden>
                         <div class="head">
                             <span class="brand">
                                 <i class="bi bi-credit-card-2-front-fill"></i> Mastercard
@@ -1713,7 +1633,7 @@
                     </div>
 
                     <!-- Card 3 — PayPal -->
-                    <div class="cb-card-method violet">
+                    <div class="cb-card-method violet" hidden>
                         <div class="head">
                             <span class="brand">
                                 <i class="bi bi-paypal"></i> PayPal
@@ -1756,10 +1676,7 @@
                         <button data-toast="Editing billing address…">Edit</button>
                     </div>
                     <div class="cb-billing-body">
-                        <strong>Amara Okoye</strong><br>
-                        12 Rumens Road, Ikoyi<br>
-                        Lagos 101233, Nigeria<br>
-                        VAT: NG-3849102
+                        No billing address saved.
                     </div>
                 </div>
 
@@ -1828,25 +1745,25 @@
             <div class="cb-usage-item">
                 <div class="row">
                     <span class="lbl"><i class="bi bi-camera-video"></i> Sessions</span>
-                    <strong>9 · 320 cr</strong>
+                    <strong>0 · 0 cr</strong>
                 </div>
-                <div class="bar"><span data-value="76"></span></div>
+                <div class="bar"><span data-value="0"></span></div>
             </div>
 
             <div class="cb-usage-item">
                 <div class="row">
                     <span class="lbl"><i class="bi bi-book-open"></i> Courses</span>
-                    <strong>2 · 220 cr</strong>
+                    <strong>0 · 0 cr</strong>
                 </div>
-                <div class="bar accent"><span data-value="52"></span></div>
+                <div class="bar accent"><span data-value="0"></span></div>
             </div>
 
             <div class="cb-usage-item">
                 <div class="row">
                     <span class="lbl"><i class="bi bi-person-badge"></i> Mentorship</span>
-                    <strong>1 · 60 cr</strong>
+                    <strong>0 · 0 cr</strong>
                 </div>
-                <div class="bar violet"><span data-value="14"></span></div>
+                <div class="bar violet"><span data-value="0"></span></div>
             </div>
         </div>
 
